@@ -1,18 +1,29 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useColorScheme } from 'react-native';
 
-import { AnimatedSplashOverlay } from '@/components/animated-icon';
-import AppTabs from '@/components/app-tabs';
+import { ensureDuelWordsDiagnosticsReady } from '@/diagnostics/runtime';
 
-SplashScreen.preventAutoHideAsync();
+ensureDuelWordsDiagnosticsReady();
 
-export default function TabLayout() {
+export default function RootLayout() {
   const colorScheme = useColorScheme();
+
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <AnimatedSplashOverlay />
-      <AppTabs />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="word-duel/active-demo" />
+        <Stack.Screen name="word-duel/connected-runtime" />
+        <Stack.Screen name="word-duel/lobby-demo" />
+        <Stack.Screen name="word-duel/play-avi-demo" />
+        <Stack.Screen name="word-duel/practice" />
+        <Stack.Screen name="word-duel/result-demo" />
+        <Stack.Screen name="word-duel/solo-daily-demo" />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
     </ThemeProvider>
   );
 }

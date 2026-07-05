@@ -1,9 +1,30 @@
 {
   "name": "duelwords-av",
   "main": "expo-router/entry",
-  "version": "1.0.0",
+  "version": "0.1.0",
+  "private": true,
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "11.9.0",
+      "onFail": "error"
+    }
+  },
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web --port 8098",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "verify": "pnpm run typecheck && pnpm run test",
+    "lint": "expo lint",
+    "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
+    "testflight": "node -e \"throw new Error('DuelWords AV TestFlight is blocked until an approved release runbook exists.')\""
+  },
   "dependencies": {
     "@expo/ui": "~57.0.3",
+    "convex": "1.42.1",
     "expo": "~57.0.2",
     "expo-constants": "~57.0.3",
     "expo-device": "~57.0.0",
@@ -29,15 +50,7 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
-    "typescript": "~6.0.3"
-  },
-  "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
-  },
-  "private": true
+    "typescript": "~6.0.3",
+    "vitest": "^4.0.0"
+  }
 }

@@ -1,3 +1,112 @@
-# Expo HAS CHANGED
+# DuelWords AV Agent Notes
 
-Read the exact versioned docs at https://docs.expo.dev/versions/v57.0.0/ before writing any code.
+This is the public Expo client for DuelWords AV. Keep it client-safe.
+
+Before touching signed native runtime, Account AV, billing, ads, Sentry,
+Convex, Cloudflare/D1 remote state, push, TestFlight, store metadata, deploys,
+or any paid/provider surface, run the private preflight from the workspace root:
+
+```bash
+bash private/avalsys-suite/scripts/agent-preflight.sh --app duelwords-av --intent code
+```
+
+Then read every document printed by that preflight and the relevant private
+DuelWords AV runbook.
+
+Current implementation slice:
+
+- Expo Router SDK 57 shell.
+- Local Word Duel practice.
+- Local invite/lobby/Ready/countdown preview wired through the lobby
+  controller's `local_mock` source, with no real links, share sheet, API, or
+  Convex runtime.
+- Local active-duel preview with typed mock active gameplay API adapter.
+- Local active-duel realtime projection mock aligned with the client-safe
+  Convex room-view, heartbeat, and reaction surface.
+- SDK-shaped Convex realtime projection adapter boundary. It wraps only an
+  injected client with `query`, `mutation`, and `watchQuery`, targets only
+  `getActiveRoomView`, `sendPresenceHeartbeat`, and `sendReaction`, parses
+  only safe room/player/presence/reaction fields, and fails closed on target,
+  guess, dictionary, real feedback, identity, provider, deploy-key, auth-token,
+  push-token, or email payloads.
+- Client-safe realtime config boundary for
+  `EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL` and
+  `EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED`, with realtime still
+  disabled by default and no deploy-key exposure. Only the hidden internal
+  connected route may construct an app-level Convex client, and only when
+  explicit runtime config is enabled.
+- Real Convex SDK bridge under `src/game/word-duel-runtime/convex-client-factory.ts`.
+  It uses `ConvexReactClient` plus `makeFunctionReference`, maps only
+  `getActiveRoomView`, `sendPresenceHeartbeat`, and `sendReaction`, rejects
+  unapproved query/mutation refs, imports no generated Convex API files, and
+  exposes `close()` for lifecycle cleanup.
+- Composed runtime client factory plus Expo hook under
+  `src/game/word-duel-runtime/`. It may create the Apps AV API client and
+  Convex realtime projection only when client-safe API and realtime configs are
+  both enabled and a Convex client factory is present. The Expo hook supplies
+  the real SDK bridge by default and disposes the bundle on cleanup. It fails
+  closed by default and is not wired into the demo routes.
+- Client-side parser for backend-issued active-duel realtime session envelopes:
+  `realtimeSessionId`, `roomToken`, and `side` only.
+- Typed, fetch-injected Apps AV API client boundary for invite preview, room
+  code lookup, create/join/cancel invite, lobby, Ready, start, and realtime
+  session recovery, plus round-scoped active submit, timeout, and
+  open-next-if-due commands and own-round snapshot recovery. It is tested with
+  fake fetches and is wired only through the hidden internal connected route,
+  behind explicit runtime config.
+- Client-safe Apps AV API runtime config boundary for
+  `EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL` and
+  `EXPO_PUBLIC_DUELWORDSAV_API_DISABLED`. API calls stay disabled by default,
+  and the runtime factory returns no HTTP client unless explicitly enabled with
+  a valid HTTPS base URL.
+- Lobby controller boundary with `local_mock`, `disabled_runtime`, and injected
+  `apps_av_api` sources. It maps API lobby/start payloads into UI-safe lobby
+  state, keeps the demo on local mock, and is not wired to real UI network
+  calls.
+- Local lobby-to-active handoff boundary. `/word-duel/lobby-demo` can open
+  `/word-duel/active-demo` only through typed public V1 route params; the
+  handoff never carries game ids, player ids, targets, dictionary metadata,
+  guesses, feedback, realtime tokens, account state, provider state, or a real
+  runtime session.
+- Active-duel controller boundary with `local_mock`, `disabled_runtime`, and
+  injected `apps_av_api` sources. The screen must call high-level controller
+  methods and must not own demo game ids, player ids, room tokens, realtime
+  session ids, actor details, target data, dictionary data, opponent guesses,
+  or opponent feedback.
+- Runtime-safe active-duel controller assembler. It may create `apps_av_api`
+  only from an Apps AV API lobby state, player session, backend-issued realtime
+  session, enabled runtime config, and injected Convex realtime adapter or
+  SDK-shaped Convex client; missing pieces must fail closed to
+  `disabled_runtime`, without polling or alternate realtime transports.
+- Hidden internal connected route `/word-duel/connected-runtime`. It is
+  registered in the stack but not linked from Play and not included in
+  `WORD_DUEL_ROUTE_PATHS`. It uses the composed runtime hook, creates no API
+  calls on mount, sends create/join/refresh/Ready/start/submit/timeout/open-next/
+  own-snapshot through Apps AV API user actions, recovers backend-issued
+  realtime sessions before active subscription, and uses Convex only for safe
+  room-view subscription, heartbeat, and closed-set reactions.
+- Local connected-runtime smoke test for Apps AV API lobby create/Ready/start
+  into active runtime with a fake React client routed through the real Convex
+  SDK bridge. It remains local-only and must not call live Convex or Apps AV
+  API.
+- Runtime client gate tests covering disabled config, partial config, missing
+  Convex injection, factory failure, and ready injected runtime. Keep these
+  tests green before any activation step.
+- Real Convex SDK bridge activation followed the private
+  `docs/duelwords-av/convex-sdk-activation-plan.md`. Do not import generated
+  Convex API files, enable realtime config in committed runtime, wire demo
+  routes to runtime clients, run Convex deploy/codegen ad hoc, or expose
+  connected gameplay outside the hidden route and approved activation gates.
+- Local finalized result preview with post-finalization target reveal,
+  completed-board review, safe share preview, and local rematch proposal state
+  machine.
+- Local Sentry-shaped diagnostics facade with no SDK, DSN, provider traffic, or
+  real event sending.
+- Tiny hand-authored EN/ES fixtures for tests and local practice only.
+- No production dictionaries, enabled-by-default Convex runtime connection,
+  enabled-by-default Apps AV API network calls, native share, public result
+  links, Account AV, Sentry SDK/DSN wiring, ads, Pro, push, Store, TestFlight,
+  or remote deploys.
+
+Read the exact versioned Expo docs at
+https://docs.expo.dev/versions/v57.0.0/ before framework-level changes.

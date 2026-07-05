@@ -1,0 +1,721 @@
+import { useRouter } from 'expo-router';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+
+import type { GameLanguage } from '@/game/word-duel-engine';
+import { DuelWordsClientError } from '@/game/word-duel-active/api-adapter';
+import { createWordDuelActiveController } from '@/game/word-duel-active/controller';
+import {
+  createWordDuelActiveDemoHandoff,
+  type WordDuelActiveHandoff,
+} from '@/game/word-duel-active/handoff';
+import {
+  applyRealtimeProjectionToActiveDuelViewModel,
+  latestActiveDuelReactionFromRealtimeProjection,
+} from '@/game/word-duel-active/realtime-projection';
+import {
+  isActiveDuelInputOpen,
+  updateActiveDuelEditingLetters,
+  type ActiveDuelOpponentMarkerState,
+  type ActiveDuelReactionId,
+  type ActiveDuelViewModel,
+} from '@/game/word-duel-active/view-model';
+import { AppScreen } from '@/ui/app-screen';
+import { AppButton } from '@/ui/buttons';
+import { colors, radii, spacing, typeScale } from '@/ui/theme';
+
+import { WordDuelBoard } from './components/word-duel-board';
+import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
+import {
+  finalizeActiveWordDuelResult,
+  reportWordDuelResultFinalizationError,
+} from './result-finalization';
+import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
+
+const REACTION_LABELS: Record<ActiveDuelReactionId, string> = {
+  gg: 'GG',
+  nice: 'Nice',
+  close: 'Close',
+  almost: 'Almost',
+  your_turn: 'Turn',
+  tick_tock: 'Time',
+};
+
+type ActiveDuelScreenProps = {
+  initialHandoff?: WordDuelActiveHandoff;
+  initialGameLanguage?: GameLanguage;
+};
+
+export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: ActiveDuelScreenProps) {
+  const router = useRouter();
+  const { width } = useWindowDimensions();
+  const clientRequestNumber = useRef(0);
+  const isOpeningResultRef = useRef(false);
+  const reactionRequestNumber = useRef(0);
+  const activeHandoff = useMemo(
+    () => initialHandoff ?? createWordDuelActiveDemoHandoff({ gameLanguage: initialGameLanguage ?? 'en' }),
+    [initialGameLanguage, initialHandoff],
+  );
+  const [muted, setMuted] = useState(false);
+  const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionId | null>(null);
+  const activeDuelController = useMemo(
+    () => createWordDuelActiveController({
+      handoff: activeHandoff,
+      mode: 'local_mock',
+    }),
+    [activeHandoff],
+  );
+  const [draft, setDraft] = useState('');
+  const [isOpeningResult, setIsOpeningResult] = useState(false);
+  const [statusDetail, setStatusDetail] = useState('Rival ready');
+  const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
+  const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
+  const boardWidth = Math.min(width - spacing.lg * 2, 338);
+  const tileSize = Math.max(34, Math.min(42, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+
+  useEffect(() => {
+    setDraft('');
+    isOpeningResultRef.current = false;
+    setIsOpeningResult(false);
+    setStatusDetail('Rival ready');
+    setViewModel(activeDuelController.getViewModel());
+  }, [activeDuelController]);
+
+  useEffect(() => {
+    const unsubscribe = activeDuelController.subscribeActiveRoomView((projection) => {
+      if (!projection) {
+        setStatusDetail('Reconnecting');
+        return;
+      }
+
+      setViewModel((current) => applyRealtimeProjectionToActiveDuelViewModel(current, projection));
+      setActiveReaction(latestActiveDuelReactionFromRealtimeProjection(projection));
+    });
+    void activeDuelController.sendPresenceHeartbeat();
+
+    return unsubscribe;
+  }, [activeDuelController]);
+
+  function updateDraft(nextDraft: string) {
+    const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');
+    setDraft(clampedDraft);
+    setViewModel((current) => updateActiveDuelEditingLetters(current, Array.from(clampedDraft)));
+    setStatusDetail('Rival ready');
+  }
+
+  function handleKeyPress(key: string) {
+    if (keyboardDisabled) {
+      return;
+    }
+
+    if (key === 'DEL') {
+      updateDraft(Array.from(draft).slice(0, -1).join(''));
+      return;
+    }
+
+    if (key === 'ENTER') {
+      void submitDraft();
+      return;
+    }
+
+    updateDraft(`${draft}${key}`);
+  }
+
+  async function submitDraft() {
+    const letters = Array.from(draft);
+    if (letters.length !== viewModel.wordLength) {
+      setStatusDetail(`${viewModel.wordLength} letters`);
+      return;
+    }
+
+    clientRequestNumber.current += 1;
+
+    try {
+      const result = await activeDuelController.submitGuess({
+        clientRequestId: `active-demo-submit-${viewModel.roundNumber}-${clientRequestNumber.current}`,
+        guess: draft,
+        roundNumber: viewModel.roundNumber,
+      });
+      setViewModel(result.viewModel);
+      setDraft('');
+      setStatusDetail('Submitted');
+      activeDuelController.publishLocalPlayerSubmittedProjection({
+        roundNumber: result.submission.roundNumber,
+      });
+    } catch (error) {
+      setStatusDetail(error instanceof DuelWordsClientError ? activeDuelErrorLabel(error.code) : 'Try again');
+    }
+  }
+
+  async function sendReaction(reaction: ActiveDuelReactionId) {
+    reactionRequestNumber.current += 1;
+    const result = await activeDuelController.sendReaction({
+      clientRequestId: `active-demo-reaction-${reactionRequestNumber.current}`,
+      reaction,
+    });
+
+    if (!result.ok) {
+      setStatusDetail(result.reason === 'rate_limited' ? 'Slow down' : 'Unavailable');
+    }
+  }
+
+  async function openFinalResult() {
+    if (isOpeningResultRef.current) {
+      return;
+    }
+
+    isOpeningResultRef.current = true;
+    setIsOpeningResult(true);
+    setStatusDetail('Opening result');
+
+    try {
+      const handoff = await finalizeActiveWordDuelResult(viewModel, { mode: 'human_duel' });
+
+      router.push(buildWordDuelResultHandoffHref({
+        gameLanguage: viewModel.gameLanguage,
+        mode: 'human_duel',
+        outcome: 'win',
+        reason: 'solved',
+        ...handoff,
+      }));
+    } catch (error) {
+      reportWordDuelResultFinalizationError({
+        error,
+        gameLanguage: viewModel.gameLanguage,
+        mode: 'human_duel',
+        routeGroup: 'active_duel',
+      });
+      setStatusDetail('Could not open result');
+    } finally {
+      isOpeningResultRef.current = false;
+      setIsOpeningResult(false);
+    }
+  }
+
+  return (
+    <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
+      <View style={styles.header}>
+        <View style={styles.headerText}>
+          <Text style={styles.kicker}>Duel</Text>
+          <Text style={styles.title}>Word Duel</Text>
+        </View>
+        <AppButton tone="quiet" onPress={() => router.back()} style={styles.leaveButton}>
+          Leave
+        </AppButton>
+      </View>
+
+      <View style={styles.timerRow}>
+        <View>
+          <Text style={styles.metaLabel}>Round</Text>
+          <Text style={styles.metaValue}>
+            {viewModel.roundNumber}/{viewModel.maxAttempts}
+          </Text>
+        </View>
+        <View style={styles.timerPill}>
+          <Text style={styles.timerText}>{formatSeconds(viewModel.remainingSeconds)}</Text>
+        </View>
+        <View style={styles.sideBlock}>
+          <Text style={styles.metaLabel}>Side</Text>
+          <Text style={styles.metaValue}>{viewModel.ownSide.toUpperCase()}</Text>
+        </View>
+      </View>
+
+      <OpponentSummary
+        activeReaction={activeReaction}
+        markers={viewModel.opponent.attemptMarkers}
+        presence={viewModel.opponent.presence}
+        roundState={viewModel.opponent.roundState}
+        safeDisplayName={viewModel.opponent.safeDisplayName}
+      />
+
+      <WordDuelBoard
+        accessibilityLabel="Own Word Duel board"
+        rows={viewModel.ownBoardRows}
+        showSubmittedPendingMark
+        tileSize={tileSize}
+      />
+
+      <View style={styles.stateRow}>
+        <Text style={styles.stateLabel}>{ownRoundStateLabel(viewModel)}</Text>
+        <Text style={styles.stateDetail}>{statusDetail}</Text>
+      </View>
+
+      <AppButton
+        disabled={isOpeningResult}
+        tone="quiet"
+        onPress={() => {
+          void openFinalResult();
+        }}>
+        {isOpeningResult ? 'Opening...' : 'Open final result'}
+      </AppButton>
+
+      <ReactionTray
+        activeReaction={activeReaction}
+        muted={muted}
+        onMuteToggle={() => setMuted((current) => !current)}
+        onReactionPress={(reaction) => {
+          void sendReaction(reaction);
+        }}
+        reactions={viewModel.availableReactions}
+      />
+
+      <WordDuelKeyboard
+        disabled={keyboardDisabled}
+        feedbackByKey={viewModel.ownKeyboardFeedback}
+        keyRows={WORD_DUEL_KEY_ROWS[viewModel.gameLanguage]}
+        onKeyPress={handleKeyPress}
+      />
+
+      {viewModel.adSlot.visible ? <CompactAdSlot /> : null}
+    </AppScreen>
+  );
+}
+
+function OpponentSummary({
+  activeReaction,
+  markers,
+  presence,
+  roundState,
+  safeDisplayName,
+}: {
+  activeReaction: ActiveDuelReactionId | null;
+  markers: ActiveDuelOpponentMarkerState[];
+  presence: string;
+  roundState: ActiveDuelOpponentMarkerState;
+  safeDisplayName: string;
+}) {
+  return (
+    <View style={styles.opponentStrip}>
+      <View style={styles.opponentTopRow}>
+        <View>
+          <Text style={styles.metaLabel}>Rival</Text>
+          <Text style={styles.opponentName}>{safeDisplayName}</Text>
+        </View>
+        <View style={styles.presencePill}>
+          <Text style={styles.presenceText}>{presenceLabel(presence)}</Text>
+        </View>
+      </View>
+      <View style={styles.opponentBottomRow}>
+        <View style={styles.markerRow}>
+          {markers.map((marker, index) => (
+            <View
+              key={`opponent-marker-${index}`}
+              accessibilityLabel={`Opponent attempt ${index + 1}: ${marker}`}
+              style={[styles.marker, markerStyle(marker)]}>
+              <Text style={styles.markerText}>{markerSymbol(marker)}</Text>
+            </View>
+          ))}
+        </View>
+        <Text style={styles.opponentStatus}>{opponentStateLabel(roundState)}</Text>
+      </View>
+      {activeReaction ? (
+        <View style={styles.reactionBubble}>
+          <Text style={styles.reactionBubbleText}>{REACTION_LABELS[activeReaction]}</Text>
+        </View>
+      ) : null}
+    </View>
+  );
+}
+
+function ReactionTray({
+  activeReaction,
+  muted,
+  onMuteToggle,
+  onReactionPress,
+  reactions,
+}: {
+  activeReaction: ActiveDuelReactionId | null;
+  muted: boolean;
+  onMuteToggle: () => void;
+  onReactionPress: (reaction: ActiveDuelReactionId) => void;
+  reactions: ActiveDuelReactionId[];
+}) {
+  const compactReactions = reactions.filter((reaction) =>
+    ['gg', 'nice', 'tick_tock', 'almost'].includes(reaction),
+  );
+
+  return (
+    <View style={styles.reactionTray}>
+      <View style={styles.reactionButtons}>
+        {compactReactions.map((reaction) => (
+          <Pressable
+            key={reaction}
+            accessibilityRole="button"
+            disabled={muted}
+            onPress={() => onReactionPress(reaction)}
+            style={({ pressed }) => [
+              styles.reactionButton,
+              activeReaction === reaction && styles.reactionButtonActive,
+              pressed && !muted && styles.pressed,
+              muted && styles.disabled,
+            ]}>
+            <Text
+              adjustsFontSizeToFit
+              numberOfLines={1}
+              style={[styles.reactionButtonText, activeReaction === reaction && styles.reactionButtonTextActive]}>
+              {REACTION_LABELS[reaction]}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+      <Pressable accessibilityRole="button" onPress={onMuteToggle} style={styles.muteButton}>
+        <Text style={styles.muteText}>{muted ? 'Muted' : 'Mute'}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+function CompactAdSlot() {
+  return (
+    <View style={styles.adSlot}>
+      <Text style={styles.adText}>Ad</Text>
+    </View>
+  );
+}
+
+function formatSeconds(seconds: number) {
+  return `0:${String(seconds).padStart(2, '0')}`;
+}
+
+function ownRoundStateLabel(viewModel: ActiveDuelViewModel): string {
+  if (viewModel.ownRoundState === 'waiting_for_rival') {
+    return 'Waiting for rival';
+  }
+  if (viewModel.ownRoundState === 'timed_out') {
+    return 'Timed out';
+  }
+  if (viewModel.ownRoundState === 'submitting') {
+    return 'Submitting';
+  }
+  if (viewModel.ownRoundState === 'resolving') {
+    return 'Resolving';
+  }
+  if (viewModel.opponent.roundState === 'submitted') {
+    return 'Your turn';
+  }
+  return 'Choose letters';
+}
+
+function activeDuelErrorLabel(code: DuelWordsClientError['code']): string {
+  if (code === 'invalid_guess_length') {
+    return '5 letters';
+  }
+  if (code === 'invalid_round') {
+    return 'Round changed';
+  }
+  return 'Locked';
+}
+
+function markerSymbol(marker: ActiveDuelOpponentMarkerState): string {
+  if (marker === 'submitted') {
+    return 'S';
+  }
+  if (marker === 'solved') {
+    return '=';
+  }
+  if (marker === 'timeout') {
+    return 'T';
+  }
+  if (marker === 'failed') {
+    return 'x';
+  }
+  return '';
+}
+
+function opponentStateLabel(marker: ActiveDuelOpponentMarkerState): string {
+  if (marker === 'submitted') {
+    return 'Rival submitted';
+  }
+  if (marker === 'timeout') {
+    return 'Timed out';
+  }
+  if (marker === 'solved') {
+    return 'Solved';
+  }
+  if (marker === 'failed') {
+    return 'Waiting';
+  }
+  return 'Waiting';
+}
+
+function presenceLabel(presence: string): string {
+  if (presence === 'connected') {
+    return 'Online';
+  }
+  if (presence === 'reconnecting') {
+    return 'Reconnecting';
+  }
+  return 'Offline';
+}
+
+function markerStyle(marker: ActiveDuelOpponentMarkerState) {
+  if (marker === 'submitted') {
+    return styles.markerSubmitted;
+  }
+  if (marker === 'solved') {
+    return styles.markerSolved;
+  }
+  if (marker === 'timeout') {
+    return styles.markerTimeout;
+  }
+  if (marker === 'failed') {
+    return styles.markerFailed;
+  }
+  return styles.markerWaiting;
+}
+
+const styles = StyleSheet.create({
+  header: {
+    minHeight: 48,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  headerText: {
+    flex: 1,
+  },
+  kicker: {
+    color: colors.accent,
+    fontSize: typeScale.tiny,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  title: {
+    color: colors.text,
+    fontSize: typeScale.subtitle,
+    fontWeight: '900',
+  },
+  leaveButton: {
+    minWidth: 82,
+  },
+  timerRow: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+  },
+  metaLabel: {
+    color: colors.textMuted,
+    fontSize: typeScale.tiny,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  metaValue: {
+    color: colors.text,
+    fontSize: typeScale.lead,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '900',
+  },
+  sideBlock: {
+    alignItems: 'flex-end',
+  },
+  timerPill: {
+    minWidth: 92,
+    minHeight: 38,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    backgroundColor: colors.pressureSoft,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.pressure,
+  },
+  timerText: {
+    color: colors.pressure,
+    fontSize: typeScale.subtitle,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '900',
+  },
+  opponentStrip: {
+    minHeight: 92,
+    gap: spacing.sm,
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    padding: spacing.md,
+  },
+  opponentTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  opponentName: {
+    color: colors.text,
+    fontSize: typeScale.lead,
+    fontWeight: '900',
+  },
+  presencePill: {
+    minHeight: 28,
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+    backgroundColor: colors.surfaceSoft,
+    paddingHorizontal: spacing.md,
+  },
+  presenceText: {
+    color: colors.accent,
+    fontSize: typeScale.small,
+    fontWeight: '800',
+  },
+  opponentBottomRow: {
+    minHeight: 34,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+  },
+  markerRow: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  marker: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  markerWaiting: {
+    backgroundColor: colors.feedbackPending,
+    borderColor: colors.border,
+  },
+  markerSubmitted: {
+    backgroundColor: colors.secondarySoft,
+    borderColor: colors.secondary,
+  },
+  markerSolved: {
+    backgroundColor: colors.surfaceSoft,
+    borderColor: colors.accent,
+  },
+  markerTimeout: {
+    backgroundColor: colors.pressureSoft,
+    borderColor: colors.pressure,
+  },
+  markerFailed: {
+    backgroundColor: colors.surfaceStrong,
+    borderColor: colors.border,
+  },
+  markerText: {
+    color: colors.text,
+    fontSize: typeScale.tiny,
+    fontWeight: '900',
+  },
+  opponentStatus: {
+    minWidth: 112,
+    color: colors.textMuted,
+    fontSize: typeScale.small,
+    fontWeight: '800',
+    textAlign: 'right',
+  },
+  reactionBubble: {
+    alignSelf: 'flex-end',
+    minHeight: 30,
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    backgroundColor: colors.pressureSoft,
+    paddingHorizontal: spacing.md,
+  },
+  reactionBubbleText: {
+    color: colors.pressure,
+    fontWeight: '900',
+  },
+  stateRow: {
+    minHeight: 38,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
+    borderRadius: radii.md,
+    backgroundColor: colors.surfaceSoft,
+    paddingHorizontal: spacing.md,
+  },
+  stateLabel: {
+    flex: 1,
+    color: colors.text,
+    fontSize: typeScale.body,
+    fontWeight: '900',
+  },
+  stateDetail: {
+    color: colors.accent,
+    fontSize: typeScale.small,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
+  reactionTray: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  reactionButtons: {
+    flex: 1,
+    flexDirection: 'row',
+    gap: spacing.xs,
+  },
+  reactionButton: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.xs,
+  },
+  reactionButtonActive: {
+    borderColor: colors.pressure,
+    backgroundColor: colors.pressureSoft,
+  },
+  reactionButtonText: {
+    color: colors.text,
+    fontSize: typeScale.tiny,
+    fontWeight: '900',
+  },
+  reactionButtonTextActive: {
+    color: colors.pressure,
+  },
+  muteButton: {
+    minWidth: 62,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.sm,
+    backgroundColor: colors.surfaceStrong,
+    paddingHorizontal: spacing.sm,
+  },
+  muteText: {
+    color: colors.textMuted,
+    fontSize: typeScale.small,
+    fontWeight: '900',
+  },
+  adSlot: {
+    minHeight: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceStrong,
+  },
+  adText: {
+    color: colors.textMuted,
+    fontSize: typeScale.small,
+    fontWeight: '900',
+  },
+  pressed: {
+    opacity: 0.76,
+  },
+  disabled: {
+    opacity: 0.45,
+  },
+});

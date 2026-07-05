@@ -1,11 +1,10 @@
 {
   "expo": {
-    "name": "duelwords-av",
+    "name": "DuelWords AV",
     "slug": "duelwords-av",
-    "version": "1.0.0",
+    "version": "0.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "duelwordsav",
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon"
