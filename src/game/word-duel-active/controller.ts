@@ -346,12 +346,12 @@ function createAppsApiWordDuelActiveController(input: {
       return updateFromCurrentRealtimeViewAfter(await realtimeClient.sendPresenceHeartbeat(realtimeRequest));
     },
 
-    sendReaction({ clientRequestId, reaction }) {
-      return realtimeClient.sendReaction({
+    async sendReaction({ clientRequestId, reaction }) {
+      return updateFromCurrentRealtimeViewAfter(await realtimeClient.sendReaction({
         ...realtimeRequest,
         clientRequestId,
         reactionKey: activeDuelReactionToRealtimeKey(reaction),
-      });
+      }));
     },
 
     async submitGuess({ clientRequestId, guess, roundNumber }) {

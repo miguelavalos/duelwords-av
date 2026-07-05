@@ -7,7 +7,11 @@ import type {
 } from '../word-duel-lobby/api-client';
 import { createWordDuelActiveController, WordDuelActiveControllerError } from './controller';
 import { createWordDuelActiveDemoHandoff } from './handoff';
-import { createLocalDuelWordsRealtimeProjectionClient } from './realtime-projection';
+import {
+  createLocalDuelWordsRealtimeProjectionClient,
+  type DuelWordsRealtimeProjectionClient,
+  type DuelWordsRealtimeSessionRequest,
+} from './realtime-projection';
 
 const NOW_MS = Date.parse('2026-07-05T08:00:00.000Z');
 const RUNTIME_SESSION = {
@@ -193,6 +197,95 @@ describe('Word Duel active controller', () => {
     expect(JSON.stringify(controller.getViewModel()).toLowerCase()).not.toContain('target');
     expect(JSON.stringify(controller.getViewModel()).toLowerCase()).not.toContain('dictionary');
     unsubscribe();
+  });
+
+  it('refreshes the runtime active projection after a successful reaction send', async () => {
+    const roomView = {
+      room: {
+        language: 'en',
+        maxAttempts: 6,
+        mode: 'human_duel',
+        roundDeadlineAt: NOW_MS + 37_000,
+        roundNumber: 2,
+        serverNow: NOW_MS,
+        status: 'active_round',
+        wordLength: 5,
+      },
+      own: {
+        attemptCount: 1,
+        hasSubmittedCurrentRound: false,
+        isReady: true,
+        safeDisplayName: 'You',
+        side: 'a',
+        status: 'joined',
+        timeoutCount: 0,
+      },
+      opponent: {
+        attemptCount: 1,
+        hasSubmittedCurrentRound: false,
+        isReady: true,
+        presenceState: 'online',
+        safeDisplayName: 'Rival',
+        side: 'b',
+        status: 'joined',
+        timeoutCount: 0,
+      },
+      reactions: [
+        {
+          expiresAt: NOW_MS + 4_000,
+          reactionKey: 'tick_tock',
+          side: 'a',
+        },
+      ],
+    } satisfies Awaited<ReturnType<DuelWordsRealtimeProjectionClient['getActiveRoomView']>>;
+    const getActiveRoomViewCalls: DuelWordsRealtimeSessionRequest[] = [];
+    const realtimeClient: DuelWordsRealtimeProjectionClient = {
+      async getActiveRoomView(input) {
+        getActiveRoomViewCalls.push(input);
+        return roomView;
+      },
+      publishLocalPlayerSubmittedProjection() {
+        return undefined;
+      },
+      async sendPresenceHeartbeat() {
+        return { ok: true };
+      },
+      async sendReaction(input) {
+        expect(input).toEqual({
+          clientRequestId: 'reaction-1',
+          reactionKey: 'tick_tock',
+          realtimeSessionId: RUNTIME_SESSION.realtime.realtimeSessionId,
+          roomToken: RUNTIME_SESSION.realtime.roomToken,
+        });
+        return { ok: true };
+      },
+      subscribeActiveRoomView() {
+        return () => undefined;
+      },
+    };
+    const controller = createWordDuelActiveController({
+      handoff: createWordDuelActiveDemoHandoff(),
+      mode: 'runtime',
+      realtimeNow: () => NOW_MS,
+      runtime: {
+        apiClient: createApiClientStub({}),
+        realtimeClient,
+        session: RUNTIME_SESSION,
+      },
+    });
+
+    await expect(controller.sendReaction({
+      clientRequestId: 'reaction-1',
+      reaction: 'tick_tock',
+    })).resolves.toEqual({ ok: true });
+
+    expect(getActiveRoomViewCalls).toEqual([
+      {
+        realtimeSessionId: RUNTIME_SESSION.realtime.realtimeSessionId,
+        roomToken: RUNTIME_SESSION.realtime.roomToken,
+      },
+    ]);
+    expect(controller.getViewModel().activeReaction).toBe('tick_tock');
   });
 
   it('refreshes own snapshot through Apps AV API without exposing opponent letters', async () => {
