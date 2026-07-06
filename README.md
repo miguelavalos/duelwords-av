@@ -36,8 +36,11 @@ route at `/word-duel/connected-runtime` can use those clients when runtime
 config is explicitly enabled, but it is not linked from public play navigation
 and the demo routes remain local. The hidden route can request a finalized API
 result and hand it into the existing result screen route after backend
-finalization; it fails closed before finalization and still does not implement
-remote rematch/new-game creation.
+finalization; it fails closed before finalization. It can also call the
+participant-scoped rematch proposal API from the hidden connected runtime
+surface for create/accept/decline/cancel checks. Post-finalization rematch
+discovery/projection and next-lobby navigation remain out of the public result
+screen.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
@@ -162,6 +165,10 @@ boundary for the approved Apps AV API routes:
 - `POST /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/open-next-if-due`
 - `GET /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/own-snapshot`
 - `GET /v1/apps/duelwords/games/:gameId/final-result`
+- `POST /v1/apps/duelwords/games/:gameId/rematch-proposals`
+- `POST /v1/apps/duelwords/games/:gameId/rematch-proposals/:proposalId/accept`
+- `POST /v1/apps/duelwords/games/:gameId/rematch-proposals/:proposalId/decline`
+- `POST /v1/apps/duelwords/games/:gameId/rematch-proposals/:proposalId/cancel`
 
 The client is fetch-injected for tests, sends the canonical app id
 `duelwordsav`, accepts an optional bearer token provider, parses only safe
@@ -174,7 +181,10 @@ word and own feedback after backend resolution, while the opponent remains only
 participant-scoped, rejected before backend finalization, and parsed into only
 safe game summary, viewer outcome, target display word, and completed own/
 opponent result boards. Malformed final-result feedback fails closed instead of
-being rendered.
+being rendered. Rematch proposal responses parse only safe owner/recipient
+display summaries, locked V1 settings, viewer permissions, expiry, status, and
+the accepted safe next-game lobby summary; unexpected target, dictionary,
+feedback-storage, actor, or provider fields are not retained.
 `src/game/word-duel-lobby/runtime-api-client.ts` only constructs the HTTP client
 when the runtime config is explicitly enabled.
 `src/game/word-duel-lobby/controller.ts` wraps the local lobby preview, disabled
@@ -200,11 +210,12 @@ commands. It owns the demo actor, game id, player id, room token, and realtime
 session id in local mode, accepts backend-issued session details in runtime
 mode, and exposes only high-level UI actions such as submit guess, heartbeat,
 reaction, subscription, timeout, open-next-round, and own-round snapshot
-refresh, plus finalized result recovery. The injected Apps AV API source uses
-the typed HTTP client plus a client-safe realtime projection client; it updates
-only the caller's board from own snapshots, keeps opponent letters/feedback
-abstract during active rounds, and only hands completed boards to the result
-screen after backend finalization.
+refresh, finalized result recovery, and participant-scoped rematch proposal
+commands. The injected Apps AV API source uses the typed HTTP client plus a
+client-safe realtime projection client; it updates only the caller's board from
+own snapshots, keeps opponent letters/feedback abstract during active rounds,
+and only hands completed boards to the result screen after backend
+finalization.
 `src/game/word-duel-active/runtime-controller.ts` assembles that runtime source
 from a safe lobby state only when API runtime, player session, realtime session,
 and an injected Convex realtime adapter or SDK-shaped Convex client are present.
@@ -218,6 +229,13 @@ runtime gate: disabled by default, no Convex construction when the API is
 disabled, pending without injection, fail-closed on factory errors, and ready
 only with both configs plus an injected Convex client.
 `/word-duel/active-demo` uses this controller in `local_mock` mode.
+
+The hidden `/word-duel/connected-runtime` route includes an internal rematch
+API panel once an active runtime controller is open. It can create a proposal
+for the current participant, accept/decline/cancel by proposal id, and display
+whether an accepted response returned a safe next lobby. It does not discover
+remote proposals through Convex, does not poll for post-finalization state, and
+does not route into the accepted next lobby yet.
 
 ## Local Preview Routes
 

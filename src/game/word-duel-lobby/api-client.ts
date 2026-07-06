@@ -207,6 +207,40 @@ export type DuelWordsApiFinalResult = {
   };
 };
 
+export type DuelWordsApiRematchProposalStatus = 'accepted' | 'cancelled' | 'declined' | 'expired' | 'sent';
+
+export type DuelWordsApiRematchProposalPlayer = {
+  playerId: string;
+  safeDisplayName: string;
+  side: WordDuelLobbySide;
+};
+
+export type DuelWordsApiRematchProposal = {
+  createdAt: string;
+  expiresAt: string;
+  nextGame: DuelWordsApiSafeGame | null;
+  owner: DuelWordsApiRematchProposalPlayer;
+  previousGameId: string;
+  proposalId: string;
+  recipient: DuelWordsApiRematchProposalPlayer;
+  remainingSeconds: number | null;
+  respondedAt: string | null;
+  settings: {
+    language: GameLanguage;
+    maxAttempts: number;
+    wordLength: number;
+  };
+  status: DuelWordsApiRematchProposalStatus;
+  viewer: {
+    canAccept: boolean;
+    canCancel: boolean;
+    canDecline: boolean;
+    playerId: string;
+    role: 'owner' | 'recipient';
+    side: WordDuelLobbySide;
+  };
+};
+
 export type DuelWordsApiRealtimeSessionResult =
   | {
       ok: true;
@@ -234,6 +268,30 @@ export type DuelWordsApiClient = {
     gameId: string;
     playerId: string;
   }): Promise<DuelWordsApiRealtimeSessionResult>;
+  createRematchProposal(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    language: GameLanguage;
+    playerId: string;
+  }): Promise<DuelWordsApiRematchProposal>;
+  acceptRematchProposal(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+    proposalId: string;
+  }): Promise<DuelWordsApiRematchProposal>;
+  declineRematchProposal(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+    proposalId: string;
+  }): Promise<DuelWordsApiRematchProposal>;
+  cancelRematchProposal(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+    proposalId: string;
+  }): Promise<DuelWordsApiRematchProposal>;
   getInvitePreview(input: { inviteToken: string }): Promise<{ invite: DuelWordsApiInvitePreview }>;
   getLobby(input: {
     actor: DuelWordsActorIdentity;
@@ -370,6 +428,64 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
       }
 
       return readRealtimeResult(payload);
+    },
+
+    async createRematchProposal(input) {
+      const payload = await requestJson(`/v1/apps/duelwords/games/${encodePath(input.gameId)}/rematch-proposals`, {
+        body: {
+          actor: input.actor,
+          language: input.language,
+          playerId: input.playerId,
+        },
+        method: 'POST',
+      });
+
+      return readRematchProposal(readRequiredProperty(payload, 'proposal'));
+    },
+
+    async acceptRematchProposal(input) {
+      const payload = await requestJson(
+        `/v1/apps/duelwords/games/${encodePath(input.gameId)}/rematch-proposals/${encodePath(input.proposalId)}/accept`,
+        {
+          body: {
+            actor: input.actor,
+            playerId: input.playerId,
+          },
+          method: 'POST',
+        },
+      );
+
+      return readRematchProposal(readRequiredProperty(payload, 'proposal'));
+    },
+
+    async declineRematchProposal(input) {
+      const payload = await requestJson(
+        `/v1/apps/duelwords/games/${encodePath(input.gameId)}/rematch-proposals/${encodePath(input.proposalId)}/decline`,
+        {
+          body: {
+            actor: input.actor,
+            playerId: input.playerId,
+          },
+          method: 'POST',
+        },
+      );
+
+      return readRematchProposal(readRequiredProperty(payload, 'proposal'));
+    },
+
+    async cancelRematchProposal(input) {
+      const payload = await requestJson(
+        `/v1/apps/duelwords/games/${encodePath(input.gameId)}/rematch-proposals/${encodePath(input.proposalId)}/cancel`,
+        {
+          body: {
+            actor: input.actor,
+            playerId: input.playerId,
+          },
+          method: 'POST',
+        },
+      );
+
+      return readRematchProposal(readRequiredProperty(payload, 'proposal'));
     },
 
     async getInvitePreview(input) {
@@ -662,6 +778,62 @@ function readFinalResult(value: unknown): DuelWordsApiFinalResult {
   };
 }
 
+function readRematchProposal(value: unknown): DuelWordsApiRematchProposal {
+  const input = requireRecord(value);
+  return {
+    createdAt: requireString(input.createdAt),
+    expiresAt: requireString(input.expiresAt),
+    nextGame: readOptionalSafeGame(readRequiredProperty(input, 'nextGame')),
+    owner: readRematchProposalPlayer(readRequiredProperty(input, 'owner')),
+    previousGameId: requireString(input.previousGameId),
+    proposalId: requireString(input.proposalId),
+    recipient: readRematchProposalPlayer(readRequiredProperty(input, 'recipient')),
+    remainingSeconds: optionalNumber(input.remainingSeconds),
+    respondedAt: optionalString(input.respondedAt),
+    settings: readRematchProposalSettings(readRequiredProperty(input, 'settings')),
+    status: readRematchProposalStatus(input.status),
+    viewer: readRematchProposalViewer(readRequiredProperty(input, 'viewer')),
+  };
+}
+
+function readOptionalSafeGame(value: unknown): DuelWordsApiSafeGame | null {
+  if (value === null) {
+    return null;
+  }
+
+  return readSafeGame(value);
+}
+
+function readRematchProposalPlayer(value: unknown): DuelWordsApiRematchProposalPlayer {
+  const input = requireRecord(value);
+  return {
+    playerId: requireString(input.playerId),
+    safeDisplayName: requireString(input.safeDisplayName),
+    side: readSide(input.side),
+  };
+}
+
+function readRematchProposalSettings(value: unknown): DuelWordsApiRematchProposal['settings'] {
+  const input = requireRecord(value);
+  return {
+    language: readLanguage(input.language),
+    maxAttempts: requireNumber(input.maxAttempts),
+    wordLength: requireNumber(input.wordLength),
+  };
+}
+
+function readRematchProposalViewer(value: unknown): DuelWordsApiRematchProposal['viewer'] {
+  const input = requireRecord(value);
+  return {
+    canAccept: requireBoolean(input.canAccept),
+    canCancel: requireBoolean(input.canCancel),
+    canDecline: requireBoolean(input.canDecline),
+    playerId: requireString(input.playerId),
+    role: readRematchProposalViewerRole(input.role),
+    side: readSide(input.side),
+  };
+}
+
 function readFinalResultParticipant(value: unknown, wordLength: number): DuelWordsApiFinalResultParticipant {
   const input = requireRecord(value);
   const guesses = requireArray(input.guesses).map((guess) => readFinalResultGuess(guess, wordLength));
@@ -877,6 +1049,14 @@ function optionalString(value: unknown): string | null {
   return requireString(value);
 }
 
+function optionalNumber(value: unknown): number | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  return requireNumber(value);
+}
+
 function requireNumber(value: unknown): number {
   if (typeof value !== 'number' || !Number.isFinite(value)) {
     throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API response number is invalid.');
@@ -1014,6 +1194,28 @@ function readFinalResultOutcome(value: unknown): DuelWordsApiFinalResult['viewer
   }
 
   throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API final result outcome is invalid.');
+}
+
+function readRematchProposalStatus(value: unknown): DuelWordsApiRematchProposalStatus {
+  if (
+    value === 'accepted'
+    || value === 'cancelled'
+    || value === 'declined'
+    || value === 'expired'
+    || value === 'sent'
+  ) {
+    return value;
+  }
+
+  throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API rematch proposal status is invalid.');
+}
+
+function readRematchProposalViewerRole(value: unknown): DuelWordsApiRematchProposal['viewer']['role'] {
+  if (value === 'owner' || value === 'recipient') {
+    return value;
+  }
+
+  throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API rematch proposal viewer role is invalid.');
 }
 
 function readTimeoutStatus(value: unknown): DuelWordsApiTimeoutRoundResponse['timeout']['status'] {

@@ -542,6 +542,154 @@ describe('DuelWords Apps AV API client', () => {
     expect(serialized).not.toContain('normalizedword');
   });
 
+  it('drives rematch proposal actions through participant-scoped Apps AV routes without leaking private fields', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          targetWordId: 'target-secret',
+        }),
+      }),
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          nextGame: {
+            ...safeGamePayload(),
+            dictionaryVersionId: 'private-version-filtered',
+            gameId: 'game-2',
+            roomToken: 'dwr_room_2',
+            targetWordId: 'new-target-secret',
+          },
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T10:02:30.000Z',
+          status: 'accepted',
+          viewer: {
+            canAccept: false,
+            canCancel: false,
+            canDecline: false,
+            playerId: 'player-b',
+            role: 'recipient',
+            side: 'b',
+          },
+        }),
+      }),
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T10:02:40.000Z',
+          status: 'declined',
+        }),
+      }),
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T10:02:50.000Z',
+          status: 'cancelled',
+        }),
+      }),
+    ]);
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: recorder.fetch,
+    });
+
+    const created = await client.createRematchProposal({
+      actor: GUEST_IDENTITY,
+      gameId: 'game/1',
+      language: 'es',
+      playerId: 'player-a',
+    });
+    const accepted = await client.acceptRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-b',
+      },
+      gameId: 'game/1',
+      playerId: 'player-b',
+      proposalId: 'dwrp/proposal 1',
+    });
+    const declined = await client.declineRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-b',
+      },
+      gameId: 'game/1',
+      playerId: 'player-b',
+      proposalId: 'dwrp/proposal 1',
+    });
+    const cancelled = await client.cancelRematchProposal({
+      actor: GUEST_IDENTITY,
+      gameId: 'game/1',
+      playerId: 'player-a',
+      proposalId: 'dwrp/proposal 1',
+    });
+
+    expect(recorder.calls).toMatchObject([
+      {
+        body: {
+          actor: GUEST_IDENTITY,
+          language: 'es',
+          playerId: 'player-a',
+        },
+        method: 'POST',
+        url: 'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals',
+      },
+      {
+        body: {
+          actor: {
+            actorType: 'guest_session',
+            guestSessionId: 'guest-b',
+          },
+          playerId: 'player-b',
+        },
+        method: 'POST',
+        url: 'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals/dwrp%2Fproposal%201/accept',
+      },
+      {
+        method: 'POST',
+        url: 'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals/dwrp%2Fproposal%201/decline',
+      },
+      {
+        method: 'POST',
+        url: 'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals/dwrp%2Fproposal%201/cancel',
+      },
+    ]);
+    expect(created).toMatchObject({
+      proposalId: 'dwrp_proposal_1',
+      remainingSeconds: 60,
+      settings: {
+        language: 'en',
+        maxAttempts: 6,
+        wordLength: 5,
+      },
+      status: 'sent',
+      viewer: {
+        canAccept: false,
+        canCancel: true,
+        canDecline: false,
+        role: 'owner',
+        side: 'a',
+      },
+    });
+    expect(accepted).toMatchObject({
+      nextGame: {
+        gameId: 'game-2',
+        status: 'lobby',
+      },
+      remainingSeconds: null,
+      status: 'accepted',
+      viewer: {
+        role: 'recipient',
+      },
+    });
+    expect(declined.status).toBe('declined');
+    expect(cancelled.status).toBe('cancelled');
+
+    const serialized = JSON.stringify({ accepted, cancelled, created, declined }).toLowerCase();
+    expect(serialized).not.toContain('targetwordid');
+    expect(serialized).not.toContain('new-target-secret');
+    expect(serialized).not.toContain('dictionaryversionid');
+    expect(serialized).not.toContain('private-version-filtered');
+  });
+
   it('fails closed when final result feedback does not match the game word length', async () => {
     const client = createDuelWordsApiClient({
       baseUrl: 'https://api.test',
@@ -855,6 +1003,43 @@ function safeGamePayload() {
     status: 'lobby',
     targetWordId: 'target-filtered',
     wordLength: 5,
+  };
+}
+
+function rematchProposalPayload(overrides: Record<string, unknown> = {}) {
+  return {
+    createdAt: '2026-07-05T10:02:00.000Z',
+    expiresAt: '2026-07-05T10:03:00.000Z',
+    nextGame: null,
+    owner: {
+      playerId: 'player-a',
+      safeDisplayName: 'Host',
+      side: 'a',
+    },
+    previousGameId: 'game-1',
+    proposalId: 'dwrp_proposal_1',
+    recipient: {
+      playerId: 'player-b',
+      safeDisplayName: 'Rival',
+      side: 'b',
+    },
+    remainingSeconds: 60,
+    respondedAt: null,
+    settings: {
+      language: 'en',
+      maxAttempts: 6,
+      wordLength: 5,
+    },
+    status: 'sent',
+    viewer: {
+      canAccept: false,
+      canCancel: true,
+      canDecline: false,
+      playerId: 'player-a',
+      role: 'owner',
+      side: 'a',
+    },
+    ...overrides,
   };
 }
 

@@ -9,7 +9,7 @@ import {
   createWordDuelLobbyController,
   type WordDuelLobbyControllerState,
 } from '@/game/word-duel-lobby/controller';
-import { DuelWordsApiError } from '@/game/word-duel-lobby/api-client';
+import { DuelWordsApiError, type DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
 import type { WordDuelLobbyPlayer } from '@/game/word-duel-lobby/view-model';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
 import type { ActiveDuelReactionId, ActiveDuelViewModel } from '@/game/word-duel-active/view-model';
@@ -41,6 +41,8 @@ export function ConnectedRuntimeScreen() {
   const [activeController, setActiveController] = useState<WordDuelActiveController | null>(null);
   const [activeModel, setActiveModel] = useState<ActiveDuelViewModel | null>(null);
   const [guess, setGuess] = useState('');
+  const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
+  const [rematchProposalIdInput, setRematchProposalIdInput] = useState('');
   const [statusDetail, setStatusDetail] = useState(runtime.ok ? 'Ready' : runtimeStatusLabel(runtime.reason));
   const reactionRequestNumber = useRef(0);
   const submitRequestNumber = useRef(0);
@@ -50,6 +52,8 @@ export function ConnectedRuntimeScreen() {
       setStatusDetail(runtimeStatusLabel(runtime.reason));
       setActiveController(null);
       setActiveModel(null);
+      setRematchProposal(null);
+      setRematchProposalIdInput('');
     }
   }, [runtime.ok, runtime.reason]);
 
@@ -90,6 +94,8 @@ export function ConnectedRuntimeScreen() {
       setLobbyState(nextState);
       setActiveController(null);
       setActiveModel(null);
+      setRematchProposal(null);
+      setRematchProposalIdInput('');
       setStatusDetail('Invite created');
     });
   }
@@ -124,6 +130,8 @@ export function ConnectedRuntimeScreen() {
       setLobbyState(nextState);
       setActiveController(null);
       setActiveModel(null);
+      setRematchProposal(null);
+      setRematchProposalIdInput('');
       setInviteToken('');
       setStatusDetail('Invite joined');
     });
@@ -179,6 +187,8 @@ export function ConnectedRuntimeScreen() {
 
       setActiveController(bundle.controller);
       setActiveModel(bundle.controller.getViewModel());
+      setRematchProposal(null);
+      setRematchProposalIdInput('');
       setStatusDetail(bundle.realtimeSessionSource === 'recovered' ? 'Realtime session recovered' : 'Active connected');
     });
   }
@@ -268,6 +278,75 @@ export function ConnectedRuntimeScreen() {
       });
       setActiveModel(activeController.getViewModel());
       setStatusDetail(result.ok ? `Reaction sent: ${reactionLabel(reaction)}` : 'Reaction unavailable');
+    });
+  }
+
+  function createRematchProposal() {
+    if (!activeController || !activeModel) {
+      return;
+    }
+
+    void runAction('rematch-create', async () => {
+      const proposal = await activeController.createRematchProposal({
+        language: activeModel.gameLanguage,
+      });
+      setRematchProposal(proposal);
+      setRematchProposalIdInput(proposal.proposalId);
+      setStatusDetail('Rematch sent');
+    });
+  }
+
+  function acceptRematchProposal() {
+    if (!activeController) {
+      return;
+    }
+
+    const proposalId = rematchProposalId(rematchProposalIdInput, rematchProposal);
+    if (!proposalId) {
+      return;
+    }
+
+    void runAction('rematch-accept', async () => {
+      const proposal = await activeController.acceptRematchProposal({ proposalId });
+      setRematchProposal(proposal);
+      setRematchProposalIdInput(proposal.proposalId);
+      setStatusDetail(proposal.nextGame ? 'Rematch accepted' : 'Rematch updated');
+    });
+  }
+
+  function declineRematchProposal() {
+    if (!activeController) {
+      return;
+    }
+
+    const proposalId = rematchProposalId(rematchProposalIdInput, rematchProposal);
+    if (!proposalId) {
+      return;
+    }
+
+    void runAction('rematch-decline', async () => {
+      const proposal = await activeController.declineRematchProposal({ proposalId });
+      setRematchProposal(proposal);
+      setRematchProposalIdInput(proposal.proposalId);
+      setStatusDetail('Rematch declined');
+    });
+  }
+
+  function cancelRematchProposal() {
+    if (!activeController) {
+      return;
+    }
+
+    const proposalId = rematchProposalId(rematchProposalIdInput, rematchProposal);
+    if (!proposalId) {
+      return;
+    }
+
+    void runAction('rematch-cancel', async () => {
+      const proposal = await activeController.cancelRematchProposal({ proposalId });
+      setRematchProposal(proposal);
+      setRematchProposalIdInput(proposal.proposalId);
+      setStatusDetail('Rematch cancelled');
     });
   }
 
@@ -434,6 +513,60 @@ export function ConnectedRuntimeScreen() {
               Result
             </AppButton>
           </View>
+          <View style={styles.rematchBox}>
+            <View>
+              <Text style={styles.metaLabel}>Rematch API</Text>
+              <Text style={styles.panelTitle}>{rematchProposal ? rematchStatusLabel(rematchProposal) : 'No proposal'}</Text>
+            </View>
+            <View style={styles.summaryGrid}>
+              <SummaryPill label="Role" value={rematchProposal?.viewer.role ?? 'none'} />
+              <SummaryPill
+                label="Timer"
+                value={rematchProposal?.remainingSeconds === null || rematchProposal === null
+                  ? 'none'
+                  : `${rematchProposal.remainingSeconds}s`}
+              />
+              <SummaryPill label="Next" value={rematchProposal?.nextGame?.status ?? 'none'} />
+            </View>
+            <TextInput
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isBusy}
+              onChangeText={setRematchProposalIdInput}
+              placeholder="Proposal ID"
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={rematchProposalIdInput}
+            />
+            <View style={styles.controlRow}>
+              <AppButton disabled={isBusy} onPress={createRematchProposal} style={styles.controlButton}>
+                Rematch
+              </AppButton>
+              <AppButton
+                disabled={rematchProposalId(rematchProposalIdInput, rematchProposal).length === 0 || isBusy}
+                tone="secondary"
+                onPress={acceptRematchProposal}
+                style={styles.controlButton}>
+                Accept
+              </AppButton>
+            </View>
+            <View style={styles.controlRow}>
+              <AppButton
+                disabled={rematchProposalId(rematchProposalIdInput, rematchProposal).length === 0 || isBusy}
+                tone="quiet"
+                onPress={declineRematchProposal}
+                style={styles.controlButton}>
+                Decline
+              </AppButton>
+              <AppButton
+                disabled={rematchProposalId(rematchProposalIdInput, rematchProposal).length === 0 || isBusy}
+                tone="quiet"
+                onPress={cancelRematchProposal}
+                style={styles.controlButton}>
+                Cancel
+              </AppButton>
+            </View>
+          </View>
           <View style={styles.reactionRow}>
             {REACTIONS.map((reaction) => (
               <Pressable
@@ -523,6 +656,26 @@ function inviteTokenFromInternalInput(value: string): string {
 
 function joinedPlayerCount(players: WordDuelLobbyPlayer[]): number {
   return players.filter((player) => player.state !== 'waiting').length;
+}
+
+function rematchProposalId(input: string, proposal: DuelWordsApiRematchProposal | null): string {
+  return input.trim() || proposal?.proposalId || '';
+}
+
+function rematchStatusLabel(proposal: DuelWordsApiRematchProposal): string {
+  if (proposal.status === 'accepted' && proposal.nextGame) {
+    return 'Accepted';
+  }
+  if (proposal.status === 'cancelled') {
+    return 'Cancelled';
+  }
+  if (proposal.status === 'declined') {
+    return 'Declined';
+  }
+  if (proposal.status === 'expired') {
+    return 'Expired';
+  }
+  return proposal.viewer.role === 'owner' ? 'Waiting' : 'Request';
 }
 
 function runtimeStatusLabel(reason: string | null): string {
@@ -746,6 +899,14 @@ const styles = StyleSheet.create({
   reactionRow: {
     flexDirection: 'row',
     gap: spacing.sm,
+  },
+  rematchBox: {
+    gap: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.secondary,
+    backgroundColor: colors.secondarySoft,
+    padding: spacing.md,
   },
   reactionButton: {
     flex: 1,

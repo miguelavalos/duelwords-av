@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import type {
   DuelWordsApiClient,
   DuelWordsApiOwnRoundSnapshot,
+  DuelWordsApiRematchProposal,
   DuelWordsApiSafeGame,
 } from '../word-duel-lobby/api-client';
 import { createWordDuelActiveController, WordDuelActiveControllerError } from './controller';
@@ -436,6 +437,130 @@ describe('Word Duel active controller', () => {
     expect(JSON.stringify(controller).toLowerCase()).not.toContain('game-1');
     expect(JSON.stringify(controller).toLowerCase()).not.toContain('dwr_room_1');
   });
+
+  it('uses the runtime participant session for rematch proposal API commands', async () => {
+    const rematchCalls: unknown[] = [];
+    const apiClient = createApiClientStub({
+      async acceptRematchProposal(input) {
+        rematchCalls.push({ action: 'accept', input });
+        return rematchProposalPayload({
+          nextGame: apiGamePayload({
+            gameId: 'game-2',
+            status: 'lobby',
+          }),
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T08:03:30.000Z',
+          status: 'accepted',
+          viewer: {
+            canAccept: false,
+            canCancel: false,
+            canDecline: false,
+            playerId: 'player-a',
+            role: 'recipient',
+            side: 'a',
+          },
+        });
+      },
+      async cancelRematchProposal(input) {
+        rematchCalls.push({ action: 'cancel', input });
+        return rematchProposalPayload({
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T08:03:50.000Z',
+          status: 'cancelled',
+        });
+      },
+      async createRematchProposal(input) {
+        rematchCalls.push({ action: 'create', input });
+        return rematchProposalPayload({
+          settings: {
+            language: input.language,
+            maxAttempts: 6,
+            wordLength: 5,
+          },
+        });
+      },
+      async declineRematchProposal(input) {
+        rematchCalls.push({ action: 'decline', input });
+        return rematchProposalPayload({
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T08:03:40.000Z',
+          status: 'declined',
+        });
+      },
+    });
+    const controller = createWordDuelActiveController({
+      handoff: createWordDuelActiveDemoHandoff(),
+      mode: 'runtime',
+      runtime: {
+        apiClient,
+        realtimeClient: createLocalDuelWordsRealtimeProjectionClient({
+          realtimeSessionId: RUNTIME_SESSION.realtime.realtimeSessionId,
+          roomToken: RUNTIME_SESSION.realtime.roomToken,
+        }),
+        session: RUNTIME_SESSION,
+      },
+    });
+
+    await expect(controller.createRematchProposal({ language: 'es' })).resolves.toMatchObject({
+      settings: {
+        language: 'es',
+      },
+      status: 'sent',
+    });
+    await expect(controller.acceptRematchProposal({ proposalId: 'dwrp-proposal-1' })).resolves.toMatchObject({
+      nextGame: {
+        gameId: 'game-2',
+      },
+      status: 'accepted',
+    });
+    await expect(controller.declineRematchProposal({ proposalId: 'dwrp-proposal-1' })).resolves.toMatchObject({
+      status: 'declined',
+    });
+    await expect(controller.cancelRematchProposal({ proposalId: 'dwrp-proposal-1' })).resolves.toMatchObject({
+      status: 'cancelled',
+    });
+
+    expect(rematchCalls).toEqual([
+      {
+        action: 'create',
+        input: {
+          actor: RUNTIME_SESSION.actor,
+          gameId: 'game-1',
+          language: 'es',
+          playerId: 'player-a',
+        },
+      },
+      {
+        action: 'accept',
+        input: {
+          actor: RUNTIME_SESSION.actor,
+          gameId: 'game-1',
+          playerId: 'player-a',
+          proposalId: 'dwrp-proposal-1',
+        },
+      },
+      {
+        action: 'decline',
+        input: {
+          actor: RUNTIME_SESSION.actor,
+          gameId: 'game-1',
+          playerId: 'player-a',
+          proposalId: 'dwrp-proposal-1',
+        },
+      },
+      {
+        action: 'cancel',
+        input: {
+          actor: RUNTIME_SESSION.actor,
+          gameId: 'game-1',
+          playerId: 'player-a',
+          proposalId: 'dwrp-proposal-1',
+        },
+      },
+    ]);
+    expect(JSON.stringify(controller).toLowerCase()).not.toContain('game-1');
+    expect(JSON.stringify(controller).toLowerCase()).not.toContain('player-a');
+  });
 });
 
 function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsApiClient {
@@ -444,9 +569,13 @@ function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsA
   }
 
   return {
+    acceptRematchProposal: unexpectedCall,
     cancelInvite: unexpectedCall,
+    cancelRematchProposal: unexpectedCall,
     createInvite: unexpectedCall,
     createRealtimeSession: unexpectedCall,
+    createRematchProposal: unexpectedCall,
+    declineRematchProposal: unexpectedCall,
     getFinalResult: unexpectedCall,
     getInvitePreview: unexpectedCall,
     getLobby: unexpectedCall,
@@ -519,5 +648,42 @@ function ownSnapshotPayload(): DuelWordsApiOwnRoundSnapshot {
     roundNumber: 2,
     roundStatus: 'resolved',
     side: 'a',
+  };
+}
+
+function rematchProposalPayload(overrides: Partial<DuelWordsApiRematchProposal> = {}): DuelWordsApiRematchProposal {
+  return {
+    createdAt: '2026-07-05T08:03:00.000Z',
+    expiresAt: '2026-07-05T08:04:00.000Z',
+    nextGame: null,
+    owner: {
+      playerId: 'player-a',
+      safeDisplayName: 'You',
+      side: 'a',
+    },
+    previousGameId: 'game-1',
+    proposalId: 'dwrp-proposal-1',
+    recipient: {
+      playerId: 'player-b',
+      safeDisplayName: 'Rival',
+      side: 'b',
+    },
+    remainingSeconds: 60,
+    respondedAt: null,
+    settings: {
+      language: 'en',
+      maxAttempts: 6,
+      wordLength: 5,
+    },
+    status: 'sent',
+    viewer: {
+      canAccept: false,
+      canCancel: true,
+      canDecline: false,
+      playerId: 'player-a',
+      role: 'owner',
+      side: 'a',
+    },
+    ...overrides,
   };
 }
