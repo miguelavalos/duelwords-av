@@ -14,6 +14,7 @@ import type {
   DuelWordsApiInvitePreview,
   DuelWordsApiLobbyResponse,
   DuelWordsApiLobbyView,
+  DuelWordsApiRematchProposal,
   DuelWordsApiRoomStatus,
   DuelWordsApiSafeGame,
 } from './api-client';
@@ -123,6 +124,7 @@ export type WordDuelLobbyControllerInput =
 export type WordDuelLobbyControllerErrorCode =
   | 'api_invite_required'
   | 'api_player_required'
+  | 'accepted_rematch_required'
   | 'controller_not_available'
   | 'missing_api_actor'
   | 'missing_api_session'
@@ -179,6 +181,47 @@ export function createWordDuelLobbyController(
   }
 
   return createAppsApiLobbyController(runtimeApiClient.client);
+}
+
+export function createWordDuelLobbyControllerStateFromAcceptedRematchProposal(input: {
+  actor: DuelWordsActorIdentity;
+  nowMs: number;
+  proposal: DuelWordsApiRematchProposal;
+}): WordDuelLobbyControllerState {
+  if (input.proposal.status !== 'accepted' || input.proposal.nextGame === null) {
+    throw new WordDuelLobbyControllerError(
+      'accepted_rematch_required',
+      'Accepted rematch lobby handoff requires an accepted proposal with a next game.',
+    );
+  }
+
+  const nextGame = input.proposal.nextGame;
+  const viewerSide = input.proposal.viewer.side;
+  const viewerPlayer = nextGame.players.find((player) => player.side === viewerSide);
+  if (!viewerPlayer) {
+    throw new WordDuelLobbyControllerError(
+      'api_player_required',
+      'Accepted rematch lobby handoff requires a next-game player for the viewer side.',
+    );
+  }
+
+  const invite = invitePreviewFromAcceptedRematchGame(nextGame);
+  return stateFromApiLobby({
+    game: nextGame,
+    invite,
+    viewer: {
+      isHost: viewerSide === 'a',
+      playerId: viewerPlayer.playerId,
+      side: viewerSide,
+    },
+  }, null, {
+    actor: input.actor,
+    apiInvite: invite,
+    gameId: nextGame.gameId,
+    inviteToken: invite.inviteToken,
+    playerId: viewerPlayer.playerId,
+    side: viewerSide,
+  }, input.nowMs);
 }
 
 function createLocalMockLobbyController(): WordDuelLobbyController {
@@ -575,6 +618,27 @@ function invitePreviewFromApi(
     roomState: status,
     solutionSelected: false,
     wordLength: invite.wordLength || WORD_DUEL_WORD_LENGTH,
+  };
+}
+
+function invitePreviewFromAcceptedRematchGame(game: DuelWordsApiSafeGame): DuelWordsApiInvitePreview {
+  const host = game.players.find((player) => player.side === 'a') ?? null;
+  return {
+    challengeName: 'Word Duel',
+    expiresAt: null,
+    gameLanguage: game.language,
+    gameName: 'DuelWords AV',
+    hostSafeDisplayName: host?.safeDisplayName ?? 'Host',
+    inviteToken: game.roomToken,
+    joinAvailability: 'viewer_already_joined',
+    maxAttempts: game.maxAttempts,
+    mode: 'human_duel',
+    playerCount: game.players.length,
+    roomCode: game.roomToken,
+    roomState: game.status,
+    settingsLocked: true,
+    solutionSelected: game.status !== 'lobby',
+    wordLength: game.wordLength,
   };
 }
 

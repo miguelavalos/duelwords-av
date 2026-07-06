@@ -39,8 +39,8 @@ result and hand it into the existing result screen route after backend
 finalization; it fails closed before finalization. It can also call the
 participant-scoped rematch proposal API from the hidden connected runtime
 surface for create/accept/decline/cancel checks. Post-finalization rematch
-discovery/projection and next-lobby navigation remain out of the public result
-screen.
+discovery/projection and public result-screen rematch navigation remain out of
+scope.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
@@ -191,9 +191,11 @@ when the runtime config is explicitly enabled.
 runtime, and injected Apps AV API client behind the same controller shape, and
 maps API lobby/game payloads into UI-safe state without exposing game ids,
 player ids, target ids, dictionary metadata, guesses, or feedback through the
-lobby view-model. `/word-duel/lobby-demo` is wired through the controller using
-the `local_mock` source only, so the app still makes no real Apps AV API calls
-by default.
+lobby view-model. It can also build a connected next-lobby state from an
+accepted rematch proposal's safe `nextGame` summary by taking the new viewer
+`playerId` from the next game side while reusing the current actor in memory.
+`/word-duel/lobby-demo` is wired through the controller using the `local_mock`
+source only, so the app still makes no real Apps AV API calls by default.
 
 `src/game/word-duel-active/handoff.ts` defines the local-safe handoff from
 the lobby preview to the active duel preview. `/word-duel/lobby-demo` can only
@@ -233,9 +235,11 @@ only with both configs plus an injected Convex client.
 The hidden `/word-duel/connected-runtime` route includes an internal rematch
 API panel once an active runtime controller is open. It can create a proposal
 for the current participant, accept/decline/cancel by proposal id, and display
-whether an accepted response returned a safe next lobby. It does not discover
+whether an accepted response returned a safe next lobby. When accept returns a
+safe `nextGame`, the route swaps back to a connected lobby state for that
+rematch so the same participant can run Ready/start again. It does not discover
 remote proposals through Convex, does not poll for post-finalization state, and
-does not route into the accepted next lobby yet.
+does not expose this flow through the public result screen yet.
 
 ## Local Preview Routes
 

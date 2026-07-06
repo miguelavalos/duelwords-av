@@ -7,6 +7,7 @@ import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import {
   createWordDuelLobbyController,
+  createWordDuelLobbyControllerStateFromAcceptedRematchProposal,
   type WordDuelLobbyControllerState,
 } from '@/game/word-duel-lobby/controller';
 import { DuelWordsApiError, type DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
@@ -310,6 +311,20 @@ export function ConnectedRuntimeScreen() {
       const proposal = await activeController.acceptRematchProposal({ proposalId });
       setRematchProposal(proposal);
       setRematchProposalIdInput(proposal.proposalId);
+      if (proposal.nextGame && lobbyState?.session.actor) {
+        const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+          actor: lobbyState.session.actor,
+          nowMs: Date.now(),
+          proposal,
+        });
+        setLobbyState(nextLobbyState);
+        setActiveController(null);
+        setActiveModel(null);
+        setGuess('');
+        setStatusDetail('Rematch accepted: next lobby');
+        return;
+      }
+
       setStatusDetail(proposal.nextGame ? 'Rematch accepted' : 'Rematch updated');
     });
   }

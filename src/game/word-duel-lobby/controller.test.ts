@@ -4,8 +4,10 @@ import { createDuelWordsRuntimeApiClient } from './runtime-api-client';
 import {
   createLocalMockWordDuelLobbyControllerState,
   createWordDuelLobbyController,
+  createWordDuelLobbyControllerStateFromAcceptedRematchProposal,
   WordDuelLobbyControllerError,
 } from './controller';
+import type { DuelWordsApiRematchProposal, DuelWordsApiSafeGame } from './api-client';
 
 const NOW_MS = Date.parse('2026-07-05T10:00:00.000Z');
 const HOST_ACTOR = {
@@ -337,6 +339,74 @@ describe('Word Duel lobby controller', () => {
       code: 'unsupported_api_lobby_state',
     });
   });
+
+  it('builds a next lobby runtime state from an accepted rematch proposal', () => {
+    const state = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-b',
+      },
+      nowMs: NOW_MS,
+      proposal: rematchProposalPayload({
+        nextGame: acceptedRematchNextGamePayload(),
+        status: 'accepted',
+        viewer: {
+          canAccept: false,
+          canCancel: false,
+          canDecline: false,
+          playerId: 'player-b-previous',
+          role: 'recipient',
+          side: 'b',
+        },
+      }),
+    });
+
+    expect(state).toMatchObject({
+      realtime: null,
+      session: {
+        actor: {
+          actorType: 'guest_session',
+          guestSessionId: 'guest-b',
+        },
+        gameId: 'game-2',
+        inviteToken: 'dwr_room_2',
+        playerId: 'player-b-next',
+        side: 'b',
+      },
+      source: 'apps_av_api',
+    });
+    expect(state.lobby).toMatchObject({
+      canPressReady: true,
+      status: 'lobby',
+      viewerRole: 'recipient',
+      viewerSide: 'b',
+    });
+    expect(state.lobby.players.find((player) => player.side === 'b')).toMatchObject({
+      isViewer: true,
+      safeDisplayName: 'Rival',
+      state: 'joined',
+    });
+    expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('player-b-next');
+    expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('game-2');
+    expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('target');
+    expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('dictionary');
+  });
+
+  it('rejects accepted rematch lobby handoffs without an accepted next game', () => {
+    expect(() =>
+      createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+        actor: {
+          actorType: 'guest_session',
+          guestSessionId: 'guest-b',
+        },
+        nowMs: NOW_MS,
+        proposal: rematchProposalPayload({
+          nextGame: null,
+          status: 'sent',
+        }),
+      }),
+    ).toThrow(WordDuelLobbyControllerError);
+  });
 });
 
 type FetchCall = {
@@ -507,4 +577,74 @@ function bothReadyPlayers() {
       status: 'ready',
     },
   ] as const;
+}
+
+function rematchProposalPayload(overrides: Partial<DuelWordsApiRematchProposal> = {}): DuelWordsApiRematchProposal {
+  return {
+    createdAt: '2026-07-05T10:02:00.000Z',
+    expiresAt: '2026-07-05T10:03:00.000Z',
+    nextGame: null,
+    owner: {
+      playerId: 'player-a-previous',
+      safeDisplayName: 'Host',
+      side: 'a',
+    },
+    previousGameId: 'game-1',
+    proposalId: 'dwrp-proposal-1',
+    recipient: {
+      playerId: 'player-b-previous',
+      safeDisplayName: 'Rival',
+      side: 'b',
+    },
+    remainingSeconds: null,
+    respondedAt: '2026-07-05T10:02:30.000Z',
+    settings: {
+      language: 'en',
+      maxAttempts: 6,
+      wordLength: 5,
+    },
+    status: 'accepted',
+    viewer: {
+      canAccept: false,
+      canCancel: false,
+      canDecline: false,
+      playerId: 'player-b-previous',
+      role: 'recipient',
+      side: 'b',
+    },
+    ...overrides,
+  };
+}
+
+function acceptedRematchNextGamePayload(): DuelWordsApiSafeGame {
+  return {
+    countdownEndsAt: null,
+    currentRound: 0,
+    gameId: 'game-2',
+    language: 'en',
+    maxAttempts: 6,
+    mode: 'human_duel',
+    players: [
+      {
+        joinedAt: '2026-07-05T10:02:30.000Z',
+        playerId: 'player-a-next',
+        readyAt: null,
+        safeDisplayName: 'Host',
+        side: 'a',
+        status: 'joined',
+      },
+      {
+        joinedAt: '2026-07-05T10:02:30.000Z',
+        playerId: 'player-b-next',
+        readyAt: null,
+        safeDisplayName: 'Rival',
+        side: 'b',
+        status: 'joined',
+      },
+    ],
+    roomToken: 'dwr_room_2',
+    roundDeadlineAt: null,
+    status: 'lobby',
+    wordLength: 5,
+  };
 }
