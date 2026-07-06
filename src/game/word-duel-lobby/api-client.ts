@@ -169,6 +169,44 @@ export type DuelWordsApiOwnRoundSnapshot = {
   side: WordDuelLobbySide;
 };
 
+export type DuelWordsApiFinalResultGuess =
+  | {
+      roundNumber: number;
+      status: 'timeout';
+    }
+  | {
+      displayWord: string;
+      feedback: DuelWordsApiGuessFeedback;
+      roundNumber: number;
+      status: 'accepted';
+      submittedAt: string;
+    };
+
+export type DuelWordsApiFinalResultParticipant = {
+  attemptsUsed: number;
+  guesses: DuelWordsApiFinalResultGuess[];
+  safeDisplayName: string;
+  side: WordDuelLobbySide;
+  solved: boolean;
+};
+
+export type DuelWordsApiFinalResult = {
+  game: DuelWordsApiSafeGame;
+  opponent: DuelWordsApiFinalResultParticipant;
+  own: DuelWordsApiFinalResultParticipant;
+  result: {
+    finalizedAt: string;
+    resultReason: string;
+    targetDisplayWord: string;
+    winnerSide: WordDuelLobbySide | 'draw';
+  };
+  viewer: {
+    outcome: 'draw' | 'loss' | 'no_winner' | 'win';
+    playerId: string;
+    side: WordDuelLobbySide;
+  };
+};
+
 export type DuelWordsApiRealtimeSessionResult =
   | {
       ok: true;
@@ -208,6 +246,11 @@ export type DuelWordsApiClient = {
     playerId: string;
     roundNumber: number;
   }): Promise<DuelWordsApiOwnRoundSnapshot>;
+  getFinalResult(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+  }): Promise<DuelWordsApiFinalResult>;
   getRoomCodePreview(input: { roomCode: string }): Promise<{ invite: DuelWordsApiInvitePreview }>;
   joinInvite(input: {
     inviteToken: string;
@@ -354,6 +397,14 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
       );
 
       return readOwnRoundSnapshot(payload);
+    },
+
+    async getFinalResult(input) {
+      const query = actorIdentityQuery(input.actor);
+      query.set('playerId', input.playerId);
+      const payload = await requestJson(`/v1/apps/duelwords/games/${encodePath(input.gameId)}/final-result?${query}`);
+
+      return readFinalResult(payload);
     },
 
     async getRoomCodePreview(input) {
@@ -595,6 +646,79 @@ function readOwnRoundSnapshot(value: unknown): DuelWordsApiOwnRoundSnapshot {
     own: readOwnSnapshot(readRequiredProperty(input, 'own')),
     roundNumber: requireNumber(input.roundNumber),
     roundStatus: readRoundTransitionStatus(input.roundStatus),
+    side: readSide(input.side),
+  };
+}
+
+function readFinalResult(value: unknown): DuelWordsApiFinalResult {
+  const input = requireRecord(value);
+  const game = readSafeGame(readRequiredProperty(input, 'game'));
+  return {
+    game,
+    opponent: readFinalResultParticipant(readRequiredProperty(input, 'opponent'), game.wordLength),
+    own: readFinalResultParticipant(readRequiredProperty(input, 'own'), game.wordLength),
+    result: readFinalResultSummary(readRequiredProperty(input, 'result')),
+    viewer: readFinalResultViewer(readRequiredProperty(input, 'viewer')),
+  };
+}
+
+function readFinalResultParticipant(value: unknown, wordLength: number): DuelWordsApiFinalResultParticipant {
+  const input = requireRecord(value);
+  const guesses = requireArray(input.guesses).map((guess) => readFinalResultGuess(guess, wordLength));
+  const attemptsUsed = requireNumber(input.attemptsUsed);
+  if (attemptsUsed !== guesses.length) {
+    throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords final result attempts are invalid.');
+  }
+
+  return {
+    attemptsUsed,
+    guesses,
+    safeDisplayName: requireString(input.safeDisplayName),
+    side: readSide(input.side),
+    solved: requireBoolean(input.solved),
+  };
+}
+
+function readFinalResultGuess(value: unknown, wordLength: number): DuelWordsApiFinalResultGuess {
+  const input = requireRecord(value);
+  const status = readFinalResultGuessStatus(input.status);
+  const roundNumber = requireNumber(input.roundNumber);
+  if (status === 'timeout') {
+    return {
+      roundNumber,
+      status,
+    };
+  }
+
+  const feedback = readGuessFeedback(readRequiredProperty(input, 'feedback'));
+  if (feedback.wordLength !== wordLength) {
+    throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords final result feedback length is invalid.');
+  }
+
+  return {
+    displayWord: requireString(input.displayWord),
+    feedback,
+    roundNumber,
+    status,
+    submittedAt: requireString(input.submittedAt),
+  };
+}
+
+function readFinalResultSummary(value: unknown): DuelWordsApiFinalResult['result'] {
+  const input = requireRecord(value);
+  return {
+    finalizedAt: requireString(input.finalizedAt),
+    resultReason: requireString(input.resultReason),
+    targetDisplayWord: requireString(input.targetDisplayWord),
+    winnerSide: readWinnerSideRequired(input.winnerSide),
+  };
+}
+
+function readFinalResultViewer(value: unknown): DuelWordsApiFinalResult['viewer'] {
+  const input = requireRecord(value);
+  return {
+    outcome: readFinalResultOutcome(input.outcome),
+    playerId: requireString(input.playerId),
     side: readSide(input.side),
   };
 }
@@ -876,6 +1000,22 @@ function readFeedbackState(value: unknown): DuelWordsApiFeedbackState {
   throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API feedback state is invalid.');
 }
 
+function readFinalResultGuessStatus(value: unknown): DuelWordsApiFinalResultGuess['status'] {
+  if (value === 'accepted' || value === 'timeout') {
+    return value;
+  }
+
+  throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API final result guess status is invalid.');
+}
+
+function readFinalResultOutcome(value: unknown): DuelWordsApiFinalResult['viewer']['outcome'] {
+  if (value === 'draw' || value === 'loss' || value === 'no_winner' || value === 'win') {
+    return value;
+  }
+
+  throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API final result outcome is invalid.');
+}
+
 function readTimeoutStatus(value: unknown): DuelWordsApiTimeoutRoundResponse['timeout']['status'] {
   if (value === 'already_submitted' || value === 'timed_out') {
     return value;
@@ -888,6 +1028,14 @@ function readWinnerSide(value: unknown): DuelWordsApiRoundTransition['winnerSide
   if (value === null || value === undefined) {
     return null;
   }
+  if (value === 'draw') {
+    return value;
+  }
+
+  return readSide(value);
+}
+
+function readWinnerSideRequired(value: unknown): WordDuelLobbySide | 'draw' {
   if (value === 'draw') {
     return value;
   }

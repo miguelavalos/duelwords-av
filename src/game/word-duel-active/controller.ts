@@ -10,6 +10,7 @@ import type { WordDuelActiveHandoff } from './handoff';
 import type {
   DuelWordsApiClient,
   DuelWordsApiFeedbackState,
+  DuelWordsApiFinalResult,
   DuelWordsApiOwnRoundSnapshot,
   DuelWordsApiSafeGame,
 } from '../word-duel-lobby/api-client';
@@ -74,6 +75,7 @@ export type WordDuelActiveOwnRoundSnapshotResult = {
 
 export type WordDuelActiveController = {
   source: WordDuelActiveControllerSource;
+  getFinalResult(): Promise<DuelWordsApiFinalResult>;
   getViewModel(): ActiveDuelViewModel;
   openNextRoundIfDue(input: {
     roundNumber: number;
@@ -168,6 +170,13 @@ function createLocalMockWordDuelActiveController(input: {
 
     getViewModel() {
       return activeClient.getViewModel();
+    },
+
+    async getFinalResult() {
+      throw new WordDuelActiveControllerError(
+        'controller_not_available',
+        'The local active demo does not expose an Apps AV API final result.',
+      );
     },
 
     openNextRoundIfDue({ roundNumber }) {
@@ -296,6 +305,14 @@ function createAppsApiWordDuelActiveController(input: {
 
     getViewModel() {
       return viewModel;
+    },
+
+    getFinalResult() {
+      return apiClient.getFinalResult({
+        actor: session.actor,
+        gameId: session.gameId,
+        playerId: session.playerId,
+      });
     },
 
     async openNextRoundIfDue({ roundNumber }) {
@@ -441,6 +458,8 @@ function createDisabledRuntimeWordDuelActiveController(
     getViewModel() {
       return viewModel;
     },
+
+    getFinalResult: unavailable,
 
     openNextRoundIfDue: unavailable,
 

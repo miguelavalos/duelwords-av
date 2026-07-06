@@ -9,12 +9,16 @@ import {
   createWordDuelLobbyController,
   type WordDuelLobbyControllerState,
 } from '@/game/word-duel-lobby/controller';
+import { DuelWordsApiError } from '@/game/word-duel-lobby/api-client';
 import type { WordDuelLobbyPlayer } from '@/game/word-duel-lobby/view-model';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
 import type { ActiveDuelReactionId, ActiveDuelViewModel } from '@/game/word-duel-active/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { colors, radii, spacing, typeScale } from '@/ui/theme';
+
+import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
+import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
 
 const REACTIONS: ActiveDuelReactionId[] = ['nice', 'tick_tock', 'almost', 'gg'];
 
@@ -267,6 +271,32 @@ export function ConnectedRuntimeScreen() {
     });
   }
 
+  function openFinalResult() {
+    if (!activeController) {
+      return;
+    }
+
+    void runAction('final-result', async () => {
+      try {
+        const finalResult = await activeController.getFinalResult();
+        const localResult = createWordDuelResultLocalPayloadFromApiFinalResult(finalResult);
+        router.push(buildWordDuelResultHandoffHref({
+          gameLanguage: finalResult.game.language,
+          localResult,
+          mode: 'human_duel',
+          outcome: localResult.outcome,
+          reason: localResult.resultReason,
+        }));
+      } catch (error) {
+        if (error instanceof DuelWordsApiError && error.code === 'game_not_finalized') {
+          setStatusDetail('Result not finalized');
+          return;
+        }
+        throw error;
+      }
+    });
+  }
+
   const isBusy = busyAction !== null;
 
   return (
@@ -399,6 +429,9 @@ export function ConnectedRuntimeScreen() {
             </AppButton>
             <AppButton disabled={isBusy} tone="secondary" onPress={openNextRound} style={styles.controlButton}>
               Next
+            </AppButton>
+            <AppButton disabled={isBusy} tone="secondary" onPress={openFinalResult} style={styles.controlButton}>
+              Result
             </AppButton>
           </View>
           <View style={styles.reactionRow}>

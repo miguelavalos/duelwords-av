@@ -345,6 +345,97 @@ describe('Word Duel active controller', () => {
     expect(JSON.stringify(result.viewModel.opponent).toLowerCase()).not.toContain('feedback');
     expect(JSON.stringify(result).toLowerCase()).not.toContain('target');
   });
+
+  it('loads the runtime final result through the participant-scoped Apps AV API call', async () => {
+    const finalResultCalls: unknown[] = [];
+    const apiClient = createApiClientStub({
+      async getFinalResult(input) {
+        finalResultCalls.push(input);
+        return {
+          game: apiGamePayload({
+            currentRound: 1,
+            status: 'finalized',
+          }),
+          opponent: {
+            attemptsUsed: 1,
+            guesses: [
+              {
+                displayWord: 'arose',
+                feedback: {
+                  isCorrect: false,
+                  states: ['absent', 'present', 'absent', 'absent', 'correct'],
+                  version: 'duelwords-feedback-v1',
+                  wordLength: 5,
+                },
+                roundNumber: 1,
+                status: 'accepted',
+                submittedAt: '2026-07-05T08:00:50.000Z',
+              },
+            ],
+            safeDisplayName: 'Rival',
+            side: 'b',
+            solved: false,
+          },
+          own: {
+            attemptsUsed: 1,
+            guesses: [
+              {
+                displayWord: 'civic',
+                feedback: {
+                  isCorrect: false,
+                  states: ['correct', 'correct', 'absent', 'absent', 'absent'],
+                  version: 'duelwords-feedback-v1',
+                  wordLength: 5,
+                },
+                roundNumber: 1,
+                status: 'accepted',
+                submittedAt: '2026-07-05T08:00:45.000Z',
+              },
+            ],
+            safeDisplayName: 'You',
+            side: 'a',
+            solved: false,
+          },
+          result: {
+            finalizedAt: '2026-07-05T08:00:50.000Z',
+            resultReason: 'attempts_exhausted',
+            targetDisplayWord: 'cigar',
+            winnerSide: 'draw',
+          },
+          viewer: {
+            outcome: 'draw',
+            playerId: 'player-a',
+            side: 'a',
+          },
+        };
+      },
+    });
+    const controller = createWordDuelActiveController({
+      handoff: createWordDuelActiveDemoHandoff(),
+      mode: 'runtime',
+      runtime: {
+        apiClient,
+        realtimeClient: createLocalDuelWordsRealtimeProjectionClient({
+          realtimeSessionId: RUNTIME_SESSION.realtime.realtimeSessionId,
+          roomToken: RUNTIME_SESSION.realtime.roomToken,
+        }),
+        session: RUNTIME_SESSION,
+      },
+    });
+
+    const finalResult = await controller.getFinalResult();
+
+    expect(finalResultCalls).toEqual([
+      {
+        actor: RUNTIME_SESSION.actor,
+        gameId: 'game-1',
+        playerId: 'player-a',
+      },
+    ]);
+    expect(finalResult.result.targetDisplayWord).toBe('cigar');
+    expect(JSON.stringify(controller).toLowerCase()).not.toContain('game-1');
+    expect(JSON.stringify(controller).toLowerCase()).not.toContain('dwr_room_1');
+  });
 });
 
 function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsApiClient {
@@ -356,6 +447,7 @@ function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsA
     cancelInvite: unexpectedCall,
     createInvite: unexpectedCall,
     createRealtimeSession: unexpectedCall,
+    getFinalResult: unexpectedCall,
     getInvitePreview: unexpectedCall,
     getLobby: unexpectedCall,
     getOwnRoundSnapshot: unexpectedCall,

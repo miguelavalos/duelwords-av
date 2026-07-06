@@ -17,7 +17,8 @@ envelope parser exist, and a closed real Convex SDK bridge can build the three
 approved function references without generated API imports. Realtime and Apps
 AV API runtime config are still disabled by default. A typed, injected Apps AV
 API client boundary exists for invite, lobby, Ready, start, realtime-session
-recovery, active round command flows, and own-round snapshot recovery. A
+recovery, active round command flows, own-round snapshot recovery, and
+participant-scoped final-result recovery after backend finalization. A
 client-safe Apps AV API runtime config boundary exists, but it is disabled by default. A
 lobby controller can now run against `local_mock`, `disabled_runtime`, or an
 injected `apps_av_api` client, and `/word-duel/lobby-demo` uses that controller
@@ -33,7 +34,10 @@ AV API plus Convex realtime construction from client-safe config; the Expo
 hook supplies the real SDK bridge and disposes it on cleanup. A hidden internal
 route at `/word-duel/connected-runtime` can use those clients when runtime
 config is explicitly enabled, but it is not linked from public play navigation
-and the demo routes remain local.
+and the demo routes remain local. The hidden route can request a finalized API
+result and hand it into the existing result screen route after backend
+finalization; it fails closed before finalization and still does not implement
+remote rematch/new-game creation.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
@@ -157,6 +161,7 @@ boundary for the approved Apps AV API routes:
 - `POST /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/timeout`
 - `POST /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/open-next-if-due`
 - `GET /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/own-snapshot`
+- `GET /v1/apps/duelwords/games/:gameId/final-result`
 
 The client is fetch-injected for tests, sends the canonical app id
 `duelwordsav`, accepts an optional bearer token provider, parses only safe
@@ -165,7 +170,11 @@ and drops unexpected target, dictionary, opponent guess, and opponent feedback
 fields. Active command responses cover submit, timeout, and open-next summaries
 only. The own-snapshot response can reveal the caller's own submitted display
 word and own feedback after backend resolution, while the opponent remains only
-`waiting`, `submitted`, or `timed_out`.
+`waiting`, `submitted`, or `timed_out`. The final-result response is
+participant-scoped, rejected before backend finalization, and parsed into only
+safe game summary, viewer outcome, target display word, and completed own/
+opponent result boards. Malformed final-result feedback fails closed instead of
+being rendered.
 `src/game/word-duel-lobby/runtime-api-client.ts` only constructs the HTTP client
 when the runtime config is explicitly enabled.
 `src/game/word-duel-lobby/controller.ts` wraps the local lobby preview, disabled
@@ -191,9 +200,11 @@ commands. It owns the demo actor, game id, player id, room token, and realtime
 session id in local mode, accepts backend-issued session details in runtime
 mode, and exposes only high-level UI actions such as submit guess, heartbeat,
 reaction, subscription, timeout, open-next-round, and own-round snapshot
-refresh. The injected Apps AV API source uses the typed HTTP client plus a
-client-safe realtime projection client; it updates only the caller's board from
-own snapshots and keeps opponent letters/feedback abstract.
+refresh, plus finalized result recovery. The injected Apps AV API source uses
+the typed HTTP client plus a client-safe realtime projection client; it updates
+only the caller's board from own snapshots, keeps opponent letters/feedback
+abstract during active rounds, and only hands completed boards to the result
+screen after backend finalization.
 `src/game/word-duel-active/runtime-controller.ts` assembles that runtime source
 from a safe lobby state only when API runtime, player session, realtime session,
 and an injected Convex realtime adapter or SDK-shaped Convex client are present.
@@ -241,11 +252,13 @@ ads, Pro, Account AV, Sentry, signed runtime, deploys, or remote providers. Its
 active-duel handoff is a typed local route boundary only, not a backend-issued
 game session or realtime session.
 
-`/word-duel/result-demo` is also local-only. It does not call result APIs,
-native share, public result links, Convex post-finalization runtime, ad SDKs,
-Pro, Account AV, Sentry, push, or any remote provider. The local rematch model
-does not create a new game id; it only creates a start request after recipient
-acceptance.
+`/word-duel/result-demo` is also local-only when opened directly. It does not
+call result APIs, native share, public result links, Convex post-finalization
+runtime, ad SDKs, Pro, Account AV, Sentry, push, or any remote provider. The
+hidden connected runtime route may navigate to it with an API-derived local
+result payload after backend finalization, but the result route itself still
+does not make connected calls. The local rematch model does not create a new
+game id; it only creates a start request after recipient acceptance.
 
 ## Current Game Rules
 

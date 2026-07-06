@@ -405,6 +405,206 @@ describe('DuelWords Apps AV API client', () => {
     expect(JSON.stringify(snapshot).toLowerCase()).not.toContain('targetwordid');
   });
 
+  it('loads final results with target reveal and completed participant boards only after finalization', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        game: {
+          ...safeGamePayload(),
+          currentRound: 1,
+          players: [
+            {
+              joinedAt: '2026-07-05T10:00:00.000Z',
+              playerId: 'player-a',
+              readyAt: '2026-07-05T10:00:20.000Z',
+              safeDisplayName: 'Host',
+              side: 'a',
+              status: 'finalized',
+            },
+            {
+              joinedAt: '2026-07-05T10:00:10.000Z',
+              playerId: 'player-b',
+              readyAt: '2026-07-05T10:00:21.000Z',
+              safeDisplayName: 'Rival',
+              side: 'b',
+              status: 'finalized',
+            },
+          ],
+          status: 'finalized',
+        },
+        opponent: {
+          attemptsUsed: 1,
+          guesses: [
+            {
+              displayWord: 'arose',
+              feedback: {
+                isCorrect: false,
+                states: ['absent', 'present', 'absent', 'absent', 'correct'],
+                version: 'duelwords-feedback-v1',
+                wordLength: 5,
+              },
+              normalizedWord: 'arose',
+              roundNumber: 1,
+              status: 'accepted',
+              submittedAt: '2026-07-05T10:00:50.000Z',
+            },
+          ],
+          safeDisplayName: 'Rival',
+          side: 'b',
+          solved: false,
+        },
+        own: {
+          attemptsUsed: 1,
+          guesses: [
+            {
+              displayWord: 'civic',
+              feedback: {
+                isCorrect: false,
+                states: ['correct', 'correct', 'absent', 'absent', 'absent'],
+                targetWordId: 'target-secret',
+                version: 'duelwords-feedback-v1',
+                wordLength: 5,
+              },
+              roundNumber: 1,
+              status: 'accepted',
+              submittedAt: '2026-07-05T10:00:45.000Z',
+            },
+          ],
+          safeDisplayName: 'Host',
+          side: 'a',
+          solved: false,
+        },
+        result: {
+          finalizedAt: '2026-07-05T10:00:50.000Z',
+          resultReason: 'attempts_exhausted',
+          targetDisplayWord: 'cigar',
+          winnerSide: 'draw',
+        },
+        viewer: {
+          outcome: 'draw',
+          playerId: 'player-a',
+          side: 'a',
+        },
+      }),
+    ]);
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: recorder.fetch,
+    });
+
+    const finalResult = await client.getFinalResult({
+      actor: GUEST_IDENTITY,
+      gameId: 'game-1',
+      playerId: 'player-a',
+    });
+
+    expect(recorder.calls[0]).toMatchObject({
+      body: undefined,
+      method: 'GET',
+      url: 'https://api.test/v1/apps/duelwords/games/game-1/final-result?actorType=guest_session&guestSessionId=guest-a&playerId=player-a',
+    });
+    expect(finalResult).toMatchObject({
+      result: {
+        resultReason: 'attempts_exhausted',
+        targetDisplayWord: 'cigar',
+        winnerSide: 'draw',
+      },
+      viewer: {
+        outcome: 'draw',
+        playerId: 'player-a',
+        side: 'a',
+      },
+      own: {
+        attemptsUsed: 1,
+        guesses: [
+          {
+            displayWord: 'civic',
+            roundNumber: 1,
+            status: 'accepted',
+          },
+        ],
+      },
+      opponent: {
+        attemptsUsed: 1,
+        guesses: [
+          {
+            displayWord: 'arose',
+            roundNumber: 1,
+            status: 'accepted',
+          },
+        ],
+      },
+    });
+    const serialized = JSON.stringify(finalResult).toLowerCase();
+    expect(serialized).toContain('cigar');
+    expect(serialized).toContain('civic');
+    expect(serialized).toContain('arose');
+    expect(serialized).not.toContain('targetwordid');
+    expect(serialized).not.toContain('normalizedword');
+  });
+
+  it('fails closed when final result feedback does not match the game word length', async () => {
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: createFetchRecorder([
+        jsonResponse({
+          game: {
+            ...safeGamePayload(),
+            status: 'finalized',
+            wordLength: 5,
+          },
+          opponent: {
+            attemptsUsed: 0,
+            guesses: [],
+            safeDisplayName: 'Rival',
+            side: 'b',
+            solved: false,
+          },
+          own: {
+            attemptsUsed: 1,
+            guesses: [
+              {
+                displayWord: 'civic',
+                feedback: {
+                  isCorrect: false,
+                  states: ['correct', 'correct', 'absent', 'absent'],
+                  version: 'duelwords-feedback-v1',
+                  wordLength: 4,
+                },
+                roundNumber: 1,
+                status: 'accepted',
+                submittedAt: '2026-07-05T10:00:45.000Z',
+              },
+            ],
+            safeDisplayName: 'Host',
+            side: 'a',
+            solved: false,
+          },
+          result: {
+            finalizedAt: '2026-07-05T10:00:50.000Z',
+            resultReason: 'attempts_exhausted',
+            targetDisplayWord: 'cigar',
+            winnerSide: 'draw',
+          },
+          viewer: {
+            outcome: 'draw',
+            playerId: 'player-a',
+            side: 'a',
+          },
+        }),
+      ]).fetch,
+    });
+
+    await expect(
+      client.getFinalResult({
+        actor: GUEST_IDENTITY,
+        gameId: 'game-1',
+        playerId: 'player-a',
+      }),
+    ).rejects.toMatchObject({
+      code: 'invalid_response',
+    });
+  });
+
   it('fails closed when own snapshot feedback shape is malformed', async () => {
     const client = createDuelWordsApiClient({
       baseUrl: 'https://api.test',
