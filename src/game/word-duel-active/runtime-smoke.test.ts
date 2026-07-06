@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createWordDuelLobbyController,
+  createWordDuelLobbyControllerStateFromAcceptedRematchProposal,
 } from '../word-duel-lobby/controller';
 import { createDuelWordsRuntimeApiClient } from '../word-duel-lobby/runtime-api-client';
 import {
@@ -90,6 +91,38 @@ describe('Word Duel connected runtime smoke', () => {
           side: 'a',
           submittedAt: '2026-07-05T12:00:10.000Z',
         },
+      }),
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          nextGame: safeGamePayload({
+            dictionaryVersionId: 'private-rematch-version-filtered',
+            gameId: 'game-2',
+            players: [
+              {
+                joinedAt: '2026-07-05T12:01:00.000Z',
+                playerId: 'player-a-rematch',
+                readyAt: null,
+                safeDisplayName: 'Host',
+                side: 'a',
+                status: 'joined',
+              },
+              {
+                joinedAt: '2026-07-05T12:01:00.000Z',
+                playerId: 'player-b-rematch',
+                readyAt: null,
+                safeDisplayName: 'Rival',
+                side: 'b',
+                status: 'joined',
+              },
+            ],
+            roomToken: 'dwr_room_2',
+            status: 'lobby',
+            targetWordId: 'next-target-filtered',
+          }),
+          remainingSeconds: null,
+          respondedAt: '2026-07-05T12:01:00.000Z',
+          status: 'accepted',
+        }),
       }),
     ]);
     const runtimeApiClient = createDuelWordsRuntimeApiClient({
@@ -185,6 +218,40 @@ describe('Word Duel connected runtime smoke', () => {
     });
     expect(submitted.viewModel.ownRoundState).toBe('waiting_for_rival');
 
+    const currentRematch = await activeBundle.controller.getCurrentRematchProposal();
+    expect(currentRematch).toMatchObject({
+      nextGame: {
+        gameId: 'game-2',
+        status: 'lobby',
+      },
+      status: 'accepted',
+      viewer: {
+        role: 'owner',
+        side: 'a',
+      },
+    });
+    if (!currentRematch || activeLobby.session.actor === null) {
+      throw new Error('Expected an accepted rematch proposal and active actor.');
+    }
+    const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor: activeLobby.session.actor,
+      nowMs: NOW_MS + 61_000,
+      proposal: currentRematch,
+    });
+    expect(nextLobbyState).toMatchObject({
+      lobby: {
+        canPressReady: true,
+        status: 'lobby',
+      },
+      session: {
+        gameId: 'game-2',
+        playerId: 'player-a-rematch',
+      },
+      source: 'apps_av_api',
+    });
+    expect(JSON.stringify({ currentRematch, lobby: nextLobbyState.lobby }).toLowerCase()).not.toContain('target');
+    expect(JSON.stringify({ currentRematch, lobby: nextLobbyState.lobby }).toLowerCase()).not.toContain('dictionary');
+
     watch.emit(safeRoomProjection({
       opponent: {
         attemptCount: 1,
@@ -209,6 +276,7 @@ describe('Word Duel connected runtime smoke', () => {
       'https://api.test/v1/apps/duelwords/games/game-1/ready',
       'https://api.test/v1/apps/duelwords/games/game-1/start',
       'https://api.test/v1/apps/duelwords/games/game-1/rounds/1/submit',
+      'https://api.test/v1/apps/duelwords/games/game-1/rematch-proposals/current?actorType=guest_session&guestSessionId=guest-a&playerId=player-a',
     ]);
     expect(reactClient.watches).toEqual([
       {
@@ -460,6 +528,43 @@ function bothReadyPlayers() {
     readyAt: '2026-07-05T12:00:01.000Z',
     status: 'ready',
   }));
+}
+
+function rematchProposalPayload(overrides: Record<string, unknown> = {}): Record<string, unknown> {
+  return {
+    createdAt: '2026-07-05T12:00:50.000Z',
+    expiresAt: '2026-07-05T12:01:50.000Z',
+    nextGame: null,
+    owner: {
+      playerId: 'player-a',
+      safeDisplayName: 'Host',
+      side: 'a',
+    },
+    previousGameId: 'game-1',
+    proposalId: 'dwrp_proposal_1',
+    recipient: {
+      playerId: 'player-b',
+      safeDisplayName: 'Rival',
+      side: 'b',
+    },
+    remainingSeconds: 60,
+    respondedAt: null,
+    settings: {
+      language: 'en',
+      maxAttempts: 6,
+      wordLength: 5,
+    },
+    status: 'sent',
+    viewer: {
+      canAccept: false,
+      canCancel: false,
+      canDecline: false,
+      playerId: 'player-a',
+      role: 'owner',
+      side: 'a',
+    },
+    ...overrides,
+  };
 }
 
 function safeRoomProjection(overrides: {

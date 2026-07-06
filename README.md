@@ -239,13 +239,14 @@ only with both configs plus an injected Convex client.
 `/word-duel/active-demo` uses this controller in `local_mock` mode.
 
 The hidden `/word-duel/connected-runtime` route includes an internal rematch
-API panel once an active runtime controller is open. It can create a proposal
-for the current participant, accept/decline/cancel by proposal id, and display
-whether an accepted response returned a safe next lobby. When accept returns a
-safe `nextGame`, the route swaps back to a connected lobby state for that
-rematch so the same participant can run Ready/start again. It does not discover
-remote proposals through Convex, does not poll for post-finalization state, and
-does not expose this flow through the public result screen yet.
+API panel once an active runtime controller is open. It can refresh the current
+participant-scoped API proposal, create a proposal for the current participant,
+accept/decline/cancel by proposal id, and display whether an accepted response
+returned a safe next lobby. When accept or refresh returns a safe `nextGame`,
+the route swaps back to a connected lobby state for that rematch so the same
+participant can run Ready/start again. It does not discover remote proposals
+through Convex, does not poll for post-finalization state, and does not expose
+this flow through the public result screen yet.
 
 ## Local Preview Routes
 
