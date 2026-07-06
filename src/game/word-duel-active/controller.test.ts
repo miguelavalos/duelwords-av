@@ -487,6 +487,19 @@ describe('Word Duel active controller', () => {
           status: 'declined',
         });
       },
+      async getCurrentRematchProposal(input) {
+        rematchCalls.push({ action: 'current', input });
+        return rematchProposalPayload({
+          viewer: {
+            canAccept: true,
+            canCancel: false,
+            canDecline: true,
+            playerId: 'player-a',
+            role: 'recipient',
+            side: 'a',
+          },
+        });
+      },
     });
     const controller = createWordDuelActiveController({
       handoff: createWordDuelActiveDemoHandoff(),
@@ -501,6 +514,12 @@ describe('Word Duel active controller', () => {
       },
     });
 
+    await expect(controller.getCurrentRematchProposal()).resolves.toMatchObject({
+      status: 'sent',
+      viewer: {
+        role: 'recipient',
+      },
+    });
     await expect(controller.createRematchProposal({ language: 'es' })).resolves.toMatchObject({
       settings: {
         language: 'es',
@@ -521,6 +540,14 @@ describe('Word Duel active controller', () => {
     });
 
     expect(rematchCalls).toEqual([
+      {
+        action: 'current',
+        input: {
+          actor: RUNTIME_SESSION.actor,
+          gameId: 'game-1',
+          playerId: 'player-a',
+        },
+      },
       {
         action: 'create',
         input: {
@@ -577,6 +604,7 @@ function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsA
     createRematchProposal: unexpectedCall,
     declineRematchProposal: unexpectedCall,
     getFinalResult: unexpectedCall,
+    getCurrentRematchProposal: unexpectedCall,
     getInvitePreview: unexpectedCall,
     getLobby: unexpectedCall,
     getOwnRoundSnapshot: unexpectedCall,

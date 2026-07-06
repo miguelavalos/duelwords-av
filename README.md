@@ -38,9 +38,9 @@ and the demo routes remain local. The hidden route can request a finalized API
 result and hand it into the existing result screen route after backend
 finalization; it fails closed before finalization. It can also call the
 participant-scoped rematch proposal API from the hidden connected runtime
-surface for create/accept/decline/cancel checks. Post-finalization rematch
-discovery/projection and public result-screen rematch navigation remain out of
-scope.
+surface for current discovery and create/accept/decline/cancel checks.
+Post-finalization Convex rematch projection and public result-screen rematch
+navigation remain out of scope.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
@@ -165,6 +165,7 @@ boundary for the approved Apps AV API routes:
 - `POST /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/open-next-if-due`
 - `GET /v1/apps/duelwords/games/:gameId/rounds/:roundNumber/own-snapshot`
 - `GET /v1/apps/duelwords/games/:gameId/final-result`
+- `GET /v1/apps/duelwords/games/:gameId/rematch-proposals/current`
 - `POST /v1/apps/duelwords/games/:gameId/rematch-proposals`
 - `POST /v1/apps/duelwords/games/:gameId/rematch-proposals/:proposalId/accept`
 - `POST /v1/apps/duelwords/games/:gameId/rematch-proposals/:proposalId/decline`
@@ -185,6 +186,8 @@ being rendered. Rematch proposal responses parse only safe owner/recipient
 display summaries, locked V1 settings, viewer permissions, expiry, status, and
 the accepted safe next-game lobby summary; unexpected target, dictionary,
 feedback-storage, actor, or provider fields are not retained.
+Current rematch proposal discovery returns `null` or the same safe proposal
+shape through participant-scoped actor query parameters.
 `src/game/word-duel-lobby/runtime-api-client.ts` only constructs the HTTP client
 when the runtime config is explicitly enabled.
 `src/game/word-duel-lobby/controller.ts` wraps the local lobby preview, disabled
@@ -213,11 +216,14 @@ session id in local mode, accepts backend-issued session details in runtime
 mode, and exposes only high-level UI actions such as submit guess, heartbeat,
 reaction, subscription, timeout, open-next-round, and own-round snapshot
 refresh, finalized result recovery, and participant-scoped rematch proposal
-commands. The injected Apps AV API source uses the typed HTTP client plus a
-client-safe realtime projection client; it updates only the caller's board from
-own snapshots, keeps opponent letters/feedback abstract during active rounds,
-and only hands completed boards to the result screen after backend
-finalization.
+discovery/commands. The injected Apps AV API source uses the typed HTTP client
+plus a client-safe realtime projection client; it updates only the caller's
+board from own snapshots, keeps opponent letters/feedback abstract during
+active rounds, and only hands completed boards to the result screen after
+backend finalization. The hidden connected-runtime rematch panel can refresh
+the current API-only proposal and continue to the accepted next lobby when a
+safe `nextGame` is present; it still does not expose public result-screen
+remote rematch navigation.
 `src/game/word-duel-active/runtime-controller.ts` assembles that runtime source
 from a safe lobby state only when API runtime, player session, realtime session,
 and an injected Convex realtime adapter or SDK-shaped Convex client are present.

@@ -542,6 +542,68 @@ describe('DuelWords Apps AV API client', () => {
     expect(serialized).not.toContain('normalizedword');
   });
 
+  it('loads current rematch proposals through participant-scoped query parameters', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        proposal: null,
+      }),
+      jsonResponse({
+        proposal: rematchProposalPayload({
+          targetWordId: 'target-secret',
+          viewer: {
+            canAccept: true,
+            canCancel: false,
+            canDecline: true,
+            playerId: 'player-b',
+            role: 'recipient',
+            side: 'b',
+          },
+        }),
+      }),
+    ]);
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: recorder.fetch,
+    });
+
+    const empty = await client.getCurrentRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-b',
+      },
+      gameId: 'game/1',
+      playerId: 'player-b',
+    });
+    const proposal = await client.getCurrentRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-b',
+      },
+      gameId: 'game/1',
+      playerId: 'player-b',
+    });
+
+    expect(recorder.calls.map((call) => call.url)).toEqual([
+      'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals/current?actorType=guest_session&guestSessionId=guest-b&playerId=player-b',
+      'https://api.test/v1/apps/duelwords/games/game%2F1/rematch-proposals/current?actorType=guest_session&guestSessionId=guest-b&playerId=player-b',
+    ]);
+    expect(recorder.calls.every((call) => call.method === 'GET')).toBe(true);
+    expect(recorder.calls.every((call) => call.body === undefined)).toBe(true);
+    expect(empty).toBeNull();
+    expect(proposal).toMatchObject({
+      proposalId: 'dwrp_proposal_1',
+      status: 'sent',
+      viewer: {
+        role: 'recipient',
+        canAccept: true,
+        canCancel: false,
+        canDecline: true,
+      },
+    });
+    expect(JSON.stringify(proposal).toLowerCase()).not.toContain('targetwordid');
+    expect(JSON.stringify(proposal).toLowerCase()).not.toContain('target-secret');
+  });
+
   it('drives rematch proposal actions through participant-scoped Apps AV routes without leaking private fields', async () => {
     const recorder = createFetchRecorder([
       jsonResponse({

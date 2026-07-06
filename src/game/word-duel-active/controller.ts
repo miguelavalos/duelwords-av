@@ -89,6 +89,7 @@ export type WordDuelActiveController = {
     proposalId: string;
   }): Promise<DuelWordsApiRematchProposal>;
   getFinalResult(): Promise<DuelWordsApiFinalResult>;
+  getCurrentRematchProposal(): Promise<DuelWordsApiRematchProposal | null>;
   getViewModel(): ActiveDuelViewModel;
   openNextRoundIfDue(input: {
     roundNumber: number;
@@ -203,6 +204,13 @@ function createLocalMockWordDuelActiveController(input: {
     },
 
     async declineRematchProposal() {
+      throw new WordDuelActiveControllerError(
+        'controller_not_available',
+        'The local active demo does not expose Apps AV API rematch proposals.',
+      );
+    },
+
+    async getCurrentRematchProposal() {
       throw new WordDuelActiveControllerError(
         'controller_not_available',
         'The local active demo does not expose Apps AV API rematch proposals.',
@@ -380,6 +388,14 @@ function createAppsApiWordDuelActiveController(input: {
       });
     },
 
+    getCurrentRematchProposal() {
+      return apiClient.getCurrentRematchProposal({
+        actor: session.actor,
+        gameId: session.gameId,
+        playerId: session.playerId,
+      });
+    },
+
     getViewModel() {
       return viewModel;
     },
@@ -539,6 +555,8 @@ function createDisabledRuntimeWordDuelActiveController(
     createRematchProposal: unavailable,
 
     declineRematchProposal: unavailable,
+
+    getCurrentRematchProposal: unavailable,
 
     getViewModel() {
       return viewModel;

@@ -268,6 +268,11 @@ export type DuelWordsApiClient = {
     gameId: string;
     playerId: string;
   }): Promise<DuelWordsApiRealtimeSessionResult>;
+  getCurrentRematchProposal(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+  }): Promise<DuelWordsApiRematchProposal | null>;
   createRematchProposal(input: {
     actor: DuelWordsActorIdentity;
     gameId: string;
@@ -428,6 +433,16 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
       }
 
       return readRealtimeResult(payload);
+    },
+
+    async getCurrentRematchProposal(input) {
+      const query = actorIdentityQuery(input.actor);
+      query.set('playerId', input.playerId);
+      const payload = await requestJson(
+        `/v1/apps/duelwords/games/${encodePath(input.gameId)}/rematch-proposals/current?${query}`,
+      );
+      const proposal = readRequiredProperty(payload, 'proposal');
+      return proposal === null ? null : readRematchProposal(proposal);
     },
 
     async createRematchProposal(input) {

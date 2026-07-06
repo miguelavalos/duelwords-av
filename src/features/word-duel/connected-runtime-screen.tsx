@@ -297,6 +297,45 @@ export function ConnectedRuntimeScreen() {
     });
   }
 
+  function refreshRematchProposal() {
+    if (!activeController) {
+      return;
+    }
+
+    void runAction('rematch-current', async () => {
+      const proposal = await activeController.getCurrentRematchProposal();
+      setRematchProposal(proposal);
+      setRematchProposalIdInput(proposal?.proposalId ?? '');
+      if (!proposal) {
+        setStatusDetail('No rematch');
+        return;
+      }
+      if (continueAcceptedRematchProposal(proposal, 'Rematch found: next lobby')) {
+        return;
+      }
+
+      setStatusDetail('Rematch found');
+    });
+  }
+
+  function continueAcceptedRematchProposal(proposal: DuelWordsApiRematchProposal, status: string): boolean {
+    if (!proposal.nextGame || !lobbyState?.session.actor) {
+      return false;
+    }
+
+    const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor: lobbyState.session.actor,
+      nowMs: Date.now(),
+      proposal,
+    });
+    setLobbyState(nextLobbyState);
+    setActiveController(null);
+    setActiveModel(null);
+    setGuess('');
+    setStatusDetail(status);
+    return true;
+  }
+
   function acceptRematchProposal() {
     if (!activeController) {
       return;
@@ -311,17 +350,7 @@ export function ConnectedRuntimeScreen() {
       const proposal = await activeController.acceptRematchProposal({ proposalId });
       setRematchProposal(proposal);
       setRematchProposalIdInput(proposal.proposalId);
-      if (proposal.nextGame && lobbyState?.session.actor) {
-        const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
-          actor: lobbyState.session.actor,
-          nowMs: Date.now(),
-          proposal,
-        });
-        setLobbyState(nextLobbyState);
-        setActiveController(null);
-        setActiveModel(null);
-        setGuess('');
-        setStatusDetail('Rematch accepted: next lobby');
+      if (continueAcceptedRematchProposal(proposal, 'Rematch accepted: next lobby')) {
         return;
       }
 
@@ -554,6 +583,9 @@ export function ConnectedRuntimeScreen() {
               value={rematchProposalIdInput}
             />
             <View style={styles.controlRow}>
+              <AppButton disabled={isBusy} tone="secondary" onPress={refreshRematchProposal} style={styles.controlButton}>
+                Refresh
+              </AppButton>
               <AppButton disabled={isBusy} onPress={createRematchProposal} style={styles.controlButton}>
                 Rematch
               </AppButton>
