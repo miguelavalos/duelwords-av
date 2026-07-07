@@ -39,8 +39,11 @@ result and hand it into the existing result screen route after backend
 finalization; it fails closed before finalization. It can also call the
 participant-scoped rematch proposal API from the hidden connected runtime
 surface for current discovery and create/accept/decline/cancel checks.
-Post-finalization Convex rematch projection and public result-screen rematch
-navigation remain out of scope.
+For the internal MVP runtime, Convex may carry only the short-lived safe
+finalized room summary and accepted next-game lobby/active projection. Complete
+participant final results and current rematch discovery remain API-only explicit
+actions. Post-finalization Convex rematch proposal projection and public
+result-screen rematch navigation remain out of scope.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
