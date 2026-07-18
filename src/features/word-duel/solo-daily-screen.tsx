@@ -39,8 +39,9 @@ export function WordDuelSoloDailyScreen({
   initialMode = 'solo_practice',
 }: WordDuelSoloDailyScreenProps) {
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
+  const compactViewport = width <= 480 && height <= 900;
   const styles = useSoloDailyStyles();
-  const { width } = useWindowDimensions();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [mode, setMode] = useState<WordDuelSoloDailyMode>(initialMode);
@@ -61,7 +62,8 @@ export function WordDuelSoloDailyScreen({
   const rows = createRowsFromLocalWordDuelState(session.state, input);
   const keyFeedback = createKeyboardFeedbackFromGuesses(session.state.guesses);
   const boardWidth = Math.min(width - spacing.lg * 2, 340);
-  const tileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
+  const regularTileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
+  const tileSize = compactViewport ? Math.min(46, regularTileSize) : regularTileSize;
 
   function reset(nextMode: WordDuelSoloDailyMode, nextLanguage: GameLanguage, seed: number) {
     setGameLanguage(nextLanguage);
@@ -185,7 +187,9 @@ export function WordDuelSoloDailyScreen({
   }
 
   return (
-    <AppScreen bottomInset={spacing.xxl}>
+    <AppScreen
+      bottomInset={compactViewport ? spacing.md : spacing.xxl}
+      contentGap={compactViewport ? spacing.md : spacing.lg}>
       <View style={styles.header}>
         <View>
           <Text style={styles.kicker}>{viewModel.isLocalPreviewOnly ? 'Local preview' : ''}</Text>
@@ -241,9 +245,14 @@ export function WordDuelSoloDailyScreen({
         </View>
       </View>
 
-      <WordDuelBoard accessibilityLabel="Solo Daily local board" rows={rows} tileSize={tileSize} />
+      <WordDuelBoard
+        accessibilityLabel="Solo Daily local board"
+        density={compactViewport ? 'compact' : 'regular'}
+        rows={rows}
+        tileSize={tileSize}
+      />
 
-      <View style={styles.messageArea}>
+      <View style={[styles.messageArea, compactViewport && styles.messageAreaCompact]}>
         {message ? <Text style={styles.errorText}>{message}</Text> : null}
         {viewModel.status === 'won' && viewModel.targetReveal.displayWord ? (
           <ResultLine label={t('en', 'won')} target={viewModel.targetReveal.displayWord} />
@@ -289,6 +298,7 @@ export function WordDuelSoloDailyScreen({
       ) : null}
 
       <WordDuelKeyboard
+        density={compactViewport ? 'compact' : 'regular'}
         disabled={session.state.status !== 'playing'}
         feedbackByKey={keyFeedback}
         keyRows={WORD_DUEL_KEY_ROWS[session.state.language]}
@@ -438,6 +448,9 @@ function useSoloDailyStyles() {
   messageArea: {
     minHeight: 42,
     justifyContent: 'center',
+  },
+  messageAreaCompact: {
+    minHeight: 20,
   },
   errorText: {
     color: colors.danger,

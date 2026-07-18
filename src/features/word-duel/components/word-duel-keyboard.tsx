@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage, LetterFeedback } from '@/game/word-duel-engine';
 import { t, type InterfaceLocale } from '@/i18n/locales';
-import { typeScale, useAppTheme } from '@/ui/theme';
+import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
   en: [
@@ -21,6 +21,7 @@ export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
 type KeyboardFeedbackByKey = ReadonlyMap<string, LetterFeedback> | Readonly<Record<string, LetterFeedback>>;
 
 type WordDuelKeyboardProps = {
+  density?: 'regular' | 'compact';
   disabled: boolean;
   feedbackByKey: KeyboardFeedbackByKey;
   interfaceLocale?: InterfaceLocale;
@@ -29,6 +30,7 @@ type WordDuelKeyboardProps = {
 };
 
 export function WordDuelKeyboard({
+  density = 'regular',
   disabled,
   feedbackByKey,
   interfaceLocale = 'en',
@@ -36,11 +38,12 @@ export function WordDuelKeyboard({
   onKeyPress,
 }: WordDuelKeyboardProps) {
   const styles = useWordDuelKeyboardStyles();
+  const compact = density === 'compact';
 
   return (
-    <View style={styles.keyboard}>
+    <View style={[styles.keyboard, compact && styles.keyboardCompact]}>
       {keyRows.map((row, rowIndex) => (
-        <View key={`key-row-${rowIndex}`} style={styles.keyRow}>
+        <View key={`key-row-${rowIndex}`} style={[styles.keyRow, compact && styles.keyRowCompact]}>
           {row.map((key) => {
             const normalized = key.length === 1 ? key.toLowerCase() : key;
             const feedback = getFeedback(feedbackByKey, normalized);
@@ -52,6 +55,7 @@ export function WordDuelKeyboard({
                 onPress={() => onKeyPress(key)}
                 style={({ pressed }) => [
                   styles.key,
+                  compact && styles.keyCompact,
                   key.length > 1 && styles.actionKey,
                   feedback === 'exact' && styles.keyExact,
                   feedback === 'present' && styles.keyPresent,
@@ -103,10 +107,16 @@ function useWordDuelKeyboardStyles() {
   keyboard: {
     gap: 6,
   },
+  keyboardCompact: {
+    gap: spacing.xs,
+  },
   keyRow: {
     flexDirection: 'row',
     gap: 5,
     justifyContent: 'center',
+  },
+  keyRowCompact: {
+    gap: spacing.xs,
   },
   key: {
     flex: 1,
@@ -118,6 +128,9 @@ function useWordDuelKeyboardStyles() {
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     paddingHorizontal: 2,
+  },
+  keyCompact: {
+    minHeight: 42,
   },
   actionKey: {
     flex: 1.55,

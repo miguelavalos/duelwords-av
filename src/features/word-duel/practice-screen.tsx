@@ -35,8 +35,9 @@ type WordDuelPracticeScreenProps = {
 
 export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelPracticeScreenProps) {
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
+  const compactViewport = width <= 480 && height <= 900;
   const styles = usePracticeStyles();
-  const { width } = useWindowDimensions();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [gameIndex, setGameIndex] = useState(0);
@@ -51,7 +52,8 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const rows = createRowsFromLocalWordDuelState(gameState, input);
   const keyFeedback = createKeyboardFeedbackFromGuesses(gameState.guesses);
   const boardWidth = Math.min(width - spacing.lg * 2, 340);
-  const tileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
+  const regularTileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
+  const tileSize = compactViewport ? Math.min(46, regularTileSize) : regularTileSize;
 
   function reset(language = gameLanguage, index = gameIndex) {
     setGameLanguage(language);
@@ -150,14 +152,16 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   }
 
   return (
-    <AppScreen bottomInset={spacing.xxl}>
+    <AppScreen
+      bottomInset={compactViewport ? spacing.md : spacing.xxl}
+      contentGap={compactViewport ? spacing.md : spacing.lg}>
       <View style={styles.header}>
         <View>
           <Text style={styles.kicker}>{t('en', 'localOnly')}</Text>
           <Text style={styles.title}>{t('en', 'wordDuel')}</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>
-          Play
+          Close
         </AppButton>
       </View>
 
@@ -191,9 +195,14 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
         </View>
       </View>
 
-      <WordDuelBoard accessibilityLabel="Local Word Duel board" rows={rows} tileSize={tileSize} />
+      <WordDuelBoard
+        accessibilityLabel="Local Word Duel board"
+        density={compactViewport ? 'compact' : 'regular'}
+        rows={rows}
+        tileSize={tileSize}
+      />
 
-      <View style={styles.messageArea}>
+      <View style={[styles.messageArea, compactViewport && styles.messageAreaCompact]}>
         {message ? <Text style={styles.errorText}>{message}</Text> : null}
         {gameState.status === 'won' ? (
           <ResultLine label={t('en', 'won')} target={targetEntry.displayWord} />
@@ -220,6 +229,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       ) : null}
 
       <WordDuelKeyboard
+        density={compactViewport ? 'compact' : 'regular'}
         disabled={gameState.status !== 'playing'}
         feedbackByKey={keyFeedback}
         keyRows={WORD_DUEL_KEY_ROWS[gameState.language]}
@@ -334,6 +344,9 @@ function usePracticeStyles() {
   messageArea: {
     minHeight: 42,
     justifyContent: 'center',
+  },
+  messageAreaCompact: {
+    minHeight: 20,
   },
   errorText: {
     color: colors.danger,
