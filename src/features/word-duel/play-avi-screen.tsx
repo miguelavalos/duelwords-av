@@ -42,8 +42,9 @@ const REACTION_LABELS: Record<AviBotReactionId, string> = {
 
 export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps) {
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
+  const compactViewport = width <= 480 && height <= 900;
   const styles = usePlayAviStyles();
-  const { width } = useWindowDimensions();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [gameSeed, setGameSeed] = useState(0);
@@ -61,7 +62,8 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const viewModel = createAviBotDuelViewModel(session);
   const boardRows = fillEditingRow(viewModel.ownBoardRows, input);
   const boardWidth = Math.min(width - spacing.lg * 2, 338);
-  const tileSize = Math.max(34, Math.min(44, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const regularTileSize = Math.max(34, Math.min(44, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const tileSize = compactViewport ? Math.min(38, regularTileSize) : regularTileSize;
 
   function reset(language: GameLanguage, seed: number) {
     setGameLanguage(language);
@@ -191,14 +193,16 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   }
 
   return (
-    <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
+    <AppScreen
+      bottomInset={compactViewport ? spacing.sm : spacing.xxl}
+      contentGap={compactViewport ? spacing.sm : spacing.md}>
       <View style={styles.header}>
         <View>
           <Text style={styles.kicker}>Local bot preview</Text>
           <Text style={styles.title}>Play Avi</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>
-          Play
+          Close
         </AppButton>
       </View>
 
@@ -241,7 +245,12 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         roundState={viewModel.opponent.roundState}
       />
 
-      <WordDuelBoard accessibilityLabel="Play Avi local board" rows={boardRows} tileSize={tileSize} />
+      <WordDuelBoard
+        accessibilityLabel="Play Avi local board"
+        density={compactViewport ? 'compact' : 'regular'}
+        rows={boardRows}
+        tileSize={tileSize}
+      />
 
       <View style={styles.stateRow}>
         <Text style={styles.stateLabel}>{stateLabel(viewModel.phase, viewModel.status)}</Text>
@@ -296,11 +305,13 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
 
       <ReactionTray
         activeReaction={activeReaction}
+        compact={compactViewport}
         onReactionPress={(reaction) => setActiveReaction(reaction)}
         reactions={viewModel.availableReactions}
       />
 
       <WordDuelKeyboard
+        density={compactViewport ? 'compact' : 'regular'}
         disabled={!viewModel.isInputOpen}
         feedbackByKey={viewModel.ownKeyboardFeedback}
         keyRows={WORD_DUEL_KEY_ROWS[viewModel.gameLanguage]}
@@ -349,16 +360,18 @@ function OpponentSummary({
 
 function ReactionTray({
   activeReaction,
+  compact,
   onReactionPress,
   reactions,
 }: {
   activeReaction: AviBotReactionId | null;
+  compact: boolean;
   onReactionPress: (reaction: AviBotReactionId) => void;
   reactions: readonly AviBotReactionId[];
 }) {
   const styles = usePlayAviStyles();
   return (
-    <View style={styles.reactions}>
+    <View style={[styles.reactions, compact && styles.reactionsCompact]}>
       {reactions.map((reaction) => {
         const selected = activeReaction === reaction;
         return (
@@ -366,8 +379,17 @@ function ReactionTray({
             key={reaction}
             accessibilityRole="button"
             onPress={() => onReactionPress(reaction)}
-            style={[styles.reactionButton, selected && styles.reactionButtonSelected]}>
-            <Text style={[styles.reactionText, selected && styles.reactionTextSelected]}>
+            style={[
+              styles.reactionButton,
+              compact && styles.reactionButtonCompact,
+              selected && styles.reactionButtonSelected,
+            ]}>
+            <Text
+              style={[
+                styles.reactionText,
+                compact && styles.reactionTextCompact,
+                selected && styles.reactionTextSelected,
+              ]}>
               {REACTION_LABELS[reaction]}
             </Text>
           </Pressable>
@@ -756,6 +778,10 @@ function usePlayAviStyles() {
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
+  reactionsCompact: {
+    flexWrap: 'nowrap',
+    gap: spacing.xs,
+  },
   reactionButton: {
     minHeight: 36,
     justifyContent: 'center',
@@ -765,6 +791,11 @@ function usePlayAviStyles() {
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
   },
+  reactionButtonCompact: {
+    flexGrow: 1,
+    minWidth: 0,
+    paddingHorizontal: spacing.xs,
+  },
   reactionButtonSelected: {
     borderColor: colors.pressure,
     backgroundColor: colors.pressureSoft,
@@ -773,6 +804,9 @@ function usePlayAviStyles() {
     color: colors.textMuted,
     fontSize: typeScale.small,
     fontWeight: '900',
+  },
+  reactionTextCompact: {
+    fontSize: typeScale.tiny,
   },
   reactionTextSelected: {
     color: colors.pressure,

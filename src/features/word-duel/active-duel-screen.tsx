@@ -65,13 +65,14 @@ export function ActiveDuelScreen({
   onLeave,
 }: ActiveDuelScreenProps) {
   const router = useRouter();
+  const { height, width } = useWindowDimensions();
+  const compactViewport = width <= 480 && height <= 900;
   const styles = useActiveDuelStyles();
   const copy = useCallback(
     (key: PublicDuelCopyKey, values?: Record<string, string | number>) =>
       publicDuelT(interfaceLocale, key, values),
     [interfaceLocale],
   );
-  const { width } = useWindowDimensions();
   const clientRequestNumber = useRef(0);
   const isOpeningResultRef = useRef(false);
   const reactionRequestNumber = useRef(0);
@@ -95,7 +96,8 @@ export function ActiveDuelScreen({
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
   const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
   const boardWidth = Math.min(width - spacing.lg * 2, 418);
-  const tileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const regularTileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const tileSize = compactViewport ? Math.min(40, regularTileSize) : regularTileSize;
 
   useEffect(() => {
     setDraft('');
@@ -278,7 +280,9 @@ export function ActiveDuelScreen({
   }
 
   return (
-    <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
+    <AppScreen
+      bottomInset={compactViewport ? spacing.sm : spacing.md}
+      contentGap={compactViewport ? spacing.sm : spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.kicker}>{copy('duel')}</Text>
@@ -316,6 +320,7 @@ export function ActiveDuelScreen({
 
       <WordDuelBoard
         accessibilityLabel={copy('ownBoard')}
+        density={compactViewport ? 'compact' : 'regular'}
         rows={viewModel.ownBoardRows}
         showSubmittedPendingMark
         tileSize={tileSize}
@@ -325,6 +330,15 @@ export function ActiveDuelScreen({
         <Text style={styles.stateLabel}>{ownRoundStateLabel(interfaceLocale, viewModel)}</Text>
         <Text style={styles.stateDetail}>{statusDetail}</Text>
       </View>
+
+      <WordDuelKeyboard
+        density={compactViewport ? 'compact' : 'regular'}
+        disabled={keyboardDisabled}
+        feedbackByKey={viewModel.ownKeyboardFeedback}
+        interfaceLocale={interfaceLocale}
+        keyRows={WORD_DUEL_KEY_ROWS[viewModel.gameLanguage]}
+        onKeyPress={handleKeyPress}
+      />
 
       <View style={styles.progressActions}>
         {activeDuelController.source === 'apps_av_api' ? (
@@ -357,14 +371,6 @@ export function ActiveDuelScreen({
           void sendReaction(reaction);
         }}
         reactions={viewModel.availableReactions}
-      />
-
-      <WordDuelKeyboard
-        disabled={keyboardDisabled}
-        feedbackByKey={viewModel.ownKeyboardFeedback}
-        interfaceLocale={interfaceLocale}
-        keyRows={WORD_DUEL_KEY_ROWS[viewModel.gameLanguage]}
-        onKeyPress={handleKeyPress}
       />
 
       {viewModel.adSlot.visible ? <CompactAdSlot /> : null}

@@ -22,7 +22,13 @@ export function AppScreen({
   if (!scroll) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-        <View role="main" style={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}>
+        <View
+          role="main"
+          style={[
+            styles.content,
+            styles.nonScrollContent,
+            { gap: contentGap, paddingBottom: bottomInset },
+          ]}>
           {children}
         </View>
       </SafeAreaView>
@@ -56,5 +62,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+  },
+  nonScrollContent: {
+    flex: 1,
   },
 });

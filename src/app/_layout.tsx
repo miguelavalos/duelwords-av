@@ -33,7 +33,7 @@ export default function RootLayout() {
           <Stack.Screen name="word-duel/solo-daily-demo" />
           <Stack.Screen name="+not-found" />
         </Stack>
-        <StatusBar style="auto" />
+        <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />
       </AppThemeProvider>
     </ThemeProvider>
   );

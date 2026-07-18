@@ -196,7 +196,7 @@ export function WordDuelSoloDailyScreen({
           <Text style={styles.title}>Solo / Daily</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>
-          Play
+          Close
         </AppButton>
       </View>
 
