@@ -107,13 +107,12 @@ The web dev server uses port `8098`.
 
 ## Home and Office Openspace boundary
 
-This repository may be developed and tested on the **Home** computer only with
-deterministic, local, no-spend commands. Any recurring automation, scheduled
-runner, operational monitor, signed runtime check, or environment-backed smoke
-must be installed, enabled, executed, and verified exclusively on **Office
-Openspace**. Home must not be used as a substitute runner. Preview/production
-deploys, paid providers, signed builds, TestFlight/App Store work, real purchase
-flows, and production traffic remain approval-gated.
+The **Home** computer may perform development, tests, signed runtime,
+environment-backed smokes, deploys, and other approved work under the normal
+preflight, runbook, no-spend, and explicit-approval gates. Only recurring or
+operational automation—scheduled runners, monitors, dispatchers, cron jobs,
+queue consumers, and equivalent background automation—must be installed,
+enabled, executed, and verified exclusively on **Office Openspace**.
 
 ## Runtime Config
 
@@ -359,8 +358,8 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Run the two-device signed iOS/Android happy path and recovery matrix on Office
-  Openspace against an explicitly approved preview runtime.
+- Run the two-device signed iOS/Android happy path and recovery matrix on an
+  available workstation against an explicitly approved preview runtime.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
 - Keep the public Play catalog limited to Challenge a Friend and offline

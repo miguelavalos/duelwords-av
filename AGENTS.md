@@ -123,10 +123,12 @@ Current implementation slice:
   enabled-by-default Apps AV API network calls, Account AV, Sentry SDK/DSN
   wiring, live ads, Pro, push, Store, TestFlight, or remote deploys.
 
-This machine is **Home**. Use it only for deterministic local/no-spend
-development and tests. Install, enable, execute, and verify recurring
-automation, scheduled runners, operational monitors, signed runtime checks,
-and environment-backed smoke tests exclusively on **Office Openspace**.
+This machine is **Home**. Home may perform development, tests, signed runtime,
+environment-backed smokes, deploys, and other approved work under the normal
+preflight, runbook, no-spend, and explicit-approval gates. Only recurring or
+operational automation—scheduled runners, monitors, dispatchers, cron jobs,
+queue consumers, and equivalent background automation—must be installed,
+enabled, executed, and verified exclusively on **Office Openspace**.
 
 Current cumulative status and blockers are owned by the private
 `docs/avi-words/current-work-handoff.md`. Planning documents and dated slice
