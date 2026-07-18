@@ -12,6 +12,7 @@ import type {
   DuelWordsApiFeedbackState,
   DuelWordsApiFinalResult,
   DuelWordsApiOwnRoundSnapshot,
+  DuelWordsApiPresenceReconciliation,
   DuelWordsApiRematchProposal,
   DuelWordsApiSafeGame,
 } from '../word-duel-lobby/api-client';
@@ -100,6 +101,7 @@ export type WordDuelActiveController = {
   refreshOwnRoundSnapshot(input: {
     roundNumber: number;
   }): Promise<WordDuelActiveOwnRoundSnapshotResult>;
+  reconcilePresence(): Promise<DuelWordsApiPresenceReconciliation>;
   sendPresenceHeartbeat(): Promise<DuelWordsRealtimeMutationResult>;
   sendReaction(input: {
     clientRequestId: string;
@@ -265,6 +267,13 @@ function createLocalMockWordDuelActiveController(input: {
         roundNumber,
         viewModel: current,
       };
+    },
+
+    async reconcilePresence() {
+      throw new WordDuelActiveControllerError(
+        'controller_not_available',
+        'The local active demo does not reconcile remote presence.',
+      );
     },
 
     sendPresenceHeartbeat() {
@@ -452,6 +461,14 @@ function createAppsApiWordDuelActiveController(input: {
       };
     },
 
+    reconcilePresence() {
+      return apiClient.reconcilePresence({
+        actor: session.actor,
+        gameId: session.gameId,
+        playerId: session.playerId,
+      });
+    },
+
     async sendPresenceHeartbeat() {
       return updateFromCurrentRealtimeViewAfter(await realtimeClient.sendPresenceHeartbeat(realtimeRequest));
     },
@@ -571,6 +588,8 @@ function createDisabledRuntimeWordDuelActiveController(
     },
 
     refreshOwnRoundSnapshot: unavailable,
+
+    reconcilePresence: unavailable,
 
     async sendPresenceHeartbeat() {
       return { ok: false, reason: 'room_unavailable' };

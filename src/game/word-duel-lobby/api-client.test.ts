@@ -134,6 +134,36 @@ describe('DuelWords Apps AV API client', () => {
     expect(recorder.calls[0].body).toBeUndefined();
   });
 
+  it('requests backend-verified presence reconciliation without sending presence evidence', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        game: { ...safeGamePayload(), status: 'finalized' },
+        reconciliation: { status: 'finalized' },
+      }),
+    ]);
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: recorder.fetch,
+    });
+
+    const result = await client.reconcilePresence({
+      actor: GUEST_IDENTITY,
+      gameId: 'game 1',
+      playerId: 'player-a',
+    });
+
+    expect(recorder.calls[0]).toMatchObject({
+      body: {
+        actor: GUEST_IDENTITY,
+        playerId: 'player-a',
+      },
+      method: 'POST',
+      url: 'https://api.test/v1/apps/duelwords/games/game%201/reconcile-presence',
+    });
+    expect(JSON.stringify(recorder.calls[0].body)).not.toContain('lastHeartbeatAt');
+    expect(result.status).toBe('finalized');
+  });
+
   it('marks Ready, opens the first round, and requests realtime sessions through API authority', async () => {
     const recorder = createFetchRecorder([
       jsonResponse({

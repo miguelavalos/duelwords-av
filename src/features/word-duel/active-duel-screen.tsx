@@ -76,6 +76,7 @@ export function ActiveDuelScreen({
   );
   const clientRequestNumber = useRef(0);
   const isOpeningResultRef = useRef(false);
+  const presenceReconciliationInFlightRef = useRef(false);
   const reactionRequestNumber = useRef(0);
   const timedOutRoundRef = useRef<number | null>(null);
   const activeHandoff = useMemo(
@@ -143,6 +144,29 @@ export function ActiveDuelScreen({
 
       setViewModel((current) => applyRealtimeProjectionToActiveDuelViewModel(current, projection));
       setActiveReaction(latestActiveDuelReactionFromRealtimeProjection(projection));
+
+      if (
+        activeDuelController.source === 'apps_av_api'
+        && projection.opponent?.presenceState === 'disconnected'
+        && !presenceReconciliationInFlightRef.current
+      ) {
+        presenceReconciliationInFlightRef.current = true;
+        void activeDuelController.reconcilePresence()
+          .then(async (reconciliation) => {
+            if (reconciliation.status === 'finalized' || reconciliation.status === 'already_finalized') {
+              setStatusDetail(copy('openingResult'));
+              if (onFinalResult) {
+                onFinalResult(await activeDuelController.getFinalResult());
+              }
+            }
+          })
+          .catch(() => {
+            setStatusDetail(copy('reconnecting'));
+          })
+          .finally(() => {
+            presenceReconciliationInFlightRef.current = false;
+          });
+      }
     });
     const stopHeartbeat = startActiveDuelPresenceHeartbeat({
       sendHeartbeat: () => activeDuelController.sendPresenceHeartbeat(),
@@ -152,7 +176,7 @@ export function ActiveDuelScreen({
       stopHeartbeat();
       unsubscribe();
     };
-  }, [activeDuelController, copy]);
+  }, [activeDuelController, copy, onFinalResult]);
 
   function updateDraft(nextDraft: string) {
     const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');

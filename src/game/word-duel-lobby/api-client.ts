@@ -255,6 +255,11 @@ export type DuelWordsApiRealtimeUnavailableReason =
   | DuelWordsRealtimeSessionParseErrorCode
   | 'realtime_unavailable';
 
+export type DuelWordsApiPresenceReconciliation = {
+  game: DuelWordsApiSafeGame;
+  status: 'already_finalized' | 'finalized' | 'pending';
+};
+
 export type DuelWordsApiClient = {
   cancelInvite(input: { actor: DuelWordsActorIdentity; inviteToken: string }): Promise<DuelWordsApiLobbyResponse>;
   createInvite(input: {
@@ -268,6 +273,11 @@ export type DuelWordsApiClient = {
     gameId: string;
     playerId: string;
   }): Promise<DuelWordsApiRealtimeSessionResult>;
+  reconcilePresence(input: {
+    actor: DuelWordsActorIdentity;
+    gameId: string;
+    playerId: string;
+  }): Promise<DuelWordsApiPresenceReconciliation>;
   getCurrentRematchProposal(input: {
     actor: DuelWordsActorIdentity;
     gameId: string;
@@ -433,6 +443,26 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
       }
 
       return readRealtimeResult(payload);
+    },
+
+    async reconcilePresence(input) {
+      const payload = await requestJson(`/v1/apps/duelwords/games/${encodePath(input.gameId)}/reconcile-presence`, {
+        body: {
+          actor: input.actor,
+          playerId: input.playerId,
+        },
+        method: 'POST',
+      });
+      const reconciliation = requireRecord(readRequiredProperty(payload, 'reconciliation'));
+      const status = reconciliation.status;
+      if (status !== 'already_finalized' && status !== 'finalized' && status !== 'pending') {
+        throw new DuelWordsApiError(502, 'invalid_presence_reconciliation');
+      }
+
+      return {
+        game: readSafeGame(readRequiredProperty(payload, 'game')),
+        status,
+      };
     },
 
     async getCurrentRematchProposal(input) {

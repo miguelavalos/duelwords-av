@@ -613,6 +613,7 @@ function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsA
     markReady: unexpectedCall,
     openFirstRoundIfDue: unexpectedCall,
     openNextRoundIfDue: unexpectedCall,
+    reconcilePresence: unexpectedCall,
     submitGuess: unexpectedCall,
     timeoutRound: unexpectedCall,
     ...overrides,

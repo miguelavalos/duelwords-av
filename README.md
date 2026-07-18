@@ -330,6 +330,14 @@ participant permissions with product labels and no raw proposal-id input.
   a local mock. It supports create/review/join/Ready/active/result/rematch with
   explicit refresh where the safe projection intentionally carries no result.
 
+Active connected screens keep safe Convex presence alive every 10 seconds
+while mounted, without overlapping heartbeat requests. When the rival
+projection becomes disconnected, the public client can ask Apps AV API to
+reconcile presence. The client never sends heartbeat timestamps, declares an
+absent side, or chooses a winner: the API reads backend-only Convex evidence and
+D1 owns the idempotent abandonment result. This slice is locally verified but
+still requires its coordinated Convex/API preview deploy and two-device smoke.
+
 ## Local Preview Routes
 
 - `/word-duel/practice`: local practice engine with tiny non-production
