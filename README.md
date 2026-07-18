@@ -33,6 +33,17 @@ runtime remains as an engineering console, not the product entry point. The
 signed two-device mobile smoke, canonical web `/i/c/:token` edge/deep-link
 rewrite, enabled preview runtime, and release gates have not been run.
 
+Local visual and accessibility QA is complete for the current public and
+engineering-preview surfaces. Deterministic checks covered all 18 exported web
+routes at desktop and narrow mobile widths, every accessible route in a
+dedicated iOS Simulator, and the current public/game-preview surfaces in an
+Android Pixel 9 AVD.
+Light/dark appearance, status and navigation bars, keyboard/board fit, the
+native not-found route, browser keyboard focus, EN/ES/FR/DE narrow layouts, and
+Android font scales through 150% were reviewed. This is local Expo Go and web
+evidence only; it is not signed-runtime, physical-device, deep-link, or store
+release evidence.
+
 The current cumulative status and remaining gates live in the private
 `docs/avi-words/current-work-handoff.md`. Dated implementation records describe
 their individual slice at the time and should not be read as the current
@@ -113,6 +124,14 @@ preflight, runbook, no-spend, and explicit-approval gates. Only recurring or
 operational automation—scheduled runners, monitors, dispatchers, cron jobs,
 queue consumers, and equivalent background automation—must be installed,
 enabled, executed, and verified exclusively on **Office Openspace**.
+
+## Native URL scheme and link boundary
+
+Expo declares the local native URL scheme `duelwordsav`. This prevents the
+framework `Linking` warning and gives native builds a stable custom-scheme
+boundary. It does not configure or prove the canonical HTTPS invite handoff:
+the `/i/c/:token` edge rewrite, Universal Links, and Android App Links remain
+separate release gates.
 
 ## Runtime Config
 
@@ -366,10 +385,12 @@ game id; it only creates a start request after recipient acceptance.
   Practice until a secondary mode has authoritative V1 runtime and acceptance
   evidence. The public journey and both catalog entries are localized in
   EN/ES/CA/FR/DE; game language remains independent at EN/ES.
-- Resolve remaining accessibility polish outside the public journey. The
-  public path has a page title, explicit H1/H2 levels, one main landmark,
-  visible input labels, live status announcements, browser focus indicators,
-  44px-or-larger actions, and no mobile horizontal overflow in local checks.
+- Preserve the closed local visual/accessibility baseline during signed-device
+  work. Current deterministic evidence covers page titles, explicit H1/H2
+  levels, one main landmark, visible input labels, live status announcements,
+  browser focus indicators, 44px-or-larger actions, narrow localized layouts,
+  Android text scaling through 150%, and no mobile horizontal overflow. Signed
+  two-device validation must repeat the critical path on release-like builds.
 - Approve and execute runtime/deploy/store/privacy/billing gates. Nothing in
   this repository grants permission for spend or remote state changes.
 
