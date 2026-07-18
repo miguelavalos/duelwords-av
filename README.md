@@ -14,6 +14,11 @@ a participant-scoped rematch. Room-code lookup and canonical invite-token
 parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
 
+The public Play catalog now contains only the V1 product entries: Challenge a
+Friend and offline Practice. Lobby, active-duel, result, Solo/Daily, Play Avi,
+and connected-runtime engineering previews remain available by direct internal
+route for deterministic development, but are not linked from Play.
+
 Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
 (system/light/dark) are versioned local preferences. Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
@@ -22,7 +27,7 @@ react to these preferences. English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
-Local previews still cover practice, invite/lobby/Ready/countdown, active duel,
+Local previews still cover invite/lobby/Ready/countdown, active duel,
 result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
 runtime remains as an engineering console, not the product entry point. The
 signed two-device mobile smoke, canonical web `/i/c/:token` edge/deep-link
@@ -358,9 +363,10 @@ game id; it only creates a start request after recipient acceptance.
   Openspace against an explicitly approved preview runtime.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
-- Localize or remove the secondary engineering-preview cards before treating
-  the whole Play catalog as a launch surface. The public connected journey is
-  complete in EN/ES/CA/FR/DE, while game language remains independent at EN/ES.
+- Keep the public Play catalog limited to Challenge a Friend and offline
+  Practice until a secondary mode has authoritative V1 runtime and acceptance
+  evidence. The public journey and both catalog entries are localized in
+  EN/ES/CA/FR/DE; game language remains independent at EN/ES.
 - Resolve remaining accessibility polish outside the public journey. The
   public path has a page title, explicit H1/H2 levels, one main landmark,
   visible input labels, live status announcements, browser focus indicators,

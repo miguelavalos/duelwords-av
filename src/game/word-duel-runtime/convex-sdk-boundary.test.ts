@@ -99,6 +99,22 @@ describe('DuelWords public Convex SDK boundary', () => {
     expect(playScreen).not.toContain('connected-runtime');
     expect(routeParams).not.toContain('connected-runtime');
   });
+
+  it('keeps engineering previews out of the public V1 Play catalog', () => {
+    const playScreen = fs.readFileSync(
+      path.join(process.cwd(), 'src/features/play/play-screen.tsx'),
+      'utf8',
+    );
+
+    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.challenge');
+    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.practice');
+    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.lobby');
+    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.active');
+    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.result');
+    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.playAvi');
+    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.soloDaily');
+    expect(playScreen).not.toContain('preview');
+  });
 });
 
 function listSourceFiles(directory: string): string[] {

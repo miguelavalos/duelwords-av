@@ -13,12 +13,10 @@ import { AppButton } from '@/ui/buttons';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 type ModeCardProps = {
-  badgeLabel: string;
   ctaLabel: string;
   description: string;
-  disabled?: boolean;
   iconLabel: string;
-  onPress?: () => void;
+  onPress: () => void;
   title: string;
 };
 
@@ -27,11 +25,6 @@ export function PlayScreen() {
   const styles = usePlayStyles();
   const [preferences, setPreferences] = useAppPreferences();
   const { gameLanguage, interfaceLocale } = preferences;
-  const modeCardLabels = {
-    badgeLabel: t(interfaceLocale, 'comingLater'),
-    ctaLabel: t(interfaceLocale, 'start'),
-  };
-
   return (
     <AppScreen>
       <View style={styles.header}>
@@ -73,7 +66,7 @@ export function PlayScreen() {
       </View>
 
       <ModeCard
-        {...modeCardLabels}
+        ctaLabel={t(interfaceLocale, 'start')}
         title={t(interfaceLocale, 'challengeFriend')}
         description={t(interfaceLocale, 'challengeDescription')}
         iconLabel="1v1"
@@ -85,110 +78,33 @@ export function PlayScreen() {
       />
 
       <ModeCard
-        {...modeCardLabels}
-        title="Invite lobby preview"
-        description="Host invite, join review, lobby Ready, countdown and round-open handoff."
-        iconLabel="GO"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.lobby, {
-          gameLanguage,
-          mode: 'human_duel',
-        }))}
-      />
-
-      <ModeCard
-        {...modeCardLabels}
-        title="Active duel preview"
-        description="Mobile 1v1 surface with synced-round status, safe rival progress and compact ad slot."
-        iconLabel="1v1"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.active, {
-          gameLanguage,
-          mode: 'human_duel',
-        }))}
-      />
-
-      <ModeCard
-        {...modeCardLabels}
-        title="Result preview"
-        description="Final result, target reveal, completed boards, rematch setup and safe share preview."
-        iconLabel="R"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.result, {
-          gameLanguage,
-          mode: 'human_duel',
-        }))}
-      />
-
-      <ModeCard
-        {...modeCardLabels}
-        title="Play Avi preview"
-        description="Deterministic local bot duel with synced-round rhythm and safe opponent summary."
-        iconLabel="AV"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.playAvi, {
-          gameLanguage,
-          mode: 'bot_duel',
-        }))}
-      />
-
-      <ModeCard
-        {...modeCardLabels}
-        title="Solo / Daily preview"
-        description="Local Solo and Daily-style board with safe sharing and post-result ad slot."
-        iconLabel="SD"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.soloDaily, {
-          gameLanguage,
-          mode: 'solo_practice',
-        }))}
-      />
-
-      <ModeCard
-        {...modeCardLabels}
+        ctaLabel={t(interfaceLocale, 'startPractice')}
         title={`${t(interfaceLocale, 'wordDuel')} ${t(interfaceLocale, 'practice')}`}
-        description="Local engine, five letters, six attempts. No remote authority yet."
+        description={t(interfaceLocale, 'practiceDescription')}
         iconLabel="WD"
         onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, {
           gameLanguage,
           mode: 'practice',
         }))}
       />
-
-      <View style={styles.modeGrid}>
-        <ModeCard
-          {...modeCardLabels}
-          title={t(interfaceLocale, 'daily')}
-          description="Official daily targets require server dictionary authority."
-          disabled
-          iconLabel="D"
-        />
-      </View>
-
-      <View style={styles.note}>
-        <Text style={styles.noteTitle}>{t(interfaceLocale, 'localOnly')}</Text>
-        <Text style={styles.noteText}>
-          Connected games will use Apps AV API/D1 for target selection, validation and scoring.
-          Convex will carry only safe realtime room state.
-        </Text>
-      </View>
     </AppScreen>
   );
 }
 
-function ModeCard({ badgeLabel, ctaLabel, description, disabled, iconLabel, onPress, title }: ModeCardProps) {
+function ModeCard({ ctaLabel, description, iconLabel, onPress, title }: ModeCardProps) {
   const styles = usePlayStyles();
   return (
-    <View style={[styles.modeCard, disabled && styles.modeCardDisabled]}>
+    <View style={styles.modeCard}>
       <View style={styles.modeIcon}>
-        <Text style={[styles.modeIconText, disabled && styles.modeIconTextDisabled]}>{iconLabel}</Text>
+        <Text style={styles.modeIconText}>{iconLabel}</Text>
       </View>
       <View style={styles.modeText}>
-        <Text style={styles.modeTitle}>{title}</Text>
+        <Text aria-level={2} accessibilityRole="header" style={styles.modeTitle}>{title}</Text>
         <Text style={styles.modeDescription}>{description}</Text>
       </View>
-      {disabled ? (
-        <Text style={styles.badge}>{badgeLabel}</Text>
-      ) : (
-        <AppButton onPress={onPress} style={styles.cardCta}>
-          {ctaLabel}
-        </AppButton>
-      )}
+      <AppButton onPress={onPress} style={styles.cardCta}>
+        {ctaLabel}
+      </AppButton>
     </View>
   );
 }
@@ -260,9 +176,6 @@ function usePlayStyles() {
   segmentTextSelected: {
     color: colors.accent,
   },
-  modeGrid: {
-    gap: spacing.md,
-  },
   modeCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -272,9 +185,6 @@ function usePlayStyles() {
     borderColor: colors.border,
     backgroundColor: colors.surface,
     padding: spacing.md,
-  },
-  modeCardDisabled: {
-    backgroundColor: colors.surfaceStrong,
   },
   modeIcon: {
     width: 40,
@@ -288,9 +198,6 @@ function usePlayStyles() {
     color: colors.accent,
     fontSize: typeScale.small,
     fontWeight: '900',
-  },
-  modeIconTextDisabled: {
-    color: colors.textMuted,
   },
   modeText: {
     flex: 1,
@@ -306,30 +213,9 @@ function usePlayStyles() {
     fontSize: typeScale.small,
     lineHeight: 18,
   },
-  badge: {
-    color: colors.textMuted,
-    fontSize: typeScale.tiny,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-  },
   cardCta: {
     minWidth: 76,
     minHeight: 38,
-  },
-  note: {
-    gap: spacing.xs,
-    borderRadius: radii.md,
-    backgroundColor: colors.pressureSoft,
-    padding: spacing.md,
-  },
-  noteTitle: {
-    color: colors.pressure,
-    fontWeight: '800',
-  },
-  noteText: {
-    color: colors.text,
-    fontSize: typeScale.small,
-    lineHeight: 19,
   },
   }), [colors]);
 }

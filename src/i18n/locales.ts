@@ -50,6 +50,7 @@ type CopyKey =
   | 'light'
   | 'playSubtitle'
   | 'preferencesLocal'
+  | 'practiceDescription'
   | 'selected'
   | 'start'
   | 'system';
@@ -90,6 +91,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Light',
     playSubtitle: 'Synchronized word challenges start here.',
     preferencesLocal: 'Preferences stay on this device. Account sync can be added later through the approved Apps AV boundary.',
+    practiceDescription: 'Practice five-letter rounds offline with the local training list.',
     selected: 'Selected',
     start: 'Start',
     system: 'System',
@@ -129,6 +131,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Claro',
     playSubtitle: 'Aquí empiezan los retos de palabras sincronizados.',
     preferencesLocal: 'Las preferencias se guardan en este dispositivo. La sincronización de cuenta podrá añadirse mediante Apps AV.',
+    practiceDescription: 'Practica rondas de cinco letras sin conexión con la lista local de entrenamiento.',
     selected: 'Seleccionado',
     start: 'Empezar',
     system: 'Sistema',
@@ -168,6 +171,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Clar',
     playSubtitle: 'Aquí comencen els reptes de paraules sincronitzats.',
     preferencesLocal: 'Les preferències es desen en aquest dispositiu. La sincronització del compte es podrà afegir mitjançant Apps AV.',
+    practiceDescription: 'Practica rondes de cinc lletres sense connexió amb la llista local d’entrenament.',
     selected: 'Seleccionat',
     start: 'Començar',
     system: 'Sistema',
@@ -207,6 +211,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Clair',
     playSubtitle: 'Les défis de mots synchronisés commencent ici.',
     preferencesLocal: 'Les préférences restent sur cet appareil. La synchronisation du compte pourra être ajoutée via Apps AV.',
+    practiceDescription: 'Entraînez-vous hors ligne avec des manches de cinq lettres et la liste locale.',
     selected: 'Sélectionné',
     start: 'Commencer',
     system: 'Système',
@@ -246,6 +251,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Hell',
     playSubtitle: 'Hier beginnen synchronisierte Wortduelle.',
     preferencesLocal: 'Einstellungen bleiben auf diesem Gerät. Kontosynchronisierung kann später über Apps AV ergänzt werden.',
+    practiceDescription: 'Übe Fünf-Buchstaben-Runden offline mit der lokalen Trainingsliste.',
     selected: 'Ausgewählt',
     start: 'Starten',
     system: 'System',
