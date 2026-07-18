@@ -1,3 +1,4 @@
+import { createContext, createElement, type ReactNode, useContext } from 'react';
 import { useColorScheme } from 'react-native';
 
 import { useAppPreferences } from '@/preferences/use-app-preferences';
@@ -51,7 +52,14 @@ export const darkColors: AppThemeColors = {
 // Compatibility palette for local preview slices that have not migrated to reactive appearance yet.
 export const colors = lightColors;
 
-export function useAppTheme(): { colors: AppThemeColors; isDark: boolean } {
+export type AppTheme = { colors: AppThemeColors; isDark: boolean };
+
+const AppThemeContext = createContext<AppTheme>({
+  colors: lightColors,
+  isDark: false,
+});
+
+export function useResolvedAppTheme(): AppTheme {
   const systemColorScheme = useColorScheme();
   const [{ appearance }] = useAppPreferences();
   const isDark = appearance === 'dark' || (appearance === 'system' && systemColorScheme === 'dark');
@@ -60,6 +68,20 @@ export function useAppTheme(): { colors: AppThemeColors; isDark: boolean } {
     colors: isDark ? darkColors : lightColors,
     isDark,
   };
+}
+
+export function AppThemeProvider({
+  children,
+  value,
+}: {
+  children: ReactNode;
+  value: AppTheme;
+}) {
+  return createElement(AppThemeContext.Provider, { value }, children);
+}
+
+export function useAppTheme(): AppTheme {
+  return useContext(AppThemeContext);
 }
 
 export const spacing = {

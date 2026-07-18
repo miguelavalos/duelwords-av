@@ -408,7 +408,7 @@ export function PublicWordDuelChallengeScreen({
         </View>
         <AppButton
           tone="quiet"
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/play')}
+          onPress={() => router.replace('/play')}
           style={styles.closeButton}>
           {copy('close')}
         </AppButton>

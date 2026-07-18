@@ -36,7 +36,7 @@ export function PlayScreen() {
     <AppScreen>
       <View style={styles.header}>
         <View>
-          <Text style={styles.brand}>{t(interfaceLocale, 'appName')}</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.brand}>{t(interfaceLocale, 'appName')}</Text>
           <Text style={styles.subtitle}>{t(interfaceLocale, 'playSubtitle')}</Text>
         </View>
         <Pressable

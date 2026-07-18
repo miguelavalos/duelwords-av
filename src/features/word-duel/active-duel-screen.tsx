@@ -282,9 +282,9 @@ export function ActiveDuelScreen({
       <View style={styles.header}>
         <View style={styles.headerText}>
           <Text style={styles.kicker}>{copy('duel')}</Text>
-          <Text style={styles.title}>Word Duel</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.title}>Word Duel</Text>
         </View>
-        <AppButton tone="quiet" onPress={onLeave ?? (() => router.back())} style={styles.leaveButton}>
+        <AppButton tone="quiet" onPress={onLeave ?? (() => router.replace('/play'))} style={styles.leaveButton}>
           {copy('back')}
         </AppButton>
       </View>

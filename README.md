@@ -18,10 +18,9 @@ Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
 (system/light/dark) are versioned local preferences. Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
 The shell, Play, Settings, and public challenge/lobby/game/result/rematch path
-react to these preferences. English covers the full public journey; Spanish
-covers the primary journey and fail-closed runtime. Catalan, French, and German
-cover the core journey, while secondary and uncommon error messages may still
-use the English baseline.
+react to these preferences. English and Spanish cover the full public journey.
+Catalan, French, and German cover the core journey, while secondary and
+uncommon error messages may still use the English baseline.
 
 Local previews still cover practice, invite/lobby/Ready/countdown, active duel,
 result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
@@ -359,11 +358,12 @@ game id; it only creates a start request after recipient acceptance.
   Openspace against an explicitly approved preview runtime.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
-- Complete interface localization of the public challenge/duel/result copy;
-  game language selection supports EN/ES, but this route's interface is English.
-- Resolve the remaining app-wide manual accessibility review items (keyboard
-  focus indication and heading levels on React Native Web). The public route
-  has one main landmark, visible input labels, live status announcements,
+- Complete secondary and uncommon-error editorial translation for CA/FR/DE;
+  the core public journey and fail-closed state are localized, and game
+  language selection remains independent at EN/ES.
+- Resolve remaining accessibility polish outside the public journey. The
+  public path has a page title, explicit H1/H2 levels, one main landmark,
+  visible input labels, live status announcements, browser focus indicators,
   44px-or-larger actions, and no mobile horizontal overflow in local checks.
 - Approve and execute runtime/deploy/store/privacy/billing gates. Nothing in
   this repository grants permission for spend or remote state changes.

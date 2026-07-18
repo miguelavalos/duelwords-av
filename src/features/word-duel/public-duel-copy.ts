@@ -153,6 +153,42 @@ const germanCopy: Record<PublicDuelCopyKey, string> = {
   accept: 'Annehmen', activeDuel: 'Aktives Duell', attempts: 'Versuche', back: 'Zurück', bothReady: 'Beide Spieler sind bereit.', cancelRequest: 'Anfrage abbrechen', challengeClosed: 'Herausforderung beendet', challengeCreated: 'Herausforderung erstellt. Teile sie mit deinem Rivalen.', challengeSubtitle: 'Erstelle eine Live-Herausforderung oder prüfe eine Einladung vor dem Beitritt.', chooseLetters: 'Buchstaben wählen', close: 'Schließen', code: 'Code', createChallenge: 'Herausforderung erstellen', creating: 'Wird erstellt…', decline: 'Ablehnen', displayNameLabel: 'Name im Raum', displayNamePlaceholder: 'So sieht dich dein Rivale', draw: 'Unentschieden', duel: 'Duell', duelComplete: 'Duell beendet', finalResult: 'Endergebnis', findRoom: 'Raum finden', guestChallenge: 'Gast-Herausforderung', host: 'Gastgeber', inviteLabel: 'Einladungslink oder Token', invitePlaceholder: 'Einladungslink einfügen', inviteReview: 'Einladung prüfen', joinChallenge: 'Herausforderung beitreten', joinChallengeQuestion: 'Dieser Herausforderung beitreten?', joined: 'Beigetreten', letters: 'Buchstaben', lobby: 'Lobby', mute: 'Stumm', muted: 'Stummgeschaltet', nextRound: 'Nächste Runde', offline: 'Offline', online: 'Online', openFinalResult: 'Endergebnis öffnen', playAgain: 'Noch einmal spielen', ready: 'Bereit', reconnecting: 'Verbindung wird hergestellt', refresh: 'Aktualisieren', refreshLobby: 'Lobby aktualisieren', requestRematch: 'Revanche anfragen', reviewInvite: 'Einladung prüfen', rival: 'Rivale', roomCode: 'Raumcode', roomName: 'Dein Name im Raum', round: 'Runde', shareInvite: 'Einladung teilen', shareResult: 'Ergebnis teilen', side: 'Seite', solved: 'Gelöst', starting: 'Startet', syncRound: 'Runde synchronisieren', target: 'Wort: {word}', timedOut: 'Zeit abgelaufen', time: 'Zeit', waiting: 'Warten', waitingForRival: 'Auf Rivalen warten', wordLength: '{count} Buchstaben', you: 'Du', youWon: 'Du hast gewonnen', yourTurn: 'Du bist dran',
 };
 
+Object.assign(spanishCopy, {
+  couldNotCloseTimeout: 'No se pudo cerrar la ronda agotada',
+  couldNotOpenDuel: 'No se pudo abrir el duelo en directo de forma segura. Actualiza la sala e inténtalo de nuevo.',
+  couldNotOpenNext: 'No se pudo abrir la siguiente ronda',
+  couldNotOpenResult: 'No se pudo abrir el resultado',
+  couldNotSync: 'No se pudo sincronizar la ronda',
+  safeRealtimeUnavailable: 'El realtime seguro no está preparado',
+});
+
+Object.assign(catalanCopy, {
+  apiDisabled: 'API d’Apps AV desactivada',
+  onlineUnavailable: 'Els reptes en línia no estan disponibles en aquesta compilació',
+  realtimeDisabled: 'Realtime desactivat',
+  roomNameHelp: 'Només s’utilitza per a aquest repte. No cal cap compte.',
+  runtimeDescription: 'DuelWords roman sense connexió tret que estiguin habilitades l’API d’Apps AV i la configuració segura de realtime.',
+  safeRealtimeUnavailable: 'El realtime segur no està preparat',
+});
+
+Object.assign(frenchCopy, {
+  apiDisabled: 'API Apps AV désactivée',
+  onlineUnavailable: 'Les défis en ligne ne sont pas disponibles dans cette version',
+  realtimeDisabled: 'Temps réel désactivé',
+  roomNameHelp: 'Utilisé uniquement pour ce défi. Aucun compte requis.',
+  runtimeDescription: 'DuelWords reste hors ligne tant que l’API Apps AV et la configuration temps réel sécurisée ne sont pas activées.',
+  safeRealtimeUnavailable: 'Le temps réel sécurisé n’est pas prêt',
+});
+
+Object.assign(germanCopy, {
+  apiDisabled: 'Apps-AV-API deaktiviert',
+  onlineUnavailable: 'Online-Herausforderungen sind in diesem Build nicht verfügbar',
+  realtimeDisabled: 'Echtzeit deaktiviert',
+  roomNameHelp: 'Wird nur für diese Herausforderung verwendet. Kein Konto erforderlich.',
+  runtimeDescription: 'DuelWords bleibt offline, solange die Apps-AV-API und die sichere Echtzeitkonfiguration nicht aktiviert sind.',
+  safeRealtimeUnavailable: 'Sichere Echtzeit ist noch nicht bereit',
+});
+
 const publicDuelCopy: Record<InterfaceLocale, Record<PublicDuelCopyKey, string>> = {
   ca: catalanCopy,
   de: germanCopy,

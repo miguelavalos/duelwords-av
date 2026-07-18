@@ -20,7 +20,7 @@ export function SettingsScreen() {
         <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
         <AppButton
           tone="quiet"
-          onPress={() => router.canGoBack() ? router.back() : router.replace('/play')}>
+          onPress={() => router.replace('/play')}>
           {t(interfaceLocale, 'done')}
         </AppButton>
       </View>

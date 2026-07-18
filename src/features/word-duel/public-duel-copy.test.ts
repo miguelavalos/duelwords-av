@@ -26,9 +26,17 @@ describe('public duel copy', () => {
   it('does not silently fall back to English for the core localized labels', () => {
     for (const locale of locales.filter((value) => value !== 'en')) {
       expect(publicDuelT(locale, 'createChallenge')).not.toBe(publicDuelT('en', 'createChallenge'));
+      expect(publicDuelT(locale, 'onlineUnavailable')).not.toBe(publicDuelT('en', 'onlineUnavailable'));
       expect(publicDuelT(locale, 'requestRematch')).not.toBe(publicDuelT('en', 'requestRematch'));
+      expect(publicDuelT(locale, 'roomNameHelp')).not.toBe(publicDuelT('en', 'roomNameHelp'));
+      expect(publicDuelT(locale, 'runtimeDescription')).not.toBe(publicDuelT('en', 'runtimeDescription'));
     }
-    expect(publicDuelT('es', 'runtimeDescription')).not.toBe(publicDuelT('en', 'runtimeDescription'));
     expect(publicDuelT('es', 'apiDisabled')).not.toBe(publicDuelT('en', 'apiDisabled'));
+    expect(publicDuelT('es', 'couldNotCloseTimeout')).not.toBe(publicDuelT('en', 'couldNotCloseTimeout'));
+    expect(publicDuelT('es', 'couldNotOpenDuel')).not.toBe(publicDuelT('en', 'couldNotOpenDuel'));
+    expect(publicDuelT('es', 'couldNotOpenNext')).not.toBe(publicDuelT('en', 'couldNotOpenNext'));
+    expect(publicDuelT('es', 'couldNotOpenResult')).not.toBe(publicDuelT('en', 'couldNotOpenResult'));
+    expect(publicDuelT('es', 'couldNotSync')).not.toBe(publicDuelT('en', 'couldNotSync'));
+    expect(publicDuelT('es', 'safeRealtimeUnavailable')).not.toBe(publicDuelT('en', 'safeRealtimeUnavailable'));
   });
 });
