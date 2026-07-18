@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { LetterFeedback } from '@/game/word-duel-engine';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export type WordDuelBoardRowState =
   | 'current'
@@ -37,6 +38,7 @@ export function WordDuelBoard({
   showSubmittedPendingMark = false,
   tileSize,
 }: WordDuelBoardProps) {
+  const styles = useWordDuelBoardStyles();
   const compact = density === 'compact';
 
   return (
@@ -87,7 +89,10 @@ export function feedbackMarker(feedback: LetterFeedback): string {
   return 'x';
 }
 
-const styles = StyleSheet.create({
+function useWordDuelBoardStyles() {
+  const { colors } = useAppTheme();
+
+  return useMemo(() => StyleSheet.create({
   board: {
     alignItems: 'center',
     gap: spacing.sm,
@@ -164,4 +169,5 @@ const styles = StyleSheet.create({
     fontSize: typeScale.tiny,
     fontWeight: '900',
   },
-});
+  }), [colors]);
+}

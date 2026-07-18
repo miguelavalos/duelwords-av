@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { colors, layout, spacing } from './theme';
+import { layout, spacing, useAppTheme } from './theme';
 
 type AppScreenProps = {
   children: ReactNode;
@@ -17,9 +17,11 @@ export function AppScreen({
   bottomInset = spacing.xl,
   contentGap = spacing.lg,
 }: AppScreenProps) {
+  const { colors } = useAppTheme();
+
   if (!scroll) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
         <View role="main" style={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}>
           {children}
         </View>
@@ -28,9 +30,10 @@ export function AppScreen({
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
       <ScrollView
         role="main"
+        contentInsetAdjustmentBehavior="automatic"
         style={styles.scroll}
         contentContainerStyle={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}
         keyboardShouldPersistTaps="handled">
@@ -43,7 +46,6 @@ export function AppScreen({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   scroll: {
     flex: 1,

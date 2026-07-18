@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
-import { colors, radii, spacing, typeScale } from './theme';
+import { radii, spacing, typeScale, useAppTheme } from './theme';
 
 type ButtonTone = 'primary' | 'secondary' | 'quiet';
 
@@ -14,6 +14,13 @@ type AppButtonProps = {
 };
 
 export function AppButton({ children, disabled, onPress, style, tone = 'primary' }: AppButtonProps) {
+  const { colors } = useAppTheme();
+  const toneStyle = tone === 'primary'
+    ? { backgroundColor: colors.accent }
+    : tone === 'secondary'
+      ? { backgroundColor: colors.secondarySoft, borderColor: colors.secondary }
+      : { backgroundColor: colors.surface, borderColor: colors.border };
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -21,9 +28,8 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        tone === 'primary' && styles.primary,
-        tone === 'secondary' && styles.secondary,
-        tone === 'quiet' && styles.quiet,
+        tone !== 'primary' && styles.bordered,
+        toneStyle,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
         style,
@@ -31,9 +37,8 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
       <Text
         style={[
           styles.label,
-          tone === 'primary' && styles.primaryLabel,
-          tone !== 'primary' && styles.secondaryLabel,
-          disabled && styles.disabledLabel,
+          { color: tone === 'primary' ? colors.onAccent : colors.text },
+          disabled && { color: colors.textMuted },
         ]}>
         {children}
       </Text>
@@ -50,18 +55,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.sm,
   },
-  primary: {
-    backgroundColor: colors.accent,
-  },
-  secondary: {
-    backgroundColor: colors.secondarySoft,
+  bordered: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.secondary,
-  },
-  quiet: {
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
   },
   pressed: {
     opacity: 0.78,
@@ -72,14 +67,5 @@ const styles = StyleSheet.create({
   label: {
     fontSize: typeScale.body,
     fontWeight: '700',
-  },
-  primaryLabel: {
-    color: colors.onAccent,
-  },
-  secondaryLabel: {
-    color: colors.text,
-  },
-  disabledLabel: {
-    color: colors.textMuted,
   },
 });

@@ -14,6 +14,15 @@ a participant-scoped rematch. Room-code lookup and canonical invite-token
 parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
 
+Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
+(system/light/dark) are versioned local preferences. Web uses browser
+`localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
+The shell, Play, Settings, and public challenge/lobby/game/result/rematch path
+react to these preferences. English covers the full public journey; Spanish
+covers the primary journey and fail-closed runtime. Catalan, French, and German
+cover the core journey, while secondary and uncommon error messages may still
+use the English baseline.
+
 Local previews still cover practice, invite/lobby/Ready/countdown, active duel,
 result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
 runtime remains as an engineering console, not the product entry point. The
@@ -163,8 +172,10 @@ The local connected runtime smoke wraps a fake React client with the real SDK
 bridge to verify subscription, heartbeat, and reaction refs without calling
 Convex.
 
-The public `/word-duel/challenge` route accepts `lang`, `invite`, and `code`
-query parameters. Invite URLs are validated as exact HTTPS links for
+The public `/word-duel/challenge` route accepts `lang`, `ui`, `invite`, and
+`code` query parameters. `ui` accepts `en`, `es`, `ca`, `fr`, or `de` for a
+link-scoped interface override without rewriting the user's stored preference.
+Invite URLs are validated as exact HTTPS links for
 `app.duelwords-av.avalsys.com/i/c/` or as bounded direct tokens; foreign hosts,
 malformed percent encoding, and invalid room codes are rejected before any API
 action. Preview is GET-only and joining always requires explicit confirmation.

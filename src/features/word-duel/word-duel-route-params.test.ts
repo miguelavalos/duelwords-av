@@ -5,6 +5,7 @@ import {
   buildWordDuelHref,
   buildWordDuelResultHandoffHref,
   parseGameLanguageParam,
+  parseInterfaceLocaleParam,
   parseLocalResultParam,
   parseResultOutcomeParam,
   parseResultReasonParam,
@@ -23,6 +24,13 @@ describe('word duel route params', () => {
     expect(parseGameLanguageParam(['es', 'en'])).toBe('es');
     expect(parseGameLanguageParam('ca')).toBe('en');
     expect(parseGameLanguageParam(undefined)).toBe('en');
+  });
+
+  it('parses supported interface locales without overriding stored preferences on invalid input', () => {
+    expect(parseInterfaceLocaleParam('es')).toBe('es');
+    expect(parseInterfaceLocaleParam(['ca', 'en'])).toBe('ca');
+    expect(parseInterfaceLocaleParam('it')).toBeNull();
+    expect(parseInterfaceLocaleParam(undefined)).toBeNull();
   });
 
   it('parses solo and daily modes with a stable fallback', () => {
@@ -56,6 +64,11 @@ describe('word duel route params', () => {
     })).toBe('/word-duel/result-demo?lang=es&mode=bot_duel&outcome=loss&reason=solved');
 
     expect(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice)).toBe('/word-duel/practice');
+
+    expect(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, {
+      gameLanguage: 'es',
+      interfaceLocale: 'ca',
+    })).toBe('/word-duel/challenge?lang=es&ui=ca');
   });
 
   it('builds persisted result hrefs with a resultId', () => {

@@ -1,7 +1,9 @@
 import { Tabs } from 'expo-router';
 import { Text } from 'react-native';
 
-import { colors } from '@/ui/theme';
+import { t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
+import { useAppTheme } from '@/ui/theme';
 
 type TabIconProps = {
   color: string;
@@ -13,6 +15,9 @@ function TabIcon({ color, label }: TabIconProps) {
 }
 
 export default function TabsLayout() {
+  const [{ interfaceLocale }] = useAppPreferences();
+  const { colors } = useAppTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -27,21 +32,21 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="play"
         options={{
-          title: 'Play',
+          title: t(interfaceLocale, 'play'),
           tabBarIcon: ({ color }) => <TabIcon color={String(color)} label="P" />,
         }}
       />
       <Tabs.Screen
         name="rivals"
         options={{
-          title: 'Rivals',
+          title: t(interfaceLocale, 'rivals'),
           tabBarIcon: ({ color }) => <TabIcon color={String(color)} label="R" />,
         }}
       />
       <Tabs.Screen
         name="stats"
         options={{
-          title: 'Stats',
+          title: t(interfaceLocale, 'stats'),
           tabBarIcon: ({ color }) => <TabIcon color={String(color)} label="S" />,
         }}
       />

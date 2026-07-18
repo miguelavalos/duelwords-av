@@ -1,16 +1,16 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { useColorScheme } from 'react-native';
 
 import { ensureDuelWordsDiagnosticsReady } from '@/diagnostics/runtime';
+import { useAppTheme } from '@/ui/theme';
 
 ensureDuelWordsDiagnosticsReady();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
+  const { isDark } = useAppTheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={isDark ? DarkTheme : DefaultTheme}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="settings" options={{ presentation: 'modal' }} />

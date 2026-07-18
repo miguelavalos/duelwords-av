@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -24,9 +24,10 @@ import {
   type ActiveDuelViewModel,
 } from '@/game/word-duel-active/view-model';
 import type { DuelWordsApiFinalResult } from '@/game/word-duel-lobby/api-client';
+import type { InterfaceLocale } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard } from './components/word-duel-board';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
@@ -35,6 +36,7 @@ import {
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
+import { publicDuelT, type PublicDuelCopyKey } from './public-duel-copy';
 
 const REACTION_LABELS: Record<ActiveDuelReactionId, string> = {
   gg: 'GG',
@@ -49,6 +51,7 @@ type ActiveDuelScreenProps = {
   controller?: WordDuelActiveController;
   initialHandoff?: WordDuelActiveHandoff;
   initialGameLanguage?: GameLanguage;
+  interfaceLocale?: InterfaceLocale;
   onFinalResult?: (result: DuelWordsApiFinalResult) => void;
   onLeave?: () => void;
 };
@@ -57,10 +60,17 @@ export function ActiveDuelScreen({
   controller,
   initialGameLanguage,
   initialHandoff,
+  interfaceLocale = 'en',
   onFinalResult,
   onLeave,
 }: ActiveDuelScreenProps) {
   const router = useRouter();
+  const styles = useActiveDuelStyles();
+  const copy = useCallback(
+    (key: PublicDuelCopyKey, values?: Record<string, string | number>) =>
+      publicDuelT(interfaceLocale, key, values),
+    [interfaceLocale],
+  );
   const { width } = useWindowDimensions();
   const clientRequestNumber = useRef(0);
   const isOpeningResultRef = useRef(false);
@@ -81,7 +91,7 @@ export function ActiveDuelScreen({
   );
   const [draft, setDraft] = useState('');
   const [isOpeningResult, setIsOpeningResult] = useState(false);
-  const [statusDetail, setStatusDetail] = useState('Rival ready');
+  const [statusDetail, setStatusDetail] = useState(() => copy('rivalReady'));
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
   const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
   const boardWidth = Math.min(width - spacing.lg * 2, 338);
@@ -91,9 +101,9 @@ export function ActiveDuelScreen({
     setDraft('');
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
-    setStatusDetail('Rival ready');
+    setStatusDetail(copy('rivalReady'));
     setViewModel(activeDuelController.getViewModel());
-  }, [activeDuelController]);
+  }, [activeDuelController, copy]);
 
   useEffect(() => {
     if (
@@ -110,21 +120,21 @@ export function ActiveDuelScreen({
         .then((result) => {
           setViewModel(result.viewModel);
           setDraft('');
-          setStatusDetail('Round timed out');
+          setStatusDetail(copy('roundTimedOut'));
         })
         .catch(() => {
           timedOutRoundRef.current = null;
-          setStatusDetail('Could not close timed-out round');
+          setStatusDetail(copy('couldNotCloseTimeout'));
         });
     }, Math.max(0, viewModel.remainingSeconds * 1_000) + 100);
 
     return () => clearTimeout(timeout);
-  }, [activeDuelController, viewModel.ownRoundState, viewModel.remainingSeconds, viewModel.roundNumber]);
+  }, [activeDuelController, copy, viewModel.ownRoundState, viewModel.remainingSeconds, viewModel.roundNumber]);
 
   useEffect(() => {
     const unsubscribe = activeDuelController.subscribeActiveRoomView((projection) => {
       if (!projection) {
-        setStatusDetail('Reconnecting');
+        setStatusDetail(copy('reconnecting'));
         return;
       }
 
@@ -134,13 +144,13 @@ export function ActiveDuelScreen({
     void activeDuelController.sendPresenceHeartbeat();
 
     return unsubscribe;
-  }, [activeDuelController]);
+  }, [activeDuelController, copy]);
 
   function updateDraft(nextDraft: string) {
     const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');
     setDraft(clampedDraft);
     setViewModel((current) => updateActiveDuelEditingLetters(current, Array.from(clampedDraft)));
-    setStatusDetail('Rival ready');
+    setStatusDetail(copy('rivalReady'));
   }
 
   function handleKeyPress(key: string) {
@@ -164,7 +174,7 @@ export function ActiveDuelScreen({
   async function submitDraft() {
     const letters = Array.from(draft);
     if (letters.length !== viewModel.wordLength) {
-      setStatusDetail(`${viewModel.wordLength} letters`);
+      setStatusDetail(copy('wordLength', { count: viewModel.wordLength }));
       return;
     }
 
@@ -178,14 +188,16 @@ export function ActiveDuelScreen({
       });
       setViewModel(result.viewModel);
       setDraft('');
-      setStatusDetail('Submitted');
+      setStatusDetail(copy('submitted'));
       if (activeDuelController.source === 'local_mock') {
         activeDuelController.publishLocalPlayerSubmittedProjection({
           roundNumber: result.submission.roundNumber,
         });
       }
     } catch (error) {
-      setStatusDetail(error instanceof DuelWordsClientError ? activeDuelErrorLabel(error.code) : 'Try again');
+      setStatusDetail(error instanceof DuelWordsClientError
+        ? activeDuelErrorLabel(interfaceLocale, error.code)
+        : copy('tryAgain'));
     }
   }
 
@@ -197,7 +209,7 @@ export function ActiveDuelScreen({
     });
 
     if (!result.ok) {
-      setStatusDetail(result.reason === 'rate_limited' ? 'Slow down' : 'Unavailable');
+      setStatusDetail(result.reason === 'rate_limited' ? copy('slowDown') : copy('unavailable'));
     }
   }
 
@@ -208,7 +220,7 @@ export function ActiveDuelScreen({
 
     isOpeningResultRef.current = true;
     setIsOpeningResult(true);
-    setStatusDetail('Opening result');
+    setStatusDetail(copy('openingResult'));
 
     try {
       if (onFinalResult) {
@@ -233,7 +245,7 @@ export function ActiveDuelScreen({
         mode: 'human_duel',
         routeGroup: 'active_duel',
       });
-      setStatusDetail('Could not open result');
+      setStatusDetail(copy('couldNotOpenResult'));
     } finally {
       isOpeningResultRef.current = false;
       setIsOpeningResult(false);
@@ -246,9 +258,9 @@ export function ActiveDuelScreen({
         roundNumber: viewModel.roundNumber,
       });
       setViewModel(snapshot.viewModel);
-      setStatusDetail(snapshot.feedbackAvailable ? 'Feedback ready' : 'Waiting for rival');
+      setStatusDetail(snapshot.feedbackAvailable ? copy('feedbackReady') : copy('waitingForRival'));
     } catch {
-      setStatusDetail('Could not sync round');
+      setStatusDetail(copy('couldNotSync'));
     }
   }
 
@@ -259,9 +271,9 @@ export function ActiveDuelScreen({
       });
       setViewModel(result.viewModel);
       setDraft('');
-      setStatusDetail(result.advanced ? 'Next round ready' : 'Round still resolving');
+      setStatusDetail(result.advanced ? copy('nextRoundReady') : copy('roundResolving'));
     } catch {
-      setStatusDetail('Could not open next round');
+      setStatusDetail(copy('couldNotOpenNext'));
     }
   }
 
@@ -269,17 +281,17 @@ export function ActiveDuelScreen({
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Duel</Text>
+          <Text style={styles.kicker}>{copy('duel')}</Text>
           <Text style={styles.title}>Word Duel</Text>
         </View>
         <AppButton tone="quiet" onPress={onLeave ?? (() => router.back())} style={styles.leaveButton}>
-          Leave
+          {copy('back')}
         </AppButton>
       </View>
 
       <View style={styles.timerRow}>
         <View>
-          <Text style={styles.metaLabel}>Round</Text>
+          <Text style={styles.metaLabel}>{copy('round')}</Text>
           <Text style={styles.metaValue}>
             {viewModel.roundNumber}/{viewModel.maxAttempts}
           </Text>
@@ -288,13 +300,14 @@ export function ActiveDuelScreen({
           <Text style={styles.timerText}>{formatSeconds(viewModel.remainingSeconds)}</Text>
         </View>
         <View style={styles.sideBlock}>
-          <Text style={styles.metaLabel}>Side</Text>
+          <Text style={styles.metaLabel}>{copy('side')}</Text>
           <Text style={styles.metaValue}>{viewModel.ownSide.toUpperCase()}</Text>
         </View>
       </View>
 
       <OpponentSummary
         activeReaction={activeReaction}
+        interfaceLocale={interfaceLocale}
         markers={viewModel.opponent.attemptMarkers}
         presence={viewModel.opponent.presence}
         roundState={viewModel.opponent.roundState}
@@ -302,14 +315,14 @@ export function ActiveDuelScreen({
       />
 
       <WordDuelBoard
-        accessibilityLabel="Own Word Duel board"
+        accessibilityLabel={copy('ownBoard')}
         rows={viewModel.ownBoardRows}
         showSubmittedPendingMark
         tileSize={tileSize}
       />
 
       <View style={styles.stateRow}>
-        <Text style={styles.stateLabel}>{ownRoundStateLabel(viewModel)}</Text>
+        <Text style={styles.stateLabel}>{ownRoundStateLabel(interfaceLocale, viewModel)}</Text>
         <Text style={styles.stateDetail}>{statusDetail}</Text>
       </View>
 
@@ -317,10 +330,10 @@ export function ActiveDuelScreen({
         {activeDuelController.source === 'apps_av_api' ? (
           <>
             <AppButton tone="secondary" onPress={() => void syncRound()} style={styles.progressButton}>
-              Sync round
+              {copy('syncRound')}
             </AppButton>
             <AppButton tone="secondary" onPress={() => void openNextRound()} style={styles.progressButton}>
-              Next round
+              {copy('nextRound')}
             </AppButton>
           </>
         ) : null}
@@ -331,12 +344,13 @@ export function ActiveDuelScreen({
             void openFinalResult();
           }}
           style={styles.progressButton}>
-          {isOpeningResult ? 'Opening...' : 'Open final result'}
+          {isOpeningResult ? copy('opening') : copy('openFinalResult')}
         </AppButton>
       </View>
 
       <ReactionTray
         activeReaction={activeReaction}
+        interfaceLocale={interfaceLocale}
         muted={muted}
         onMuteToggle={() => setMuted((current) => !current)}
         onReactionPress={(reaction) => {
@@ -348,6 +362,7 @@ export function ActiveDuelScreen({
       <WordDuelKeyboard
         disabled={keyboardDisabled}
         feedbackByKey={viewModel.ownKeyboardFeedback}
+        interfaceLocale={interfaceLocale}
         keyRows={WORD_DUEL_KEY_ROWS[viewModel.gameLanguage]}
         onKeyPress={handleKeyPress}
       />
@@ -359,26 +374,29 @@ export function ActiveDuelScreen({
 
 function OpponentSummary({
   activeReaction,
+  interfaceLocale,
   markers,
   presence,
   roundState,
   safeDisplayName,
 }: {
   activeReaction: ActiveDuelReactionId | null;
+  interfaceLocale: InterfaceLocale;
   markers: ActiveDuelOpponentMarkerState[];
   presence: string;
   roundState: ActiveDuelOpponentMarkerState;
   safeDisplayName: string;
 }) {
+  const styles = useActiveDuelStyles();
   return (
     <View style={styles.opponentStrip}>
       <View style={styles.opponentTopRow}>
         <View>
-          <Text style={styles.metaLabel}>Rival</Text>
+          <Text style={styles.metaLabel}>{publicDuelT(interfaceLocale, 'rival')}</Text>
           <Text style={styles.opponentName}>{safeDisplayName}</Text>
         </View>
         <View style={styles.presencePill}>
-          <Text style={styles.presenceText}>{presenceLabel(presence)}</Text>
+          <Text style={styles.presenceText}>{presenceLabel(interfaceLocale, presence)}</Text>
         </View>
       </View>
       <View style={styles.opponentBottomRow}>
@@ -386,17 +404,20 @@ function OpponentSummary({
           {markers.map((marker, index) => (
             <View
               key={`opponent-marker-${index}`}
-              accessibilityLabel={`Opponent attempt ${index + 1}: ${marker}`}
-              style={[styles.marker, markerStyle(marker)]}>
+              accessibilityLabel={publicDuelT(interfaceLocale, 'opponentAttempt', {
+                number: index + 1,
+                state: opponentStateLabel(interfaceLocale, marker),
+              })}
+              style={[styles.marker, markerStyle(marker, styles)]}>
               <Text style={styles.markerText}>{markerSymbol(marker)}</Text>
             </View>
           ))}
         </View>
-        <Text style={styles.opponentStatus}>{opponentStateLabel(roundState)}</Text>
+        <Text style={styles.opponentStatus}>{opponentStateLabel(interfaceLocale, roundState)}</Text>
       </View>
       {activeReaction ? (
         <View style={styles.reactionBubble}>
-          <Text style={styles.reactionBubbleText}>{REACTION_LABELS[activeReaction]}</Text>
+          <Text style={styles.reactionBubbleText}>{reactionLabel(interfaceLocale, activeReaction)}</Text>
         </View>
       ) : null}
     </View>
@@ -405,17 +426,20 @@ function OpponentSummary({
 
 function ReactionTray({
   activeReaction,
+  interfaceLocale,
   muted,
   onMuteToggle,
   onReactionPress,
   reactions,
 }: {
   activeReaction: ActiveDuelReactionId | null;
+  interfaceLocale: InterfaceLocale;
   muted: boolean;
   onMuteToggle: () => void;
   onReactionPress: (reaction: ActiveDuelReactionId) => void;
   reactions: ActiveDuelReactionId[];
 }) {
+  const styles = useActiveDuelStyles();
   const compactReactions = reactions.filter((reaction) =>
     ['gg', 'nice', 'tick_tock', 'almost'].includes(reaction),
   );
@@ -439,19 +463,20 @@ function ReactionTray({
               adjustsFontSizeToFit
               numberOfLines={1}
               style={[styles.reactionButtonText, activeReaction === reaction && styles.reactionButtonTextActive]}>
-              {REACTION_LABELS[reaction]}
+              {reactionLabel(interfaceLocale, reaction)}
             </Text>
           </Pressable>
         ))}
       </View>
       <Pressable accessibilityRole="button" onPress={onMuteToggle} style={styles.muteButton}>
-        <Text style={styles.muteText}>{muted ? 'Muted' : 'Mute'}</Text>
+        <Text style={styles.muteText}>{publicDuelT(interfaceLocale, muted ? 'muted' : 'mute')}</Text>
       </Pressable>
     </View>
   );
 }
 
 function CompactAdSlot() {
+  const styles = useActiveDuelStyles();
   return (
     <View style={styles.adSlot}>
       <Text style={styles.adText}>Ad</Text>
@@ -463,33 +488,33 @@ function formatSeconds(seconds: number) {
   return `0:${String(seconds).padStart(2, '0')}`;
 }
 
-function ownRoundStateLabel(viewModel: ActiveDuelViewModel): string {
+function ownRoundStateLabel(locale: InterfaceLocale, viewModel: ActiveDuelViewModel): string {
   if (viewModel.ownRoundState === 'waiting_for_rival') {
-    return 'Waiting for rival';
+    return publicDuelT(locale, 'waitingForRival');
   }
   if (viewModel.ownRoundState === 'timed_out') {
-    return 'Timed out';
+    return publicDuelT(locale, 'timedOut');
   }
   if (viewModel.ownRoundState === 'submitting') {
-    return 'Submitting';
+    return publicDuelT(locale, 'submitting');
   }
   if (viewModel.ownRoundState === 'resolving') {
-    return 'Resolving';
+    return publicDuelT(locale, 'resolving');
   }
   if (viewModel.opponent.roundState === 'submitted') {
-    return 'Your turn';
+    return publicDuelT(locale, 'yourTurn');
   }
-  return 'Choose letters';
+  return publicDuelT(locale, 'chooseLetters');
 }
 
-function activeDuelErrorLabel(code: DuelWordsClientError['code']): string {
+function activeDuelErrorLabel(locale: InterfaceLocale, code: DuelWordsClientError['code']): string {
   if (code === 'invalid_guess_length') {
-    return '5 letters';
+    return publicDuelT(locale, 'wordLength', { count: 5 });
   }
   if (code === 'invalid_round') {
-    return 'Round changed';
+    return publicDuelT(locale, 'roundChanged');
   }
-  return 'Locked';
+  return publicDuelT(locale, 'locked');
 }
 
 function markerSymbol(marker: ActiveDuelOpponentMarkerState): string {
@@ -508,33 +533,41 @@ function markerSymbol(marker: ActiveDuelOpponentMarkerState): string {
   return '';
 }
 
-function opponentStateLabel(marker: ActiveDuelOpponentMarkerState): string {
+function opponentStateLabel(locale: InterfaceLocale, marker: ActiveDuelOpponentMarkerState): string {
   if (marker === 'submitted') {
-    return 'Rival submitted';
+    return publicDuelT(locale, 'rivalSubmitted');
   }
   if (marker === 'timeout') {
-    return 'Timed out';
+    return publicDuelT(locale, 'timedOut');
   }
   if (marker === 'solved') {
-    return 'Solved';
+    return publicDuelT(locale, 'solved');
   }
-  if (marker === 'failed') {
-    return 'Waiting';
-  }
-  return 'Waiting';
+  return publicDuelT(locale, 'waiting');
 }
 
-function presenceLabel(presence: string): string {
+function presenceLabel(locale: InterfaceLocale, presence: string): string {
   if (presence === 'connected') {
-    return 'Online';
+    return publicDuelT(locale, 'online');
   }
   if (presence === 'reconnecting') {
-    return 'Reconnecting';
+    return publicDuelT(locale, 'reconnecting');
   }
-  return 'Offline';
+  return publicDuelT(locale, 'offline');
 }
 
-function markerStyle(marker: ActiveDuelOpponentMarkerState) {
+function reactionLabel(locale: InterfaceLocale, reaction: ActiveDuelReactionId): string {
+  if (reaction === 'nice') return publicDuelT(locale, 'nice');
+  if (reaction === 'almost') return publicDuelT(locale, 'almost');
+  if (reaction === 'your_turn') return publicDuelT(locale, 'yourTurn');
+  if (reaction === 'tick_tock') return publicDuelT(locale, 'time');
+  return REACTION_LABELS[reaction];
+}
+
+function markerStyle(
+  marker: ActiveDuelOpponentMarkerState,
+  styles: ReturnType<typeof useActiveDuelStyles>,
+) {
   if (marker === 'submitted') {
     return styles.markerSubmitted;
   }
@@ -550,7 +583,9 @@ function markerStyle(marker: ActiveDuelOpponentMarkerState) {
   return styles.markerWaiting;
 }
 
-const styles = StyleSheet.create({
+function useActiveDuelStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     minHeight: 48,
     flexDirection: 'row',
@@ -813,4 +848,5 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.45,
   },
-});
+  }), [colors]);
+}

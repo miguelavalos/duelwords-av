@@ -1,4 +1,8 @@
-export const colors = {
+import { useColorScheme } from 'react-native';
+
+import { useAppPreferences } from '@/preferences/use-app-preferences';
+
+export const lightColors = {
   background: '#F8FAFC',
   surface: '#FFFFFF',
   surfaceSoft: '#EEF6F3',
@@ -19,6 +23,44 @@ export const colors = {
   feedbackAbsent: '#334155',
   feedbackPending: '#F8FAFC',
 };
+
+export type AppThemeColors = typeof lightColors;
+
+export const darkColors: AppThemeColors = {
+  background: '#0B1220',
+  surface: '#111827',
+  surfaceSoft: '#12312F',
+  surfaceStrong: '#1E293B',
+  text: '#F8FAFC',
+  textMuted: '#A9B7CA',
+  border: '#475569',
+  accent: '#5EEAD4',
+  accentPressed: '#2DD4BF',
+  onAccent: '#06201D',
+  secondary: '#A5B4FC',
+  secondarySoft: '#262A4A',
+  pressure: '#FDBA74',
+  pressureSoft: '#422006',
+  danger: '#FCA5A5',
+  feedbackExact: '#14B8A6',
+  feedbackPresent: '#818CF8',
+  feedbackAbsent: '#475569',
+  feedbackPending: '#0F172A',
+};
+
+// Compatibility palette for local preview slices that have not migrated to reactive appearance yet.
+export const colors = lightColors;
+
+export function useAppTheme(): { colors: AppThemeColors; isDark: boolean } {
+  const systemColorScheme = useColorScheme();
+  const [{ appearance }] = useAppPreferences();
+  const isDark = appearance === 'dark' || (appearance === 'system' && systemColorScheme === 'dark');
+
+  return {
+    colors: isDark ? darkColors : lightColors,
+    isDark,
+  };
+}
 
 export const spacing = {
   xs: 4,

@@ -1,18 +1,20 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { GameLanguage } from '@/game/word-duel-engine';
 import {
   buildWordDuelHref,
   WORD_DUEL_ROUTE_PATHS,
 } from '@/features/word-duel/word-duel-route-params';
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 type ModeCardProps = {
+  badgeLabel: string;
+  ctaLabel: string;
   description: string;
   disabled?: boolean;
   iconLabel: string;
@@ -22,18 +24,24 @@ type ModeCardProps = {
 
 export function PlayScreen() {
   const router = useRouter();
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>('en');
+  const styles = usePlayStyles();
+  const [preferences, setPreferences] = useAppPreferences();
+  const { gameLanguage, interfaceLocale } = preferences;
+  const modeCardLabels = {
+    badgeLabel: t(interfaceLocale, 'comingLater'),
+    ctaLabel: t(interfaceLocale, 'start'),
+  };
 
   return (
     <AppScreen>
       <View style={styles.header}>
         <View>
-          <Text style={styles.brand}>{t('en', 'appName')}</Text>
-          <Text style={styles.subtitle}>Synchronized word challenges start here.</Text>
+          <Text style={styles.brand}>{t(interfaceLocale, 'appName')}</Text>
+          <Text style={styles.subtitle}>{t(interfaceLocale, 'playSubtitle')}</Text>
         </View>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Settings"
+          accessibilityLabel={t(interfaceLocale, 'settings')}
           onPress={() => router.push('/settings')}
           style={styles.settingsButton}>
           <Text style={styles.settingsText}>S</Text>
@@ -41,7 +49,7 @@ export function PlayScreen() {
       </View>
 
       <View style={styles.selectorBlock}>
-        <Text style={styles.sectionLabel}>{t('en', 'gameLanguage')}</Text>
+        <Text style={styles.sectionLabel}>{t(interfaceLocale, 'gameLanguage')}</Text>
         <View style={styles.segmented}>
           {GAME_LANGUAGES.map((language) => {
             const selected = language.code === gameLanguage;
@@ -49,7 +57,11 @@ export function PlayScreen() {
               <Pressable
                 key={language.code}
                 accessibilityRole="button"
-                onPress={() => setGameLanguage(language.code)}
+                accessibilityState={{ selected }}
+                onPress={() => setPreferences((current) => ({
+                  ...current,
+                  gameLanguage: language.code,
+                }))}
                 style={[styles.segment, selected && styles.segmentSelected]}>
                 <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
                   {language.label}
@@ -61,16 +73,19 @@ export function PlayScreen() {
       </View>
 
       <ModeCard
-        title={t('en', 'challengeFriend')}
-        description="Create or join a live guest challenge. Online play stays unavailable unless the safe runtime is enabled."
+        {...modeCardLabels}
+        title={t(interfaceLocale, 'challengeFriend')}
+        description={t(interfaceLocale, 'challengeDescription')}
         iconLabel="1v1"
         onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, {
           gameLanguage,
+          interfaceLocale,
           mode: 'human_duel',
         }))}
       />
 
       <ModeCard
+        {...modeCardLabels}
         title="Invite lobby preview"
         description="Host invite, join review, lobby Ready, countdown and round-open handoff."
         iconLabel="GO"
@@ -81,6 +96,7 @@ export function PlayScreen() {
       />
 
       <ModeCard
+        {...modeCardLabels}
         title="Active duel preview"
         description="Mobile 1v1 surface with synced-round status, safe rival progress and compact ad slot."
         iconLabel="1v1"
@@ -91,6 +107,7 @@ export function PlayScreen() {
       />
 
       <ModeCard
+        {...modeCardLabels}
         title="Result preview"
         description="Final result, target reveal, completed boards, rematch setup and safe share preview."
         iconLabel="R"
@@ -101,6 +118,7 @@ export function PlayScreen() {
       />
 
       <ModeCard
+        {...modeCardLabels}
         title="Play Avi preview"
         description="Deterministic local bot duel with synced-round rhythm and safe opponent summary."
         iconLabel="AV"
@@ -111,6 +129,7 @@ export function PlayScreen() {
       />
 
       <ModeCard
+        {...modeCardLabels}
         title="Solo / Daily preview"
         description="Local Solo and Daily-style board with safe sharing and post-result ad slot."
         iconLabel="SD"
@@ -121,7 +140,8 @@ export function PlayScreen() {
       />
 
       <ModeCard
-        title={`${t('en', 'wordDuel')} ${t('en', 'practice')}`}
+        {...modeCardLabels}
+        title={`${t(interfaceLocale, 'wordDuel')} ${t(interfaceLocale, 'practice')}`}
         description="Local engine, five letters, six attempts. No remote authority yet."
         iconLabel="WD"
         onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, {
@@ -132,7 +152,8 @@ export function PlayScreen() {
 
       <View style={styles.modeGrid}>
         <ModeCard
-          title={t('en', 'daily')}
+          {...modeCardLabels}
+          title={t(interfaceLocale, 'daily')}
           description="Official daily targets require server dictionary authority."
           disabled
           iconLabel="D"
@@ -140,7 +161,7 @@ export function PlayScreen() {
       </View>
 
       <View style={styles.note}>
-        <Text style={styles.noteTitle}>{t('en', 'localOnly')}</Text>
+        <Text style={styles.noteTitle}>{t(interfaceLocale, 'localOnly')}</Text>
         <Text style={styles.noteText}>
           Connected games will use Apps AV API/D1 for target selection, validation and scoring.
           Convex will carry only safe realtime room state.
@@ -150,7 +171,8 @@ export function PlayScreen() {
   );
 }
 
-function ModeCard({ description, disabled, iconLabel, onPress, title }: ModeCardProps) {
+function ModeCard({ badgeLabel, ctaLabel, description, disabled, iconLabel, onPress, title }: ModeCardProps) {
+  const styles = usePlayStyles();
   return (
     <View style={[styles.modeCard, disabled && styles.modeCardDisabled]}>
       <View style={styles.modeIcon}>
@@ -161,17 +183,19 @@ function ModeCard({ description, disabled, iconLabel, onPress, title }: ModeCard
         <Text style={styles.modeDescription}>{description}</Text>
       </View>
       {disabled ? (
-        <Text style={styles.badge}>{t('en', 'comingLater')}</Text>
+        <Text style={styles.badge}>{badgeLabel}</Text>
       ) : (
         <AppButton onPress={onPress} style={styles.cardCta}>
-          Start
+          {ctaLabel}
         </AppButton>
       )}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+function usePlayStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -307,4 +331,5 @@ const styles = StyleSheet.create({
     fontSize: typeScale.small,
     lineHeight: 19,
   },
-});
+  }), [colors]);
+}

@@ -1,8 +1,9 @@
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage, LetterFeedback } from '@/game/word-duel-engine';
-import { t } from '@/i18n/locales';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { t, type InterfaceLocale } from '@/i18n/locales';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
   en: [
@@ -22,6 +23,7 @@ type KeyboardFeedbackByKey = ReadonlyMap<string, LetterFeedback> | Readonly<Reco
 type WordDuelKeyboardProps = {
   disabled: boolean;
   feedbackByKey: KeyboardFeedbackByKey;
+  interfaceLocale?: InterfaceLocale;
   keyRows: readonly string[][];
   onKeyPress: (key: string) => void;
 };
@@ -29,9 +31,12 @@ type WordDuelKeyboardProps = {
 export function WordDuelKeyboard({
   disabled,
   feedbackByKey,
+  interfaceLocale = 'en',
   keyRows,
   onKeyPress,
 }: WordDuelKeyboardProps) {
+  const styles = useWordDuelKeyboardStyles();
+
   return (
     <View style={styles.keyboard}>
       {keyRows.map((row, rowIndex) => (
@@ -58,7 +63,7 @@ export function WordDuelKeyboard({
                   adjustsFontSizeToFit
                   numberOfLines={1}
                   style={[styles.keyText, feedback && styles.keyTextScored]}>
-                  {keyLabel(key)}
+                  {keyLabel(key, interfaceLocale)}
                 </Text>
               </Pressable>
             );
@@ -81,17 +86,20 @@ function isFeedbackMap(value: KeyboardFeedbackByKey): value is ReadonlyMap<strin
   return typeof (value as ReadonlyMap<string, LetterFeedback>).get === 'function';
 }
 
-function keyLabel(key: string): string {
+function keyLabel(key: string, interfaceLocale: InterfaceLocale): string {
   if (key === 'DEL') {
-    return t('en', 'delete');
+    return t(interfaceLocale, 'delete');
   }
   if (key === 'ENTER') {
-    return t('en', 'enter');
+    return t(interfaceLocale, 'enter');
   }
   return key;
 }
 
-const styles = StyleSheet.create({
+function useWordDuelKeyboardStyles() {
+  const { colors } = useAppTheme();
+
+  return useMemo(() => StyleSheet.create({
   keyboard: {
     gap: spacing.sm,
   },
@@ -141,4 +149,5 @@ const styles = StyleSheet.create({
   keyTextScored: {
     color: colors.onAccent,
   },
-});
+  }), [colors]);
+}

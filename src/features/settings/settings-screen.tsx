@@ -1,24 +1,27 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import type { GameLanguage } from '@/game/word-duel-engine';
-import { GAME_LANGUAGES, INTERFACE_LOCALES, type InterfaceLocale, t } from '@/i18n/locales';
+import { GAME_LANGUAGES, INTERFACE_LOCALES, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function SettingsScreen() {
   const router = useRouter();
-  const [interfaceLocale, setInterfaceLocale] = useState<InterfaceLocale>('en');
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>('en');
+  const styles = useSettingsStyles();
+  const [preferences, setPreferences] = useAppPreferences();
+  const { appearance, gameLanguage, interfaceLocale } = preferences;
 
   return (
     <AppScreen>
       <View style={styles.header}>
-        <Text style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
-        <AppButton tone="quiet" onPress={() => router.back()}>
-          Done
+        <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
+        <AppButton
+          tone="quiet"
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/play')}>
+          {t(interfaceLocale, 'done')}
         </AppButton>
       </View>
 
@@ -30,7 +33,11 @@ export function SettingsScreen() {
               key={locale.code}
               label={locale.label}
               selected={locale.code === interfaceLocale}
-              onPress={() => setInterfaceLocale(locale.code)}
+              selectedLabel={t(interfaceLocale, 'selected')}
+              onPress={() => setPreferences((current) => ({
+                ...current,
+                interfaceLocale: locale.code,
+              }))}
             />
           ))}
         </View>
@@ -44,7 +51,29 @@ export function SettingsScreen() {
               key={language.code}
               label={language.label}
               selected={language.code === gameLanguage}
-              onPress={() => setGameLanguage(language.code)}
+              selectedLabel={t(interfaceLocale, 'selected')}
+              onPress={() => setPreferences((current) => ({
+                ...current,
+                gameLanguage: language.code,
+              }))}
+            />
+          ))}
+        </View>
+      </View>
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>{t(interfaceLocale, 'appearance')}</Text>
+        <View style={styles.optionList}>
+          {(['system', 'light', 'dark'] as const).map((option) => (
+            <Option
+              key={option}
+              label={t(interfaceLocale, option)}
+              selected={appearance === option}
+              selectedLabel={t(interfaceLocale, 'selected')}
+              onPress={() => setPreferences((current) => ({
+                ...current,
+                appearance: option,
+              }))}
             />
           ))}
         </View>
@@ -52,8 +81,7 @@ export function SettingsScreen() {
 
       <View style={styles.note}>
         <Text style={styles.noteText}>
-          Preferences are in-memory in this first local slice. Account-owned settings and durable
-          sync come later through the approved Apps AV boundary.
+          {t(interfaceLocale, 'preferencesLocal')}
         </Text>
       </View>
     </AppScreen>
@@ -64,23 +92,29 @@ function Option({
   label,
   onPress,
   selected,
+  selectedLabel,
 }: {
   label: string;
   onPress: () => void;
   selected: boolean;
+  selectedLabel: string;
 }) {
+  const styles = useSettingsStyles();
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ selected }}
       onPress={onPress}
       style={[styles.option, selected && styles.optionSelected]}>
       <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{label}</Text>
-      <Text style={styles.optionMarker}>{selected ? 'Selected' : ''}</Text>
+      <Text style={styles.optionMarker}>{selected ? selectedLabel : ''}</Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+function useSettingsStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,4 +178,5 @@ const styles = StyleSheet.create({
     fontSize: typeScale.small,
     lineHeight: 19,
   },
-});
+  }), [colors]);
+}

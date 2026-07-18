@@ -1,6 +1,7 @@
 import type { Href } from 'expo-router';
 
 import type { GameLanguage } from '../../game/word-duel-engine';
+import type { InterfaceLocale } from '../../i18n/locales';
 import {
   createWordDuelActiveDemoHandoff,
   type WordDuelActiveHandoff,
@@ -56,6 +57,13 @@ export type WordDuelActiveHandoffSearchParams = {
 
 export function parseGameLanguageParam(value: WordDuelSearchParamValue): GameLanguage {
   return firstParam(value) === 'es' ? 'es' : 'en';
+}
+
+export function parseInterfaceLocaleParam(value: WordDuelSearchParamValue): InterfaceLocale | null {
+  const locale = firstParam(value);
+  return locale === 'ca' || locale === 'de' || locale === 'en' || locale === 'es' || locale === 'fr'
+    ? locale
+    : null;
 }
 
 export function parseSoloDailyModeParam(value: WordDuelSearchParamValue): WordDuelSoloDailyMode {
@@ -150,6 +158,7 @@ export function buildWordDuelHref(
   path: WordDuelRoutePath,
   params: {
     gameLanguage?: GameLanguage;
+    interfaceLocale?: InterfaceLocale;
     localResult?: WordDuelResultLocalPayload;
     mode?: WordDuelRouteMode;
     outcome?: WordDuelResultOutcome;
@@ -161,6 +170,10 @@ export function buildWordDuelHref(
 
   if (params.gameLanguage) {
     searchParams.set('lang', params.gameLanguage);
+  }
+
+  if (params.interfaceLocale) {
+    searchParams.set('ui', params.interfaceLocale);
   }
 
   if (params.mode) {

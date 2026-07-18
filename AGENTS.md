@@ -16,6 +16,15 @@ DuelWords AV runbook.
 Current implementation slice:
 
 - Expo Router SDK 57 shell.
+- Versioned local preferences for interface locale (EN/ES/CA/FR/DE), game
+  language (EN/ES), and system/light/dark appearance. Web uses browser
+  `localStorage`; native uses `expo-sqlite/localStorage/install`. Keep the
+  platform-specific boundary so web never imports the SQLite WASM worker.
+- Public guest-first `/word-duel/challenge` entry linked from Play. It supports
+  canonical invite preview without auto-join, room-code lookup, explicit join,
+  lobby/Ready/countdown, connected rounds, participant-scoped result recovery,
+  no-spoiler sharing, and explicit refresh/rematch. It fails closed with no
+  network calls while runtime config is disabled.
 - Local Word Duel practice.
 - Local invite/lobby/Ready/countdown preview wired through the lobby
   controller's `local_mock` source, with no real links, share sheet, API, or
@@ -52,8 +61,8 @@ Current implementation slice:
   code lookup, create/join/cancel invite, lobby, Ready, start, and realtime
   session recovery, plus round-scoped active submit, timeout, and
   open-next-if-due commands and own-round snapshot recovery. It is tested with
-  fake fetches and is wired only through the hidden internal connected route,
-  behind explicit runtime config.
+  fake fetches and is used by the public challenge route and hidden internal
+  connected route only behind explicit runtime config.
 - Client-safe Apps AV API runtime config boundary for
   `EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL` and
   `EXPO_PUBLIC_DUELWORDSAV_API_DISABLED`. API calls stay disabled by default,
@@ -61,8 +70,8 @@ Current implementation slice:
   a valid HTTPS base URL.
 - Lobby controller boundary with `local_mock`, `disabled_runtime`, and injected
   `apps_av_api` sources. It maps API lobby/start payloads into UI-safe lobby
-  state, keeps the demo on local mock, and is not wired to real UI network
-  calls.
+  state, keeps the demo on local mock, and powers the public challenge route
+  only when the explicit runtime gate is enabled.
 - Local lobby-to-active handoff boundary. `/word-duel/lobby-demo` can open
   `/word-duel/active-demo` only through typed public V1 route params; the
   handoff never carries game ids, player ids, targets, dictionary metadata,
@@ -111,9 +120,13 @@ Current implementation slice:
   real event sending.
 - Tiny hand-authored EN/ES fixtures for tests and local practice only.
 - No production dictionaries, enabled-by-default Convex runtime connection,
-  enabled-by-default Apps AV API network calls, native share, public result
-  links, Account AV, Sentry SDK/DSN wiring, ads, Pro, push, Store, TestFlight,
-  or remote deploys.
+  enabled-by-default Apps AV API network calls, Account AV, Sentry SDK/DSN
+  wiring, live ads, Pro, push, Store, TestFlight, or remote deploys.
+
+This machine is **Home**. Use it only for deterministic local/no-spend
+development and tests. Install, enable, execute, and verify recurring
+automation, scheduled runners, operational monitors, signed runtime checks,
+and environment-backed smoke tests exclusively on **Office Openspace**.
 
 Current cumulative status and blockers are owned by the private
 `docs/avi-words/current-work-handoff.md`. Planning documents and dated slice

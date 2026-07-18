@@ -25,28 +25,39 @@ import {
 import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-result/view-model';
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
+import type { InterfaceLocale } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { ActiveDuelScreen } from './active-duel-screen';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
+import { publicDuelT } from './public-duel-copy';
 
 type PublicWordDuelChallengeScreenProps = {
   initialGameLanguage?: GameLanguage;
   initialInviteInput?: string;
+  initialInterfaceLocale?: InterfaceLocale | null;
   initialRoomCode?: string;
 };
 
 type GuestActor = Extract<DuelWordsApiActor, { actorType: 'guest_session' }>;
 
 export function PublicWordDuelChallengeScreen({
-  initialGameLanguage = 'en',
+  initialGameLanguage,
   initialInviteInput = '',
+  initialInterfaceLocale = null,
   initialRoomCode = '',
 }: PublicWordDuelChallengeScreenProps) {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = usePublicChallengeStyles();
+  const [preferences] = useAppPreferences();
+  const interfaceLocale = initialInterfaceLocale ?? preferences.interfaceLocale;
+  const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
+    publicDuelT(interfaceLocale, key, values);
   const runtime = useDuelWordsRuntimeClients();
   const controller = useMemo(
     () => createWordDuelLobbyController({ mode: 'runtime', runtimeApiClient: runtime.appsApi }),
@@ -57,7 +68,9 @@ export function PublicWordDuelChallengeScreen({
   const activeOpeningStartedRef = useRef(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState('');
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
+  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(
+    initialGameLanguage ?? preferences.gameLanguage,
+  );
   const [inviteInput, setInviteInput] = useState(initialInviteInput);
   const [roomCode, setRoomCode] = useState(initialRoomCode);
   const [lobbyState, setLobbyState] = useState<WordDuelLobbyControllerState | null>(null);
@@ -99,7 +112,7 @@ export function PublicWordDuelChallengeScreen({
           state: lobbyState,
         });
         setLobbyState(nextState);
-        setStatusMessage(nextState.lobby.status === 'active_round' ? 'Round 1 is ready.' : 'Waiting for round 1.');
+        setStatusMessage(nextState.lobby.status === 'active_round' ? copy('roundReady') : copy('waitingRound'));
       });
     }, Math.max(0, countdownEndsAt - Date.now()) + 100);
 
@@ -131,7 +144,7 @@ export function PublicWordDuelChallengeScreen({
       }
       setLobbyState(bundle.lobbyState);
       if (!bundle.ok) {
-        setStatusMessage('The live duel could not open safely. Refresh the lobby and try again.');
+        setStatusMessage(copy('couldNotOpenDuel'));
         return;
       }
       setActiveController(bundle.controller);
@@ -155,7 +168,7 @@ export function PublicWordDuelChallengeScreen({
     try {
       await action();
     } catch {
-      setStatusMessage('That action is not available right now. Try again.');
+      setStatusMessage(copy('actionUnavailable'));
     } finally {
       setBusyAction(null);
     }
@@ -164,7 +177,7 @@ export function PublicWordDuelChallengeScreen({
   function currentGuestActor(): GuestActor | null {
     const normalized = normalizeWordDuelGuestDisplayName(displayName);
     if (!normalized.ok) {
-      setStatusMessage(displayNameErrorLabel(normalized.reason));
+      setStatusMessage(displayNameErrorLabel(interfaceLocale, normalized.reason));
       return null;
     }
 
@@ -196,7 +209,7 @@ export function PublicWordDuelChallengeScreen({
         nowMs: Date.now(),
       });
       setLobbyState(nextState);
-      setStatusMessage('Challenge created. Share it with your rival.');
+      setStatusMessage(copy('challengeCreated'));
     });
   }
 
@@ -204,8 +217,8 @@ export function PublicWordDuelChallengeScreen({
     const parsed = parseWordDuelInviteEntry(value);
     if (!parsed.ok) {
       setStatusMessage(parsed.reason === 'unsupported_host'
-        ? 'Use a DuelWords AV invite link.'
-        : 'Enter a valid invite link or token.');
+        ? copy('unsupportedInvite')
+        : copy('validInviteRequired'));
       return;
     }
 
@@ -215,14 +228,14 @@ export function PublicWordDuelChallengeScreen({
         nowMs: Date.now(),
       });
       setLobbyState(nextState);
-      setStatusMessage('Review the challenge before joining.');
+      setStatusMessage(copy('reviewBeforeJoin'));
     });
   }
 
   function previewRoomCode(value = roomCode) {
     const normalized = normalizeWordDuelRoomCode(value);
     if (!normalized.ok) {
-      setStatusMessage('Enter the eight-character room code.');
+      setStatusMessage(copy('roomCodeInvalid'));
       return;
     }
 
@@ -232,7 +245,7 @@ export function PublicWordDuelChallengeScreen({
         roomCode: normalized.value,
       });
       setLobbyState(nextState);
-      setStatusMessage('Review the challenge before joining.');
+      setStatusMessage(copy('reviewBeforeJoin'));
     });
   }
 
@@ -252,7 +265,7 @@ export function PublicWordDuelChallengeScreen({
         state: lobbyState,
       });
       setLobbyState(nextState);
-      setStatusMessage('You joined the challenge.');
+      setStatusMessage(copy('joinedChallenge'));
     });
   }
 
@@ -264,7 +277,7 @@ export function PublicWordDuelChallengeScreen({
     void runAction('refresh', async () => {
       const nextState = await controller.refreshLobby({ nowMs: Date.now(), state: lobbyState });
       setLobbyState(nextState);
-      setStatusMessage('Lobby updated.');
+      setStatusMessage(copy('lobbyUpdated'));
     });
   }
 
@@ -276,7 +289,7 @@ export function PublicWordDuelChallengeScreen({
     void runAction('ready', async () => {
       const nextState = await controller.markReady({ nowMs: Date.now(), state: lobbyState });
       setLobbyState(nextState);
-      setStatusMessage(nextState.lobby.status === 'countdown' ? 'Both players are ready.' : 'Ready is locked.');
+      setStatusMessage(nextState.lobby.status === 'countdown' ? copy('bothReady') : copy('readyLocked'));
     });
   }
 
@@ -291,7 +304,7 @@ export function PublicWordDuelChallengeScreen({
         message: lobby.sharePayload,
         url: lobby.invitePreview.inviteUrl,
       });
-      setStatusMessage('Invite share opened.');
+      setStatusMessage(copy('inviteShareOpened'));
     });
   }
 
@@ -321,7 +334,7 @@ export function PublicWordDuelChallengeScreen({
     setActiveController(null);
     setFinalResult(null);
     setRematchProposal(null);
-    setStatusMessage('Rematch accepted. Get ready for the next duel.');
+    setStatusMessage(copy('rematchAcceptedReady'));
     return true;
   }
 
@@ -330,7 +343,7 @@ export function PublicWordDuelChallengeScreen({
     void runAction('rematch-create', async () => {
       const proposal = await activeController.createRematchProposal({ language: finalResult.game.language });
       setRematchProposal(proposal);
-      setStatusMessage('Rematch sent. Your rival can accept it from their result screen.');
+      setStatusMessage(copy('rematchSent'));
     });
   }
 
@@ -340,7 +353,7 @@ export function PublicWordDuelChallengeScreen({
       const proposal = await activeController.getCurrentRematchProposal();
       setRematchProposal(proposal);
       if (proposal && continueAcceptedRematch(proposal)) return;
-      setStatusMessage(proposal ? 'Rematch status updated.' : 'No rematch request yet.');
+      setStatusMessage(proposal ? copy('rematchUpdated') : copy('noRematch'));
     });
   }
 
@@ -354,7 +367,7 @@ export function PublicWordDuelChallengeScreen({
           : await activeController.cancelRematchProposal({ proposalId: rematchProposal.proposalId });
       setRematchProposal(proposal);
       if (continueAcceptedRematch(proposal)) return;
-      setStatusMessage(`Rematch ${proposal.status}.`);
+      setStatusMessage(copy('rematchStatus', { status: proposal.status }));
     });
   }
 
@@ -362,6 +375,7 @@ export function PublicWordDuelChallengeScreen({
     return (
       <ActiveDuelScreen
         controller={activeController}
+        interfaceLocale={interfaceLocale}
         onFinalResult={setFinalResult}
         onLeave={resetJourney}
       />
@@ -373,6 +387,7 @@ export function PublicWordDuelChallengeScreen({
       <ConnectedResultPanel
         busy={isBusy}
         finalResult={finalResult}
+        interfaceLocale={interfaceLocale}
         onClose={resetJourney}
         onCreateRematch={createRematch}
         onRefreshRematch={refreshRematch}
@@ -387,39 +402,42 @@ export function PublicWordDuelChallengeScreen({
     <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Guest challenge</Text>
-          <Text accessibilityRole="header" style={styles.title}>Word Duel</Text>
-          <Text style={styles.subtitle}>Create a live challenge or review an invite before joining.</Text>
+          <Text style={styles.kicker}>{copy('guestChallenge')}</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.title}>Word Duel</Text>
+          <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>
         </View>
-        <AppButton tone="quiet" onPress={() => router.back()} style={styles.closeButton}>
-          Close
+        <AppButton
+          tone="quiet"
+          onPress={() => router.canGoBack() ? router.back() : router.replace('/play')}
+          style={styles.closeButton}>
+          {copy('close')}
         </AppButton>
       </View>
 
-      {!runtime.ok ? <RuntimeUnavailable reason={runtime.reason} /> : null}
+      {!runtime.ok ? <RuntimeUnavailable interfaceLocale={interfaceLocale} reason={runtime.reason} /> : null}
 
       <View style={styles.panel}>
-        <Text accessibilityRole="header" nativeID="word-duel-display-name-label" style={styles.panelTitle}>Your room name</Text>
+        <Text nativeID="word-duel-display-name-label" style={styles.panelTitle}>{copy('roomName')}</Text>
         <TextInput
-          accessibilityLabel="Room display name"
+          accessibilityLabel={copy('displayNameLabel')}
           accessibilityLabelledBy="word-duel-display-name-label"
           autoCapitalize="words"
           autoCorrect={false}
           editable={!isBusy && lobbyState === null}
           maxLength={32}
           onChangeText={setDisplayName}
-          placeholder="How your rival will see you"
+          placeholder={copy('displayNamePlaceholder')}
           placeholderTextColor={colors.textMuted}
           style={styles.input}
           value={displayName}
         />
-        <Text style={styles.helper}>Used only for this challenge. No account is required.</Text>
+        <Text style={styles.helper}>{copy('roomNameHelp')}</Text>
       </View>
 
       {lobbyState === null ? (
         <>
           <View style={styles.panel}>
-            <Text accessibilityRole="header" style={styles.panelTitle}>Create a challenge</Text>
+            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
             <View style={styles.segmented}>
               {(['en', 'es'] as const).map((language) => {
                 const selected = language === gameLanguage;
@@ -439,32 +457,32 @@ export function PublicWordDuelChallengeScreen({
               })}
             </View>
             <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
-              {busyAction === 'create' ? 'Creating…' : 'Create challenge'}
+              {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
             </AppButton>
           </View>
 
           <View style={styles.panel}>
-            <Text accessibilityRole="header" style={styles.panelTitle}>Join a challenge</Text>
-            <Text nativeID="word-duel-invite-label" style={styles.inputLabel}>Invite link or token</Text>
+            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('joinChallenge')}</Text>
+            <Text nativeID="word-duel-invite-label" style={styles.inputLabel}>{copy('inviteLabel')}</Text>
             <TextInput
-              accessibilityLabel="Invite link or token"
+              accessibilityLabel={copy('inviteLabel')}
               accessibilityLabelledBy="word-duel-invite-label"
               autoCapitalize="none"
               autoCorrect={false}
               editable={runtime.ok && !isBusy}
               onChangeText={setInviteInput}
-              placeholder="Paste invite link"
+              placeholder={copy('invitePlaceholder')}
               placeholderTextColor={colors.textMuted}
               style={styles.input}
               value={inviteInput}
             />
             <AppButton disabled={!runtime.ok || isBusy || inviteInput.trim().length === 0} onPress={() => previewInvite()}>
-              Review invite
+              {copy('reviewInvite')}
             </AppButton>
             <View style={styles.divider} />
-            <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>Room code</Text>
+            <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>{copy('roomCode')}</Text>
             <TextInput
-              accessibilityLabel="Room code"
+              accessibilityLabel={copy('roomCode')}
               accessibilityLabelledBy="word-duel-room-code-label"
               autoCapitalize="characters"
               autoCorrect={false}
@@ -480,7 +498,7 @@ export function PublicWordDuelChallengeScreen({
               disabled={!runtime.ok || isBusy || roomCode.trim().length === 0}
               tone="secondary"
               onPress={() => previewRoomCode()}>
-              Find room
+              {copy('findRoom')}
             </AppButton>
           </View>
         </>
@@ -492,6 +510,7 @@ export function PublicWordDuelChallengeScreen({
           onRefresh={refreshLobby}
           onReset={resetJourney}
           onShare={shareInvite}
+          interfaceLocale={interfaceLocale}
           state={lobbyState}
         />
       )}
@@ -508,6 +527,7 @@ export function PublicWordDuelChallengeScreen({
 function ConnectedResultPanel({
   busy,
   finalResult,
+  interfaceLocale,
   onClose,
   onCreateRematch,
   onRefreshRematch,
@@ -517,6 +537,7 @@ function ConnectedResultPanel({
 }: {
   busy: boolean;
   finalResult: DuelWordsApiFinalResult;
+  interfaceLocale: InterfaceLocale;
   onClose: () => void;
   onCreateRematch: () => void;
   onRefreshRematch: () => void;
@@ -524,9 +545,12 @@ function ConnectedResultPanel({
   proposal: DuelWordsApiRematchProposal | null;
   statusMessage: string | null;
 }) {
+  const styles = usePublicChallengeStyles();
   const result = createWordDuelResultViewModelFromLocalPayload(
     createWordDuelResultLocalPayloadFromApiFinalResult(finalResult),
   );
+  const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
+    publicDuelT(interfaceLocale, key, values);
   const boardRows = (rows: typeof result.own.boardRows) => rows.map((row) => ({ ...row, state: 'scored' as const }));
 
   function shareResult() {
@@ -537,40 +561,40 @@ function ConnectedResultPanel({
     <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Final result</Text>
-          <Text accessibilityRole="header" style={styles.title}>{resultOutcomeLabel(result.outcome)}</Text>
-          <Text style={styles.subtitle}>Target: {result.targetReveal.displayWord ?? '—'}</Text>
+          <Text style={styles.kicker}>{copy('finalResult')}</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{resultOutcomeLabel(interfaceLocale, result.outcome)}</Text>
+          <Text style={styles.subtitle}>{copy('target', { word: result.targetReveal.displayWord ?? '—' })}</Text>
         </View>
-        <AppButton tone="quiet" onPress={onClose} style={styles.closeButton}>Close</AppButton>
+        <AppButton tone="quiet" onPress={onClose} style={styles.closeButton}>{copy('close')}</AppButton>
       </View>
 
       <View style={styles.panel}>
-        <Text accessibilityRole="header" style={styles.panelTitle}>{result.own.safeDisplayName}</Text>
-        <WordDuelBoard accessibilityLabel="Your final board" density="compact" rows={boardRows(result.own.boardRows)} tileSize={34} />
+        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.own.safeDisplayName}</Text>
+        <WordDuelBoard accessibilityLabel={copy('yourFinalBoard')} density="compact" rows={boardRows(result.own.boardRows)} tileSize={34} />
       </View>
       <View style={styles.panel}>
-        <Text accessibilityRole="header" style={styles.panelTitle}>{result.opponent.safeDisplayName}</Text>
-        <WordDuelBoard accessibilityLabel="Rival final board" density="compact" rows={boardRows(result.opponent.boardRows)} tileSize={34} />
+        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.opponent.safeDisplayName}</Text>
+        <WordDuelBoard accessibilityLabel={copy('rivalFinalBoard')} density="compact" rows={boardRows(result.opponent.boardRows)} tileSize={34} />
       </View>
 
       <View style={styles.panel}>
-        <Text accessibilityRole="header" style={styles.panelTitle}>Play again</Text>
-        <Text style={styles.helper}>{rematchLabel(proposal)}</Text>
+        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('playAgain')}</Text>
+        <Text style={styles.helper}>{rematchLabel(interfaceLocale, proposal)}</Text>
         <View style={styles.actionRow}>
           {!proposal ? (
-            <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>Request rematch</AppButton>
+            <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>{copy('requestRematch')}</AppButton>
           ) : null}
           {proposal?.viewer.canAccept ? (
-            <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>Accept</AppButton>
+            <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>{copy('accept')}</AppButton>
           ) : null}
           {proposal?.viewer.canDecline ? (
-            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('decline')} style={styles.actionButton}>Decline</AppButton>
+            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('decline')} style={styles.actionButton}>{copy('decline')}</AppButton>
           ) : null}
           {proposal?.viewer.canCancel ? (
-            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('cancel')} style={styles.actionButton}>Cancel request</AppButton>
+            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('cancel')} style={styles.actionButton}>{copy('cancelRequest')}</AppButton>
           ) : null}
-          <AppButton disabled={busy} tone="secondary" onPress={onRefreshRematch} style={styles.actionButton}>Refresh</AppButton>
-          <AppButton disabled={busy} tone="quiet" onPress={shareResult} style={styles.actionButton}>Share result</AppButton>
+          <AppButton disabled={busy} tone="secondary" onPress={onRefreshRematch} style={styles.actionButton}>{copy('refresh')}</AppButton>
+          <AppButton disabled={busy} tone="quiet" onPress={shareResult} style={styles.actionButton}>{copy('shareResult')}</AppButton>
         </View>
       </View>
       {statusMessage ? <View accessibilityLiveRegion="polite" style={styles.statusBox}><Text selectable style={styles.statusText}>{statusMessage}</Text></View> : null}
@@ -580,6 +604,7 @@ function ConnectedResultPanel({
 
 function PublicLobbyPanel({
   busy,
+  interfaceLocale,
   onJoin,
   onReady,
   onRefresh,
@@ -588,6 +613,7 @@ function PublicLobbyPanel({
   state,
 }: {
   busy: boolean;
+  interfaceLocale: InterfaceLocale;
   onJoin: () => void;
   onReady: () => void;
   onRefresh: () => void;
@@ -595,14 +621,17 @@ function PublicLobbyPanel({
   onShare: () => void;
   state: WordDuelLobbyControllerState;
 }) {
+  const styles = usePublicChallengeStyles();
   const lobby = state.lobby;
+  const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
+    publicDuelT(interfaceLocale, key, values);
 
   return (
     <View style={styles.panel}>
       <View style={styles.lobbyHeader}>
         <View>
-          <Text style={styles.kicker}>{lobbyStatusLabel(lobby.status)}</Text>
-          <Text accessibilityRole="header" style={styles.panelTitle}>{lobby.invitePreview.gameName}</Text>
+          <Text style={styles.kicker}>{lobbyStatusLabel(interfaceLocale, lobby.status)}</Text>
+          <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{lobby.invitePreview.gameName}</Text>
         </View>
         <View style={styles.languagePill}>
           <Text style={styles.languageText}>{lobby.invitePreview.gameLanguage.toUpperCase()}</Text>
@@ -610,79 +639,82 @@ function PublicLobbyPanel({
       </View>
 
       <View style={styles.summaryRow}>
-        <Summary label="Letters" value={String(lobby.invitePreview.wordLength)} />
-        <Summary label="Attempts" value={String(lobby.invitePreview.maxAttempts)} />
-        <Summary label="Code" value={lobby.invitePreview.roomCode} selectable />
+        <Summary label={copy('letters')} value={String(lobby.invitePreview.wordLength)} />
+        <Summary label={copy('attempts')} value={String(lobby.invitePreview.maxAttempts)} />
+        <Summary label={copy('code')} value={lobby.invitePreview.roomCode} selectable />
       </View>
 
       <View style={styles.playersBox}>
-        {lobby.players.map((player) => <PlayerRow key={player.side} player={player} />)}
+        {lobby.players.map((player) => <PlayerRow interfaceLocale={interfaceLocale} key={player.side} player={player} />)}
       </View>
 
       {lobby.status === 'invite_review' ? (
         <View style={styles.reviewBox}>
-          <Text style={styles.reviewTitle}>Join this challenge?</Text>
-          <Text style={styles.helper}>Joining takes the open rival seat. The game starts only after both players press Ready.</Text>
+          <Text style={styles.reviewTitle}>{copy('joinChallengeQuestion')}</Text>
+          <Text style={styles.helper}>{copy('joinHelp')}</Text>
         </View>
       ) : null}
 
       {lobby.status === 'countdown' ? (
         <View style={styles.countdownBox}>
           <Text style={styles.countdownValue}>{lobby.countdown?.remainingSeconds ?? 0}</Text>
-          <Text style={styles.helper}>Round 1 opens when the countdown finishes.</Text>
+          <Text style={styles.helper}>{copy('countdownHelp')}</Text>
         </View>
       ) : null}
 
       {lobby.status === 'active_round' ? (
         <View style={styles.reviewBox}>
-          <Text style={styles.reviewTitle}>Round 1 is ready</Text>
-          <Text style={styles.helper}>The connected duel screen is the next product handoff.</Text>
+          <Text style={styles.reviewTitle}>{copy('roundReadyTitle')}</Text>
+          <Text style={styles.helper}>{copy('safeRealtimeRequired')}</Text>
         </View>
       ) : null}
 
       <View style={styles.actionRow}>
         {lobby.status === 'invite_review' ? (
           <AppButton disabled={busy || !lobby.canJoin} onPress={onJoin} style={styles.actionButton}>
-            Join challenge
+            {copy('joinChallenge')}
           </AppButton>
         ) : null}
         {lobby.viewerRole === 'host' && (lobby.status === 'waiting_for_player' || lobby.status === 'lobby') ? (
           <AppButton disabled={busy} onPress={onShare} style={styles.actionButton}>
-            Share invite
+            {copy('shareInvite')}
           </AppButton>
         ) : null}
         {lobby.canPressReady ? (
           <AppButton disabled={busy} onPress={onReady} style={styles.actionButton}>
-            Ready
+            {copy('ready')}
           </AppButton>
         ) : null}
         {lobby.status !== 'invite_review' && lobby.status !== 'active_round' ? (
           <AppButton disabled={busy} tone="secondary" onPress={onRefresh} style={styles.actionButton}>
-            Refresh lobby
+            {copy('refreshLobby')}
           </AppButton>
         ) : null}
         <AppButton disabled={busy} tone="quiet" onPress={onReset} style={styles.actionButton}>
-          Back
+          {copy('back')}
         </AppButton>
       </View>
     </View>
   );
 }
 
-function PlayerRow({ player }: { player: WordDuelLobbyPlayer }) {
+function PlayerRow({ interfaceLocale, player }: { interfaceLocale: InterfaceLocale; player: WordDuelLobbyPlayer }) {
+  const styles = usePublicChallengeStyles();
+  const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
   return (
     <View style={styles.playerRow}>
       <View style={styles.sideBadge}><Text style={styles.sideText}>{player.side.toUpperCase()}</Text></View>
       <View style={styles.playerText}>
-        <Text style={styles.playerName}>{player.safeDisplayName}{player.isViewer ? ' · You' : ''}</Text>
-        <Text style={styles.helper}>{player.role === 'host' ? 'Host' : 'Rival'}</Text>
+        <Text style={styles.playerName}>{player.safeDisplayName}{player.isViewer ? ` · ${copy('you')}` : ''}</Text>
+        <Text style={styles.helper}>{player.role === 'host' ? copy('host') : copy('rival')}</Text>
       </View>
-      <Text style={styles.playerState}>{player.state === 'ready' ? 'Ready' : player.state === 'joined' ? 'Joined' : 'Waiting'}</Text>
+      <Text style={styles.playerState}>{player.state === 'ready' ? copy('ready') : player.state === 'joined' ? copy('joined') : copy('waiting')}</Text>
     </View>
   );
 }
 
 function Summary({ label, selectable, value }: { label: string; selectable?: boolean; value: string }) {
+  const styles = usePublicChallengeStyles();
   return (
     <View style={styles.summary}>
       <Text style={styles.metaLabel}>{label}</Text>
@@ -691,65 +723,69 @@ function Summary({ label, selectable, value }: { label: string; selectable?: boo
   );
 }
 
-function RuntimeUnavailable({ reason }: { reason: string }) {
+function RuntimeUnavailable({ interfaceLocale, reason }: { interfaceLocale: InterfaceLocale; reason: string }) {
+  const styles = usePublicChallengeStyles();
+  const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
   return (
     <View style={styles.unavailableBox}>
-      <Text accessibilityRole="header" style={styles.unavailableTitle}>Online challenges are unavailable in this build</Text>
+      <Text aria-level={2} accessibilityRole="header" style={styles.unavailableTitle}>{copy('onlineUnavailable')}</Text>
       <Text style={styles.unavailableText}>
-        DuelWords stays offline unless both the Apps AV API and safe realtime configuration are enabled.
+        {copy('runtimeDescription')}
       </Text>
-      <Text style={styles.runtimeReason}>{runtimeReasonLabel(reason)}</Text>
+      <Text style={styles.runtimeReason}>{runtimeReasonLabel(interfaceLocale, reason)}</Text>
     </View>
   );
 }
 
-function displayNameErrorLabel(reason: string): string {
+function displayNameErrorLabel(locale: InterfaceLocale, reason: string): string {
   if (reason === 'too_long') {
-    return 'Use a room name with 32 characters or fewer.';
+    return publicDuelT(locale, 'roomNameTooLong');
   }
   if (reason === 'unsupported_character') {
-    return 'Remove unsupported characters from your room name.';
+    return publicDuelT(locale, 'roomNameUnsupported');
   }
-  return 'Enter the name your rival will see.';
+  return publicDuelT(locale, 'roomNameInvalid');
 }
 
-function resultOutcomeLabel(outcome: string): string {
-  if (outcome === 'win') return 'You won';
-  if (outcome === 'loss') return 'Rival won';
-  if (outcome === 'draw') return 'Draw';
-  return 'Duel complete';
+function resultOutcomeLabel(locale: InterfaceLocale, outcome: string): string {
+  if (outcome === 'win') return publicDuelT(locale, 'youWon');
+  if (outcome === 'loss') return publicDuelT(locale, 'rivalWon');
+  if (outcome === 'draw') return publicDuelT(locale, 'draw');
+  return publicDuelT(locale, 'duelComplete');
 }
 
-function rematchLabel(proposal: DuelWordsApiRematchProposal | null): string {
-  if (!proposal) return 'Request a new duel with the same rival.';
-  if (proposal.status === 'sent' && proposal.viewer.role === 'recipient') return 'Your rival requested a rematch.';
-  if (proposal.status === 'sent') return 'Waiting for your rival to answer.';
-  if (proposal.status === 'accepted') return 'Rematch accepted. Opening the next lobby…';
-  if (proposal.status === 'declined') return 'The rematch was declined.';
-  if (proposal.status === 'cancelled') return 'The rematch request was cancelled.';
-  return 'The rematch request expired.';
+function rematchLabel(locale: InterfaceLocale, proposal: DuelWordsApiRematchProposal | null): string {
+  if (!proposal) return publicDuelT(locale, 'requestRematchHelp');
+  if (proposal.status === 'sent' && proposal.viewer.role === 'recipient') return publicDuelT(locale, 'rivalRequestedRematch');
+  if (proposal.status === 'sent') return publicDuelT(locale, 'waitingForAnswer');
+  if (proposal.status === 'accepted') return publicDuelT(locale, 'rematchAcceptedOpening');
+  if (proposal.status === 'declined') return publicDuelT(locale, 'rematchDeclined');
+  if (proposal.status === 'cancelled') return publicDuelT(locale, 'rematchCancelled');
+  return publicDuelT(locale, 'rematchExpired');
 }
 
-function runtimeReasonLabel(reason: string): string {
+function runtimeReasonLabel(locale: InterfaceLocale, reason: string): string {
   if (reason === 'apps_api_disabled') {
-    return 'Apps AV API disabled';
+    return publicDuelT(locale, 'apiDisabled');
   }
   if (reason === 'realtime_disabled') {
-    return 'Realtime disabled';
+    return publicDuelT(locale, 'realtimeDisabled');
   }
-  return 'Safe realtime is not ready';
+  return publicDuelT(locale, 'safeRealtimeUnavailable');
 }
 
-function lobbyStatusLabel(status: string): string {
-  if (status === 'invite_review') return 'Invite review';
-  if (status === 'waiting_for_player') return 'Waiting for rival';
-  if (status === 'lobby') return 'Lobby';
-  if (status === 'countdown') return 'Starting';
-  if (status === 'active_round') return 'Active duel';
-  return 'Challenge closed';
+function lobbyStatusLabel(locale: InterfaceLocale, status: string): string {
+  if (status === 'invite_review') return publicDuelT(locale, 'inviteReview');
+  if (status === 'waiting_for_player') return publicDuelT(locale, 'waitingForRival');
+  if (status === 'lobby') return publicDuelT(locale, 'lobby');
+  if (status === 'countdown') return publicDuelT(locale, 'starting');
+  if (status === 'active_round') return publicDuelT(locale, 'activeDuel');
+  return publicDuelT(locale, 'challengeClosed');
 }
 
-const styles = StyleSheet.create({
+function usePublicChallengeStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
   headerText: { flex: 1, gap: spacing.xs },
   kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
@@ -793,4 +829,5 @@ const styles = StyleSheet.create({
   actionButton: { flexGrow: 1, flexBasis: 132 },
   statusBox: { borderRadius: radii.md, backgroundColor: colors.surfaceStrong, padding: spacing.md },
   statusText: { color: colors.text, fontSize: typeScale.small, lineHeight: 19 },
-});
+  }), [colors]);
+}

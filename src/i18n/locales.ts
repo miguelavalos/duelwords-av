@@ -42,7 +42,17 @@ type CopyKey =
   | 'delete'
   | 'exact'
   | 'present'
-  | 'absent';
+  | 'absent'
+  | 'appearance'
+  | 'challengeDescription'
+  | 'dark'
+  | 'done'
+  | 'light'
+  | 'playSubtitle'
+  | 'preferencesLocal'
+  | 'selected'
+  | 'start'
+  | 'system';
 
 export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
   en: {
@@ -73,6 +83,16 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     exact: 'Exact',
     present: 'Present',
     absent: 'Out',
+    appearance: 'Appearance',
+    challengeDescription: 'Create or join a live guest challenge. Online play stays unavailable unless the safe runtime is enabled.',
+    dark: 'Dark',
+    done: 'Done',
+    light: 'Light',
+    playSubtitle: 'Synchronized word challenges start here.',
+    preferencesLocal: 'Preferences stay on this device. Account sync can be added later through the approved Apps AV boundary.',
+    selected: 'Selected',
+    start: 'Start',
+    system: 'System',
   },
   es: {
     appName: 'DuelWords AV',
@@ -102,6 +122,16 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     exact: 'Exacta',
     present: 'Presente',
     absent: 'Fuera',
+    appearance: 'Apariencia',
+    challengeDescription: 'Crea o únete a un reto en directo como invitado. El juego online no se activa hasta habilitar el runtime seguro.',
+    dark: 'Oscuro',
+    done: 'Listo',
+    light: 'Claro',
+    playSubtitle: 'Aquí empiezan los retos de palabras sincronizados.',
+    preferencesLocal: 'Las preferencias se guardan en este dispositivo. La sincronización de cuenta podrá añadirse mediante Apps AV.',
+    selected: 'Seleccionado',
+    start: 'Empezar',
+    system: 'Sistema',
   },
   ca: {
     appName: 'DuelWords AV',
@@ -131,6 +161,16 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     exact: 'Exacta',
     present: 'Present',
     absent: 'Fora',
+    appearance: 'Aparença',
+    challengeDescription: 'Crea o uneix-te a un repte en directe com a convidat. El joc en línia no s’activa fins que s’habilita el runtime segur.',
+    dark: 'Fosc',
+    done: 'Fet',
+    light: 'Clar',
+    playSubtitle: 'Aquí comencen els reptes de paraules sincronitzats.',
+    preferencesLocal: 'Les preferències es desen en aquest dispositiu. La sincronització del compte es podrà afegir mitjançant Apps AV.',
+    selected: 'Seleccionat',
+    start: 'Començar',
+    system: 'Sistema',
   },
   fr: {
     appName: 'DuelWords AV',
@@ -160,6 +200,16 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     exact: 'Exacte',
     present: 'Présente',
     absent: 'Hors jeu',
+    appearance: 'Apparence',
+    challengeDescription: "Créez ou rejoignez un défi en direct en tant qu’invité. Le jeu en ligne reste désactivé tant que l’environnement sécurisé ne l’est pas.",
+    dark: 'Sombre',
+    done: 'Terminé',
+    light: 'Clair',
+    playSubtitle: 'Les défis de mots synchronisés commencent ici.',
+    preferencesLocal: 'Les préférences restent sur cet appareil. La synchronisation du compte pourra être ajoutée via Apps AV.',
+    selected: 'Sélectionné',
+    start: 'Commencer',
+    system: 'Système',
   },
   de: {
     appName: 'DuelWords AV',
@@ -189,6 +239,16 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     exact: 'Exakt',
     present: 'Dabei',
     absent: 'Nicht dabei',
+    appearance: 'Darstellung',
+    challengeDescription: 'Erstelle eine Live-Herausforderung als Gast oder tritt einer bei. Online-Spiel bleibt aus, bis die sichere Laufzeit aktiviert ist.',
+    dark: 'Dunkel',
+    done: 'Fertig',
+    light: 'Hell',
+    playSubtitle: 'Hier beginnen synchronisierte Wortduelle.',
+    preferencesLocal: 'Einstellungen bleiben auf diesem Gerät. Kontosynchronisierung kann später über Apps AV ergänzt werden.',
+    selected: 'Ausgewählt',
+    start: 'Starten',
+    system: 'System',
   },
 };
 
