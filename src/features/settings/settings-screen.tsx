@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { GAME_LANGUAGES, INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
@@ -99,14 +99,20 @@ function Option({
   selectedLabel: string;
 }) {
   const styles = useSettingsStyles();
+  const { fontScale } = useWindowDimensions();
+  const usesCompactMarker = fontScale >= 1.3;
+
   return (
     <Pressable
+      accessibilityLabel={selected ? `${label}, ${selectedLabel}` : label}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
       style={[styles.option, selected && styles.optionSelected]}>
       <Text style={[styles.optionText, selected && styles.optionTextSelected]}>{label}</Text>
-      <Text style={styles.optionMarker}>{selected ? selectedLabel : ''}</Text>
+      <Text accessibilityElementsHidden importantForAccessibility="no" style={styles.optionMarker}>
+        {selected ? (usesCompactMarker ? '✓' : selectedLabel) : ''}
+      </Text>
     </Pressable>
   );
 }
@@ -167,6 +173,7 @@ function useSettingsStyles() {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.sm,
     borderRadius: radii.md,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -178,6 +185,7 @@ function useSettingsStyles() {
     backgroundColor: colors.accent,
   },
   optionText: {
+    flexShrink: 1,
     color: colors.text,
     fontSize: typeScale.body,
     fontWeight: '700',
@@ -186,7 +194,7 @@ function useSettingsStyles() {
     color: colors.onAccent,
   },
   optionMarker: {
-    minWidth: 72,
+    flexShrink: 0,
     textAlign: 'right',
     color: colors.onAccent,
     fontSize: typeScale.tiny,
