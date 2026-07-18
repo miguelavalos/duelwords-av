@@ -2,6 +2,22 @@
 
 Mobile-first Expo client for DuelWords AV.
 
+## Current Status
+
+Current as of 2026-07-18: this repository is an internal-MVP client, not a
+public mobile MVP or release candidate. Local previews cover practice,
+invite/lobby/Ready/countdown, active duel, result/rematch, Solo/Daily, and a
+deterministic Play Avi duel. A hidden connected route has preview evidence
+against the Apps AV API/D1 authority and real Convex safe projection, including
+result recovery and accepted-rematch continuation. Network runtime remains
+disabled by default, connected play is not linked from public navigation, and
+the signed two-device mobile smoke has not been run.
+
+The current cumulative status and remaining gates live in the private
+`docs/avi-words/current-work-handoff.md`. Dated implementation records describe
+their individual slice at the time and should not be read as the current
+cumulative product state.
+
 This repo currently contains the early local client slices: app shell, local
 Word Duel practice, a pure TypeScript word engine, typed interface locale
 foundation, tiny hand-authored EN/ES fixtures for tests and practice, and a
@@ -267,6 +283,10 @@ this flow through the public result screen yet.
   reveal, own/opponent completed-board review, safe share preview, reserved
   result ad slot, and local rematch proposal states for draft, sent, accepted,
   declined, expired, and cancelled flows.
+- `/word-duel/play-avi-demo`: deterministic local bot-duel preview that reuses
+  synchronized-round UI and safe opponent summaries without API/D1 authority.
+- `/word-duel/solo-daily-demo`: local Solo and Daily-style board preview. It
+  uses non-production fixtures and does not create an official Daily result.
 
 `/word-duel/active-demo` is not connected gameplay. Its adapter builds the
 approved local command paths for submit, timeout, and open-next-if-due, but it

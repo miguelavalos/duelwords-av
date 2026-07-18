@@ -100,6 +100,13 @@ Current implementation slice:
 - Local finalized result preview with post-finalization target reveal,
   completed-board review, safe share preview, and local rematch proposal state
   machine.
+- Hidden connected final-result recovery and rematch API panel. Participant
+  result and current rematch discovery remain explicit Apps AV API/D1 reads;
+  accepted `nextGame` can continue into the next connected lobby. This flow is
+  still hidden and is not public result-screen navigation.
+- Local Solo/Daily preview and deterministic Play Avi bot-duel preview. These
+  are local product-shape slices only; they do not implement the authoritative
+  API/D1 modes planned by `DW-013` and `DW-014`.
 - Local Sentry-shaped diagnostics facade with no SDK, DSN, provider traffic, or
   real event sending.
 - Tiny hand-authored EN/ES fixtures for tests and local practice only.
@@ -107,6 +114,11 @@ Current implementation slice:
   enabled-by-default Apps AV API network calls, native share, public result
   links, Account AV, Sentry SDK/DSN wiring, ads, Pro, push, Store, TestFlight,
   or remote deploys.
+
+Current cumulative status and blockers are owned by the private
+`docs/avi-words/current-work-handoff.md`. Planning documents and dated slice
+records are historical evidence; do not interpret an early scope exclusion as
+the cumulative current state.
 
 Read the exact versioned Expo docs at
 https://docs.expo.dev/versions/v57.0.0/ before framework-level changes.
