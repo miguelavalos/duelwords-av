@@ -13,6 +13,7 @@ import {
 import { DuelWordsApiError, type DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
 import type { WordDuelLobbyPlayer } from '@/game/word-duel-lobby/view-model';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
+import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presence-heartbeat';
 import type { ActiveDuelReactionId, ActiveDuelViewModel } from '@/game/word-duel-active/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -68,12 +69,19 @@ export function ConnectedRuntimeScreen() {
     const unsubscribe = activeController.subscribeActiveRoomView(() => {
       setActiveModel(activeController.getViewModel());
     });
-    void activeController.sendPresenceHeartbeat().then((result) => {
-      setActiveModel(activeController.getViewModel());
-      setStatusDetail(result.ok ? 'Online' : 'Realtime unavailable');
+    const stopHeartbeat = startActiveDuelPresenceHeartbeat({
+      sendHeartbeat: async () => {
+        const result = await activeController.sendPresenceHeartbeat();
+        setActiveModel(activeController.getViewModel());
+        setStatusDetail(result.ok ? 'Online' : 'Realtime unavailable');
+        return result;
+      },
     });
 
-    return unsubscribe;
+    return () => {
+      stopHeartbeat();
+      unsubscribe();
+    };
   }, [activeController]);
 
   async function runAction(actionName: string, action: () => Promise<void>) {

@@ -12,6 +12,7 @@ import {
   createWordDuelActiveDemoHandoff,
   type WordDuelActiveHandoff,
 } from '@/game/word-duel-active/handoff';
+import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presence-heartbeat';
 import {
   applyRealtimeProjectionToActiveDuelViewModel,
   latestActiveDuelReactionFromRealtimeProjection,
@@ -143,9 +144,14 @@ export function ActiveDuelScreen({
       setViewModel((current) => applyRealtimeProjectionToActiveDuelViewModel(current, projection));
       setActiveReaction(latestActiveDuelReactionFromRealtimeProjection(projection));
     });
-    void activeDuelController.sendPresenceHeartbeat();
+    const stopHeartbeat = startActiveDuelPresenceHeartbeat({
+      sendHeartbeat: () => activeDuelController.sendPresenceHeartbeat(),
+    });
 
-    return unsubscribe;
+    return () => {
+      stopHeartbeat();
+      unsubscribe();
+    };
   }, [activeDuelController, copy]);
 
   function updateDraft(nextDraft: string) {
