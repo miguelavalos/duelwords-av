@@ -60,7 +60,10 @@ function setAppPreferences(
     }
   }
 
-  listeners.forEach((listener) => listener());
+  // React may unsubscribe and resubscribe consumers while handling a store
+  // update. Notify a stable snapshot so those mutations cannot make later
+  // theme consumers miss the same preference change.
+  [...listeners].forEach((listener) => listener());
 }
 
 function subscribe(listener: () => void): () => void {

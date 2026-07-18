@@ -15,9 +15,13 @@ export function SettingsScreen() {
   const { appearance, gameLanguage, interfaceLocale } = preferences;
 
   return (
-    <AppScreen>
+    <AppScreen key={appearance}>
       <View style={styles.header}>
-        <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
+        <View style={styles.headerCopy}>
+          <Text style={styles.kicker}>DuelWords AV</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
+          <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
+        </View>
         <AppButton
           tone="quiet"
           onPress={() => router.replace('/play')}>
@@ -79,11 +83,6 @@ export function SettingsScreen() {
         </View>
       </View>
 
-      <View style={styles.note}>
-        <Text style={styles.noteText}>
-          {t(interfaceLocale, 'preferencesLocal')}
-        </Text>
-      </View>
     </AppScreen>
   );
 }
@@ -121,13 +120,35 @@ function useSettingsStyles() {
     justifyContent: 'space-between',
     gap: spacing.md,
   },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
+    gap: spacing.xs,
+  },
+  kicker: {
+    color: colors.accent,
+    fontSize: typeScale.tiny,
+    fontWeight: '900',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
   title: {
     color: colors.text,
-    fontSize: typeScale.title,
-    fontWeight: '800',
+    fontSize: 34,
+    fontWeight: '900',
+    letterSpacing: -1,
+  },
+  subtitle: {
+    maxWidth: 520,
+    color: colors.textMuted,
+    fontSize: typeScale.small,
+    lineHeight: 19,
   },
   section: {
     gap: spacing.sm,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: colors.border,
+    paddingTop: spacing.lg,
   },
   sectionTitle: {
     color: colors.text,
@@ -135,10 +156,14 @@ function useSettingsStyles() {
     fontWeight: '800',
   },
   optionList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
   },
   option: {
     minHeight: 48,
+    flexGrow: 1,
+    flexBasis: 145,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -150,7 +175,7 @@ function useSettingsStyles() {
   },
   optionSelected: {
     borderColor: colors.accent,
-    backgroundColor: colors.surfaceSoft,
+    backgroundColor: colors.accent,
   },
   optionText: {
     color: colors.text,
@@ -158,25 +183,15 @@ function useSettingsStyles() {
     fontWeight: '700',
   },
   optionTextSelected: {
-    color: colors.accent,
+    color: colors.onAccent,
   },
   optionMarker: {
     minWidth: 72,
     textAlign: 'right',
-    color: colors.textMuted,
+    color: colors.onAccent,
     fontSize: typeScale.tiny,
     fontWeight: '800',
     textTransform: 'uppercase',
-  },
-  note: {
-    borderRadius: radii.md,
-    backgroundColor: colors.secondarySoft,
-    padding: spacing.md,
-  },
-  noteText: {
-    color: colors.text,
-    fontSize: typeScale.small,
-    lineHeight: 19,
   },
   }), [colors]);
 }
