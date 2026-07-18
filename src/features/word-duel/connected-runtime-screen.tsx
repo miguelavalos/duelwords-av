@@ -16,7 +16,7 @@ import type { WordDuelActiveController } from '@/game/word-duel-active/controlle
 import type { ActiveDuelReactionId, ActiveDuelViewModel } from '@/game/word-duel-active/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
@@ -25,6 +25,8 @@ const REACTIONS: ActiveDuelReactionId[] = ['nice', 'tick_tock', 'almost', 'gg'];
 
 export function ConnectedRuntimeScreen() {
   const router = useRouter();
+  const { colors } = useAppTheme();
+  const styles = useConnectedStyles();
   const runtime = useDuelWordsRuntimeClients();
   const lobbyController = useMemo(
     () => createWordDuelLobbyController({
@@ -637,6 +639,7 @@ export function ConnectedRuntimeScreen() {
 }
 
 function LobbyStatePanel({ state }: { state: WordDuelLobbyControllerState }) {
+  const styles = useConnectedStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Lobby</Text>
@@ -663,6 +666,7 @@ function LobbyStatePanel({ state }: { state: WordDuelLobbyControllerState }) {
 }
 
 function SummaryPill({ label, value }: { label: string; value: string }) {
+  const styles = useConnectedStyles();
   return (
     <View style={styles.summaryPill}>
       <Text style={styles.metaLabel}>{label}</Text>
@@ -757,7 +761,9 @@ function reactionLabel(reaction: ActiveDuelReactionId): string {
   return 'Nice';
 }
 
-const styles = StyleSheet.create({
+function useConnectedStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     minHeight: 50,
     flexDirection: 'row',
@@ -976,4 +982,5 @@ const styles = StyleSheet.create({
   disabled: {
     opacity: 0.45,
   },
-});
+  }), [colors]);
+}

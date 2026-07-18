@@ -95,14 +95,14 @@ function useWordDuelBoardStyles() {
   return useMemo(() => StyleSheet.create({
   board: {
     alignItems: 'center',
-    gap: spacing.sm,
+    gap: 6,
   },
   boardCompact: {
     gap: spacing.xs,
   },
   boardRow: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: 6,
   },
   boardRowCompact: {
     gap: spacing.xs,
@@ -110,8 +110,8 @@ function useWordDuelBoardStyles() {
   tile: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: 2,
+    borderRadius: radii.sm,
+    borderWidth: 1.5,
     borderColor: colors.border,
     backgroundColor: colors.feedbackPending,
   },
@@ -121,6 +121,7 @@ function useWordDuelBoardStyles() {
   tileCurrent: {
     borderColor: colors.accent,
     backgroundColor: colors.surface,
+    borderWidth: 2,
   },
   tilePending: {
     borderColor: colors.secondary,
@@ -144,8 +145,9 @@ function useWordDuelBoardStyles() {
   },
   tileLetter: {
     color: colors.text,
-    fontSize: typeScale.subtitle,
+    fontSize: 24,
     fontWeight: '900',
+    letterSpacing: 0.4,
   },
   tileLetterCompact: {
     fontSize: typeScale.lead,

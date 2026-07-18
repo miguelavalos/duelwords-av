@@ -48,24 +48,26 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
 
 const styles = StyleSheet.create({
   base: {
-    minHeight: 44,
+    minHeight: 48,
     borderRadius: radii.md,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingVertical: 10,
   },
   bordered: {
     borderWidth: StyleSheet.hairlineWidth,
   },
   pressed: {
-    opacity: 0.78,
+    opacity: 0.86,
+    transform: [{ scale: 0.985 }],
   },
   disabled: {
     opacity: 0.52,
   },
   label: {
     fontSize: typeScale.body,
-    fontWeight: '700',
+    fontWeight: '800',
+    letterSpacing: -0.15,
   },
 });

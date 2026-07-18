@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -30,7 +30,7 @@ import {
 import { GAME_LANGUAGES } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard, type WordDuelBoardRow } from './components/word-duel-board';
 import {
@@ -47,6 +47,7 @@ type WordDuelResultScreenProps = {
 
 export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResultSource() }: WordDuelResultScreenProps) {
   const router = useRouter();
+  const styles = useResultStyles();
   const { width } = useWindowDimensions();
   const sourceMode = resultSource.mode;
   const [result, setResult] = useState(() => resultSource.viewModel);
@@ -174,7 +175,7 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
         </AppButton>
       </View>
 
-      <View style={[styles.resultBand, outcomeStyle(result.outcome)]}>
+      <View style={[styles.resultBand, outcomeStyle(result.outcome, styles)]}>
         <View>
           <Text style={styles.resultLabel}>{reasonLabel(result.resultReason)}</Text>
           <Text style={styles.resultValue}>
@@ -289,6 +290,7 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 }
 
 function SummaryPill({ label, value }: { label: string; value: string }) {
+  const styles = useResultStyles();
   return (
     <View style={styles.summaryPill}>
       <Text style={styles.metaLabel}>{label}</Text>
@@ -310,6 +312,7 @@ function CompletedBoard({
   solved: boolean;
   tileSize: number;
 }) {
+  const styles = useResultStyles();
   return (
     <View style={styles.boardBlock}>
       <View style={styles.boardHeader}>
@@ -336,6 +339,7 @@ function resultRowsToBoardRows(rows: readonly WordDuelResultBoardRow[]): WordDue
 }
 
 function SharePreview({ result }: { result: WordDuelResultViewModel }) {
+  const styles = useResultStyles();
   return (
     <View style={styles.shareBox}>
       <Text style={styles.shareTitle}>Share preview</Text>
@@ -347,6 +351,7 @@ function SharePreview({ result }: { result: WordDuelResultViewModel }) {
 }
 
 function ResultAdSlot() {
+  const styles = useResultStyles();
   return (
     <View style={styles.adSlot}>
       <Text style={styles.adText}>Ad</Text>
@@ -379,6 +384,7 @@ function RematchPanel({
   onViewAsRecipient: () => void;
   result: WordDuelResultViewModel;
 }) {
+  const styles = useResultStyles();
   const proposal = result.rematch;
 
   if (proposal.status === 'idle') {
@@ -601,7 +607,7 @@ function reasonLabel(reason: WordDuelResultReason): string {
   return 'Final result';
 }
 
-function outcomeStyle(outcome: WordDuelResultOutcome) {
+function outcomeStyle(outcome: WordDuelResultOutcome, styles: ReturnType<typeof useResultStyles>) {
   if (outcome === 'win') {
     return styles.resultWin;
   }
@@ -611,7 +617,9 @@ function outcomeStyle(outcome: WordDuelResultOutcome) {
   return styles.resultNeutral;
 }
 
-const styles = StyleSheet.create({
+function useResultStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     minHeight: 50,
     flexDirection: 'row',
@@ -642,7 +650,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
   },
@@ -674,7 +682,7 @@ const styles = StyleSheet.create({
     minWidth: 112,
     minHeight: 58,
     justifyContent: 'center',
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
   },
@@ -773,7 +781,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   adSlot: {
-    minHeight: 72,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.md,
@@ -857,4 +865,5 @@ const styles = StyleSheet.create({
     flexBasis: 112,
     flexGrow: 1,
   },
-});
+  }), [colors]);
+}

@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage, LetterFeedback } from '@/game/word-duel-engine';
 import { t, type InterfaceLocale } from '@/i18n/locales';
-import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { typeScale, useAppTheme } from '@/ui/theme';
 
 export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
   en: [
@@ -101,19 +101,19 @@ function useWordDuelKeyboardStyles() {
 
   return useMemo(() => StyleSheet.create({
   keyboard: {
-    gap: spacing.sm,
+    gap: 6,
   },
   keyRow: {
     flexDirection: 'row',
-    gap: spacing.xs,
+    gap: 5,
     justifyContent: 'center',
   },
   key: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radii.sm,
+    borderRadius: 5,
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -145,6 +145,7 @@ function useWordDuelKeyboardStyles() {
     color: colors.text,
     fontSize: typeScale.small,
     fontWeight: '900',
+    letterSpacing: 0.2,
   },
   keyTextScored: {
     color: colors.onAccent,

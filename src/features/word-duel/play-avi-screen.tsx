@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
@@ -18,7 +18,7 @@ import type { WordDuelResultOutcome, WordDuelResultReason } from '@/game/word-du
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import { fillEditingRow } from './components/word-duel-ui-model';
@@ -42,6 +42,7 @@ const REACTION_LABELS: Record<AviBotReactionId, string> = {
 
 export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps) {
   const router = useRouter();
+  const styles = usePlayAviStyles();
   const { width } = useWindowDimensions();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
@@ -318,6 +319,7 @@ function OpponentSummary({
   markers: readonly AviBotOpponentMarkerState[];
   roundState: AviBotOpponentMarkerState;
 }) {
+  const styles = usePlayAviStyles();
   return (
     <View style={styles.opponentStrip}>
       <View style={styles.opponentTopRow}>
@@ -331,7 +333,7 @@ function OpponentSummary({
       </View>
       <View style={styles.markerRow}>
         {markers.map((marker, index) => (
-          <View key={`avi-marker-${index}`} style={[styles.marker, markerStyle(marker)]}>
+          <View key={`avi-marker-${index}`} style={[styles.marker, markerStyle(marker, styles)]}>
             <Text style={styles.markerText}>{markerLabel(marker)}</Text>
           </View>
         ))}
@@ -354,6 +356,7 @@ function ReactionTray({
   onReactionPress: (reaction: AviBotReactionId) => void;
   reactions: readonly AviBotReactionId[];
 }) {
+  const styles = usePlayAviStyles();
   return (
     <View style={styles.reactions}>
       {reactions.map((reaction) => {
@@ -403,7 +406,7 @@ function markerLabel(marker: AviBotOpponentMarkerState): string {
   return '';
 }
 
-function markerStyle(marker: AviBotOpponentMarkerState) {
+function markerStyle(marker: AviBotOpponentMarkerState, styles: ReturnType<typeof usePlayAviStyles>) {
   if (marker === 'solved') {
     return styles.markerSolved;
   }
@@ -501,7 +504,9 @@ function didLocalStateSolve(state: LocalWordDuelState): boolean {
   return state.status === 'won';
 }
 
-const styles = StyleSheet.create({
+function usePlayAviStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -772,4 +777,5 @@ const styles = StyleSheet.create({
   reactionTextSelected: {
     color: colors.pressure,
   },
-});
+  }), [colors]);
+}

@@ -16,7 +16,7 @@ import {
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import {
@@ -35,6 +35,7 @@ type WordDuelPracticeScreenProps = {
 
 export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelPracticeScreenProps) {
   const router = useRouter();
+  const styles = usePracticeStyles();
   const { width } = useWindowDimensions();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
@@ -251,6 +252,7 @@ function rejectionMessage(rejection: GuessRejection): string {
 }
 
 function ResultLine({ label, target }: { label: string; target: string }) {
+  const styles = usePracticeStyles();
   return (
     <View style={styles.resultLine}>
       <Text style={styles.resultLabel}>{label}</Text>
@@ -259,7 +261,9 @@ function ResultLine({ label, target }: { label: string; target: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+function usePracticeStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -364,4 +368,5 @@ const styles = StyleSheet.create({
     flexBasis: 112,
     flexGrow: 1,
   },
-});
+  }), [colors]);
+}

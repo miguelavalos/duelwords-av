@@ -18,7 +18,7 @@ import {
 } from '@/game/word-duel-lobby/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import {
   buildWordDuelActiveHandoffHref,
@@ -32,6 +32,7 @@ type WordDuelLobbyScreenProps = {
 
 export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobbyScreenProps) {
   const router = useRouter();
+  const styles = useLobbyStyles();
   const controller = useMemo(() => createWordDuelLobbyController({ mode: 'local_mock' }), []);
   const [controllerState, setControllerState] = useState(() =>
     createLocalMockWordDuelLobbyControllerState({
@@ -89,7 +90,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
         </AppButton>
       </View>
 
-      <View style={[styles.statusBand, statusBandStyle(lobby.status)]}>
+      <View style={[styles.statusBand, statusBandStyle(lobby.status, styles)]}>
         <View>
           <Text style={styles.statusLabel}>{statusEyebrow(lobby.status)}</Text>
           <Text style={styles.statusTitle}>{statusTitle(lobby)}</Text>
@@ -305,6 +306,7 @@ function oppositeLobbySide(side: WordDuelLobbySide): WordDuelLobbySide {
 }
 
 function SummaryPill({ label, value }: { label: string; value: string }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.summaryPill}>
       <Text style={styles.metaLabel}>{label}</Text>
@@ -314,6 +316,7 @@ function SummaryPill({ label, value }: { label: string; value: string }) {
 }
 
 function PlayersPanel({ players }: { players: WordDuelLobbyPlayer[] }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Players</Text>
@@ -338,6 +341,7 @@ function PlayersPanel({ players }: { players: WordDuelLobbyPlayer[] }) {
 }
 
 function InvitePanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Invite</Text>
@@ -357,6 +361,7 @@ function InvitePanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
 }
 
 function JoinReviewPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Join challenge</Text>
@@ -369,6 +374,7 @@ function JoinReviewPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
 }
 
 function CountdownPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.countdownPanel}>
       <Text style={styles.countdownNumber}>{lobby.countdown?.remainingSeconds ?? 0}</Text>
@@ -378,6 +384,7 @@ function CountdownPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
 }
 
 function ActiveReadyPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>Round {lobby.activeRound?.roundNumber ?? 1} ready</Text>
@@ -387,6 +394,7 @@ function ActiveReadyPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
 }
 
 function TerminalPanel({ status }: { status: WordDuelLobbyStatus }) {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>{status === 'expired' ? 'Invite expired' : 'Invite cancelled'}</Text>
@@ -396,6 +404,7 @@ function TerminalPanel({ status }: { status: WordDuelLobbyStatus }) {
 }
 
 function LobbyAdSlot() {
+  const styles = useLobbyStyles();
   return (
     <View style={styles.adSlot}>
       <Text style={styles.adText}>Ad</Text>
@@ -459,7 +468,7 @@ function isTerminalStatus(status: WordDuelLobbyStatus): boolean {
   return status === 'cancelled_before_first_round' || status === 'expired';
 }
 
-function statusBandStyle(status: WordDuelLobbyStatus) {
+function statusBandStyle(status: WordDuelLobbyStatus, styles: ReturnType<typeof useLobbyStyles>) {
   if (status === 'countdown' || status === 'active_round') {
     return styles.statusBandActive;
   }
@@ -469,7 +478,9 @@ function statusBandStyle(status: WordDuelLobbyStatus) {
   return styles.statusBandLobby;
 }
 
-const styles = StyleSheet.create({
+function useLobbyStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     minHeight: 50,
     flexDirection: 'row',
@@ -500,7 +511,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     padding: spacing.md,
   },
@@ -529,7 +540,7 @@ const styles = StyleSheet.create({
   },
   languagePill: {
     minWidth: 110,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
@@ -553,7 +564,7 @@ const styles = StyleSheet.create({
     flex: 1,
     minHeight: 52,
     justifyContent: 'center',
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
@@ -686,7 +697,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   adSlot: {
-    minHeight: 96,
+    minHeight: 56,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.md,
@@ -721,4 +732,5 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     flexBasis: 132,
   },
-});
+  }), [colors]);
+}

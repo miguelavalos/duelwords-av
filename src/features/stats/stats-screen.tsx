@@ -1,9 +1,11 @@
+import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppScreen } from '@/ui/app-screen';
-import { colors, radii, spacing, typeScale } from '@/ui/theme';
+import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function StatsScreen() {
+  const styles = useStatsStyles();
   return (
     <AppScreen>
       <View style={styles.header}>
@@ -28,6 +30,7 @@ export function StatsScreen() {
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
+  const styles = useStatsStyles();
   return (
     <View style={styles.tile}>
       <Text style={styles.value}>{value}</Text>
@@ -36,14 +39,17 @@ function StatTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+function useStatsStyles() {
+  const { colors } = useAppTheme();
+  return useMemo(() => StyleSheet.create({
   header: {
     gap: spacing.xs,
   },
   title: {
     color: colors.text,
     fontSize: typeScale.title,
-    fontWeight: '800',
+    fontWeight: '900',
+    letterSpacing: -0.7,
   },
   subtitle: {
     color: colors.textMuted,
@@ -51,23 +57,26 @@ const styles = StyleSheet.create({
   },
   grid: {
     flexDirection: 'row',
-    gap: spacing.sm,
+    gap: spacing.md,
+    flexWrap: 'wrap',
   },
   tile: {
     flex: 1,
-    minHeight: 92,
+    minWidth: 160,
+    minHeight: 126,
     justifyContent: 'center',
     gap: spacing.xs,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
-    padding: spacing.md,
+    padding: spacing.lg,
   },
   value: {
     color: colors.accent,
     fontSize: typeScale.title,
     fontWeight: '900',
+    fontVariant: ['tabular-nums'],
   },
   label: {
     color: colors.textMuted,
@@ -75,13 +84,14 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   panel: {
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     backgroundColor: colors.surfaceSoft,
-    padding: spacing.md,
+    padding: spacing.lg,
   },
   panelText: {
     color: colors.text,
     fontSize: typeScale.small,
     lineHeight: 19,
   },
-});
+  }), [colors]);
+}

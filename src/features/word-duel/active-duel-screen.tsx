@@ -94,8 +94,8 @@ export function ActiveDuelScreen({
   const [statusDetail, setStatusDetail] = useState(() => copy('rivalReady'));
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
   const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
-  const boardWidth = Math.min(width - spacing.lg * 2, 338);
-  const tileSize = Math.max(34, Math.min(42, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const boardWidth = Math.min(width - spacing.lg * 2, 418);
+  const tileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
 
   useEffect(() => {
     setDraft('');
@@ -620,12 +620,12 @@ function useActiveDuelStyles() {
     flexBasis: 116,
   },
   timerRow: {
-    minHeight: 58,
+    minHeight: 64,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     backgroundColor: colors.surface,
@@ -647,8 +647,8 @@ function useActiveDuelStyles() {
     alignItems: 'flex-end',
   },
   timerPill: {
-    minWidth: 92,
-    minHeight: 38,
+    minWidth: 96,
+    minHeight: 42,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.md,
@@ -663,9 +663,9 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   opponentStrip: {
-    minHeight: 92,
+    minHeight: 100,
     gap: spacing.sm,
-    borderRadius: radii.md,
+    borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     backgroundColor: colors.surface,
@@ -681,6 +681,7 @@ function useActiveDuelStyles() {
     color: colors.text,
     fontSize: typeScale.lead,
     fontWeight: '900',
+    letterSpacing: -0.3,
   },
   presencePill: {
     minHeight: 28,
@@ -759,7 +760,7 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   stateRow: {
-    minHeight: 38,
+    minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -793,7 +794,7 @@ function useActiveDuelStyles() {
   },
   reactionButton: {
     flex: 1,
-    minHeight: 36,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
@@ -816,7 +817,7 @@ function useActiveDuelStyles() {
   },
   muteButton: {
     minWidth: 62,
-    minHeight: 36,
+    minHeight: 40,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
