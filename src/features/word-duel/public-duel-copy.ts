@@ -133,27 +133,23 @@ const englishCopy = {
 
 export type PublicDuelCopyKey = keyof typeof englishCopy;
 
-const spanishCopy: Record<PublicDuelCopyKey, string> = {
-  ...englishCopy,
+const spanishCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
   accept: 'Aceptar', activeDuel: 'Duelo activo', almost: 'Casi', apiDisabled: 'API de Apps AV desactivada', attempts: 'Intentos', back: 'Volver', bothReady: 'Ambos jugadores están listos.', cancelRequest: 'Cancelar solicitud', challengeClosed: 'Reto cerrado', challengeCreated: 'Reto creado. Compártelo con tu rival.', challengeSubtitle: 'Crea un reto en directo o revisa una invitación antes de unirte.', chooseLetters: 'Elige letras', close: 'Cerrar', code: 'Código', countdownHelp: 'La ronda 1 se abre al terminar la cuenta atrás.', createChallenge: 'Crear reto', creating: 'Creando…', decline: 'Rechazar', displayNameLabel: 'Nombre en la sala', displayNamePlaceholder: 'Cómo te verá tu rival', draw: 'Empate', duel: 'Duelo', duelComplete: 'Duelo terminado', feedbackReady: 'Pistas disponibles', finalResult: 'Resultado final', findRoom: 'Buscar sala', guestChallenge: 'Reto como invitado', host: 'Anfitrión', inviteLabel: 'Enlace o token de invitación', invitePlaceholder: 'Pega el enlace de invitación', inviteReview: 'Revisar invitación', inviteShareOpened: 'Se abrió el menú para compartir.', joinChallenge: 'Unirse al reto', joinChallengeQuestion: '¿Unirte a este reto?', joinHelp: 'Al unirte ocuparás la plaza rival. La partida solo empieza cuando ambos pulsan Listo.', joined: 'Dentro', joinedChallenge: 'Te has unido al reto.', letters: 'Letras', lobby: 'Sala', lobbyUpdated: 'Sala actualizada.', locked: 'Bloqueado', mute: 'Silenciar', muted: 'Silenciado', nextRound: 'Siguiente ronda', nextRoundReady: 'Siguiente ronda lista', nice: 'Bien', noRematch: 'Todavía no hay solicitud de revancha.', offline: 'Sin conexión', online: 'En línea', onlineUnavailable: 'Los retos online no están disponibles en esta compilación', openFinalResult: 'Abrir resultado final', opening: 'Abriendo…', openingResult: 'Abriendo resultado', opponentAttempt: 'Intento rival {number}: {state}', ownBoard: 'Tu tablero de Word Duel', playAgain: 'Jugar de nuevo', ready: 'Listo', readyLocked: 'Listo queda bloqueado.', realtimeDisabled: 'Realtime desactivado', reconnecting: 'Reconectando', refresh: 'Actualizar', refreshLobby: 'Actualizar sala', rematchAcceptedOpening: 'Revancha aceptada. Abriendo la siguiente sala…', rematchAcceptedReady: 'Revancha aceptada. Prepárate para el siguiente duelo.', rematchCancelled: 'La solicitud de revancha se canceló.', rematchDeclined: 'La revancha fue rechazada.', rematchExpired: 'La solicitud de revancha caducó.', rematchSent: 'Revancha enviada. Tu rival puede aceptarla desde su resultado.', rematchStatus: 'Revancha: {status}.', rematchUpdated: 'Estado de revancha actualizado.', requestRematch: 'Pedir revancha', requestRematchHelp: 'Pide otro duelo con el mismo rival.', resolving: 'Resolviendo', reviewBeforeJoin: 'Revisa el reto antes de unirte.', reviewInvite: 'Revisar invitación', rival: 'Rival', rivalReady: 'Rival listo', rivalRequestedRematch: 'Tu rival ha pedido una revancha.', rivalSubmitted: 'El rival envió su palabra', rivalWon: 'Ganó tu rival', roomCode: 'Código de sala', roomCodeInvalid: 'Introduce el código de sala de ocho caracteres.', roomName: 'Tu nombre en la sala', roomNameHelp: 'Solo se usa para este reto. No necesitas cuenta.', roomNameInvalid: 'Introduce el nombre que verá tu rival.', roomNameTooLong: 'Usa un nombre de 32 caracteres o menos.', roomNameUnsupported: 'Elimina los caracteres no admitidos.', round: 'Ronda', roundChanged: 'La ronda cambió', roundReady: 'La ronda 1 está lista.', roundReadyTitle: 'La ronda 1 está lista', roundResolving: 'La ronda sigue resolviéndose', roundTimedOut: 'Tiempo de ronda agotado', runtimeDescription: 'DuelWords permanece sin conexión salvo que estén habilitadas la API de Apps AV y la configuración segura de realtime.', shareInvite: 'Compartir invitación', shareResult: 'Compartir resultado', side: 'Lado', slowDown: 'Más despacio', solved: 'Resuelto', starting: 'Empezando', submitted: 'Enviado', submitting: 'Enviando', syncRound: 'Sincronizar ronda', target: 'Palabra: {word}', timedOut: 'Sin tiempo', time: 'Tiempo', tryAgain: 'Inténtalo de nuevo', unavailable: 'No disponible', unsupportedInvite: 'Usa un enlace de invitación de DuelWords AV.', validInviteRequired: 'Introduce un enlace o token válido.', waiting: 'Esperando', waitingForAnswer: 'Esperando la respuesta de tu rival.', waitingForRival: 'Esperando rival', waitingRound: 'Esperando la ronda 1.', wordLength: '{count} letras', you: 'Tú', youWon: 'Has ganado', yourFinalBoard: 'Tu tablero final', yourTurn: 'Tu turno', actionUnavailable: 'Esa acción no está disponible ahora. Inténtalo de nuevo.', safeRealtimeRequired: 'Se necesita realtime seguro para jugar online.', rivalFinalBoard: 'Tablero final del rival',
 };
 
-const catalanCopy: Record<PublicDuelCopyKey, string> = {
-  ...spanishCopy,
+const catalanCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
   accept: 'Acceptar', activeDuel: 'Duel actiu', attempts: 'Intents', back: 'Tornar', bothReady: 'Tots dos jugadors estan preparats.', cancelRequest: 'Cancel·lar sol·licitud', challengeClosed: 'Repte tancat', challengeCreated: 'Repte creat. Comparteix-lo amb el teu rival.', challengeSubtitle: 'Crea un repte en directe o revisa una invitació abans d’unir-t’hi.', chooseLetters: 'Tria lletres', close: 'Tancar', code: 'Codi', createChallenge: 'Crear repte', creating: 'Creant…', decline: 'Rebutjar', displayNameLabel: 'Nom a la sala', displayNamePlaceholder: 'Com et veurà el teu rival', draw: 'Empat', duel: 'Duel', duelComplete: 'Duel acabat', finalResult: 'Resultat final', findRoom: 'Cercar sala', guestChallenge: 'Repte com a convidat', host: 'Amfitrió', inviteLabel: 'Enllaç o token d’invitació', invitePlaceholder: 'Enganxa l’enllaç d’invitació', inviteReview: 'Revisar invitació', joinChallenge: 'Unir-se al repte', joinChallengeQuestion: 'Vols unir-te a aquest repte?', joined: 'Dins', letters: 'Lletres', lobby: 'Sala', mute: 'Silenciar', muted: 'Silenciat', nextRound: 'Ronda següent', online: 'En línia', offline: 'Sense connexió', openFinalResult: 'Obrir resultat final', playAgain: 'Tornar a jugar', ready: 'Preparat', refresh: 'Actualitzar', refreshLobby: 'Actualitzar sala', requestRematch: 'Demanar revenja', reviewInvite: 'Revisar invitació', rival: 'Rival', roomCode: 'Codi de sala', roomName: 'El teu nom a la sala', round: 'Ronda', shareInvite: 'Compartir invitació', shareResult: 'Compartir resultat', side: 'Costat', solved: 'Resolt', starting: 'Començant', syncRound: 'Sincronitzar ronda', target: 'Paraula: {word}', time: 'Temps', waiting: 'Esperant', waitingForRival: 'Esperant rival', wordLength: '{count} lletres', you: 'Tu', youWon: 'Has guanyat', yourTurn: 'El teu torn',
 };
 
-const frenchCopy: Record<PublicDuelCopyKey, string> = {
-  ...englishCopy,
+const frenchCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
   accept: 'Accepter', activeDuel: 'Duel actif', attempts: 'Essais', back: 'Retour', bothReady: 'Les deux joueurs sont prêts.', cancelRequest: 'Annuler la demande', challengeClosed: 'Défi terminé', challengeCreated: 'Défi créé. Partagez-le avec votre rival.', challengeSubtitle: 'Créez un défi en direct ou vérifiez une invitation avant de rejoindre.', chooseLetters: 'Choisissez les lettres', close: 'Fermer', code: 'Code', createChallenge: 'Créer le défi', creating: 'Création…', decline: 'Refuser', displayNameLabel: 'Nom dans la salle', displayNamePlaceholder: 'Le nom vu par votre rival', draw: 'Égalité', duel: 'Duel', duelComplete: 'Duel terminé', finalResult: 'Résultat final', findRoom: 'Trouver la salle', guestChallenge: 'Défi invité', host: 'Hôte', inviteLabel: 'Lien ou jeton d’invitation', invitePlaceholder: 'Collez le lien d’invitation', inviteReview: 'Vérifier l’invitation', joinChallenge: 'Rejoindre le défi', joinChallengeQuestion: 'Rejoindre ce défi ?', joined: 'Rejoint', letters: 'Lettres', lobby: 'Salon', mute: 'Couper le son', muted: 'Son coupé', nextRound: 'Manche suivante', offline: 'Hors ligne', online: 'En ligne', openFinalResult: 'Ouvrir le résultat final', playAgain: 'Rejouer', ready: 'Prêt', reconnecting: 'Reconnexion', refresh: 'Actualiser', refreshLobby: 'Actualiser le salon', requestRematch: 'Demander une revanche', reviewInvite: 'Vérifier l’invitation', rival: 'Rival', roomCode: 'Code de salle', roomName: 'Votre nom dans la salle', round: 'Manche', shareInvite: 'Partager l’invitation', shareResult: 'Partager le résultat', side: 'Côté', solved: 'Résolu', starting: 'Démarrage', syncRound: 'Synchroniser', target: 'Mot : {word}', timedOut: 'Temps écoulé', time: 'Temps', waiting: 'En attente', waitingForRival: 'En attente du rival', wordLength: '{count} lettres', you: 'Vous', youWon: 'Vous avez gagné', yourTurn: 'À vous',
 };
 
-const germanCopy: Record<PublicDuelCopyKey, string> = {
-  ...englishCopy,
+const germanCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
   accept: 'Annehmen', activeDuel: 'Aktives Duell', attempts: 'Versuche', back: 'Zurück', bothReady: 'Beide Spieler sind bereit.', cancelRequest: 'Anfrage abbrechen', challengeClosed: 'Herausforderung beendet', challengeCreated: 'Herausforderung erstellt. Teile sie mit deinem Rivalen.', challengeSubtitle: 'Erstelle eine Live-Herausforderung oder prüfe eine Einladung vor dem Beitritt.', chooseLetters: 'Buchstaben wählen', close: 'Schließen', code: 'Code', createChallenge: 'Herausforderung erstellen', creating: 'Wird erstellt…', decline: 'Ablehnen', displayNameLabel: 'Name im Raum', displayNamePlaceholder: 'So sieht dich dein Rivale', draw: 'Unentschieden', duel: 'Duell', duelComplete: 'Duell beendet', finalResult: 'Endergebnis', findRoom: 'Raum finden', guestChallenge: 'Gast-Herausforderung', host: 'Gastgeber', inviteLabel: 'Einladungslink oder Token', invitePlaceholder: 'Einladungslink einfügen', inviteReview: 'Einladung prüfen', joinChallenge: 'Herausforderung beitreten', joinChallengeQuestion: 'Dieser Herausforderung beitreten?', joined: 'Beigetreten', letters: 'Buchstaben', lobby: 'Lobby', mute: 'Stumm', muted: 'Stummgeschaltet', nextRound: 'Nächste Runde', offline: 'Offline', online: 'Online', openFinalResult: 'Endergebnis öffnen', playAgain: 'Noch einmal spielen', ready: 'Bereit', reconnecting: 'Verbindung wird hergestellt', refresh: 'Aktualisieren', refreshLobby: 'Lobby aktualisieren', requestRematch: 'Revanche anfragen', reviewInvite: 'Einladung prüfen', rival: 'Rivale', roomCode: 'Raumcode', roomName: 'Dein Name im Raum', round: 'Runde', shareInvite: 'Einladung teilen', shareResult: 'Ergebnis teilen', side: 'Seite', solved: 'Gelöst', starting: 'Startet', syncRound: 'Runde synchronisieren', target: 'Wort: {word}', timedOut: 'Zeit abgelaufen', time: 'Zeit', waiting: 'Warten', waitingForRival: 'Auf Rivalen warten', wordLength: '{count} Buchstaben', you: 'Du', youWon: 'Du hast gewonnen', yourTurn: 'Du bist dran',
 };
 
-Object.assign(spanishCopy, {
+Object.assign(spanishCopyDraft, {
   couldNotCloseTimeout: 'No se pudo cerrar la ronda agotada',
   couldNotOpenDuel: 'No se pudo abrir el duelo en directo de forma segura. Actualiza la sala e inténtalo de nuevo.',
   couldNotOpenNext: 'No se pudo abrir la siguiente ronda',
@@ -162,7 +158,7 @@ Object.assign(spanishCopy, {
   safeRealtimeUnavailable: 'El realtime seguro no está preparado',
 });
 
-Object.assign(catalanCopy, {
+Object.assign(catalanCopyDraft, {
   apiDisabled: 'API d’Apps AV desactivada',
   onlineUnavailable: 'Els reptes en línia no estan disponibles en aquesta compilació',
   realtimeDisabled: 'Realtime desactivat',
@@ -171,7 +167,7 @@ Object.assign(catalanCopy, {
   safeRealtimeUnavailable: 'El realtime segur no està preparat',
 });
 
-Object.assign(frenchCopy, {
+Object.assign(frenchCopyDraft, {
   apiDisabled: 'API Apps AV désactivée',
   onlineUnavailable: 'Les défis en ligne ne sont pas disponibles dans cette version',
   realtimeDisabled: 'Temps réel désactivé',
@@ -180,7 +176,7 @@ Object.assign(frenchCopy, {
   safeRealtimeUnavailable: 'Le temps réel sécurisé n’est pas prêt',
 });
 
-Object.assign(germanCopy, {
+Object.assign(germanCopyDraft, {
   apiDisabled: 'Apps-AV-API deaktiviert',
   onlineUnavailable: 'Online-Herausforderungen sind in diesem Build nicht verfügbar',
   realtimeDisabled: 'Echtzeit deaktiviert',
@@ -189,6 +185,196 @@ Object.assign(germanCopy, {
   safeRealtimeUnavailable: 'Sichere Echtzeit ist noch nicht bereit',
 });
 
+Object.assign(catalanCopyDraft, {
+  almost: 'Gairebé',
+  couldNotCloseTimeout: 'No s’ha pogut tancar la ronda amb el temps esgotat',
+  couldNotOpenDuel: 'No s’ha pogut obrir el duel en directe de manera segura. Actualitza la sala i torna-ho a provar.',
+  couldNotOpenNext: 'No s’ha pogut obrir la ronda següent',
+  couldNotOpenResult: 'No s’ha pogut obrir el resultat',
+  couldNotSync: 'No s’ha pogut sincronitzar la ronda',
+  countdownHelp: 'La ronda 1 s’obre quan acaba el compte enrere.',
+  feedbackReady: 'Pistes disponibles',
+  inviteShareOpened: 'S’ha obert el menú per compartir la invitació.',
+  joinHelp: 'En unir-t’hi ocuparàs la plaça rival. La partida només comença quan tots dos premeu Preparat.',
+  joinedChallenge: 'T’has unit al repte.',
+  lobbyUpdated: 'Sala actualitzada.',
+  locked: 'Bloquejat',
+  nextRoundReady: 'Ronda següent preparada',
+  nice: 'Bé',
+  noRematch: 'Encara no hi ha cap sol·licitud de revenja.',
+  opening: 'Obrint…',
+  openingResult: 'Obrint el resultat',
+  opponentAttempt: 'Intent rival {number}: {state}',
+  ownBoard: 'El teu tauler de Word Duel',
+  readyLocked: 'L’estat Preparat queda bloquejat.',
+  reconnecting: 'Reconnectant',
+  rematchAcceptedOpening: 'Revenja acceptada. Obrint la sala següent…',
+  rematchAcceptedReady: 'Revenja acceptada. Prepara’t per al duel següent.',
+  rematchCancelled: 'La sol·licitud de revenja s’ha cancel·lat.',
+  rematchDeclined: 'La revenja s’ha rebutjat.',
+  rematchExpired: 'La sol·licitud de revenja ha caducat.',
+  rematchSent: 'Revenja enviada. El teu rival la pot acceptar des del resultat.',
+  rematchStatus: 'Revenja: {status}.',
+  rematchUpdated: 'Estat de la revenja actualitzat.',
+  requestRematchHelp: 'Demana un altre duel amb el mateix rival.',
+  resolving: 'Resolent',
+  reviewBeforeJoin: 'Revisa el repte abans d’unir-t’hi.',
+  rivalReady: 'Rival preparat',
+  rivalRequestedRematch: 'El teu rival ha demanat una revenja.',
+  rivalSubmitted: 'El rival ha enviat la paraula',
+  rivalWon: 'Ha guanyat el rival',
+  roomCodeInvalid: 'Introdueix el codi de sala de vuit caràcters.',
+  roomNameInvalid: 'Introdueix el nom que veurà el teu rival.',
+  roomNameTooLong: 'Utilitza un nom de 32 caràcters o menys.',
+  roomNameUnsupported: 'Elimina els caràcters no admesos del nom.',
+  roundChanged: 'La ronda ha canviat',
+  roundReady: 'La ronda 1 està preparada.',
+  roundReadyTitle: 'La ronda 1 està preparada',
+  roundResolving: 'La ronda encara s’està resolent',
+  roundTimedOut: 'S’ha esgotat el temps de la ronda',
+  slowDown: 'Més a poc a poc',
+  submitted: 'Enviat',
+  submitting: 'Enviant',
+  timedOut: 'Temps esgotat',
+  tryAgain: 'Torna-ho a provar',
+  unavailable: 'No disponible',
+  unsupportedInvite: 'Utilitza un enllaç d’invitació de DuelWords AV.',
+  validInviteRequired: 'Introdueix un enllaç o token vàlid.',
+  waitingForAnswer: 'Esperant que el teu rival respongui.',
+  waitingRound: 'Esperant la ronda 1.',
+  yourFinalBoard: 'El teu tauler final',
+  actionUnavailable: 'Aquesta acció no està disponible ara. Torna-ho a provar.',
+  safeRealtimeRequired: 'Cal realtime segur per jugar en línia.',
+  rivalFinalBoard: 'Tauler final del rival',
+});
+
+Object.assign(frenchCopyDraft, {
+  almost: 'Presque',
+  couldNotCloseTimeout: 'Impossible de terminer la manche arrivée à expiration',
+  couldNotOpenDuel: 'Le duel en direct n’a pas pu être ouvert en toute sécurité. Actualisez le salon et réessayez.',
+  couldNotOpenNext: 'Impossible d’ouvrir la manche suivante',
+  couldNotOpenResult: 'Impossible d’ouvrir le résultat',
+  couldNotSync: 'Impossible de synchroniser la manche',
+  countdownHelp: 'La manche 1 s’ouvre à la fin du compte à rebours.',
+  feedbackReady: 'Indices disponibles',
+  inviteShareOpened: 'Le menu de partage de l’invitation a été ouvert.',
+  joinHelp: 'En rejoignant, vous prenez la place du rival. La partie ne commence que lorsque les deux joueurs appuient sur Prêt.',
+  joinedChallenge: 'Vous avez rejoint le défi.',
+  lobbyUpdated: 'Salon actualisé.',
+  locked: 'Verrouillé',
+  nextRoundReady: 'Manche suivante prête',
+  nice: 'Bien joué',
+  noRematch: 'Aucune demande de revanche pour le moment.',
+  opening: 'Ouverture…',
+  openingResult: 'Ouverture du résultat',
+  opponentAttempt: 'Essai du rival {number} : {state}',
+  ownBoard: 'Votre grille Word Duel',
+  readyLocked: 'L’état Prêt est verrouillé.',
+  rematchAcceptedOpening: 'Revanche acceptée. Ouverture du salon suivant…',
+  rematchAcceptedReady: 'Revanche acceptée. Préparez-vous pour le prochain duel.',
+  rematchCancelled: 'La demande de revanche a été annulée.',
+  rematchDeclined: 'La revanche a été refusée.',
+  rematchExpired: 'La demande de revanche a expiré.',
+  rematchSent: 'Revanche envoyée. Votre rival peut l’accepter depuis son résultat.',
+  rematchStatus: 'Revanche : {status}.',
+  rematchUpdated: 'État de la revanche actualisé.',
+  requestRematchHelp: 'Demandez un nouveau duel avec le même rival.',
+  resolving: 'Résolution',
+  reviewBeforeJoin: 'Vérifiez le défi avant de le rejoindre.',
+  rivalReady: 'Rival prêt',
+  rivalRequestedRematch: 'Votre rival a demandé une revanche.',
+  rivalSubmitted: 'Le rival a envoyé son mot',
+  rivalWon: 'Le rival a gagné',
+  roomCodeInvalid: 'Saisissez le code de salle à huit caractères.',
+  roomNameInvalid: 'Saisissez le nom que verra votre rival.',
+  roomNameTooLong: 'Utilisez un nom de 32 caractères maximum.',
+  roomNameUnsupported: 'Retirez les caractères non pris en charge du nom.',
+  roundChanged: 'La manche a changé',
+  roundReady: 'La manche 1 est prête.',
+  roundReadyTitle: 'La manche 1 est prête',
+  roundResolving: 'La manche est toujours en cours de résolution',
+  roundTimedOut: 'Temps de la manche écoulé',
+  slowDown: 'Doucement',
+  submitted: 'Envoyé',
+  submitting: 'Envoi',
+  tryAgain: 'Réessayer',
+  unavailable: 'Indisponible',
+  unsupportedInvite: 'Utilisez un lien d’invitation DuelWords AV.',
+  validInviteRequired: 'Saisissez un lien ou un jeton valide.',
+  waitingForAnswer: 'En attente de la réponse de votre rival.',
+  waitingRound: 'En attente de la manche 1.',
+  yourFinalBoard: 'Votre grille finale',
+  actionUnavailable: 'Cette action n’est pas disponible pour le moment. Réessayez.',
+  safeRealtimeRequired: 'Le temps réel sécurisé est requis pour jouer en ligne.',
+  rivalFinalBoard: 'Grille finale du rival',
+});
+
+Object.assign(germanCopyDraft, {
+  almost: 'Fast',
+  couldNotCloseTimeout: 'Die abgelaufene Runde konnte nicht beendet werden',
+  couldNotOpenDuel: 'Das Live-Duell konnte nicht sicher geöffnet werden. Aktualisiere die Lobby und versuche es erneut.',
+  couldNotOpenNext: 'Die nächste Runde konnte nicht geöffnet werden',
+  couldNotOpenResult: 'Das Ergebnis konnte nicht geöffnet werden',
+  couldNotSync: 'Die Runde konnte nicht synchronisiert werden',
+  countdownHelp: 'Runde 1 öffnet sich nach Ablauf des Countdowns.',
+  feedbackReady: 'Hinweise verfügbar',
+  inviteShareOpened: 'Das Menü zum Teilen der Einladung wurde geöffnet.',
+  joinHelp: 'Beim Beitritt übernimmst du den freien Rivalenplatz. Das Spiel beginnt erst, wenn beide Bereit drücken.',
+  joinedChallenge: 'Du bist der Herausforderung beigetreten.',
+  lobbyUpdated: 'Lobby aktualisiert.',
+  locked: 'Gesperrt',
+  nextRoundReady: 'Nächste Runde bereit',
+  nice: 'Gut',
+  noRematch: 'Noch keine Revanche-Anfrage.',
+  opening: 'Wird geöffnet…',
+  openingResult: 'Ergebnis wird geöffnet',
+  opponentAttempt: 'Versuch des Rivalen {number}: {state}',
+  ownBoard: 'Dein Word-Duel-Brett',
+  readyLocked: 'Bereit ist jetzt gesperrt.',
+  rematchAcceptedOpening: 'Revanche angenommen. Die nächste Lobby wird geöffnet…',
+  rematchAcceptedReady: 'Revanche angenommen. Mach dich für das nächste Duell bereit.',
+  rematchCancelled: 'Die Revanche-Anfrage wurde abgebrochen.',
+  rematchDeclined: 'Die Revanche wurde abgelehnt.',
+  rematchExpired: 'Die Revanche-Anfrage ist abgelaufen.',
+  rematchSent: 'Revanche gesendet. Dein Rivale kann sie in seinem Ergebnis annehmen.',
+  rematchStatus: 'Revanche: {status}.',
+  rematchUpdated: 'Revanche-Status aktualisiert.',
+  requestRematchHelp: 'Fordere denselben Rivalen zu einem neuen Duell heraus.',
+  resolving: 'Wird ausgewertet',
+  reviewBeforeJoin: 'Prüfe die Herausforderung vor dem Beitritt.',
+  rivalReady: 'Rivale bereit',
+  rivalRequestedRematch: 'Dein Rivale hat eine Revanche angefragt.',
+  rivalSubmitted: 'Der Rivale hat sein Wort gesendet',
+  rivalWon: 'Der Rivale hat gewonnen',
+  roomCodeInvalid: 'Gib den achtstelligen Raumcode ein.',
+  roomNameInvalid: 'Gib den Namen ein, den dein Rivale sehen soll.',
+  roomNameTooLong: 'Verwende einen Namen mit höchstens 32 Zeichen.',
+  roomNameUnsupported: 'Entferne nicht unterstützte Zeichen aus dem Namen.',
+  roundChanged: 'Die Runde hat gewechselt',
+  roundReady: 'Runde 1 ist bereit.',
+  roundReadyTitle: 'Runde 1 ist bereit',
+  roundResolving: 'Die Runde wird noch ausgewertet',
+  roundTimedOut: 'Rundenzeit abgelaufen',
+  slowDown: 'Langsamer',
+  submitted: 'Gesendet',
+  submitting: 'Wird gesendet',
+  tryAgain: 'Erneut versuchen',
+  unavailable: 'Nicht verfügbar',
+  unsupportedInvite: 'Verwende einen DuelWords-AV-Einladungslink.',
+  validInviteRequired: 'Gib einen gültigen Link oder Token ein.',
+  waitingForAnswer: 'Warten auf die Antwort deines Rivalen.',
+  waitingRound: 'Warten auf Runde 1.',
+  yourFinalBoard: 'Dein finales Brett',
+  actionUnavailable: 'Diese Aktion ist derzeit nicht verfügbar. Versuche es erneut.',
+  safeRealtimeRequired: 'Für Online-Spiele ist sichere Echtzeit erforderlich.',
+  rivalFinalBoard: 'Finales Brett des Rivalen',
+});
+
+const spanishCopy = requireCompleteLocaleCopy('es', spanishCopyDraft);
+const catalanCopy = requireCompleteLocaleCopy('ca', catalanCopyDraft);
+const frenchCopy = requireCompleteLocaleCopy('fr', frenchCopyDraft);
+const germanCopy = requireCompleteLocaleCopy('de', germanCopyDraft);
+
 const publicDuelCopy: Record<InterfaceLocale, Record<PublicDuelCopyKey, string>> = {
   ca: catalanCopy,
   de: germanCopy,
@@ -196,6 +382,20 @@ const publicDuelCopy: Record<InterfaceLocale, Record<PublicDuelCopyKey, string>>
   es: spanishCopy,
   fr: frenchCopy,
 };
+
+function requireCompleteLocaleCopy(
+  locale: Exclude<InterfaceLocale, 'en'>,
+  draft: Partial<Record<PublicDuelCopyKey, string>>,
+): Record<PublicDuelCopyKey, string> {
+  const missingKeys = (Object.keys(englishCopy) as PublicDuelCopyKey[])
+    .filter((key) => typeof draft[key] !== 'string' || draft[key]?.length === 0);
+
+  if (missingKeys.length > 0) {
+    throw new Error(`Incomplete ${locale} public duel copy: ${missingKeys.join(', ')}`);
+  }
+
+  return draft as Record<PublicDuelCopyKey, string>;
+}
 
 export function publicDuelT(
   locale: InterfaceLocale,

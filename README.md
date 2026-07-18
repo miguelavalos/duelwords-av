@@ -18,9 +18,9 @@ Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
 (system/light/dark) are versioned local preferences. Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
 The shell, Play, Settings, and public challenge/lobby/game/result/rematch path
-react to these preferences. English and Spanish cover the full public journey.
-Catalan, French, and German cover the core journey, while secondary and
-uncommon error messages may still use the English baseline.
+react to these preferences. English, Spanish, Catalan, French, and German each
+cover the complete public challenge/lobby/game/result/rematch journey; module
+initialization fails in tests if a locale omits a public-journey key.
 
 Local previews still cover practice, invite/lobby/Ready/countdown, active duel,
 result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
@@ -358,9 +358,9 @@ game id; it only creates a start request after recipient acceptance.
   Openspace against an explicitly approved preview runtime.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
-- Complete secondary and uncommon-error editorial translation for CA/FR/DE;
-  the core public journey and fail-closed state are localized, and game
-  language selection remains independent at EN/ES.
+- Localize or remove the secondary engineering-preview cards before treating
+  the whole Play catalog as a launch surface. The public connected journey is
+  complete in EN/ES/CA/FR/DE, while game language remains independent at EN/ES.
 - Resolve remaining accessibility polish outside the public journey. The
   public path has a page title, explicit H1/H2 levels, one main landmark,
   visible input labels, live status announcements, browser focus indicators,
