@@ -61,6 +61,16 @@ export function PlayScreen() {
       </View>
 
       <ModeCard
+        title={t('en', 'challengeFriend')}
+        description="Create or join a live guest challenge. Online play stays unavailable unless the safe runtime is enabled."
+        iconLabel="1v1"
+        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, {
+          gameLanguage,
+          mode: 'human_duel',
+        }))}
+      />
+
+      <ModeCard
         title="Invite lobby preview"
         description="Host invite, join review, lobby Ready, countdown and round-open handoff."
         iconLabel="GO"
@@ -121,12 +131,6 @@ export function PlayScreen() {
       />
 
       <View style={styles.modeGrid}>
-        <ModeCard
-          title={t('en', 'challengeFriend')}
-          description="Realtime lobby, Ready, synced rounds and safe opponent summary."
-          disabled
-          iconLabel="1v1"
-        />
         <ModeCard
           title={t('en', 'daily')}
           description="Official daily targets require server dictionary authority."

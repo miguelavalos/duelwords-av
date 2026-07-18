@@ -187,7 +187,7 @@ describe('Word Duel connected runtime smoke', () => {
       roundNumber: 1,
     });
 
-    const receivedStatuses: Array<string | null> = [];
+    const receivedStatuses: (string | null)[] = [];
     const unsubscribe = activeBundle.controller.subscribeActiveRoomView((view) => {
       receivedStatuses.push(view?.room.status ?? null);
     });

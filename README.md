@@ -4,14 +4,21 @@ Mobile-first Expo client for DuelWords AV.
 
 ## Current Status
 
-Current as of 2026-07-18: this repository is an internal-MVP client, not a
-public mobile MVP or release candidate. Local previews cover practice,
-invite/lobby/Ready/countdown, active duel, result/rematch, Solo/Daily, and a
-deterministic Play Avi duel. A hidden connected route has preview evidence
-against the Apps AV API/D1 authority and real Convex safe projection, including
-result recovery and accepted-rematch continuation. Network runtime remains
-disabled by default, connected play is not linked from public navigation, and
-the signed two-device mobile smoke has not been run.
+Current as of 2026-07-18: this repository has a public, guest-first Word Duel
+V1 candidate path, but is not yet a release candidate. **Challenge a Friend**
+is linked from Play and opens `/word-duel/challenge`. With the safe runtime
+enabled, that route can create a room-scoped guest, create or review an invite
+without auto-joining, join explicitly, Ready, start, play connected rounds,
+recover the finalized result, share a no-spoiler summary, and create or answer
+a participant-scoped rematch. Room-code lookup and canonical invite-token
+parsing are included. With runtime disabled—the repository default—the same
+surface fails closed and performs no network calls.
+
+Local previews still cover practice, invite/lobby/Ready/countdown, active duel,
+result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
+runtime remains as an engineering console, not the product entry point. The
+signed two-device mobile smoke, canonical web `/i/c/:token` edge/deep-link
+rewrite, enabled preview runtime, and release gates have not been run.
 
 The current cumulative status and remaining gates live in the private
 `docs/avi-words/current-work-handoff.md`. Dated implementation records describe
@@ -48,18 +55,17 @@ and an injected Convex realtime adapter or SDK-shaped Convex client; otherwise
 it fails closed. A composed runtime client factory and Expo hook now gate Apps
 AV API plus Convex realtime construction from client-safe config; the Expo
 hook supplies the real SDK bridge and disposes it on cleanup. A hidden internal
-route at `/word-duel/connected-runtime` can use those clients when runtime
-config is explicitly enabled, but it is not linked from public play navigation
-and the demo routes remain local. The hidden route can request a finalized API
-result and hand it into the existing result screen route after backend
-finalization; it fails closed before finalization. It can also call the
-participant-scoped rematch proposal API from the hidden connected runtime
-surface for current discovery and create/accept/decline/cancel checks.
+route at `/word-duel/connected-runtime` remains available as an engineering
+console, while the public `/word-duel/challenge` route uses the same typed
+controllers without exposing game ids, player ids, realtime sessions, or
+rematch proposal ids in its UI. It requests complete results and rematch state
+through explicit participant-scoped API actions and fails closed before backend
+finalization.
 For the internal MVP runtime, Convex may carry only the short-lived safe
 finalized room summary and accepted next-game lobby/active projection. Complete
 participant final results and current rematch discovery remain API-only explicit
-actions. Post-finalization Convex rematch proposal projection and public
-result-screen rematch navigation remain out of scope.
+actions. Post-finalization Convex rematch proposal projection and automatic
+polling remain out of scope; each participant uses the public Refresh action.
 
 It does not contain production dictionaries, enabled-by-default Apps AV API
 network calls, enabled-by-default Convex runtime connections, generated Convex
@@ -80,10 +86,21 @@ Useful checks:
 pnpm run typecheck
 pnpm run test
 pnpm run verify
+pnpm run lint
 pnpm run web
 ```
 
 The web dev server uses port `8098`.
+
+## Home and Office Openspace boundary
+
+This repository may be developed and tested on the **Home** computer only with
+deterministic, local, no-spend commands. Any recurring automation, scheduled
+runner, operational monitor, signed runtime check, or environment-backed smoke
+must be installed, enabled, executed, and verified exclusively on **Office
+Openspace**. Home must not be used as a substitute runner. Preview/production
+deploys, paid providers, signed builds, TestFlight/App Store work, real purchase
+flows, and production traffic remain approval-gated.
 
 ## Runtime Config
 
@@ -145,6 +162,12 @@ closed if API config, Convex config, or backend realtime session is missing.
 The local connected runtime smoke wraps a fake React client with the real SDK
 bridge to verify subscription, heartbeat, and reaction refs without calling
 Convex.
+
+The public `/word-duel/challenge` route accepts `lang`, `invite`, and `code`
+query parameters. Invite URLs are validated as exact HTTPS links for
+`app.duelwords-av.avalsys.com/i/c/` or as bounded direct tokens; foreign hosts,
+malformed percent encoding, and invalid room codes are rejected before any API
+action. Preview is GET-only and joining always requires explicit confirmation.
 
 The active-duel runtime adapter accepts only backend-issued realtime session
 payloads shaped as:
@@ -229,8 +252,8 @@ sessions, account state, or provider state.
 
 `src/game/word-duel-active/controller.ts` wraps active gameplay behind the same
 source idea: `local_mock` for the demo, `disabled_runtime` for fail-closed
-runtime attempts, and injected `apps_av_api` for future connected active
-commands. It owns the demo actor, game id, player id, room token, and realtime
+runtime attempts, and injected `apps_av_api` for connected active commands. It
+owns the demo actor, game id, player id, room token, and realtime
 session id in local mode, accepts backend-issued session details in runtime
 mode, and exposes only high-level UI actions such as submit guess, heartbeat,
 reaction, subscription, timeout, open-next-round, and own-round snapshot
@@ -239,10 +262,9 @@ discovery/commands. The injected Apps AV API source uses the typed HTTP client
 plus a client-safe realtime projection client; it updates only the caller's
 board from own snapshots, keeps opponent letters/feedback abstract during
 active rounds, and only hands completed boards to the result screen after
-backend finalization. The hidden connected-runtime rematch panel can refresh
-the current API-only proposal and continue to the accepted next lobby when a
-safe `nextGame` is present; it still does not expose public result-screen
-remote rematch navigation.
+backend finalization. Both the hidden engineering panel and public challenge
+route can refresh the current API-only proposal and continue to the accepted
+next lobby when a safe `nextGame` is present.
 `src/game/word-duel-active/runtime-controller.ts` assembles that runtime source
 from a safe lobby state only when API runtime, player session, realtime session,
 and an injected Convex realtime adapter or SDK-shaped Convex client are present.
@@ -265,7 +287,15 @@ returned a safe next lobby. When accept or refresh returns a safe `nextGame`,
 the route swaps back to a connected lobby state for that rematch so the same
 participant can run Ready/start again. It does not discover remote proposals
 through Convex, does not poll for post-finalization state, and does not expose
-this flow through the public result screen yet.
+automatic post-finalization refresh. The public route exposes the same
+participant permissions with product labels and no raw proposal-id input.
+
+## Public connected route
+
+- `/word-duel/challenge`: guest-first connected entry linked from Play. It
+  fails closed while Apps AV API or Convex safe realtime is disabled and is not
+  a local mock. It supports create/review/join/Ready/active/result/rematch with
+  explicit refresh where the safe projection intentionally carries no result.
 
 ## Local Preview Routes
 
@@ -311,6 +341,21 @@ hidden connected runtime route may navigate to it with an API-derived local
 result payload after backend finalization, but the result route itself still
 does not make connected calls. The local rematch model does not create a new
 game id; it only creates a start request after recipient acceptance.
+
+## Remaining V1 release gates
+
+- Run the two-device signed iOS/Android happy path and recovery matrix on Office
+  Openspace against an explicitly approved preview runtime.
+- Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
+  to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
+- Complete interface localization of the public challenge/duel/result copy;
+  game language selection supports EN/ES, but this route's interface is English.
+- Resolve the remaining app-wide manual accessibility review items (keyboard
+  focus indication and heading levels on React Native Web). The public route
+  has one main landmark, visible input labels, live status announcements,
+  44px-or-larger actions, and no mobile horizontal overflow in local checks.
+- Approve and execute runtime/deploy/store/privacy/billing gates. Nothing in
+  this repository grants permission for spend or remote state changes.
 
 ## Current Game Rules
 

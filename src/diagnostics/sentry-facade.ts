@@ -354,7 +354,6 @@ function isForbiddenKey(key: string): boolean {
 }
 
 function isForbiddenValue(value: string): boolean {
-  const normalized = value.toLowerCase();
   if (/\b[^@\s]+@[^@\s]+\.[^@\s]+\b/.test(value)) {
     return true;
   }

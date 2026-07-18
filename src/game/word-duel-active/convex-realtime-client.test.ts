@@ -57,7 +57,7 @@ describe('DuelWords Convex realtime projection client', () => {
     }));
     const convexClient = createFakeConvexClient({ watch });
     const client = createDuelWordsConvexRealtimeProjectionClient({ convexClient });
-    const received: Array<string | null> = [];
+    const received: (string | null)[] = [];
 
     const unsubscribe = client.subscribeActiveRoomView(SESSION_REQUEST, (view) => {
       received.push(view?.room.status ?? null);

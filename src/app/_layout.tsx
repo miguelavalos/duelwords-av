@@ -15,6 +15,7 @@ export default function RootLayout() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
         <Stack.Screen name="word-duel/active-demo" />
+        <Stack.Screen name="word-duel/challenge" options={{ title: 'Word Duel — DuelWords AV' }} />
         <Stack.Screen name="word-duel/connected-runtime" />
         <Stack.Screen name="word-duel/lobby-demo" />
         <Stack.Screen name="word-duel/play-avi-demo" />

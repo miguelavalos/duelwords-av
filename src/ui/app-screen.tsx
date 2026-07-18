@@ -20,7 +20,7 @@ export function AppScreen({
   if (!scroll) {
     return (
       <SafeAreaView style={styles.safeArea}>
-        <View style={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}>
+        <View role="main" style={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}>
           {children}
         </View>
       </SafeAreaView>
@@ -30,6 +30,7 @@ export function AppScreen({
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
+        role="main"
         style={styles.scroll}
         contentContainerStyle={[styles.content, { gap: contentGap, paddingBottom: bottomInset }]}
         keyboardShouldPersistTaps="handled">

@@ -11,11 +11,11 @@ const fs = require('node:fs') as {
   readdirSync(
     path: string,
     options: { withFileTypes: true },
-  ): Array<{
+  ): {
     isDirectory(): boolean;
     isFile(): boolean;
     name: string;
-  }>;
+  }[];
 };
 
 const path = require('node:path') as {

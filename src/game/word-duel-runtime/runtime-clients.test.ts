@@ -144,10 +144,10 @@ describe('DuelWords composed runtime clients', () => {
 });
 
 type FakeConvexClient = DuelWordsConvexRealtimeClient & {
-  watches: Array<{
+  watches: {
     args: Record<string, unknown>;
     functionRef: unknown;
-  }>;
+  }[];
 };
 
 function fakeConvexClient(input: {

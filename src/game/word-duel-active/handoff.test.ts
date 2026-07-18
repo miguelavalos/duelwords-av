@@ -4,10 +4,10 @@ import {
   joinInvite,
   openRoundIfDue,
   pressReady,
+  createLocalInviteLobbyViewModel,
   viewInviteReview,
   viewLobbyAsHost,
 } from '../word-duel-lobby/view-model';
-import { createLocalInviteLobbyViewModel } from '../word-duel-lobby/view-model';
 import {
   createWordDuelActiveDemoHandoff,
   createWordDuelActiveHandoffFromLobby,

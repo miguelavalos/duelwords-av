@@ -4,7 +4,10 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 
 import type { GameLanguage } from '@/game/word-duel-engine';
 import { DuelWordsClientError } from '@/game/word-duel-active/api-adapter';
-import { createWordDuelActiveController } from '@/game/word-duel-active/controller';
+import {
+  createWordDuelActiveController,
+  type WordDuelActiveController,
+} from '@/game/word-duel-active/controller';
 import {
   createWordDuelActiveDemoHandoff,
   type WordDuelActiveHandoff,
@@ -20,6 +23,7 @@ import {
   type ActiveDuelReactionId,
   type ActiveDuelViewModel,
 } from '@/game/word-duel-active/view-model';
+import type { DuelWordsApiFinalResult } from '@/game/word-duel-lobby/api-client';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { colors, radii, spacing, typeScale } from '@/ui/theme';
@@ -42,16 +46,26 @@ const REACTION_LABELS: Record<ActiveDuelReactionId, string> = {
 };
 
 type ActiveDuelScreenProps = {
+  controller?: WordDuelActiveController;
   initialHandoff?: WordDuelActiveHandoff;
   initialGameLanguage?: GameLanguage;
+  onFinalResult?: (result: DuelWordsApiFinalResult) => void;
+  onLeave?: () => void;
 };
 
-export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: ActiveDuelScreenProps) {
+export function ActiveDuelScreen({
+  controller,
+  initialGameLanguage,
+  initialHandoff,
+  onFinalResult,
+  onLeave,
+}: ActiveDuelScreenProps) {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const clientRequestNumber = useRef(0);
   const isOpeningResultRef = useRef(false);
   const reactionRequestNumber = useRef(0);
+  const timedOutRoundRef = useRef<number | null>(null);
   const activeHandoff = useMemo(
     () => initialHandoff ?? createWordDuelActiveDemoHandoff({ gameLanguage: initialGameLanguage ?? 'en' }),
     [initialGameLanguage, initialHandoff],
@@ -59,11 +73,11 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
   const [muted, setMuted] = useState(false);
   const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionId | null>(null);
   const activeDuelController = useMemo(
-    () => createWordDuelActiveController({
+    () => controller ?? createWordDuelActiveController({
       handoff: activeHandoff,
       mode: 'local_mock',
     }),
-    [activeHandoff],
+    [activeHandoff, controller],
   );
   const [draft, setDraft] = useState('');
   const [isOpeningResult, setIsOpeningResult] = useState(false);
@@ -80,6 +94,32 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
     setStatusDetail('Rival ready');
     setViewModel(activeDuelController.getViewModel());
   }, [activeDuelController]);
+
+  useEffect(() => {
+    if (
+      activeDuelController.source !== 'apps_av_api'
+      || !isActiveDuelInputOpen(viewModel.ownRoundState)
+      || timedOutRoundRef.current === viewModel.roundNumber
+    ) {
+      return undefined;
+    }
+
+    const timeout = setTimeout(() => {
+      timedOutRoundRef.current = viewModel.roundNumber;
+      void activeDuelController.timeoutRound({ roundNumber: viewModel.roundNumber })
+        .then((result) => {
+          setViewModel(result.viewModel);
+          setDraft('');
+          setStatusDetail('Round timed out');
+        })
+        .catch(() => {
+          timedOutRoundRef.current = null;
+          setStatusDetail('Could not close timed-out round');
+        });
+    }, Math.max(0, viewModel.remainingSeconds * 1_000) + 100);
+
+    return () => clearTimeout(timeout);
+  }, [activeDuelController, viewModel.ownRoundState, viewModel.remainingSeconds, viewModel.roundNumber]);
 
   useEffect(() => {
     const unsubscribe = activeDuelController.subscribeActiveRoomView((projection) => {
@@ -139,9 +179,11 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
       setViewModel(result.viewModel);
       setDraft('');
       setStatusDetail('Submitted');
-      activeDuelController.publishLocalPlayerSubmittedProjection({
-        roundNumber: result.submission.roundNumber,
-      });
+      if (activeDuelController.source === 'local_mock') {
+        activeDuelController.publishLocalPlayerSubmittedProjection({
+          roundNumber: result.submission.roundNumber,
+        });
+      }
     } catch (error) {
       setStatusDetail(error instanceof DuelWordsClientError ? activeDuelErrorLabel(error.code) : 'Try again');
     }
@@ -169,6 +211,12 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
     setStatusDetail('Opening result');
 
     try {
+      if (onFinalResult) {
+        const finalResult = await activeDuelController.getFinalResult();
+        onFinalResult(finalResult);
+        return;
+      }
+
       const handoff = await finalizeActiveWordDuelResult(viewModel, { mode: 'human_duel' });
 
       router.push(buildWordDuelResultHandoffHref({
@@ -192,6 +240,31 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
     }
   }
 
+  async function syncRound() {
+    try {
+      const snapshot = await activeDuelController.refreshOwnRoundSnapshot({
+        roundNumber: viewModel.roundNumber,
+      });
+      setViewModel(snapshot.viewModel);
+      setStatusDetail(snapshot.feedbackAvailable ? 'Feedback ready' : 'Waiting for rival');
+    } catch {
+      setStatusDetail('Could not sync round');
+    }
+  }
+
+  async function openNextRound() {
+    try {
+      const result = await activeDuelController.openNextRoundIfDue({
+        roundNumber: viewModel.roundNumber,
+      });
+      setViewModel(result.viewModel);
+      setDraft('');
+      setStatusDetail(result.advanced ? 'Next round ready' : 'Round still resolving');
+    } catch {
+      setStatusDetail('Could not open next round');
+    }
+  }
+
   return (
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
       <View style={styles.header}>
@@ -199,7 +272,7 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
           <Text style={styles.kicker}>Duel</Text>
           <Text style={styles.title}>Word Duel</Text>
         </View>
-        <AppButton tone="quiet" onPress={() => router.back()} style={styles.leaveButton}>
+        <AppButton tone="quiet" onPress={onLeave ?? (() => router.back())} style={styles.leaveButton}>
           Leave
         </AppButton>
       </View>
@@ -240,14 +313,27 @@ export function ActiveDuelScreen({ initialGameLanguage, initialHandoff }: Active
         <Text style={styles.stateDetail}>{statusDetail}</Text>
       </View>
 
-      <AppButton
-        disabled={isOpeningResult}
-        tone="quiet"
-        onPress={() => {
-          void openFinalResult();
-        }}>
-        {isOpeningResult ? 'Opening...' : 'Open final result'}
-      </AppButton>
+      <View style={styles.progressActions}>
+        {activeDuelController.source === 'apps_av_api' ? (
+          <>
+            <AppButton tone="secondary" onPress={() => void syncRound()} style={styles.progressButton}>
+              Sync round
+            </AppButton>
+            <AppButton tone="secondary" onPress={() => void openNextRound()} style={styles.progressButton}>
+              Next round
+            </AppButton>
+          </>
+        ) : null}
+        <AppButton
+          disabled={isOpeningResult}
+          tone="quiet"
+          onPress={() => {
+            void openFinalResult();
+          }}
+          style={styles.progressButton}>
+          {isOpeningResult ? 'Opening...' : 'Open final result'}
+        </AppButton>
+      </View>
 
       <ReactionTray
         activeReaction={activeReaction}
@@ -488,6 +574,15 @@ const styles = StyleSheet.create({
   },
   leaveButton: {
     minWidth: 82,
+  },
+  progressActions: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  progressButton: {
+    flexGrow: 1,
+    flexBasis: 116,
   },
   timerRow: {
     minHeight: 58,

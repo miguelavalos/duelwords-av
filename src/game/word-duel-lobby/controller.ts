@@ -93,6 +93,14 @@ export type WordDuelLobbyController = {
     nowMs: number;
     state: WordDuelLobbyControllerState;
   }): Promise<WordDuelLobbyControllerState>;
+  previewInviteByRoomCode(input: {
+    nowMs: number;
+    roomCode: string;
+  }): Promise<WordDuelLobbyControllerState>;
+  previewInviteByToken(input: {
+    inviteToken: string;
+    nowMs: number;
+  }): Promise<WordDuelLobbyControllerState>;
   refreshLobby(input: {
     nowMs: number;
     state: WordDuelLobbyControllerState;
@@ -292,6 +300,12 @@ function createLocalMockLobbyController(): WordDuelLobbyController {
         nowMs: input.nowMs,
       }));
     },
+    async previewInviteByRoomCode(input) {
+      return localInviteReviewState(input.nowMs);
+    },
+    async previewInviteByToken(input) {
+      return localInviteReviewState(input.nowMs);
+    },
     async refreshLobby(input) {
       return input.state;
     },
@@ -331,6 +345,8 @@ function createDisabledRuntimeLobbyController(): WordDuelLobbyController {
     joinInviteByToken: reject,
     markReady: reject,
     openFirstRoundIfDue: reject,
+    previewInviteByRoomCode: reject,
+    previewInviteByToken: reject,
     refreshLobby: reject,
     viewAsHost: reject,
     viewAsRecipient: reject,
@@ -429,6 +445,14 @@ function createAppsApiLobbyController(apiClient: DuelWordsApiClient): WordDuelLo
       const response = await apiClient.openFirstRoundIfDue({ gameId });
       return stateFromApiGame(response.game, input.state, input.nowMs);
     },
+    async previewInviteByRoomCode(input) {
+      const { invite } = await apiClient.getRoomCodePreview({ roomCode: input.roomCode });
+      return stateFromApiInvitePreview(invite, input.nowMs);
+    },
+    async previewInviteByToken(input) {
+      const { invite } = await apiClient.getInvitePreview({ inviteToken: input.inviteToken });
+      return stateFromApiInvitePreview(invite, input.nowMs);
+    },
     async refreshLobby(input) {
       const session = requireApiPlayerSession(input.state);
       const response = await apiClient.getLobby({
@@ -457,6 +481,74 @@ function createAppsApiLobbyController(apiClient: DuelWordsApiClient): WordDuelLo
         lobby: viewInviteReview(input.state.lobby, input.nowMs),
       };
     },
+  };
+}
+
+function localInviteReviewState(nowMs: number): WordDuelLobbyControllerState {
+  const hostState = createLocalMockWordDuelLobbyControllerState({
+    gameLanguage: 'en',
+    nowMs,
+  });
+
+  return {
+    ...hostState,
+    lobby: viewInviteReview(hostState.lobby, nowMs),
+    session: {
+      ...hostState.session,
+      actor: null,
+      playerId: null,
+      side: 'b',
+    },
+  };
+}
+
+function stateFromApiInvitePreview(
+  invite: DuelWordsApiInvitePreview,
+  nowMs: number,
+): WordDuelLobbyControllerState {
+  return {
+    lobby: deriveWordDuelLobbyViewModel({
+      activeRound: null,
+      adSlot: {
+        reserved: true,
+        visible: true,
+      },
+      countdown: null,
+      invitePreview: invitePreviewFromApi(invite, 'invite_review', nowMs),
+      players: [
+        {
+          isViewer: false,
+          role: 'host',
+          safeDisplayName: invite.hostSafeDisplayName,
+          side: 'a',
+          state: 'joined',
+        },
+        {
+          isViewer: true,
+          role: 'recipient',
+          safeDisplayName: 'Guest',
+          side: 'b',
+          state: 'waiting',
+        },
+      ],
+      readyBySide: {
+        a: false,
+        b: false,
+      },
+      status: 'invite_review',
+      viewerRole: 'recipient',
+      viewerSide: 'b',
+    }, nowMs),
+    realtime: null,
+    session: {
+      actor: null,
+      apiInvite: invite,
+      gameId: null,
+      inviteToken: invite.inviteToken,
+      playerId: null,
+      side: 'b',
+    },
+    source: 'apps_av_api',
   };
 }
 

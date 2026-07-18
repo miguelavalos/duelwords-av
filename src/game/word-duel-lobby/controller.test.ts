@@ -231,6 +231,113 @@ describe('Word Duel lobby controller', () => {
     expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('player-b');
   });
 
+  it('previews an invite without joining and only mutates after explicit confirmation', async () => {
+    const player = {
+      actorType: 'guest_session',
+      guestSessionId: 'guest-b',
+      safeDisplayName: 'Rival',
+    } as const;
+    const recorder = createFetchRecorder([
+      jsonResponse({ invite: invitePayload() }),
+      jsonResponse({
+        invite: invitePayload({
+          joinAvailability: 'viewer_already_joined',
+          playerCount: 2,
+        }),
+        lobby: lobbyPayload({
+          game: safeGamePayload({ players: bothJoinedPlayers() }),
+          viewer: {
+            isHost: false,
+            playerId: 'player-b',
+            side: 'b',
+          },
+        }),
+      }),
+    ]);
+    const runtimeApiClient = createDuelWordsRuntimeApiClient({
+      fetchImpl: recorder.fetch,
+      runtimeConfig: {
+        apiBaseUrl: 'https://api.test',
+        disabledReason: null,
+        provider: 'apps_av_api',
+      },
+    });
+    const controller = createWordDuelLobbyController({ mode: 'runtime', runtimeApiClient });
+
+    const preview = await controller.previewInviteByToken({
+      inviteToken: 'dwr_room_1',
+      nowMs: NOW_MS,
+    });
+
+    expect(preview).toMatchObject({
+      lobby: {
+        canJoin: true,
+        status: 'invite_review',
+        viewerRole: 'recipient',
+      },
+      session: {
+        actor: null,
+        gameId: null,
+        inviteToken: 'dwr_room_1',
+        playerId: null,
+        side: 'b',
+      },
+      source: 'apps_av_api',
+    });
+    expect(recorder.calls).toHaveLength(1);
+    expect(recorder.calls[0]).toMatchObject({
+      body: undefined,
+      method: 'GET',
+      url: 'https://api.test/v1/apps/duelwords/invites/dwr_room_1',
+    });
+
+    const joined = await controller.joinInvite({
+      nowMs: NOW_MS + 1_000,
+      player,
+      state: preview,
+    });
+
+    expect(joined.lobby.status).toBe('lobby');
+    expect(joined.lobby.viewerRole).toBe('recipient');
+    expect(recorder.calls).toHaveLength(2);
+    expect(recorder.calls[1]).toMatchObject({
+      body: { player },
+      method: 'POST',
+      url: 'https://api.test/v1/apps/duelwords/invites/dwr_room_1/join',
+    });
+  });
+
+  it('resolves a room code to the same safe invite-review state', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({ invite: invitePayload() }),
+    ]);
+    const runtimeApiClient = createDuelWordsRuntimeApiClient({
+      fetchImpl: recorder.fetch,
+      runtimeConfig: {
+        apiBaseUrl: 'https://api.test',
+        disabledReason: null,
+        provider: 'apps_av_api',
+      },
+    });
+    const controller = createWordDuelLobbyController({ mode: 'runtime', runtimeApiClient });
+
+    const preview = await controller.previewInviteByRoomCode({
+      nowMs: NOW_MS,
+      roomCode: 'ABCD-1234',
+    });
+
+    expect(preview.lobby).toMatchObject({
+      canJoin: true,
+      status: 'invite_review',
+    });
+    expect(recorder.calls).toEqual([
+      expect.objectContaining({
+        method: 'GET',
+        url: 'https://api.test/v1/apps/duelwords/room-codes/ABCD-1234',
+      }),
+    ]);
+  });
+
   it('keeps Ready and start commands behind Apps AV API authority', async () => {
     const countdownEndsAt = '2026-07-05T10:00:08.000Z';
     const recorder = createFetchRecorder([

@@ -14,28 +14,32 @@ export type UseDuelWordsRuntimeClientsInput = DuelWordsRuntimeClientsInput;
 export function useDuelWordsRuntimeClients(
   input: UseDuelWordsRuntimeClientsInput = {},
 ): DuelWordsRuntimeClientsBundle {
-  const appsApiRuntimeConfig = input.appsApiRuntimeConfig ?? getDuelWordsAppsApiRuntimeConfig();
+  const appsApiRuntimeConfig = useMemo(
+    () => input.appsApiRuntimeConfig ?? getDuelWordsAppsApiRuntimeConfig(),
+    [input.appsApiRuntimeConfig],
+  );
   const createConvexClient = input.createConvexClient ?? createDuelWordsConvexReactClient;
-  const realtimeRuntimeConfig = input.realtimeRuntimeConfig ?? getDuelWordsRealtimeRuntimeConfig();
+  const realtimeRuntimeConfig = useMemo(
+    () => input.realtimeRuntimeConfig ?? getDuelWordsRealtimeRuntimeConfig(),
+    [input.realtimeRuntimeConfig],
+  );
 
   const bundle = useMemo(
     () => createDuelWordsRuntimeClients({
-      ...input,
       appsApiRuntimeConfig,
       createConvexClient,
+      fetchImpl: input.fetchImpl,
+      getAuthToken: input.getAuthToken,
+      platform: input.platform,
       realtimeRuntimeConfig,
     }),
     [
-      appsApiRuntimeConfig.apiBaseUrl,
-      appsApiRuntimeConfig.disabledReason,
-      appsApiRuntimeConfig.provider,
+      appsApiRuntimeConfig,
       createConvexClient,
       input.fetchImpl,
       input.getAuthToken,
       input.platform,
-      realtimeRuntimeConfig.convexUrl,
-      realtimeRuntimeConfig.disabledReason,
-      realtimeRuntimeConfig.provider,
+      realtimeRuntimeConfig,
     ],
   );
 

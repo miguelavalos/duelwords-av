@@ -25,6 +25,7 @@ import { wordDuelResultRepositories } from './result-repositories';
 
 export const WORD_DUEL_ROUTE_PATHS = {
   active: '/word-duel/active-demo',
+  challenge: '/word-duel/challenge',
   lobby: '/word-duel/lobby-demo',
   playAvi: '/word-duel/play-avi-demo',
   practice: '/word-duel/practice',

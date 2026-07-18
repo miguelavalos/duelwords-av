@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest';
 import {
   createDuelWordsApiClient,
   DUELWORDS_APPS_AV_APP_ID,
-  DuelWordsApiError,
 } from './api-client';
 
 const GUEST_ACTOR = {

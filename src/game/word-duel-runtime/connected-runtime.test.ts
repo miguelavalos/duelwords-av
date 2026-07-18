@@ -143,10 +143,10 @@ type FetchCall = {
 };
 
 type FakeConvexClient = DuelWordsConvexRealtimeClient & {
-  watches: Array<{
+  watches: {
     args: Record<string, unknown>;
     functionRef: unknown;
-  }>;
+  }[];
 };
 
 function activeRuntimeLobbyState(input: {
