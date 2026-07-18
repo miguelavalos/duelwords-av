@@ -23,6 +23,7 @@ export function SettingsScreen() {
           <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
         </View>
         <AppButton
+          style={styles.doneButton}
           tone="quiet"
           onPress={() => router.replace('/play')}>
           {t(interfaceLocale, 'done')}
@@ -119,12 +120,18 @@ function Option({
 
 function useSettingsStyles() {
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const usesCompactHeader = width <= 360;
+
   return useMemo(() => StyleSheet.create({
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: usesCompactHeader ? 'column' : 'row',
+    alignItems: usesCompactHeader ? 'stretch' : 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
+  },
+  doneButton: {
+    alignSelf: usesCompactHeader ? 'flex-end' : 'auto',
   },
   headerCopy: {
     flex: 1,
@@ -201,5 +208,5 @@ function useSettingsStyles() {
     fontWeight: '800',
     textTransform: 'uppercase',
   },
-  }), [colors]);
+  }), [colors, usesCompactHeader]);
 }

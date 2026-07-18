@@ -29,7 +29,7 @@ export function PlayScreen() {
   return (
     <AppScreen>
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerCopy}>
           <View style={styles.wordmark}>
             <Text aria-level={1} accessibilityRole="header" style={styles.brand}>DuelWords</Text>
             <Text style={styles.brandAccent}>AV</Text>
@@ -160,6 +160,10 @@ function usePlayStyles() {
     gap: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
+  },
+  headerCopy: {
+    flex: 1,
+    minWidth: 0,
   },
   wordmark: {
     flexDirection: 'row',
