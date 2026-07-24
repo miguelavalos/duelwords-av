@@ -4,7 +4,7 @@ const englishCopy = {
   accept: 'Accept',
   activeDuel: 'Active duel',
   almost: 'Almost',
-  apiDisabled: 'Apps AV API disabled',
+  apiDisabled: 'Live connection not configured',
   attempts: 'Attempts',
   back: 'Back',
   bothReady: 'Both players are ready.',
@@ -55,7 +55,7 @@ const englishCopy = {
   noRematch: 'No rematch request yet.',
   offline: 'Offline',
   online: 'Online',
-  onlineUnavailable: 'Online challenges are unavailable in this build',
+  onlineUnavailable: 'Live challenges are not ready in this build',
   openFinalResult: 'Open final result',
   opening: 'Opening…',
   openingResult: 'Opening result',
@@ -64,7 +64,7 @@ const englishCopy = {
   playAgain: 'Play again',
   ready: 'Ready',
   readyLocked: 'Ready is locked.',
-  realtimeDisabled: 'Realtime disabled',
+  realtimeDisabled: 'Live updates not configured',
   reconnecting: 'Reconnecting',
   refresh: 'Refresh',
   refreshLobby: 'Refresh lobby',
@@ -99,7 +99,7 @@ const englishCopy = {
   roundReadyTitle: 'Round 1 is ready',
   roundResolving: 'Round still resolving',
   roundTimedOut: 'Round timed out',
-  runtimeDescription: 'DuelWords stays offline unless both the Apps AV API and safe realtime configuration are enabled.',
+  runtimeDescription: 'Practice and Play Avi work fully offline. Live rooms will open when the secure challenge connection is included in a release.',
   safeRealtimeUnavailable: 'Safe realtime is not ready',
   shareInvite: 'Share invite',
   shareResult: 'Share result',
@@ -150,38 +150,42 @@ const germanCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
 };
 
 Object.assign(spanishCopyDraft, {
+  apiDisabled: 'Conexión en directo no configurada',
   couldNotCloseTimeout: 'No se pudo cerrar la ronda agotada',
   couldNotOpenDuel: 'No se pudo abrir el duelo en directo de forma segura. Actualiza la sala e inténtalo de nuevo.',
   couldNotOpenNext: 'No se pudo abrir la siguiente ronda',
   couldNotOpenResult: 'No se pudo abrir el resultado',
   couldNotSync: 'No se pudo sincronizar la ronda',
+  onlineUnavailable: 'Los retos en directo aún no están listos en esta versión',
+  realtimeDisabled: 'Actualizaciones en directo no configuradas',
+  runtimeDescription: 'Práctica y Jugar con Avi funcionan sin conexión. Las salas en directo se abrirán cuando una versión incluya la conexión segura de retos.',
   safeRealtimeUnavailable: 'El realtime seguro no está preparado',
 });
 
 Object.assign(catalanCopyDraft, {
-  apiDisabled: 'API d’Apps AV desactivada',
-  onlineUnavailable: 'Els reptes en línia no estan disponibles en aquesta compilació',
-  realtimeDisabled: 'Realtime desactivat',
+  apiDisabled: 'Connexió en directe no configurada',
+  onlineUnavailable: 'Els reptes en directe encara no estan preparats en aquesta versió',
+  realtimeDisabled: 'Actualitzacions en directe no configurades',
   roomNameHelp: 'Només s’utilitza per a aquest repte. No cal cap compte.',
-  runtimeDescription: 'DuelWords roman sense connexió tret que estiguin habilitades l’API d’Apps AV i la configuració segura de realtime.',
+  runtimeDescription: 'Pràctica i Jugar amb l’Avi funcionen sense connexió. Les sales en directe s’obriran quan una versió inclogui la connexió segura de reptes.',
   safeRealtimeUnavailable: 'El realtime segur no està preparat',
 });
 
 Object.assign(frenchCopyDraft, {
-  apiDisabled: 'API Apps AV désactivée',
-  onlineUnavailable: 'Les défis en ligne ne sont pas disponibles dans cette version',
-  realtimeDisabled: 'Temps réel désactivé',
+  apiDisabled: 'Connexion en direct non configurée',
+  onlineUnavailable: 'Les défis en direct ne sont pas encore prêts dans cette version',
+  realtimeDisabled: 'Mises à jour en direct non configurées',
   roomNameHelp: 'Utilisé uniquement pour ce défi. Aucun compte requis.',
-  runtimeDescription: 'DuelWords reste hors ligne tant que l’API Apps AV et la configuration temps réel sécurisée ne sont pas activées.',
+  runtimeDescription: 'Entraînement et Jouer contre Avi fonctionnent hors ligne. Les salons en direct s’ouvriront lorsqu’une version inclura la connexion sécurisée.',
   safeRealtimeUnavailable: 'Le temps réel sécurisé n’est pas prêt',
 });
 
 Object.assign(germanCopyDraft, {
-  apiDisabled: 'Apps-AV-API deaktiviert',
-  onlineUnavailable: 'Online-Herausforderungen sind in diesem Build nicht verfügbar',
-  realtimeDisabled: 'Echtzeit deaktiviert',
+  apiDisabled: 'Live-Verbindung nicht konfiguriert',
+  onlineUnavailable: 'Live-Herausforderungen sind in dieser Version noch nicht bereit',
+  realtimeDisabled: 'Live-Aktualisierungen nicht konfiguriert',
   roomNameHelp: 'Wird nur für diese Herausforderung verwendet. Kein Konto erforderlich.',
-  runtimeDescription: 'DuelWords bleibt offline, solange die Apps-AV-API und die sichere Echtzeitkonfiguration nicht aktiviert sind.',
+  runtimeDescription: 'Training und Gegen Avi funktionieren offline. Live-Räume öffnen, sobald eine Version die sichere Duellverbindung enthält.',
   safeRealtimeUnavailable: 'Sichere Echtzeit ist noch nicht bereit',
 });
 

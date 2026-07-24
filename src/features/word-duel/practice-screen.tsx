@@ -13,9 +13,12 @@ import {
   type LocalWordDuelState,
   WORD_DUEL_WORD_LENGTH,
 } from '@/game/word-duel-engine';
+import { experienceCopy } from '@/i18n/experience-copy';
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { AviArtwork, InkEyebrow } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
@@ -37,6 +40,8 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = experienceCopy(interfaceLocale);
   const styles = usePracticeStyles();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
@@ -98,7 +103,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     const result = applyGuess(gameState, input, dictionary);
 
     if (!result.accepted) {
-      setMessage(rejectionMessage(result.rejection));
+      setMessage(rejectionMessage(result.rejection, interfaceLocale));
       return;
     }
 
@@ -157,41 +162,48 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       contentGap={compactViewport ? spacing.md : spacing.lg}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.kicker}>{t('en', 'localOnly')}</Text>
-          <Text style={styles.title}>{t('en', 'wordDuel')}</Text>
+          <InkEyebrow>{t(interfaceLocale, 'localOnly')}</InkEyebrow>
+          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.practice}</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>
-          Close
+          {t(interfaceLocale, 'done')}
         </AppButton>
       </View>
 
-      <View style={styles.languageRow}>
-        {GAME_LANGUAGES.map((language) => {
-          const selected = language.code === gameLanguage;
-          return (
-            <Pressable
-              key={language.code}
-              accessibilityRole="button"
-              onPress={() => reset(language.code, 0)}
-              style={[styles.languageButton, selected && styles.languageButtonSelected]}>
-              <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
-                {language.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.gameSettings}>
+        <Text style={styles.gameSettingsLabel}>⚙︎ {copy.gameSettings} · {copy.gameLanguage}</Text>
+        <View style={styles.languageRow}>
+          {GAME_LANGUAGES.map((language) => {
+            const selected = language.code === gameLanguage;
+            return (
+              <Pressable
+                key={language.code}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => reset(language.code, 0)}
+                style={[styles.languageButton, selected && styles.languageButtonSelected]}>
+                <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
+                  {language.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <View style={styles.statusRow}>
         <View>
-          <Text style={styles.statusLabel}>{t('en', 'attempts')}</Text>
+          <Text style={styles.statusLabel}>{t(interfaceLocale, 'attempts')}</Text>
           <Text style={styles.statusValue}>
             {summary.attemptsUsed}/{summary.maxAttempts}
           </Text>
         </View>
-        <View style={styles.statusRight}>
-          <Text style={styles.statusLabel}>Language</Text>
-          <Text style={styles.statusValue}>{gameState.language.toUpperCase()}</Text>
+        <View style={styles.aviStatus}>
+          <AviArtwork size={42} />
+          <View style={styles.statusRight}>
+            <Text style={styles.statusLabel}>{copy.avi}</Text>
+            <Text style={styles.aviNote}>{copy.practiceDetail}</Text>
+          </View>
         </View>
       </View>
 
@@ -205,10 +217,10 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       <View style={[styles.messageArea, compactViewport && styles.messageAreaCompact]}>
         {message ? <Text style={styles.errorText}>{message}</Text> : null}
         {gameState.status === 'won' ? (
-          <ResultLine label={t('en', 'won')} target={targetEntry.displayWord} />
+          <ResultLine label={t(interfaceLocale, 'won')} target={targetEntry.displayWord} />
         ) : null}
         {gameState.status === 'lost' ? (
-          <ResultLine label={t('en', 'lost')} target={targetEntry.displayWord} />
+          <ResultLine label={t(interfaceLocale, 'lost')} target={targetEntry.displayWord} />
         ) : null}
       </View>
 
@@ -223,7 +235,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
             {isOpeningResult ? 'Opening...' : 'Open result'}
           </AppButton>
           <AppButton onPress={() => reset(gameLanguage, gameIndex + 1)} style={styles.actionButton}>
-            {t('en', 'newGame')}
+            {t(interfaceLocale, 'newGame')}
           </AppButton>
         </View>
       ) : null}
@@ -248,17 +260,17 @@ function buildGame(language: GameLanguage, index: number): LocalWordDuelState {
   });
 }
 
-function rejectionMessage(rejection: GuessRejection): string {
+function rejectionMessage(rejection: GuessRejection, locale: Parameters<typeof t>[0]): string {
   if (rejection === 'not_enough_letters') {
-    return t('en', 'notEnoughLetters');
+    return t(locale, 'notEnoughLetters');
   }
   if (rejection === 'too_many_letters') {
-    return t('en', 'tooManyLetters');
+    return t(locale, 'tooManyLetters');
   }
   if (rejection === 'game_over') {
     return 'This local game is finished';
   }
-  return t('en', 'invalidWord');
+  return t(locale, 'invalidWord');
 }
 
 function ResultLine({ label, target }: { label: string; target: string }) {
@@ -280,12 +292,6 @@ function usePracticeStyles() {
     justifyContent: 'space-between',
     gap: spacing.md,
   },
-  kicker: {
-    color: colors.accent,
-    fontSize: typeScale.tiny,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
   title: {
     color: colors.text,
     fontSize: typeScale.title,
@@ -295,6 +301,8 @@ function usePracticeStyles() {
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  gameSettings: { gap: spacing.xs },
+  gameSettingsLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
   languageButton: {
     flex: 1,
     minHeight: 42,
@@ -328,7 +336,22 @@ function usePracticeStyles() {
     paddingHorizontal: spacing.md,
   },
   statusRight: {
+    flex: 1,
     alignItems: 'flex-end',
+  },
+  aviStatus: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: spacing.sm,
+  },
+  aviNote: {
+    maxWidth: 160,
+    color: colors.textMuted,
+    fontSize: typeScale.tiny,
+    fontWeight: '700',
+    textAlign: 'right',
   },
   statusLabel: {
     color: colors.textMuted,

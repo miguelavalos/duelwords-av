@@ -25,17 +25,22 @@ result. Lobby, active-duel, result,
 Solo/Daily, Play Avi, and connected-runtime engineering previews remain
 available by direct internal route when they are not linked from Play.
 
-Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
-(system/light/dark) are versioned local preferences. Web uses browser
+Interface language (EN/ES/CA/FR/DE) and appearance (system/light/dark) are
+versioned local preferences. Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
-The shell, Play, Settings, and public challenge/lobby/game/result/rematch path
-react to these preferences. English, Spanish, Catalan, French, and German each
+The Home screen deliberately has no word-language selector. EN/ES word
+language is selected within a compact Game settings section in Challenge,
+Practice, or Play Avi; it applies only to that game and Challenge locks it when
+the room is created. The shell, Settings, and public
+challenge/lobby/game/result/rematch path react to their applicable choices.
+English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
-The native shell now includes splash, onboarding with guest skip, Account AV
-sign-in/create-account entry, Account, Settings, and an honest DuelWords Pro
-preview with no purchase call. Opening a new invite while the Challenge screen
+The native shell now includes a paper-and-ink branded splash, onboarding with
+guest skip, Account AV sign-in/create-account entry, Account, Settings, an
+adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords Pro preview
+with no purchase call. Opening a new invite while the Challenge screen
 is already mounted replaces the previous invite instead of reusing stale room
 state, and guests receive a local editable room alias by default.
 

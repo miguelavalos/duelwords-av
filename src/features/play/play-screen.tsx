@@ -4,7 +4,6 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { GAME_LANGUAGES } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AviArtwork, ChromeButton, DuelWordsWordmark, InkEyebrow, PaperCard } from '@/ui/brand';
@@ -13,7 +12,7 @@ import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 export function PlayScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const [preferences, setPreferences] = useAppPreferences();
+  const [preferences] = useAppPreferences();
   const { gameLanguage, interfaceLocale } = preferences;
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
@@ -39,25 +38,6 @@ export function PlayScreen() {
       <View style={styles.heroCopy}>
         <InkEyebrow>{copy.home}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.homeTitle}</Text>
-      </View>
-
-      <View style={styles.languageBlock}>
-        <Text style={styles.sectionLabel}>{copy.gameLanguage}</Text>
-        <View style={styles.segmented}>
-          {GAME_LANGUAGES.map((language) => {
-            const selected = language.code === gameLanguage;
-            return (
-              <Pressable
-                key={language.code}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => setPreferences((current) => ({ ...current, gameLanguage: language.code }))}
-                style={[styles.segment, selected && styles.segmentSelected]}>
-                <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{language.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
       </View>
 
       <ModeCard
@@ -167,13 +147,6 @@ function useStyles() {
     headerActions: { flexDirection: 'row', gap: spacing.sm },
     heroCopy: { gap: spacing.xs, paddingTop: spacing.sm },
     title: { maxWidth: 620, color: colors.text, fontFamily: 'Georgia', fontSize: 38, lineHeight: 42, fontWeight: '700', letterSpacing: -1.3 },
-    languageBlock: { gap: spacing.sm },
-    sectionLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
-    segmented: { flexDirection: 'row', padding: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: radii.md, backgroundColor: colors.surface },
-    segment: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 10 },
-    segmentSelected: { backgroundColor: colors.accent },
-    segmentText: { color: colors.textMuted, fontWeight: '800' },
-    segmentTextSelected: { color: colors.onAccent },
     modeGrid: { gap: spacing.lg },
     modeGridWide: { flexDirection: 'row' },
     modeGridItem: { flex: 1 },

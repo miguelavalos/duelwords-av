@@ -39,7 +39,7 @@ export function ProScreen() {
       <PaperCard>
         <SectionHeading
           title={isPro ? 'Your access' : signedIn ? 'Purchases are not active in this build' : 'Account AV required'}
-          detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'No StoreKit or RevenueCat sheet will be shown until the real offering and access reconciliation are verified.' : 'Sign in first so any future subscription belongs to your Apps AV identity.'}
+          detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'Subscriptions are not offered yet. Your account and local games remain unchanged.' : 'Sign in first so a future subscription can belong to your Apps AV identity.'}
         />
         {isPro ? (
           <>
@@ -56,7 +56,7 @@ export function ProScreen() {
         )}
       </PaperCard>
 
-      <Text style={styles.legal}>A future purchasing build must show the real localized App Store price, restore access through the approved provider path, and wait for Apps AV confirmation before unlocking Pro.</Text>
+      <Text style={styles.legal}>When subscriptions become available, this screen will show the App Store price and offer a clear way to restore access. Pro never changes the rules of a duel.</Text>
     </AppScreen>
   );
 }

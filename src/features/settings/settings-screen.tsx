@@ -5,7 +5,7 @@ import { useMemo } from 'react';
 import { Linking, Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import { experienceCopy } from '@/i18n/experience-copy';
-import { GAME_LANGUAGES, INTERFACE_LOCALES, t } from '@/i18n/locales';
+import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -24,7 +24,7 @@ export function SettingsScreen() {
   const router = useRouter();
   const styles = useStyles();
   const [preferences, setPreferences] = useAppPreferences();
-  const { appearance, gameLanguage, hapticsEnabled, interfaceLocale } = preferences;
+  const { appearance, hapticsEnabled, interfaceLocale } = preferences;
   const copy = experienceCopy(interfaceLocale);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
@@ -51,15 +51,6 @@ export function SettingsScreen() {
         <View style={styles.optionList}>
           {INTERFACE_LOCALES.map((locale) => (
             <Option key={locale.code} label={locale.label} selected={locale.code === interfaceLocale} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, interfaceLocale: locale.code }))} />
-          ))}
-        </View>
-      </PaperCard>
-
-      <PaperCard>
-        <SectionHeading title={t(interfaceLocale, 'gameLanguage')} detail="Default for new local games and challenges. Active games keep their locked language." />
-        <View style={styles.optionList}>
-          {GAME_LANGUAGES.map((language) => (
-            <Option key={language.code} label={language.label} selected={language.code === gameLanguage} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, gameLanguage: language.code }))} />
           ))}
         </View>
       </PaperCard>

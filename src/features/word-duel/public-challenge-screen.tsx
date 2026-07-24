@@ -28,10 +28,12 @@ import {
 import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-result/view-model';
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
+import { experienceCopy } from '@/i18n/experience-copy';
 import type { InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { ActiveDuelScreen } from './active-duel-screen';
@@ -63,6 +65,7 @@ export function PublicWordDuelChallengeScreen({
   const interfaceLocale = initialInterfaceLocale ?? preferences.interfaceLocale;
   const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
     publicDuelT(interfaceLocale, key, values);
+  const experience = experienceCopy(interfaceLocale);
   const runtime = useDuelWordsRuntimeClients({ getAuthToken: account.getToken });
   const controller = useMemo(
     () => createWordDuelLobbyController({ mode: 'runtime', runtimeApiClient: runtime.appsApi }),
@@ -535,6 +538,7 @@ export function PublicWordDuelChallengeScreen({
         <>
           <View style={styles.panel}>
             <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
+            <Text style={styles.inputLabel}>⚙︎ {experience.gameSettings} · {experience.gameLanguage}</Text>
             <View style={styles.segmented}>
               {(['en', 'es'] as const).map((language) => {
                 const selected = language === gameLanguage;
@@ -837,10 +841,13 @@ function RuntimeUnavailable({ interfaceLocale, reason }: { interfaceLocale: Inte
   const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
   return (
     <View style={styles.unavailableBox}>
-      <Text aria-level={2} accessibilityRole="header" style={styles.unavailableTitle}>{copy('onlineUnavailable')}</Text>
-      <Text style={styles.unavailableText}>
-        {copy('runtimeDescription')}
-      </Text>
+      <View style={styles.unavailableRow}>
+        <AviArtwork size={62} source={aviAssets.warning} />
+        <View style={styles.unavailableCopy}>
+          <Text aria-level={2} accessibilityRole="header" style={styles.unavailableTitle}>{copy('onlineUnavailable')}</Text>
+          <Text style={styles.unavailableText}>{copy('runtimeDescription')}</Text>
+        </View>
+      </View>
       <Text style={styles.runtimeReason}>{runtimeReasonLabel(interfaceLocale, reason)}</Text>
     </View>
   );
@@ -913,6 +920,8 @@ function usePublicChallengeStyles() {
   segmentTextSelected: { color: colors.onAccent },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   unavailableBox: { gap: spacing.sm, borderRadius: radii.md, backgroundColor: colors.pressureSoft, padding: spacing.lg },
+  unavailableRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  unavailableCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
   unavailableTitle: { color: colors.pressure, fontSize: typeScale.lead, fontWeight: '900' },
   unavailableText: { color: colors.text, fontSize: typeScale.small, lineHeight: 19 },
   runtimeReason: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '800', textTransform: 'uppercase' },

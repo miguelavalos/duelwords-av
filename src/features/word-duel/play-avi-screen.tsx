@@ -15,7 +15,9 @@ import {
   type AviBotReactionId,
 } from '@/game/word-duel-bot/view-model';
 import type { WordDuelResultOutcome, WordDuelResultReason } from '@/game/word-duel-result/view-model';
+import { experienceCopy } from '@/i18n/experience-copy';
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork } from '@/ui/brand';
@@ -45,6 +47,8 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = experienceCopy(interfaceLocale);
   const styles = usePlayAviStyles();
   const isOpeningResultRef = useRef(false);
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
@@ -207,21 +211,25 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         </AppButton>
       </View>
 
-      <View style={styles.languageRow}>
-        {GAME_LANGUAGES.map((language) => {
-          const selected = language.code === gameLanguage;
-          return (
-            <Pressable
-              key={language.code}
-              accessibilityRole="button"
-              onPress={() => changeLanguage(language.code)}
-              style={[styles.languageButton, selected && styles.languageButtonSelected]}>
-              <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
-                {language.label}
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View style={styles.gameSettings}>
+        <Text style={styles.gameSettingsLabel}>⚙︎ {copy.gameSettings} · {copy.gameLanguage}</Text>
+        <View style={styles.languageRow}>
+          {GAME_LANGUAGES.map((language) => {
+            const selected = language.code === gameLanguage;
+            return (
+              <Pressable
+                key={language.code}
+                accessibilityRole="button"
+                accessibilityState={{ selected }}
+                onPress={() => changeLanguage(language.code)}
+                style={[styles.languageButton, selected && styles.languageButtonSelected]}>
+                <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
+                  {language.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
       </View>
 
       <View style={styles.timerRow}>
@@ -547,6 +555,8 @@ function usePlayAviStyles() {
     flexDirection: 'row',
     gap: spacing.sm,
   },
+  gameSettings: { gap: spacing.xs },
+  gameSettingsLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
   languageButton: {
     flex: 1,
     minHeight: 42,

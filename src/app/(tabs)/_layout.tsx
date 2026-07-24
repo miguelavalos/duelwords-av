@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { Image } from 'expo-image';
-import { StyleSheet, useWindowDimensions, View } from 'react-native';
+import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs/types';
+import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
@@ -49,6 +50,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <DuelWordsTabBar {...props} copy={copy} colors={colors} tablet={tablet} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
@@ -103,6 +105,80 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+  );
+}
+
+type AppColors = ReturnType<typeof useAppTheme>['colors'];
+
+function DuelWordsTabBar({
+  colors,
+  copy,
+  descriptors,
+  insets,
+  navigation,
+  state,
+  tablet,
+}: BottomTabBarProps & {
+  colors: AppColors;
+  copy: ReturnType<typeof experienceCopy>;
+  tablet: boolean;
+}) {
+  const labels: Record<string, string> = {
+    avi: copy.avi,
+    play: copy.home,
+    rivals: copy.rivals,
+    stats: copy.stats,
+  };
+
+  return (
+    <View
+      accessibilityRole="tablist"
+      style={[
+        styles.customTabBar,
+        tablet ? styles.customTabBarTablet : styles.customTabBarPhone,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          paddingTop: tablet ? insets.top + 16 : 8,
+          paddingBottom: tablet ? Math.max(insets.bottom, 18) : Math.max(insets.bottom, 8),
+        },
+      ]}>
+      {state.routes.map((route, index) => {
+        const focused = state.index === index;
+        const label = labels[route.name] ?? String(descriptors[route.key].options.title ?? route.name);
+        const color = focused ? colors.accent : colors.textMuted;
+
+        function onPress() {
+          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+          if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+        }
+
+        return (
+          <Pressable
+            key={route.key}
+            accessibilityLabel={label}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: focused }}
+            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+            onPress={onPress}
+            style={({ pressed }) => [
+              styles.customTabItem,
+              tablet ? styles.customTabItemTablet : styles.customTabItemPhone,
+              focused && { backgroundColor: colors.surfaceSoft },
+              pressed && styles.customTabItemPressed,
+            ]}>
+            {route.name === 'avi' ? (
+              <View style={[styles.aviIconFrame, focused && { borderColor: colors.accent, backgroundColor: colors.surfaceSoft }]}>
+                <Image source={aviAssets.footer} contentFit="contain" style={styles.aviIcon} />
+              </View>
+            ) : (
+              <TabIcon color={color} kind={route.name === 'play' ? 'home' : route.name === 'rivals' ? 'rivals' : 'stats'} />
+            )}
+            <Text numberOfLines={1} style={[styles.customTabLabel, { color }]}>{label}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }
 
@@ -185,4 +261,37 @@ const styles = StyleSheet.create({
     marginVertical: 3,
     borderRadius: 14,
   },
+  customTabBar: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  customTabBarTablet: {
+    width: 232,
+    borderTopWidth: 0,
+    borderRightWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    gap: 4,
+  },
+  customTabBarPhone: {
+    minHeight: 72,
+    flexDirection: 'row',
+    paddingHorizontal: 6,
+  },
+  customTabItem: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 14,
+  },
+  customTabItemTablet: {
+    minHeight: 54,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 14,
+    paddingHorizontal: 14,
+  },
+  customTabItemPhone: {
+    flex: 1,
+    gap: 4,
+  },
+  customTabItemPressed: { opacity: 0.62 },
+  customTabLabel: { fontSize: 12, fontWeight: '800' },
 });

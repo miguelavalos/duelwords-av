@@ -20,12 +20,12 @@ export function DailyScreen() {
         <AviArtwork size={138} source={aviAssets.warning} />
         <View style={styles.heroCopy}>
           <InkEyebrow>{copy.daily}</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>One official word. Not a local substitute.</Text>
-          <Text style={[styles.detail, { color: colors.textMuted }]}>Daily is deliberately unavailable until the server-owned target, accepted guesses, result, and date policy are connected. Practice and Play Avi remain fully local.</Text>
+          <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>Today&apos;s duel is taking a little longer.</Text>
+          <Text style={[styles.detail, { color: colors.textMuted }]}>Daily will open when the official word service is ready. In the meantime, Practice and Play Avi are available offline.</Text>
         </View>
       </View>
       <PaperCard emphasized>
-        <SectionHeading title="Why this is different" detail="Daily must fetch one server-selected challenge for the chosen language. The app will never silently replace it with a bundled target." />
+        <SectionHeading title="One word, fair for everyone" detail="Daily uses one server-selected word for every player in the chosen language. It never swaps in a different local target." />
         <AppButton onPress={() => router.back()}>Back to Home</AppButton>
       </PaperCard>
     </AppScreen>
