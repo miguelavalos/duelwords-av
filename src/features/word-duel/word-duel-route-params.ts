@@ -28,10 +28,10 @@ export const WORD_DUEL_ROUTE_PATHS = {
   active: '/word-duel/active-demo',
   challenge: '/word-duel/challenge',
   lobby: '/word-duel/lobby-demo',
-  playAvi: '/word-duel/play-avi-demo',
+  playAvi: '/word-duel/play-avi',
   practice: '/word-duel/practice',
   result: '/word-duel/result-demo',
-  soloDaily: '/word-duel/solo-daily-demo',
+  soloDaily: '/word-duel/daily',
 } as const;
 
 export type WordDuelRoutePath = (typeof WORD_DUEL_ROUTE_PATHS)[keyof typeof WORD_DUEL_ROUTE_PATHS];

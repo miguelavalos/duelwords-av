@@ -11,13 +11,15 @@ describe('app preference schema', () => {
     expect(parseAppPreferences({
       appearance: 'dark',
       gameLanguage: 'es',
+      hapticsEnabled: false,
       interfaceLocale: 'ca',
-      version: 1,
+      version: 2,
     })).toEqual({
       appearance: 'dark',
       gameLanguage: 'es',
+      hapticsEnabled: false,
       interfaceLocale: 'ca',
-      version: 1,
+      version: 2,
     });
   });
 
@@ -26,7 +28,7 @@ describe('app preference schema', () => {
       appearance: 'provider-theme',
       gameLanguage: 'ca',
       interfaceLocale: 'xx',
-      version: 1,
+      version: 2,
     })).toEqual(DEFAULT_APP_PREFERENCES);
   });
 
@@ -36,7 +38,22 @@ describe('app preference schema', () => {
       appearance: 'dark',
       gameLanguage: 'es',
       interfaceLocale: 'es',
-      version: 2,
+      version: 3,
     }))).toEqual(DEFAULT_APP_PREFERENCES);
+  });
+
+  it('migrates the V1 preference shape with haptics enabled by default', () => {
+    expect(parseAppPreferences({
+      appearance: 'light',
+      gameLanguage: 'es',
+      interfaceLocale: 'es',
+      version: 1,
+    })).toEqual({
+      appearance: 'light',
+      gameLanguage: 'es',
+      hapticsEnabled: true,
+      interfaceLocale: 'es',
+      version: 2,
+    });
   });
 });

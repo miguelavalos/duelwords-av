@@ -49,7 +49,7 @@ function setAppPreferences(
   const value = typeof next === 'function' ? next(current) : next;
   cachedPreferences = {
     ...value,
-    version: 1,
+    version: 2,
   };
 
   if (typeof localStorage !== 'undefined') {

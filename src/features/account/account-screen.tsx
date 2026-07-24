@@ -3,69 +3,95 @@ import { useMemo } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AccountScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
   const [{ interfaceLocale }] = useAppPreferences();
+  const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const signedIn = account.user !== null;
 
   return (
-    <AppScreen>
+    <AppScreen bottomInset={spacing.xxl}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <Text style={styles.kicker}>Account AV</Text>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>Account</Text>
-          <Text style={styles.subtitle}>{signedIn ? 'Your DuelWords identity and access.' : 'Play instantly as a guest, or sign in when you want durable features.'}</Text>
+          <DuelWordsWordmark compact />
+          <InkEyebrow>Account AV</InkEyebrow>
+          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
+          <Text style={styles.subtitle}>{signedIn ? 'Your identity, continuity, and DuelWords access.' : 'Play locally as a guest. Sign in only when account continuity adds value.'}</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>Done</AppButton>
       </View>
 
-      <View style={styles.identityCard}>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{signedIn ? initials(account.user?.displayName) : 'G'}</Text></View>
-        <View style={styles.identityCopy}>
-          <Text style={styles.identityName}>{account.user?.displayName ?? 'Guest player'}</Text>
-          <Text style={styles.identityDetail}>{account.user?.email ?? (account.available ? 'Account AV ready' : 'Account AV unavailable in this build')}</Text>
+      <PaperCard emphasized>
+        <View style={styles.identityRow}>
+          <View style={styles.avatar}><Text style={styles.avatarText}>{signedIn ? initials(account.user?.displayName) : 'G'}</Text></View>
+          <View style={styles.identityCopy}>
+            <Text style={styles.identityName}>{account.user?.displayName ?? 'Guest player'}</Text>
+            <Text selectable={signedIn} style={styles.identityDetail}>{account.user?.email ?? accountStatusDetail(account.status, account.available)}</Text>
+          </View>
+          <View style={styles.badge}><Text style={styles.badgeText}>{account.access.planTier === 'pro' ? 'PRO' : signedIn ? 'FREE' : 'GUEST'}</Text></View>
         </View>
-        <View style={styles.badge}><Text style={styles.badgeText}>{account.access.planTier === 'pro' ? 'PRO' : signedIn ? 'FREE' : 'GUEST'}</Text></View>
-      </View>
+        {!signedIn ? (
+          <View style={styles.buttonRow}>
+            <AppButton disabled={!account.available} style={styles.flexButton} onPress={() => router.push('/auth?mode=signUp' as Href)}>Create account</AppButton>
+            <AppButton disabled={!account.available} tone="secondary" style={styles.flexButton} onPress={() => router.push('/auth?mode=signIn' as Href)}>Sign in</AppButton>
+          </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <AppButton tone="secondary" style={styles.flexButton} onPress={() => void account.refresh()}>Refresh access</AppButton>
+            <AppButton tone="quiet" style={styles.flexButton} onPress={() => void account.signOut()}>Sign out</AppButton>
+          </View>
+        )}
+      </PaperCard>
 
-      {!signedIn ? (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{account.status === 'account_error' ? 'Account needs a refresh' : 'Keep your progress'}</Text>
-          <Text style={styles.subtitle}>{account.status === 'account_error' ? 'Your secure sign-in exists, but Account AV could not verify the internal user yet.' : 'Account AV will own future stats, rival shortcuts, restored history, and DuelWords Pro access.'}</Text>
-          {account.status === 'account_error' ? (
-            <AppButton onPress={() => void account.refresh()}>Try again</AppButton>
-          ) : (
-            <AppButton disabled={!account.available} onPress={() => router.push('/auth' as Href)}>Create account or sign in</AppButton>
-          )}
+      <PaperCard>
+        <SectionHeading title="Continuity" detail={signedIn ? 'Account AV has verified this identity. DuelWords history sync remains disabled until its account-backed store ships.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
+        <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Cached · offline' : 'Connected') : 'Guest · local'} />
+        <InfoRow label="Game history" value={signedIn ? 'Local in this build' : 'Local only'} />
+        <InfoRow label="Rivals" value={signedIn ? 'Account surface prepared' : 'Sign-in required'} />
+      </PaperCard>
+
+      <PaperCard emphasized>
+        <View style={styles.aviPlanRow}>
+          <AviArtwork size={84} />
+          <View style={styles.aviPlanCopy}>
+            <InkEyebrow>DuelWords Pro</InkEyebrow>
+            <Text style={styles.cardTitle}>{account.access.planTier === 'pro' ? 'Pro is active' : 'More history. Same fair game.'}</Text>
+            <Text style={styles.cardDetail}>No ads and deeper private limits. Never hints, extra time, or extra attempts.</Text>
+          </View>
         </View>
-      ) : (
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account controls</Text>
-          <AppButton tone="secondary" onPress={() => void account.refresh()}>Refresh access</AppButton>
-          <AppButton tone="quiet" onPress={() => void account.signOut()}>Sign out</AppButton>
+        <AppButton onPress={() => router.push('/pro' as Href)}>{account.access.planTier === 'pro' ? 'View Pro access' : 'Explore DuelWords Pro'}</AppButton>
+      </PaperCard>
+
+      <PaperCard>
+        <SectionHeading title="Preferences & account safety" detail="Settings stay device-local. Account deletion follows the secure Account AV workflow." />
+        <View style={styles.buttonRow}>
+          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/settings')}>{copy.settings}</AppButton>
+          <AppButton tone="quiet" style={styles.flexButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/')}>Delete account</AppButton>
         </View>
-      )}
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>DuelWords Pro</Text>
-        <Text style={styles.subtitle}>No ads and deeper private history, without changing gameplay fairness.</Text>
-        <AppButton onPress={() => router.push('/pro' as Href)}>{account.access.planTier === 'pro' ? 'View Pro access' : 'Explore Pro'}</AppButton>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Preferences & safety</Text>
-        <AppButton tone="secondary" onPress={() => router.push('/settings')}>Settings · {interfaceLocale.toUpperCase()}</AppButton>
-        <AppButton tone="quiet" onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/')}>Delete account information</AppButton>
-      </View>
+      </PaperCard>
     </AppScreen>
   );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  const styles = useStyles();
+  return <View style={styles.infoRow}><Text style={styles.infoLabel}>{label}</Text><Text style={styles.infoValue}>{value}</Text></View>;
+}
+
+function accountStatusDetail(status: string, available: boolean) {
+  if (!available) return 'Account AV unavailable in this build';
+  if (status === 'account_error') return 'Account needs a secure refresh';
+  if (status === 'loading') return 'Checking Account AV…';
+  return 'No account required for local play';
 }
 
 function initials(name: string | null | undefined) {
@@ -77,19 +103,25 @@ function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
     header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-    headerCopy: { flex: 1, gap: spacing.xs },
-    kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
-    title: { color: colors.text, fontSize: 34, fontWeight: '900', letterSpacing: -1 },
-    subtitle: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
-    identityCard: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, padding: spacing.lg, borderRadius: radii.lg, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-    avatar: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent },
-    avatarText: { color: colors.onAccent, fontSize: typeScale.lead, fontWeight: '900' },
-    identityCopy: { flex: 1, minWidth: 0 },
+    headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, fontWeight: '700', letterSpacing: -1 },
+    subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
+    identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    avatar: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent, transform: [{ rotate: '-2deg' }] },
+    avatarText: { color: colors.onAccent, fontFamily: 'Georgia', fontSize: typeScale.lead, fontWeight: '700' },
+    identityCopy: { flex: 1, minWidth: 0, gap: 2 },
     identityName: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
     identityDetail: { color: colors.textMuted, fontSize: typeScale.small },
     badge: { borderRadius: 99, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs, backgroundColor: colors.secondarySoft },
     badgeText: { color: colors.text, fontSize: typeScale.tiny, fontWeight: '900' },
-    section: { gap: spacing.md, paddingTop: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-    sectionTitle: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
+    buttonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+    flexButton: { flexBasis: 160, flexGrow: 1 },
+    infoRow: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.lg, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+    infoLabel: { color: colors.textMuted, fontSize: typeScale.small, fontWeight: '700' },
+    infoValue: { flex: 1, color: colors.text, fontSize: typeScale.small, fontWeight: '800', textAlign: 'right' },
+    aviPlanRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+    aviPlanCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    cardTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: typeScale.subtitle, fontWeight: '700' },
+    cardDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
   }), [colors]);
 }

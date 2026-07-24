@@ -1,58 +1,90 @@
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function ProScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
   const styles = useStyles();
   const isPro = account.access.planTier === 'pro';
+  const signedIn = account.user !== null;
+
   return (
-    <AppScreen>
-      <View style={styles.header}>
-        <View style={styles.crown}><Text style={styles.crownText}>AV</Text></View>
-        <Text style={styles.kicker}>DuelWords Pro</Text>
-        <Text accessibilityRole="header" aria-level={1} style={styles.title}>{isPro ? 'Pro is active' : 'More history. Same fair game.'}</Text>
-        <Text style={styles.subtitle}>Pro removes ads and expands private limits. It never adds hints, attempts, time, or competitive advantage.</Text>
+    <AppScreen bottomInset={spacing.xxl}>
+      <View style={styles.topBar}><DuelWordsWordmark compact /><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
+
+      <View style={styles.hero}>
+        <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
+        <View style={styles.heroCopy}>
+          <InkEyebrow>DuelWords Pro</InkEyebrow>
+          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{isPro ? 'Pro is active.' : 'More of your story. None of the unfair stuff.'}</Text>
+          <Text style={styles.subtitle}>Pro can remove ads and expand private continuity. It never changes the word, timer, attempts, or feedback.</Text>
+        </View>
       </View>
-      <View style={styles.card}>
-        {['No ads', 'Deeper private result history', 'Higher documented invite limits', 'Account-backed restore when available'].map((benefit) => (
-          <View key={benefit} style={styles.benefit}><Text style={styles.check}>✓</Text><Text style={styles.benefitText}>{benefit}</Text></View>
-        ))}
-      </View>
-      {isPro ? (
-        <AppButton onPress={() => router.back()}>Done</AppButton>
-      ) : account.user ? (
-        <>
-          <AppButton disabled>Purchases coming in a later verified build</AppButton>
-          <Text style={styles.legal}>No StoreKit or RevenueCat purchase is started by this build.</Text>
-        </>
-      ) : (
-        <AppButton disabled={!account.available} onPress={() => router.replace('/auth' as Href)}>Sign in to continue</AppButton>
-      )}
-      <AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton>
+
+      <PaperCard emphasized>
+        <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
+        <Benefit title="No ads" detail="Keep Home and post-result surfaces quiet when Pro access is active." />
+        <Benefit title="Deeper private history" detail="Retain more finalized summaries without exposing full boards publicly." />
+        <Benefit title="Higher documented limits" detail="More challenge continuity without more than one active realtime game." />
+        <Benefit title="Account-backed access" detail="Apps AV remains the durable entitlement authority." />
+      </PaperCard>
+
+      <PaperCard>
+        <SectionHeading
+          title={isPro ? 'Your access' : signedIn ? 'Purchases are not active in this build' : 'Account AV required'}
+          detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'No StoreKit or RevenueCat sheet will be shown until the real offering and access reconciliation are verified.' : 'Sign in first so any future subscription belongs to your Apps AV identity.'}
+        />
+        {isPro ? (
+          <>
+            <AppButton onPress={() => router.back()}>Done</AppButton>
+            <AppButton tone="quiet" onPress={() => void Linking.openURL('https://apps.apple.com/account/subscriptions')}>Manage Apple subscriptions</AppButton>
+          </>
+        ) : signedIn ? (
+          <>
+            <AppButton disabled>Offering unavailable</AppButton>
+            <AppButton tone="quiet" onPress={() => void account.refresh()}>Refresh Apps AV access</AppButton>
+          </>
+        ) : (
+          <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>Sign in to continue</AppButton>
+        )}
+      </PaperCard>
+
+      <Text style={styles.legal}>A future purchasing build must show the real localized App Store price, restore access through the approved provider path, and wait for Apps AV confirmation before unlocking Pro.</Text>
     </AppScreen>
+  );
+}
+
+function Benefit({ detail, title }: { detail: string; title: string }) {
+  const styles = useStyles();
+  return (
+    <View style={styles.benefit}>
+      <View style={styles.check}><Text style={styles.checkText}>✓</Text></View>
+      <View style={styles.benefitCopy}><Text style={styles.benefitTitle}>{title}</Text><Text style={styles.benefitDetail}>{detail}</Text></View>
+    </View>
   );
 }
 
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-    header: { alignItems: 'center', gap: spacing.sm },
-    crown: { width: 72, height: 72, borderRadius: 36, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.secondary },
-    crownText: { color: colors.background, fontSize: 24, fontWeight: '900' },
-    kicker: { color: colors.secondary, fontSize: typeScale.small, fontWeight: '900', textTransform: 'uppercase' },
-    title: { maxWidth: 520, color: colors.text, fontSize: 32, fontWeight: '900', textAlign: 'center', letterSpacing: -1 },
-    subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 23, textAlign: 'center' },
-    card: { gap: spacing.md, padding: spacing.lg, borderRadius: radii.lg, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-    benefit: { flexDirection: 'row', gap: spacing.md, alignItems: 'center' },
-    check: { color: colors.accent, fontSize: typeScale.lead, fontWeight: '900' },
-    benefitText: { flex: 1, color: colors.text, fontSize: typeScale.body, fontWeight: '700' },
-    legal: { color: colors.textMuted, fontSize: typeScale.small, textAlign: 'center' },
+    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+    hero: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
+    heroCopy: { flex: 1, minWidth: 250, maxWidth: 560, gap: spacing.sm },
+    title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },
+    subtitle: { color: colors.textMuted, fontSize: typeScale.lead, lineHeight: 26 },
+    benefit: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingTop: spacing.sm, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
+    check: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: colors.accent },
+    checkText: { color: colors.onAccent, fontSize: 17, fontWeight: '900' },
+    benefitCopy: { flex: 1, gap: 2 },
+    benefitTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
+    benefitDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 18 },
+    legal: { maxWidth: 620, alignSelf: 'center', color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center' },
   }), [colors]);
 }

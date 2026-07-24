@@ -100,7 +100,7 @@ describe('DuelWords public Convex SDK boundary', () => {
     expect(routeParams).not.toContain('connected-runtime');
   });
 
-  it('keeps engineering previews out of the public V1 Play catalog', () => {
+  it('keeps engineering-only routes out while exposing accepted local V1 modes', () => {
     const playScreen = fs.readFileSync(
       path.join(process.cwd(), 'src/features/play/play-screen.tsx'),
       'utf8',
@@ -111,9 +111,10 @@ describe('DuelWords public Convex SDK boundary', () => {
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.lobby');
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.active');
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.result');
-    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.playAvi');
-    expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.soloDaily');
-    expect(playScreen).not.toContain('preview');
+    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.playAvi');
+    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.soloDaily');
+    expect(playScreen).not.toContain('play-avi-demo');
+    expect(playScreen).not.toContain('solo-daily-demo');
   });
 });
 

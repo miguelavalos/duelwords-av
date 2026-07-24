@@ -2,67 +2,47 @@ import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import {
-  buildWordDuelHref,
-  WORD_DUEL_ROUTE_PATHS,
-} from '@/features/word-duel/word-duel-route-params';
-import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
+import { experienceCopy } from '@/i18n/experience-copy';
+import { GAME_LANGUAGES } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
+import { AviArtwork, ChromeButton, DuelWordsWordmark, InkEyebrow, PaperCard } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
-
-type ModeCardProps = {
-  ctaLabel: string;
-  description: string;
-  kind: 'duel' | 'practice';
-  onPress: () => void;
-  primary?: boolean;
-  title: string;
-};
 
 export function PlayScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const styles = usePlayStyles();
   const [preferences, setPreferences] = useAppPreferences();
   const { gameLanguage, interfaceLocale } = preferences;
+  const copy = experienceCopy(interfaceLocale);
+  const styles = useStyles();
+  const twoColumn = width >= 680;
+
   return (
-    <AppScreen>
+    <AppScreen bottomInset={spacing.xxl}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <View style={styles.wordmark}>
-            <Text aria-level={1} accessibilityRole="header" style={styles.brand}>DuelWords</Text>
-            <Text style={styles.brandAccent}>AV</Text>
-          </View>
-          <Text style={styles.subtitle}>{t(interfaceLocale, 'playSubtitle')}</Text>
+          <DuelWordsWordmark />
+          <Text style={styles.headerDetail}>{copy.homeDetail}</Text>
         </View>
         <View style={styles.headerActions}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Account"
-            onPress={() => router.push('/account' as Href)}
-            style={styles.settingsButton}>
-            <View style={styles.accountGlyph}>
-              <View style={styles.accountHead} />
-              <View style={styles.accountBody} />
-            </View>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t(interfaceLocale, 'settings')}
-            onPress={() => router.push('/settings')}
-            style={styles.settingsButton}>
-            <View style={styles.settingsGlyph}>
-              <View style={styles.settingsLine} />
-              <View style={[styles.settingsLine, styles.settingsLineMiddle]} />
-              <View style={styles.settingsLine} />
-            </View>
-          </Pressable>
+          <ChromeButton accessibilityLabel={copy.account} onPress={() => router.push('/account' as Href)}>
+            <AccountGlyph />
+          </ChromeButton>
+          <ChromeButton accessibilityLabel={copy.settings} onPress={() => router.push('/settings')}>
+            <SettingsGlyph />
+          </ChromeButton>
         </View>
       </View>
 
-      <View style={styles.selectorBlock}>
-        <Text style={styles.sectionLabel}>{t(interfaceLocale, 'gameLanguage')}</Text>
+      <View style={styles.heroCopy}>
+        <InkEyebrow>{copy.home}</InkEyebrow>
+        <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.homeTitle}</Text>
+      </View>
+
+      <View style={styles.languageBlock}>
+        <Text style={styles.sectionLabel}>{copy.gameLanguage}</Text>
         <View style={styles.segmented}>
           {GAME_LANGUAGES.map((language) => {
             const selected = language.code === gameLanguage;
@@ -71,14 +51,9 @@ export function PlayScreen() {
                 key={language.code}
                 accessibilityRole="button"
                 accessibilityState={{ selected }}
-                onPress={() => setPreferences((current) => ({
-                  ...current,
-                  gameLanguage: language.code,
-                }))}
+                onPress={() => setPreferences((current) => ({ ...current, gameLanguage: language.code }))}
                 style={[styles.segment, selected && styles.segmentSelected]}>
-                <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
-                  {language.label}
-                </Text>
+                <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>{language.label}</Text>
               </Pressable>
             );
           })}
@@ -86,319 +61,138 @@ export function PlayScreen() {
       </View>
 
       <ModeCard
-        compactAction={width < 520}
-        ctaLabel={t(interfaceLocale, 'start')}
-        title={t(interfaceLocale, 'challengeFriend')}
-        description={t(interfaceLocale, 'challengeDescription')}
-        kind="duel"
+        eyebrow="Live 1 vs 1"
+        title={copy.challenge}
+        detail={copy.challengeDetail}
         primary
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, {
-          gameLanguage,
-          interfaceLocale,
-          mode: 'human_duel',
-        }))}
+        mark="VS"
+        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}
       />
 
-      <ModeCard
-        compactAction={width < 520}
-        ctaLabel={t(interfaceLocale, 'startPractice')}
-        title={`${t(interfaceLocale, 'wordDuel')} ${t(interfaceLocale, 'practice')}`}
-        description={t(interfaceLocale, 'practiceDescription')}
-        kind="practice"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, {
-          gameLanguage,
-          mode: 'practice',
-        }))}
-      />
+      <View style={[styles.modeGrid, twoColumn && styles.modeGridWide]}>
+        <ModeCard
+          title={copy.playAvi}
+          detail={copy.playAviDetail}
+          mark="AV"
+          avi
+          compact={twoColumn}
+          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.playAvi, { gameLanguage, mode: 'bot_duel' }))}
+        />
+        <ModeCard
+          title={copy.practice}
+          detail={copy.practiceDetail}
+          mark="5×6"
+          compact={twoColumn}
+          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, { gameLanguage, mode: 'practice' }))}
+        />
+      </View>
+
+      <Pressable accessibilityRole="button" onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.soloDaily, { gameLanguage, mode: 'daily_preview' }))}>
+        {({ pressed }) => (
+          <PaperCard style={{ opacity: pressed ? 0.75 : 1 }}>
+            <View style={styles.dailyRow}>
+              <View style={styles.calendarMark}><Text style={styles.calendarNumber}>1</Text></View>
+              <View style={styles.dailyCopy}>
+                <Text style={styles.modeTitle}>{copy.daily}</Text>
+                <Text style={styles.modeDetail}>{copy.dailyDetail}</Text>
+              </View>
+              <Text style={styles.arrow}>→</Text>
+            </View>
+          </PaperCard>
+        )}
+      </Pressable>
+
+      <Pressable accessibilityRole="button" onPress={() => router.push('/avi' as Href)}>
+        {({ pressed }) => (
+          <PaperCard emphasized style={{ opacity: pressed ? 0.78 : 1 }}>
+            <View style={styles.aviBrief}>
+              <AviArtwork size={86} />
+              <View style={styles.aviBriefCopy}>
+                <InkEyebrow>Avi</InkEyebrow>
+                <Text style={styles.modeTitle}>{copy.aviBriefTitle}</Text>
+                <Text style={styles.modeDetail}>{copy.aviBriefDetail}</Text>
+              </View>
+            </View>
+          </PaperCard>
+        )}
+      </Pressable>
     </AppScreen>
   );
 }
 
-function ModeCard({ compactAction, ctaLabel, description, kind, onPress, primary = false, title }: ModeCardProps & { compactAction: boolean }) {
-  const styles = usePlayStyles();
+function ModeCard({ avi, compact, detail, eyebrow, mark, onPress, primary, title }: { avi?: boolean; compact?: boolean; detail: string; eyebrow?: string; mark: string; onPress: () => void; primary?: boolean; title: string }) {
+  const styles = useStyles();
+  const { colors } = useAppTheme();
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${title}. ${description}. ${ctaLabel}`}
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.modeCard,
-        primary && styles.modeCardPrimary,
-        pressed && styles.modeCardPressed,
-      ]}>
-      <ModeMark kind={kind} primary={primary} />
-      <View style={styles.modeText}>
-        <Text aria-level={2} accessibilityRole="header" style={[styles.modeTitle, primary && styles.modeTitlePrimary]}>{title}</Text>
-        <Text style={[styles.modeDescription, primary && styles.modeDescriptionPrimary]}>{description}</Text>
-      </View>
-      <View style={styles.modeAction}>
-        {compactAction ? null : (
-          <Text style={[styles.modeActionLabel, primary && styles.modeActionLabelPrimary]}>{ctaLabel}</Text>
-        )}
-        <View style={[styles.chevron, primary && styles.chevronPrimary]} />
-      </View>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${detail}`} onPress={onPress} style={compact && styles.modeGridItem}>
+      {({ pressed }) => (
+        <PaperCard emphasized={primary} style={{ minHeight: compact ? 190 : 132, opacity: pressed ? 0.76 : 1 }}>
+          <View style={styles.modeRow}>
+            {avi ? <AviArtwork size={72} /> : (
+              <View style={[styles.modeMark, { backgroundColor: primary ? colors.accent : colors.surfaceSoft, borderColor: primary ? colors.accent : colors.border }]}>
+                <Text style={[styles.modeMarkText, { color: primary ? colors.onAccent : colors.accent }]}>{mark}</Text>
+              </View>
+            )}
+            <View style={styles.modeCopy}>
+              {eyebrow ? <InkEyebrow>{eyebrow}</InkEyebrow> : null}
+              <Text style={styles.modeTitle}>{title}</Text>
+              <Text style={styles.modeDetail}>{detail}</Text>
+            </View>
+            <Text style={styles.arrow}>→</Text>
+          </View>
+        </PaperCard>
+      )}
     </Pressable>
   );
 }
 
-function ModeMark({ kind, primary }: { kind: 'duel' | 'practice'; primary: boolean }) {
-  const styles = usePlayStyles();
-  if (kind === 'practice') {
-    return (
-      <View style={[styles.modeIcon, primary && styles.modeIconPrimary]}>
-        <View style={styles.practiceGrid}>
-          {[0, 1, 2, 3].map((cell) => <View key={cell} style={[styles.practiceCell, primary && styles.practiceCellPrimary]} />)}
-        </View>
-      </View>
-    );
-  }
-
-  return (
-    <View style={[styles.modeIcon, primary && styles.modeIconPrimary]}>
-      <View style={[styles.duelBar, styles.duelBarLeft, primary && styles.duelBarPrimary]} />
-      <View style={[styles.duelDivider, primary && styles.duelDividerPrimary]} />
-      <View style={[styles.duelBar, styles.duelBarRight, primary && styles.duelBarPrimary]} />
-    </View>
-  );
+function AccountGlyph() {
+  const { colors } = useAppTheme();
+  const styles = useStyles();
+  return <View style={styles.glyph}><View style={[styles.glyphHead, { backgroundColor: colors.text }]} /><View style={[styles.glyphBody, { borderColor: colors.text }]} /></View>;
 }
 
-function usePlayStyles() {
+function SettingsGlyph() {
+  const { colors } = useAppTheme();
+  const styles = useStyles();
+  return <View style={styles.settingsGlyph}>{[18, 12, 18].map((size, index) => <View key={index} style={{ width: size, height: 2, borderRadius: 1, backgroundColor: colors.text, alignSelf: index === 1 ? 'flex-end' : 'auto' }} />)}</View>;
+}
+
+function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-    paddingTop: spacing.sm,
-    paddingBottom: spacing.sm,
-  },
-  headerCopy: {
-    flex: 1,
-    minWidth: 0,
-  },
-  wordmark: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-  },
-  brand: {
-    color: colors.text,
-    fontSize: 32,
-    fontWeight: '900',
-    letterSpacing: -1.2,
-  },
-  brandAccent: {
-    color: colors.accent,
-    fontSize: 28,
-    fontWeight: '700',
-    letterSpacing: -1,
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: typeScale.body,
-    marginTop: spacing.xs,
-    lineHeight: 21,
-  },
-  settingsButton: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 22,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  accountGlyph: {
-    width: 20,
-    height: 20,
-    alignItems: 'center',
-  },
-  accountHead: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-    backgroundColor: colors.text,
-  },
-  accountBody: {
-    position: 'absolute',
-    bottom: 0,
-    width: 17,
-    height: 9,
-    borderWidth: 2,
-    borderColor: colors.text,
-    borderBottomWidth: 0,
-    borderTopLeftRadius: 9,
-    borderTopRightRadius: 9,
-  },
-  settingsGlyph: {
-    width: 18,
-    gap: 4,
-  },
-  settingsLine: {
-    height: 2,
-    borderRadius: 1,
-    backgroundColor: colors.text,
-  },
-  settingsLineMiddle: {
-    width: 12,
-    alignSelf: 'flex-end',
-  },
-  selectorBlock: {
-    gap: spacing.sm,
-  },
-  sectionLabel: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '700',
-    textTransform: 'uppercase',
-  },
-  segmented: {
-    flexDirection: 'row',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    overflow: 'hidden',
-  },
-  segment: {
-    flex: 1,
-    minHeight: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentSelected: {
-    backgroundColor: colors.surfaceSoft,
-  },
-  segmentText: {
-    color: colors.textMuted,
-    fontWeight: '700',
-  },
-  segmentTextSelected: {
-    color: colors.accent,
-  },
-  modeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.lg,
-    minHeight: 126,
-    borderRadius: radii.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    padding: spacing.lg,
-  },
-  modeCardPrimary: {
-    borderColor: colors.accent,
-    backgroundColor: colors.accent,
-  },
-  modeCardPressed: {
-    opacity: 0.88,
-    transform: [{ scale: 0.992 }],
-  },
-  modeIcon: {
-    width: 52,
-    height: 52,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    backgroundColor: colors.surfaceSoft,
-  },
-  modeIconPrimary: {
-    backgroundColor: 'rgba(255,255,255,0.16)',
-  },
-  duelBar: {
-    position: 'absolute',
-    width: 9,
-    height: 25,
-    borderRadius: 3,
-    backgroundColor: colors.accent,
-  },
-  duelBarLeft: {
-    left: 13,
-    transform: [{ rotate: '-24deg' }],
-  },
-  duelBarRight: {
-    right: 13,
-    transform: [{ rotate: '24deg' }],
-  },
-  duelBarPrimary: {
-    backgroundColor: colors.onAccent,
-  },
-  duelDivider: {
-    width: 2,
-    height: 28,
-    borderRadius: 1,
-    backgroundColor: colors.border,
-  },
-  duelDividerPrimary: {
-    backgroundColor: 'rgba(255,255,255,0.42)',
-  },
-  practiceGrid: {
-    width: 28,
-    height: 28,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  practiceCell: {
-    width: 12,
-    height: 12,
-    borderRadius: 3,
-    backgroundColor: colors.accent,
-  },
-  practiceCellPrimary: {
-    backgroundColor: colors.onAccent,
-  },
-  modeText: {
-    flex: 1,
-    gap: spacing.xs,
-  },
-  modeTitle: {
-    color: colors.text,
-    fontSize: typeScale.subtitle,
-    fontWeight: '900',
-    letterSpacing: -0.45,
-  },
-  modeTitlePrimary: {
-    color: colors.onAccent,
-  },
-  modeDescription: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    lineHeight: 19,
-  },
-  modeDescriptionPrimary: {
-    color: colors.onAccent,
-    opacity: 0.8,
-  },
-  modeAction: {
-    alignItems: 'flex-end',
-    gap: spacing.sm,
-  },
-  modeActionLabel: {
-    color: colors.accent,
-    fontSize: typeScale.tiny,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  modeActionLabelPrimary: {
-    color: colors.onAccent,
-  },
-  chevron: {
-    width: 11,
-    height: 11,
-    borderRightWidth: 2,
-    borderTopWidth: 2,
-    borderColor: colors.accent,
-    transform: [{ rotate: '45deg' }],
-  },
-  chevronPrimary: {
-    borderColor: colors.onAccent,
-  },
+    header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
+    headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    headerDetail: { maxWidth: 520, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
+    headerActions: { flexDirection: 'row', gap: spacing.sm },
+    heroCopy: { gap: spacing.xs, paddingTop: spacing.sm },
+    title: { maxWidth: 620, color: colors.text, fontFamily: 'Georgia', fontSize: 38, lineHeight: 42, fontWeight: '700', letterSpacing: -1.3 },
+    languageBlock: { gap: spacing.sm },
+    sectionLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 1, textTransform: 'uppercase' },
+    segmented: { flexDirection: 'row', padding: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: radii.md, backgroundColor: colors.surface },
+    segment: { flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 10 },
+    segmentSelected: { backgroundColor: colors.accent },
+    segmentText: { color: colors.textMuted, fontWeight: '800' },
+    segmentTextSelected: { color: colors.onAccent },
+    modeGrid: { gap: spacing.lg },
+    modeGridWide: { flexDirection: 'row' },
+    modeGridItem: { flex: 1 },
+    modeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+    modeMark: { width: 68, height: 68, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderRadius: radii.md, transform: [{ rotate: '-2deg' }] },
+    modeMarkText: { fontFamily: 'Georgia', fontSize: 19, fontWeight: '700' },
+    modeCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    modeTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: typeScale.subtitle, fontWeight: '700', letterSpacing: -0.5 },
+    modeDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
+    arrow: { color: colors.accent, fontSize: 26, fontWeight: '500' },
+    dailyRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+    calendarMark: { width: 48, height: 48, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: colors.secondary, borderRadius: 12 },
+    calendarNumber: { color: colors.secondary, fontFamily: 'Georgia', fontSize: 23, fontWeight: '700' },
+    dailyCopy: { flex: 1, gap: 2 },
+    aviBrief: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+    aviBriefCopy: { flex: 1, gap: spacing.xs },
+    glyph: { width: 20, height: 20, alignItems: 'center' },
+    glyphHead: { width: 7, height: 7, borderRadius: 4 },
+    glyphBody: { position: 'absolute', bottom: 0, width: 18, height: 9, borderWidth: 2, borderBottomWidth: 0, borderTopLeftRadius: 9, borderTopRightRadius: 9 },
+    settingsGlyph: { width: 18, gap: 4 },
   }), [colors]);
 }

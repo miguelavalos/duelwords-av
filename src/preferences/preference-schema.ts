@@ -6,19 +6,21 @@ export type AppAppearance = 'dark' | 'light' | 'system';
 export type AppPreferences = {
   appearance: AppAppearance;
   gameLanguage: GameLanguage;
+  hapticsEnabled: boolean;
   interfaceLocale: InterfaceLocale;
-  version: 1;
+  version: 2;
 };
 
 export const DEFAULT_APP_PREFERENCES: AppPreferences = Object.freeze({
   appearance: 'system',
   gameLanguage: 'en',
+  hapticsEnabled: true,
   interfaceLocale: 'en',
-  version: 1,
+  version: 2,
 });
 
 export function parseAppPreferences(value: unknown): AppPreferences {
-  if (!isRecord(value) || value.version !== 1) {
+  if (!isRecord(value) || (value.version !== 1 && value.version !== 2)) {
     return DEFAULT_APP_PREFERENCES;
   }
 
@@ -27,10 +29,15 @@ export function parseAppPreferences(value: unknown): AppPreferences {
     gameLanguage: isGameLanguage(value.gameLanguage)
       ? value.gameLanguage
       : DEFAULT_APP_PREFERENCES.gameLanguage,
+    hapticsEnabled: value.version === 1
+      ? DEFAULT_APP_PREFERENCES.hapticsEnabled
+      : typeof value.hapticsEnabled === 'boolean'
+        ? value.hapticsEnabled
+        : DEFAULT_APP_PREFERENCES.hapticsEnabled,
     interfaceLocale: isInterfaceLocale(value.interfaceLocale)
       ? value.interfaceLocale
       : DEFAULT_APP_PREFERENCES.interfaceLocale,
-    version: 1,
+    version: 2,
   };
 }
 

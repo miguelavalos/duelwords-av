@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, Share, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
 import {
@@ -217,8 +217,6 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 
       {shareVisible ? <SharePreview result={result} /> : null}
 
-      {result.adSlot.visible ? <ResultAdSlot /> : null}
-
       {sourceMode === 'human_duel' ? (
         <RematchPanel
           result={result}
@@ -342,19 +340,11 @@ function SharePreview({ result }: { result: WordDuelResultViewModel }) {
   const styles = useResultStyles();
   return (
     <View style={styles.shareBox}>
-      <Text style={styles.shareTitle}>Share preview</Text>
+      <Text style={styles.shareTitle}>Share result</Text>
       <Text selectable style={styles.shareText}>
         {result.safeSharePreview.text}
       </Text>
-    </View>
-  );
-}
-
-function ResultAdSlot() {
-  const styles = useResultStyles();
-  return (
-    <View style={styles.adSlot}>
-      <Text style={styles.adText}>Ad</Text>
+      <AppButton tone="secondary" onPress={() => void Share.share({ message: result.safeSharePreview.text })}>Open share sheet</AppButton>
     </View>
   );
 }

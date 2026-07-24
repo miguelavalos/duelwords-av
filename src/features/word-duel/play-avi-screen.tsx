@@ -18,6 +18,7 @@ import type { WordDuelResultOutcome, WordDuelResultReason } from '@/game/word-du
 import { GAME_LANGUAGES, t } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { AviArtwork } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
@@ -198,7 +199,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       contentGap={compactViewport ? spacing.sm : spacing.md}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.kicker}>Local bot preview</Text>
+          <Text style={styles.kicker}>Offline duel</Text>
           <Text style={styles.title}>Play Avi</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>
@@ -277,13 +278,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         </View>
       ) : null}
 
-      {viewModel.adSlot.visible ? (
-        <View style={styles.adSlot}>
-          <Text style={styles.adLabel}>Ad preview</Text>
-          <Text style={styles.adText}>Post-result slot</Text>
-        </View>
-      ) : null}
-
       {viewModel.status !== 'active' ? (
         <View style={styles.actionRow}>
           <AppButton
@@ -334,9 +328,12 @@ function OpponentSummary({
   return (
     <View style={styles.opponentStrip}>
       <View style={styles.opponentTopRow}>
-        <View>
-          <Text style={styles.metaLabel}>Opponent</Text>
-          <Text style={styles.opponentName}>Avi · Bot Normal</Text>
+        <View style={styles.opponentIdentity}>
+          <AviArtwork size={54} />
+          <View>
+            <Text style={styles.metaLabel}>Opponent</Text>
+            <Text style={styles.opponentName}>Avi · Normal</Text>
+          </View>
         </View>
         <View style={styles.presencePill}>
           <Text style={styles.presenceText}>{opponentStateLabel(roundState)}</Text>
@@ -624,6 +621,11 @@ function usePlayAviStyles() {
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: spacing.md,
+  },
+  opponentIdentity: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
   },
   opponentName: {
     color: colors.text,

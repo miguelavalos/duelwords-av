@@ -1,5 +1,5 @@
 import { AuthView } from '@clerk/expo/native';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,8 +10,11 @@ import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AuthScreen() {
   const router = useRouter();
+  const { mode: modeParam } = useLocalSearchParams<{ mode?: string | string[] }>();
   const account = useDuelWordsAccount();
   const styles = useStyles();
+  const mode = (Array.isArray(modeParam) ? modeParam[0] : modeParam) === 'signUp' ? 'signUp' : 'signIn';
+  const title = mode === 'signUp' ? 'Create your Account AV account' : 'Sign in to Account AV';
 
   useEffect(() => {
     if (account.status === 'signed_in') router.replace('/account' as Href);
@@ -22,13 +25,13 @@ export function AuthScreen() {
       <View style={styles.header}>
         <View style={styles.headerCopy}>
           <Text style={styles.kicker}>Account AV</Text>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>Sign in or create an account</Text>
+          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>Keep future DuelWords history, rivals, and Pro access tied to your Apps AV account.</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton>
       </View>
       {account.available ? (
-        <View style={styles.auth}><AuthView isDismissible mode="signInOrUp" onDismiss={() => router.back()} /></View>
+        <View style={styles.auth}><AuthView isDismissible mode={mode} onDismiss={() => router.back()} /></View>
       ) : (
         <View style={styles.unavailable}>
           <Text style={styles.unavailableTitle}>Account AV is unavailable in this build</Text>

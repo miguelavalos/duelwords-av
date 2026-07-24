@@ -1,97 +1,63 @@
-import { useMemo } from 'react';
+import { useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
+import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
+import { experienceCopy } from '@/i18n/experience-copy';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
-import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { AppButton } from '@/ui/buttons';
+import { DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function StatsScreen() {
-  const styles = useStatsStyles();
+  const router = useRouter();
+  const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
+  const copy = experienceCopy(interfaceLocale);
+  const { colors } = useAppTheme();
+
   return (
-    <AppScreen>
+    <AppScreen bottomInset={spacing.xxl}>
+      <DuelWordsWordmark compact />
       <View style={styles.header}>
-        <Text style={styles.title}>Stats</Text>
-        <Text style={styles.subtitle}>Durable results come after the authoritative game API.</Text>
+        <InkEyebrow>{copy.stats}</InkEyebrow>
+        <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>Your results stay yours.</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>This build shows only finalized official summaries. Local training never pretends to be ranked history.</Text>
       </View>
 
       <View style={styles.grid}>
         <StatTile label="Official duels" value="0" />
-        <StatTile label="Daily streak" value="-" />
-        <StatTile label="Best duel" value="-" />
+        <StatTile label="Daily streak" value="—" />
+        <StatTile label="Best duel" value="—" />
       </View>
 
-      <View style={styles.panel}>
-        <Text style={styles.panelText}>
-          Local practice is for engine validation only. It does not create official history,
-          achievements, rivals, or shareable results.
-        </Text>
-      </View>
+      <PaperCard emphasized>
+        <SectionHeading title="Start with a real local round" detail="Practice teaches the same five-letter, six-attempt board without creating fake official stats." />
+        <AppButton onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, { gameLanguage, mode: 'practice' }))}>{copy.openPractice}</AppButton>
+      </PaperCard>
+
+      <PaperCard>
+        <SectionHeading title="What will count" detail="Finalized human duels, Play Avi summaries, and Daily results remain distinguishable. Full private boards are not made public." />
+      </PaperCard>
     </AppScreen>
   );
 }
 
 function StatTile({ label, value }: { label: string; value: string }) {
-  const styles = useStatsStyles();
+  const { colors } = useAppTheme();
   return (
-    <View style={styles.tile}>
-      <Text style={styles.value}>{value}</Text>
-      <Text style={styles.label}>{label}</Text>
-    </View>
+    <PaperCard style={styles.tile}>
+      <Text style={[styles.value, { color: colors.accent }]}>{value}</Text>
+      <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+    </PaperCard>
   );
 }
 
-function useStatsStyles() {
-  const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
-  header: {
-    gap: spacing.xs,
-  },
-  title: {
-    color: colors.text,
-    fontSize: typeScale.title,
-    fontWeight: '900',
-    letterSpacing: -0.7,
-  },
-  subtitle: {
-    color: colors.textMuted,
-    fontSize: typeScale.body,
-  },
-  grid: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    flexWrap: 'wrap',
-  },
-  tile: {
-    flex: 1,
-    minWidth: 160,
-    minHeight: 126,
-    justifyContent: 'center',
-    gap: spacing.xs,
-    borderRadius: radii.lg,
-    backgroundColor: colors.surface,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    padding: spacing.lg,
-  },
-  value: {
-    color: colors.accent,
-    fontSize: typeScale.title,
-    fontWeight: '900',
-    fontVariant: ['tabular-nums'],
-  },
-  label: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '700',
-  },
-  panel: {
-    borderRadius: radii.lg,
-    backgroundColor: colors.surfaceSoft,
-    padding: spacing.lg,
-  },
-  panelText: {
-    color: colors.text,
-    fontSize: typeScale.small,
-    lineHeight: 19,
-  },
-  }), [colors]);
-}
+const styles = StyleSheet.create({
+  header: { gap: spacing.xs },
+  title: { maxWidth: 620, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },
+  subtitle: { maxWidth: 620, fontSize: typeScale.body, lineHeight: 22 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
+  tile: { flex: 1, minWidth: 150, minHeight: 126, justifyContent: 'center' },
+  value: { fontFamily: 'Georgia', fontSize: 34, fontWeight: '700', fontVariant: ['tabular-nums'] },
+  label: { fontSize: typeScale.small, fontWeight: '800' },
+});

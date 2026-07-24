@@ -1,18 +1,24 @@
 import { Tabs } from 'expo-router';
-import { StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
+import { StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { t } from '@/i18n/locales';
+import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
+import { aviAssets } from '@/ui/brand';
 import { useAppTheme } from '@/ui/theme';
 
 type TabIconProps = {
   color: string;
-  kind: 'play' | 'rivals' | 'stats';
+  kind: 'home' | 'rivals' | 'stats';
 };
 
 function TabIcon({ color, kind }: TabIconProps) {
-  if (kind === 'play') {
-    return <View style={[styles.playIcon, { borderLeftColor: color }]} />;
+  if (kind === 'home') {
+    return (
+      <View style={[styles.homeIcon, { borderColor: color }]}>
+        <View style={[styles.homeRoof, { borderColor: color }]} />
+      </View>
+    );
   }
 
   if (kind === 'rivals') {
@@ -37,6 +43,9 @@ function TabIcon({ color, kind }: TabIconProps) {
 export default function TabsLayout() {
   const [{ interfaceLocale }] = useAppPreferences();
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
+  const copy = experienceCopy(interfaceLocale);
+  const tablet = width >= 760;
 
   return (
     <Tabs
@@ -44,33 +53,53 @@ export default function TabsLayout() {
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveBackgroundColor: tablet ? colors.surfaceSoft : 'transparent',
+        tabBarInactiveBackgroundColor: 'transparent',
         tabBarStyle: {
           backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          minHeight: 64,
-          paddingTop: 6,
+          borderColor: colors.border,
+          minHeight: tablet ? undefined : 72,
+          width: tablet ? 232 : undefined,
+          paddingTop: tablet ? 18 : 8,
+          paddingBottom: tablet ? 18 : 8,
         },
+        tabBarPosition: tablet ? 'left' : 'bottom',
+        tabBarLabelPosition: tablet ? 'beside-icon' : 'below-icon',
+        tabBarItemStyle: tablet ? styles.tabletTabItem : undefined,
+        tabBarHideOnKeyboard: true,
+        sceneStyle: { backgroundColor: colors.background },
         tabBarLabelStyle: styles.tabLabel,
       }}>
       <Tabs.Screen
         name="play"
         options={{
-          title: t(interfaceLocale, 'play'),
-          tabBarIcon: ({ color }) => <TabIcon color={String(color)} kind="play" />,
+          title: copy.home,
+          tabBarIcon: ({ color }) => <TabIcon color={String(color)} kind="home" />,
         }}
       />
       <Tabs.Screen
         name="rivals"
         options={{
-          title: t(interfaceLocale, 'rivals'),
+          title: copy.rivals,
           tabBarIcon: ({ color }) => <TabIcon color={String(color)} kind="rivals" />,
         }}
       />
       <Tabs.Screen
         name="stats"
         options={{
-          title: t(interfaceLocale, 'stats'),
+          title: copy.stats,
           tabBarIcon: ({ color }) => <TabIcon color={String(color)} kind="stats" />,
+        }}
+      />
+      <Tabs.Screen
+        name="avi"
+        options={{
+          title: copy.avi,
+          tabBarIcon: ({ focused }) => (
+            <View style={[styles.aviIconFrame, focused && { borderColor: colors.accent, backgroundColor: colors.surfaceSoft }]}>
+              <Image source={aviAssets.footer} contentFit="contain" style={styles.aviIcon} />
+            </View>
+          ),
         }}
       />
     </Tabs>
@@ -82,15 +111,23 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '800',
   },
-  playIcon: {
-    width: 0,
-    height: 0,
-    borderTopWidth: 8,
-    borderBottomWidth: 8,
-    borderLeftWidth: 13,
-    borderTopColor: 'transparent',
-    borderBottomColor: 'transparent',
-    marginLeft: 3,
+  homeIcon: {
+    width: 19,
+    height: 15,
+    marginTop: 5,
+    borderWidth: 2,
+    borderTopWidth: 0,
+    borderRadius: 3,
+  },
+  homeRoof: {
+    position: 'absolute',
+    width: 15,
+    height: 15,
+    left: 0,
+    top: -8,
+    borderLeftWidth: 2,
+    borderTopWidth: 2,
+    transform: [{ rotate: '45deg' }],
   },
   rivalsIcon: {
     width: 24,
@@ -132,4 +169,20 @@ const styles = StyleSheet.create({
   statBarShort: { height: 7 },
   statBarMedium: { height: 13 },
   statBarTall: { height: 19 },
+  aviIconFrame: {
+    width: 38,
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    borderRadius: 15,
+  },
+  aviIcon: { width: 35, height: 25 },
+  tabletTabItem: {
+    maxHeight: 54,
+    marginHorizontal: 14,
+    marginVertical: 3,
+    borderRadius: 14,
+  },
 });
