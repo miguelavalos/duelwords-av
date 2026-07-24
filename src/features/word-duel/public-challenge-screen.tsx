@@ -38,6 +38,7 @@ import { ActiveDuelScreen } from './active-duel-screen';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
 import { publicDuelT } from './public-duel-copy';
+import { canRequestRematch } from './rematch-state';
 
 type PublicWordDuelChallengeScreenProps = {
   initialGameLanguage?: GameLanguage;
@@ -689,7 +690,7 @@ function ConnectedResultPanel({
         <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('playAgain')}</Text>
         <Text style={styles.helper}>{rematchLabel(interfaceLocale, proposal)}</Text>
         <View style={styles.actionRow}>
-          {!proposal ? (
+          {canRequestRematch(proposal) ? (
             <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>{copy('requestRematch')}</AppButton>
           ) : null}
           {proposal?.viewer.canAccept ? (

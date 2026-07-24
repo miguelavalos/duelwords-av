@@ -16,9 +16,12 @@ surface fails closed and performs no network calls.
 
 The public Play catalog contains Challenge a Friend and offline Practice.
 Practice and deterministic Play Avi use bundled EN/ES dictionaries and make no
-word-list request. Daily is the only planned solo mode allowed to fetch a
-server-selected word; Challenge remains server-arbitrated because both devices
-must share one authoritative target and result. Lobby, active-duel, result,
+word-list request. Native word acceptance and non-Daily target selection stay
+on-device; the app must never download an allowed-word list per round. Daily is
+the only planned mode allowed to fetch its selected word before play. Challenge
+remains server-arbitrated for fairness, but the client does not fetch its target
+during gameplay; it receives only the authorized reveal in the finalized
+result. Lobby, active-duel, result,
 Solo/Daily, Play Avi, and connected-runtime engineering previews remain
 available by direct internal route when they are not linked from Play.
 
@@ -38,11 +41,15 @@ state, and guests receive a local editable room alias by default.
 
 On 2026-07-24 an enabled preview run on dedicated iPhone 17 and iPad Pro 13
 simulators proved create/review/join, automatic lobby polling, Ready/countdown,
-an active first round, two accepted guesses, and transition to round 2. It also
+all six rounds with both players, finalization, and the result screen. It also
 found and fixed a Convex projection bug that erased live heartbeats and caused
 premature `abandoned_inactive` finalization. The original repro then remained
-active as expected. Canonical web `/i/c/:token` edge routing, Universal Links,
-physical-iPad validation, and a replacement TestFlight build remain open.
+active as expected. A second defect found in the result journey extended the
+rematch window from one to ten minutes and restored Request rematch after a
+terminal expired/cancelled/declined proposal; preview API validation proved an
+accepted rematch creates the next lobby. Canonical web `/i/c/:token` edge
+routing, Universal Links, physical-iPad validation, and a replacement
+TestFlight build remain open.
 
 Local visual and accessibility QA is complete for the current public and
 engineering-preview surfaces. Deterministic checks covered all 18 exported web
