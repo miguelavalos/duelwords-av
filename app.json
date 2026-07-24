@@ -8,7 +8,14 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "buildNumber": "1",
+      "bundleIdentifier": "com.avalsys.duelwordsav",
+      "config": {
+        "usesNonExemptEncryption": false
+      },
+      "icon": "./assets/expo.icon",
+      "requireFullScreen": true,
+      "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +31,12 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "origin": "https://app.duelwords-av.avalsys.com"
+        }
+      ],
       [
         "expo-splash-screen",
         {

@@ -129,9 +129,39 @@ enabled, executed, and verified exclusively on **Office Openspace**.
 
 Expo declares the local native URL scheme `duelwordsav`. This prevents the
 framework `Linking` warning and gives native builds a stable custom-scheme
-boundary. It does not configure or prove the canonical HTTPS invite handoff:
-the `/i/c/:token` edge rewrite, Universal Links, and Android App Links remain
-separate release gates.
+boundary. Expo Router uses `https://app.duelwords-av.avalsys.com` as its native
+handoff origin; this removes the release-build fallback alert and matches the
+planned canonical public invite/result host. It does not configure or prove
+the `/i/c/:token` edge rewrite, Universal Links, or Android App Links, which
+remain separate release gates.
+
+## iOS release-candidate configuration
+
+The checked-in Expo configuration defines the first internal iOS candidate as
+version `0.1.0`, build `1`, bundle identifier
+`com.avalsys.duelwordsav`, and iPhone/iPad device families. RC0 is portrait and
+full-screen on both device types; iPad landscape and multitasking are not part
+of this candidate's acceptance contract.
+
+Validate the non-secret identity and assets before any native build:
+
+```bash
+pnpm run config:ios:check
+```
+
+After the approved preview values have been resolved read-only into the current
+shell, require the complete connected-runtime contract without printing its
+values:
+
+```bash
+pnpm run config:ios:check:preview
+```
+
+`eas.json` provides a local-versioned simulator profile and a store-distribution
+profile named `testflight`. These profiles are build configuration only. They
+do not authorize credentials changes, a remote build, upload, submission, or
+spend. The private internal-TestFlight runbook and explicit approval for the
+exact build remain mandatory.
 
 ## Runtime Config
 

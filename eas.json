@@ -1,0 +1,19 @@
+{
+  "cli": {
+    "appVersionSource": "local",
+    "requireCommit": true
+  },
+  "build": {
+    "simulator": {
+      "ios": {
+        "simulator": true
+      }
+    },
+    "testflight": {
+      "distribution": "store",
+      "ios": {
+        "autoIncrement": false
+      }
+    }
+  }
+}

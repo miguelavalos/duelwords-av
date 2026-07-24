@@ -15,12 +15,14 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web --port 8098",
+    "config:ios:check": "node scripts/check-ios-release-config.mjs",
+    "config:ios:check:preview": "node scripts/check-ios-release-config.mjs --require-preview-runtime",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
-    "verify": "pnpm run typecheck && pnpm run test",
+    "verify": "pnpm run config:ios:check && pnpm run typecheck && pnpm run test",
     "lint": "expo lint",
     "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
-    "testflight": "node -e \"throw new Error('DuelWords AV TestFlight is blocked until an approved release runbook exists.')\""
+    "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
   "dependencies": {
     "@expo/ui": "~57.0.3",
