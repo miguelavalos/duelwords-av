@@ -4,7 +4,7 @@ const englishCopy = {
   accept: 'Accept',
   activeDuel: 'Active duel',
   almost: 'Almost',
-  apiDisabled: 'Live connection not configured',
+  apiDisabled: 'Live play unavailable',
   attempts: 'Attempts',
   back: 'Back',
   bothReady: 'Both players are ready.',
@@ -55,7 +55,7 @@ const englishCopy = {
   noRematch: 'No rematch request yet.',
   offline: 'Offline',
   online: 'Online',
-  onlineUnavailable: 'Live challenges are not ready in this build',
+  onlineUnavailable: 'Live challenges are taking a little longer',
   openFinalResult: 'Open final result',
   opening: 'Opening…',
   openingResult: 'Opening result',
@@ -64,7 +64,7 @@ const englishCopy = {
   playAgain: 'Play again',
   ready: 'Ready',
   readyLocked: 'Ready is locked.',
-  realtimeDisabled: 'Live updates not configured',
+  realtimeDisabled: 'Live updates unavailable',
   reconnecting: 'Reconnecting',
   refresh: 'Refresh',
   refreshLobby: 'Refresh lobby',
@@ -100,7 +100,7 @@ const englishCopy = {
   roundResolving: 'Round still resolving',
   roundTimedOut: 'Round timed out',
   runtimeDescription: 'Practice and Play Avi work fully offline. Live rooms will open when the secure challenge connection is included in a release.',
-  safeRealtimeUnavailable: 'Safe realtime is not ready',
+  safeRealtimeUnavailable: 'Live updates are not ready',
   shareInvite: 'Share invite',
   shareResult: 'Share result',
   side: 'Side',
@@ -127,7 +127,7 @@ const englishCopy = {
   yourFinalBoard: 'Your final board',
   yourTurn: 'Your turn',
   actionUnavailable: 'That action is not available right now. Try again.',
-  safeRealtimeRequired: 'Safe realtime is required for connected play.',
+  safeRealtimeRequired: 'A secure live connection is needed to play online.',
   rivalFinalBoard: 'Rival final board',
 } as const;
 
@@ -150,43 +150,43 @@ const germanCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
 };
 
 Object.assign(spanishCopyDraft, {
-  apiDisabled: 'Conexión en directo no configurada',
+  apiDisabled: 'Juego en directo no disponible',
   couldNotCloseTimeout: 'No se pudo cerrar la ronda agotada',
   couldNotOpenDuel: 'No se pudo abrir el duelo en directo de forma segura. Actualiza la sala e inténtalo de nuevo.',
   couldNotOpenNext: 'No se pudo abrir la siguiente ronda',
   couldNotOpenResult: 'No se pudo abrir el resultado',
   couldNotSync: 'No se pudo sincronizar la ronda',
-  onlineUnavailable: 'Los retos en directo aún no están listos en esta versión',
-  realtimeDisabled: 'Actualizaciones en directo no configuradas',
+  onlineUnavailable: 'Los retos en directo tardan un poco más',
+  realtimeDisabled: 'Actualizaciones en directo no disponibles',
   runtimeDescription: 'Práctica y Jugar con Avi funcionan sin conexión. Las salas en directo se abrirán cuando una versión incluya la conexión segura de retos.',
-  safeRealtimeUnavailable: 'El realtime seguro no está preparado',
+  safeRealtimeUnavailable: 'Las actualizaciones en directo aún no están listas',
 });
 
 Object.assign(catalanCopyDraft, {
-  apiDisabled: 'Connexió en directe no configurada',
-  onlineUnavailable: 'Els reptes en directe encara no estan preparats en aquesta versió',
-  realtimeDisabled: 'Actualitzacions en directe no configurades',
+  apiDisabled: 'Joc en directe no disponible',
+  onlineUnavailable: 'Els reptes en directe triguen una mica més',
+  realtimeDisabled: 'Actualitzacions en directe no disponibles',
   roomNameHelp: 'Només s’utilitza per a aquest repte. No cal cap compte.',
   runtimeDescription: 'Pràctica i Jugar amb l’Avi funcionen sense connexió. Les sales en directe s’obriran quan una versió inclogui la connexió segura de reptes.',
-  safeRealtimeUnavailable: 'El realtime segur no està preparat',
+  safeRealtimeUnavailable: 'Les actualitzacions en directe encara no estan preparades',
 });
 
 Object.assign(frenchCopyDraft, {
-  apiDisabled: 'Connexion en direct non configurée',
-  onlineUnavailable: 'Les défis en direct ne sont pas encore prêts dans cette version',
-  realtimeDisabled: 'Mises à jour en direct non configurées',
+  apiDisabled: 'Jeu en direct indisponible',
+  onlineUnavailable: 'Les défis en direct prennent un peu plus de temps',
+  realtimeDisabled: 'Mises à jour en direct indisponibles',
   roomNameHelp: 'Utilisé uniquement pour ce défi. Aucun compte requis.',
   runtimeDescription: 'Entraînement et Jouer contre Avi fonctionnent hors ligne. Les salons en direct s’ouvriront lorsqu’une version inclura la connexion sécurisée.',
   safeRealtimeUnavailable: 'Le temps réel sécurisé n’est pas prêt',
 });
 
 Object.assign(germanCopyDraft, {
-  apiDisabled: 'Live-Verbindung nicht konfiguriert',
-  onlineUnavailable: 'Live-Herausforderungen sind in dieser Version noch nicht bereit',
-  realtimeDisabled: 'Live-Aktualisierungen nicht konfiguriert',
+  apiDisabled: 'Live-Spiel nicht verfügbar',
+  onlineUnavailable: 'Live-Herausforderungen brauchen noch etwas Zeit',
+  realtimeDisabled: 'Live-Aktualisierungen nicht verfügbar',
   roomNameHelp: 'Wird nur für diese Herausforderung verwendet. Kein Konto erforderlich.',
   runtimeDescription: 'Training und Gegen Avi funktionieren offline. Live-Räume öffnen, sobald eine Version die sichere Duellverbindung enthält.',
-  safeRealtimeUnavailable: 'Sichere Echtzeit ist noch nicht bereit',
+  safeRealtimeUnavailable: 'Live-Aktualisierungen sind noch nicht bereit',
 });
 
 Object.assign(catalanCopyDraft, {
@@ -248,7 +248,7 @@ Object.assign(catalanCopyDraft, {
   waitingRound: 'Esperant la ronda 1.',
   yourFinalBoard: 'El teu tauler final',
   actionUnavailable: 'Aquesta acció no està disponible ara. Torna-ho a provar.',
-  safeRealtimeRequired: 'Cal realtime segur per jugar en línia.',
+  safeRealtimeRequired: 'Cal una connexió en directe segura per jugar en línia.',
   rivalFinalBoard: 'Tauler final del rival',
 });
 
@@ -309,7 +309,7 @@ Object.assign(frenchCopyDraft, {
   waitingRound: 'En attente de la manche 1.',
   yourFinalBoard: 'Votre grille finale',
   actionUnavailable: 'Cette action n’est pas disponible pour le moment. Réessayez.',
-  safeRealtimeRequired: 'Le temps réel sécurisé est requis pour jouer en ligne.',
+  safeRealtimeRequired: 'Une connexion en direct sécurisée est requise pour jouer en ligne.',
   rivalFinalBoard: 'Grille finale du rival',
 });
 
@@ -370,7 +370,7 @@ Object.assign(germanCopyDraft, {
   waitingRound: 'Warten auf Runde 1.',
   yourFinalBoard: 'Dein finales Brett',
   actionUnavailable: 'Diese Aktion ist derzeit nicht verfügbar. Versuche es erneut.',
-  safeRealtimeRequired: 'Für Online-Spiele ist sichere Echtzeit erforderlich.',
+  safeRealtimeRequired: 'Für Online-Spiele ist eine sichere Live-Verbindung erforderlich.',
   rivalFinalBoard: 'Finales Brett des Rivalen',
 });
 

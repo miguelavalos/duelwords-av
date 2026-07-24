@@ -21,7 +21,7 @@ export function StatsScreen() {
       <View style={styles.header}>
         <InkEyebrow>{copy.stats}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>Your results stay yours.</Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]}>This build shows only finalized official summaries. Local training never pretends to be ranked history.</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>Only finalized official summaries appear here. Local training never pretends to be ranked history.</Text>
       </View>
 
       <View style={styles.grid}>

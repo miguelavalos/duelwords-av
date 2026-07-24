@@ -34,8 +34,8 @@ export function AuthScreen() {
         <View style={styles.auth}><AuthView isDismissible mode={mode} onDismiss={() => router.back()} /></View>
       ) : (
         <View style={styles.unavailable}>
-          <Text style={styles.unavailableTitle}>Account AV is unavailable in this build</Text>
-          <Text style={styles.subtitle}>You can continue as a guest and use Practice or Challenge a Friend.</Text>
+          <Text style={styles.unavailableTitle}>Account AV is temporarily unavailable</Text>
+          <Text style={styles.subtitle}>You can continue as a guest with Practice and Play Avi.</Text>
           <AppButton onPress={() => router.replace('/play')}>Continue as guest</AppButton>
         </View>
       )}

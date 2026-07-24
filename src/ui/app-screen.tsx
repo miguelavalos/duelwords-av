@@ -54,7 +54,10 @@ export function AppScreen({
 function PaperRules() {
   const { colors } = useAppTheme();
   return (
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none" style={styles.paperRules}>
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[styles.paperRules, styles.paperRulesNonInteractive]}>
       <View style={[styles.marginRule, { backgroundColor: colors.paperMargin }]} />
       {Array.from({ length: 18 }, (_, index) => (
         <View
@@ -78,6 +81,9 @@ const styles = StyleSheet.create({
     left: 0,
     overflow: 'hidden',
     opacity: 0.16,
+  },
+  paperRulesNonInteractive: {
+    pointerEvents: 'none',
   },
   paperRule: {
     position: 'absolute',

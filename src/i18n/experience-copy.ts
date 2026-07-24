@@ -45,7 +45,7 @@ const en: ExperienceCopy = {
   challenge: 'Challenge a Friend', challengeDetail: 'Create a private room, share the invite, and solve the same word round by round.',
   playAvi: 'Play Avi', playAviDetail: 'A complete local duel against Avi. No account or connection needed.',
   practice: 'Practice', practiceDetail: 'Untimed local rounds using the bundled word list.',
-  daily: 'Daily', dailyDetail: 'The only mode that will fetch its official word from the server. Not active in this build.',
+  daily: 'Daily', dailyDetail: 'The only mode that will fetch its official word from the server. Not available yet.',
   gameLanguage: 'Game language', gameSettings: 'Game settings', aviBriefTitle: 'Avi has the rules covered', aviBriefDetail: 'Learn the ink marks, compare modes, or start a fair local duel.',
   aviTitle: 'Your word-duel companion', aviDetail: 'I can explain the game and play as your local rival. I never give hints.',
   aviRulesTitle: 'Read the ink', aviRulesDetail: 'Exact means right letter and place. Present means the letter belongs elsewhere. Out means it is not in the word.',

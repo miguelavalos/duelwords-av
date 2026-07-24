@@ -55,7 +55,7 @@ export function AccountScreen() {
       <PaperCard>
         <SectionHeading title="Continuity" detail={signedIn ? 'Account AV has verified this identity. DuelWords history sync remains disabled until its account-backed store ships.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
         <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Cached · offline' : 'Connected') : 'Guest · local'} />
-        <InfoRow label="Game history" value={signedIn ? 'Local in this build' : 'Local only'} />
+        <InfoRow label="Game history" value={signedIn ? 'Stored on this device' : 'Local only'} />
         <InfoRow label="Rivals" value={signedIn ? 'Account surface prepared' : 'Sign-in required'} />
       </PaperCard>
 
@@ -88,7 +88,7 @@ function InfoRow({ label, value }: { label: string; value: string }) {
 }
 
 function accountStatusDetail(status: string, available: boolean) {
-  if (!available) return 'Account AV unavailable in this build';
+  if (!available) return 'Account AV temporarily unavailable';
   if (status === 'account_error') return 'Account needs a secure refresh';
   if (status === 'loading') return 'Checking Account AV…';
   return 'No account required for local play';

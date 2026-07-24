@@ -32,13 +32,13 @@ export function ProScreen() {
         <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
         <Benefit title="No ads" detail="Keep Home and post-result surfaces quiet when Pro access is active." />
         <Benefit title="Deeper private history" detail="Retain more finalized summaries without exposing full boards publicly." />
-        <Benefit title="Higher documented limits" detail="More challenge continuity without more than one active realtime game." />
+        <Benefit title="Higher documented limits" detail="More challenge continuity while keeping one active live game at a time." />
         <Benefit title="Account-backed access" detail="Apps AV remains the durable entitlement authority." />
       </PaperCard>
 
       <PaperCard>
         <SectionHeading
-          title={isPro ? 'Your access' : signedIn ? 'Purchases are not active in this build' : 'Account AV required'}
+          title={isPro ? 'Your access' : signedIn ? 'Subscriptions are coming later' : 'Account AV required'}
           detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'Subscriptions are not offered yet. Your account and local games remain unchanged.' : 'Sign in first so a future subscription can belong to your Apps AV identity.'}
         />
         {isPro ? (

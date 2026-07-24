@@ -40,7 +40,8 @@ initialization fails in tests if a locale omits a public-journey key.
 The native shell now includes a paper-and-ink branded splash, onboarding with
 guest skip, Account AV sign-in/create-account entry, Account, Settings, an
 adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords Pro preview
-with no purchase call. Opening a new invite while the Challenge screen
+with no purchase call. Account and Pro unavailable states use product language
+rather than deployment terminology. Opening a new invite while the Challenge screen
 is already mounted replaces the previous invite instead of reusing stale room
 state, and guests receive a local editable room alias by default.
 
@@ -66,6 +67,16 @@ native not-found route, browser keyboard focus, EN/ES/FR/DE narrow layouts, and
 Android font scales through 150% were reviewed. This is local Expo Go and web
 evidence only; it is not signed-runtime, physical-device, deep-link, or store
 release evidence.
+
+On 2026-07-24 a second dedicated native pass exercised the branded Home and
+common surfaces, Challenge and Daily fail-closed states, English and Spanish
+Practice submissions, and a complete Play Avi round transition on iPhone 17
+and iPad Pro 13. It removed a deprecated non-interactive-layer prop that showed
+an Expo warning over the footer, compacted Play Avi so all keyboard rows remain
+visible on iPhone, and localized its controls and state labels to the selected
+interface language. The word-language selector remains only inside each game.
+Light/dark appearance and extra-extra-large iPhone text were also checked and
+restored to normal simulator settings after the pass.
 
 The current cumulative status and remaining gates live in the private
 `docs/avi-words/current-work-handoff.md`. Dated implementation records describe
