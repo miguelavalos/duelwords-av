@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
@@ -14,10 +14,11 @@ export function StatsScreen() {
   const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <DuelWordsWordmark compact />
+      {width < 760 ? <DuelWordsWordmark compact /> : null}
       <View style={styles.header}>
         <InkEyebrow>{copy.stats}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>Your results stay yours.</Text>

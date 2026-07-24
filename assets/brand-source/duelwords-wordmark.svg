@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="360" viewBox="0 0 1500 360">
+  <g fill="none" fill-rule="evenodd">
+    <text x="32" y="246" fill="#173A59" font-family="Snell Roundhand, Brush Script MT, cursive" font-size="230" font-weight="700" letter-spacing="-8">DuelWords</text>
+    <path d="M52 294c236 18 558-19 1009-7" stroke="#173A59" stroke-width="5" stroke-linecap="round" opacity=".68"/>
+    <g transform="translate(1182 84) rotate(-3 118 85)">
+      <path d="M20 42c61-17 135-17 202 2l-9 116c-62 15-127 15-191-1z" fill="#F7F0DE" stroke="#397A41" stroke-width="7"/>
+      <text x="119" y="132" fill="#397A41" font-family="Avenir Next, Arial, sans-serif" font-size="88" font-weight="800" text-anchor="middle" letter-spacing="-8">AV</text>
+    </g>
+  </g>
+</svg>

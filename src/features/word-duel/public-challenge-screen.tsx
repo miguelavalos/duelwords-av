@@ -6,6 +6,8 @@ import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-nativ
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
+import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presence-heartbeat';
+import type { DuelWordsRealtimeRoomView } from '@/game/word-duel-active/realtime-projection';
 import type {
   DuelWordsApiActor,
   DuelWordsApiFinalResult,
@@ -74,7 +76,7 @@ export function PublicWordDuelChallengeScreen({
   const guestActorRef = useRef<GuestActor | null>(null);
   const initialPreviewKeyRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
-  const lobbyRefreshInFlightRef = useRef(false);
+  const lobbyRealtimeRefreshInFlightRef = useRef(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState(
     () => createWordDuelDefaultGuestDisplayName(randomUUID),
@@ -90,6 +92,58 @@ export function PublicWordDuelChallengeScreen({
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const isBusy = busyAction !== null;
+
+  useEffect(() => {
+    const realtime = lobbyState?.realtime;
+    if (
+      !runtime.ok
+      || !lobbyState
+      || !realtime
+      || (lobbyState.lobby.status !== 'lobby' && lobbyState.lobby.status !== 'countdown')
+    ) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    const realtimeRequest = {
+      realtimeSessionId: realtime.realtimeSessionId,
+      roomToken: realtime.roomToken,
+    };
+    const unsubscribe = runtime.realtime.client.subscribeActiveRoomView(
+      realtimeRequest,
+      (view) => {
+        if (
+          cancelled
+          || !view
+          || lobbyRealtimeRefreshInFlightRef.current
+          || !lobbyProjectionNeedsRefresh(lobbyState, view)
+        ) {
+          return;
+        }
+
+        lobbyRealtimeRefreshInFlightRef.current = true;
+        void controller.refreshLobby({ nowMs: Date.now(), state: lobbyState })
+          .then((nextState) => {
+            if (!cancelled) {
+              setLobbyState(nextState);
+            }
+          })
+          .catch(() => undefined)
+          .finally(() => {
+            lobbyRealtimeRefreshInFlightRef.current = false;
+          });
+      },
+    );
+    const stopHeartbeat = startActiveDuelPresenceHeartbeat({
+      sendHeartbeat: () => runtime.realtime.client.sendPresenceHeartbeat(realtimeRequest),
+    });
+
+    return () => {
+      cancelled = true;
+      stopHeartbeat();
+      unsubscribe();
+    };
+  }, [controller, lobbyState, runtime]);
 
   useEffect(() => {
     if (account.user?.displayName && lobbyState === null) {
@@ -191,28 +245,6 @@ export function PublicWordDuelChallengeScreen({
     // runAction is component-local; including it would recreate this deadline timer every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controller, isBusy, lobbyState]);
-
-  useEffect(() => {
-    if (
-      !lobbyState?.session.playerId
-      || (lobbyState.lobby.status !== 'lobby' && lobbyState.lobby.status !== 'countdown')
-    ) {
-      return undefined;
-    }
-
-    const interval = setInterval(() => {
-      if (lobbyRefreshInFlightRef.current) return;
-      lobbyRefreshInFlightRef.current = true;
-      void controller.refreshLobby({ nowMs: Date.now(), state: lobbyState })
-        .then((nextState) => setLobbyState(nextState))
-        .catch(() => undefined)
-        .finally(() => {
-          lobbyRefreshInFlightRef.current = false;
-        });
-    }, 1_500);
-
-    return () => clearInterval(interval);
-  }, [controller, lobbyState]);
 
   useEffect(() => {
     if (
@@ -623,6 +655,20 @@ export function PublicWordDuelChallengeScreen({
       ) : null}
     </AppScreen>
   );
+}
+
+function lobbyProjectionNeedsRefresh(
+  state: WordDuelLobbyControllerState,
+  view: DuelWordsRealtimeRoomView,
+): boolean {
+  const own = state.lobby.players.find((player) => player.isViewer);
+  const opponent = state.lobby.players.find((player) => !player.isViewer);
+  const remoteStatus = view.room.status === 'round_resolving' ? 'active_round' : view.room.status;
+
+  return remoteStatus !== state.lobby.status
+    || (view.own?.isReady ?? false) !== (own?.state === 'ready')
+    || (view.opponent?.isReady ?? false) !== (opponent?.state === 'ready')
+    || (view.opponent !== null) !== (opponent !== undefined && opponent.state !== 'waiting');
 }
 
 function actionErrorMessage(

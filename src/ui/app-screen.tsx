@@ -22,8 +22,7 @@ export function AppScreen({
   if (!scroll) {
     return (
       <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-        <PaperRules />
-        <View
+      <View
           role="main"
           style={[
             styles.content,
@@ -38,7 +37,6 @@ export function AppScreen({
 
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.background }]}>
-      <PaperRules />
       <ScrollView
         role="main"
         contentInsetAdjustmentBehavior="automatic"
@@ -51,52 +49,9 @@ export function AppScreen({
   );
 }
 
-function PaperRules() {
-  const { colors } = useAppTheme();
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={[styles.paperRules, styles.paperRulesNonInteractive]}>
-      <View style={[styles.marginRule, { backgroundColor: colors.paperMargin }]} />
-      {Array.from({ length: 18 }, (_, index) => (
-        <View
-          key={index}
-          style={[styles.paperRule, { top: 72 + index * 38, backgroundColor: colors.paperLine }]}
-        />
-      ))}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-  },
-  paperRules: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    bottom: 0,
-    left: 0,
-    overflow: 'hidden',
-    opacity: 0.16,
-  },
-  paperRulesNonInteractive: {
-    pointerEvents: 'none',
-  },
-  paperRule: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    height: StyleSheet.hairlineWidth,
-  },
-  marginRule: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 28,
-    width: StyleSheet.hairlineWidth,
   },
   scroll: {
     flex: 1,

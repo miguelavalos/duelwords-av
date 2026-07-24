@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
@@ -16,11 +16,12 @@ export function RivalsScreen() {
   const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
   const signedIn = account.user !== null;
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <DuelWordsWordmark compact />
+      {width < 760 ? <DuelWordsWordmark compact /> : null}
       <View style={styles.header}>
         <InkEyebrow>{copy.rivals}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{signedIn ? 'Ready for a rematch.' : 'Rivals without a social network.'}</Text>

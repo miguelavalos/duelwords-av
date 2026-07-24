@@ -1,11 +1,11 @@
-import { Tabs } from 'expo-router';
+import { router as appRouter, Tabs } from 'expo-router';
 import { Image } from 'expo-image';
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs/types';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
-import { aviAssets } from '@/ui/brand';
+import { DuelWordsWordmark, aviAssets } from '@/ui/brand';
 import { useAppTheme } from '@/ui/theme';
 
 type TabIconProps = {
@@ -143,6 +143,11 @@ function DuelWordsTabBar({
           paddingBottom: tablet ? Math.max(insets.bottom, 18) : Math.max(insets.bottom, 8),
         },
       ]}>
+      {tablet ? (
+        <View style={styles.sidebarBrand}>
+          <DuelWordsWordmark compact withIcon />
+        </View>
+      ) : null}
       {state.routes.map((route, index) => {
         const focused = state.index === index;
         const label = labels[route.name] ?? String(descriptors[route.key].options.title ?? route.name);
@@ -178,8 +183,37 @@ function DuelWordsTabBar({
           </Pressable>
         );
       })}
+      {tablet ? (
+        <>
+          <View style={styles.tabletSidebarSpacer} />
+          <Pressable
+            accessibilityLabel={copy.settings}
+            accessibilityRole="button"
+            onPress={() => appRouter.push('/settings')}
+            style={({ pressed }) => [styles.tabletChromeItem, pressed && styles.customTabItemPressed]}>
+            <SettingsGlyph color={colors.textMuted} />
+            <Text style={[styles.customTabLabel, { color: colors.textMuted }]}>{copy.settings}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityLabel={copy.account}
+            accessibilityRole="button"
+            onPress={() => appRouter.push('/account')}
+            style={({ pressed }) => [styles.tabletChromeItem, pressed && styles.customTabItemPressed]}>
+            <AccountGlyph color={colors.textMuted} />
+            <Text style={[styles.customTabLabel, { color: colors.textMuted }]}>{copy.account}</Text>
+          </Pressable>
+        </>
+      ) : null}
     </View>
   );
+}
+
+function AccountGlyph({ color }: { color: string }) {
+  return <View style={styles.sidebarAccountGlyph}><View style={[styles.sidebarAccountHead, { backgroundColor: color }]} /><View style={[styles.sidebarAccountBody, { borderColor: color }]} /></View>;
+}
+
+function SettingsGlyph({ color }: { color: string }) {
+  return <View style={styles.sidebarSettingsGlyph}>{[18, 12, 18].map((size, index) => <View key={index} style={{ width: size, height: 2, borderRadius: 1, backgroundColor: color, alignSelf: index === 1 ? 'flex-end' : 'auto' }} />)}</View>;
 }
 
 const styles = StyleSheet.create({
@@ -271,6 +305,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     gap: 4,
   },
+  sidebarBrand: { minHeight: 86, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 10 },
   customTabBarPhone: {
     minHeight: 72,
     flexDirection: 'row',
@@ -294,4 +329,10 @@ const styles = StyleSheet.create({
   },
   customTabItemPressed: { opacity: 0.62 },
   customTabLabel: { fontSize: 12, fontWeight: '800' },
+  tabletSidebarSpacer: { flex: 1, minHeight: 16 },
+  tabletChromeItem: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 14, paddingHorizontal: 14, borderRadius: 14 },
+  sidebarAccountGlyph: { width: 22, height: 22, alignItems: 'center' },
+  sidebarAccountHead: { width: 8, height: 8, borderRadius: 4 },
+  sidebarAccountBody: { position: 'absolute', bottom: 0, width: 20, height: 10, borderWidth: 2, borderBottomWidth: 0, borderTopLeftRadius: 10, borderTopRightRadius: 10 },
+  sidebarSettingsGlyph: { width: 20, gap: 4 },
 });

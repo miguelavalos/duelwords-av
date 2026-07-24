@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { AppButton } from '@/ui/buttons';
+import { AviArtwork, DuelWordsWordmark, aviAssets } from '@/ui/brand';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AuthScreen() {
@@ -24,11 +25,16 @@ export function AuthScreen() {
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
+          <DuelWordsWordmark compact withIcon />
           <Text style={styles.kicker}>Account AV</Text>
           <Text accessibilityRole="header" aria-level={1} style={styles.title}>{title}</Text>
           <Text style={styles.subtitle}>Keep future DuelWords history, rivals, and Pro access tied to your Apps AV account.</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton>
+      </View>
+      <View style={styles.aviIntro}>
+        <AviArtwork size={74} source={aviAssets.onboarding} />
+        <Text style={styles.aviCopy}>Avi will keep the game ready while Account AV handles your shared sign-in securely.</Text>
       </View>
       {account.available ? (
         <View style={styles.auth}><AuthView isDismissible mode={mode} onDismiss={() => router.back()} /></View>
@@ -53,6 +59,8 @@ function useStyles() {
     title: { color: colors.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.7 },
     subtitle: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
     auth: { flex: 1 },
+    aviIntro: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.sm, padding: spacing.md, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: 18 },
+    aviCopy: { flex: 1, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, fontWeight: '700' },
     unavailable: { margin: spacing.lg, padding: spacing.lg, gap: spacing.md, backgroundColor: colors.surface, borderRadius: 14 },
     unavailableTitle: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
   }), [colors]);

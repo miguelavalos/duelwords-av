@@ -27,9 +27,9 @@ function withExpoPublicRealtimeFallback(extra: unknown): DuelWordsRealtimeExtra 
     duelWordsAv: {
       ...duelWordsAv,
       convexRealtimeDisabled:
-        duelWordsAv.convexRealtimeDisabled
-        ?? process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED,
-      convexUrl: duelWordsAv.convexUrl ?? process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL,
+        process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED
+        ?? duelWordsAv.convexRealtimeDisabled,
+      convexUrl: process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL ?? duelWordsAv.convexUrl,
     },
   };
 }

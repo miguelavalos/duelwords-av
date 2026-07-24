@@ -1,6 +1,6 @@
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Linking, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
@@ -22,7 +22,7 @@ export function AccountScreen() {
     <AppScreen bottomInset={spacing.xxl}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <DuelWordsWordmark compact />
+          <DuelWordsWordmark compact withIcon />
           <InkEyebrow>Account AV</InkEyebrow>
           <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
           <Text style={styles.subtitle}>{signedIn ? 'Your identity, continuity, and DuelWords access.' : 'Play locally as a guest. Sign in only when account continuity adds value.'}</Text>
@@ -75,7 +75,7 @@ export function AccountScreen() {
         <SectionHeading title="Preferences & account safety" detail="Settings stay device-local. Account deletion follows the secure Account AV workflow." />
         <View style={styles.buttonRow}>
           <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/settings')}>{copy.settings}</AppButton>
-          <AppButton tone="quiet" style={styles.flexButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/')}>Delete account</AppButton>
+          {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>Delete Apps AV account</AppButton> : null}
         </View>
       </PaperCard>
     </AppScreen>

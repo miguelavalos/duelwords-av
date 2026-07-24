@@ -17,7 +17,7 @@ export function ProScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.topBar}><DuelWordsWordmark compact /><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
+      <View style={styles.topBar}><DuelWordsWordmark compact withIcon /><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
 
       <View style={styles.hero}>
         <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
@@ -36,7 +36,7 @@ export function ProScreen() {
         <Benefit title="Account-backed access" detail="Apps AV remains the durable entitlement authority." />
       </PaperCard>
 
-      <PaperCard>
+      <PaperCard emphasized>
         <SectionHeading
           title={isPro ? 'Your access' : signedIn ? 'Subscriptions are coming later' : 'Account AV required'}
           detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'Subscriptions are not offered yet. Your account and local games remain unchanged.' : 'Sign in first so a future subscription can belong to your Apps AV identity.'}
@@ -48,7 +48,7 @@ export function ProScreen() {
           </>
         ) : signedIn ? (
           <>
-            <AppButton disabled>Offering unavailable</AppButton>
+            <AppButton disabled>Not offered in this build</AppButton>
             <AppButton tone="quiet" onPress={() => void account.refresh()}>Refresh Apps AV access</AppButton>
           </>
         ) : (
@@ -56,7 +56,12 @@ export function ProScreen() {
         )}
       </PaperCard>
 
-      <Text style={styles.legal}>When subscriptions become available, this screen will show the App Store price and offer a clear way to restore access. Pro never changes the rules of a duel.</Text>
+      <View style={styles.legalActions}>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>Terms</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>Support</AppButton>
+      </View>
+      <Text style={styles.legal}>No App Store product is configured in build 0.1.0, so purchase and restore controls remain intentionally unavailable. Pro never changes the rules of a duel.</Text>
     </AppScreen>
   );
 }
@@ -86,5 +91,7 @@ function useStyles() {
     benefitTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
     benefitDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 18 },
     legal: { maxWidth: 620, alignSelf: 'center', color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center' },
+    legalActions: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: spacing.sm },
+    legalButton: { minWidth: 96 },
   }), [colors]);
 }

@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
 
 import { radii, spacing, typeScale, useAppTheme } from './theme';
 
-type ButtonTone = 'primary' | 'secondary' | 'quiet';
+type ButtonTone = 'primary' | 'secondary' | 'quiet' | 'danger';
 
 type AppButtonProps = {
   children: ReactNode;
@@ -17,6 +17,8 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
   const { colors } = useAppTheme();
   const toneStyle = tone === 'primary'
     ? { backgroundColor: colors.accent }
+    : tone === 'danger'
+      ? { backgroundColor: colors.danger }
     : tone === 'secondary'
       ? { backgroundColor: colors.secondarySoft, borderColor: colors.secondary }
       : { backgroundColor: colors.surface, borderColor: colors.border };
@@ -28,7 +30,7 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
       onPress={onPress}
       style={({ pressed }) => [
         styles.base,
-        tone !== 'primary' && styles.bordered,
+        tone !== 'primary' && tone !== 'danger' && styles.bordered,
         toneStyle,
         pressed && !disabled && styles.pressed,
         disabled && styles.disabled,
@@ -37,7 +39,7 @@ export function AppButton({ children, disabled, onPress, style, tone = 'primary'
       <Text
         style={[
           styles.label,
-          { color: tone === 'primary' ? colors.onAccent : colors.text },
+          { color: tone === 'primary' || tone === 'danger' ? colors.onAccent : colors.text },
           disabled && { color: colors.textMuted },
         ]}>
         {children}

@@ -26,8 +26,8 @@ function withExpoPublicAppsApiFallback(extra: unknown): DuelWordsAppsApiExtra {
     ...appExtra,
     duelWordsAv: {
       ...duelWordsAv,
-      apiBaseUrl: duelWordsAv.apiBaseUrl ?? process.env.EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL,
-      apiDisabled: duelWordsAv.apiDisabled ?? process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED,
+      apiBaseUrl: process.env.EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL ?? duelWordsAv.apiBaseUrl,
+      apiDisabled: process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED ?? duelWordsAv.apiDisabled,
     },
   };
 }

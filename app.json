@@ -20,7 +20,8 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#F4EBD8",
-        "foregroundImage": "./assets/images/android-icon-foreground.png"
+        "foregroundImage": "./assets/images/android-icon-foreground.png",
+        "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
     },

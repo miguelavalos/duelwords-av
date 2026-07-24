@@ -461,7 +461,12 @@ function createAppsApiLobbyController(apiClient: DuelWordsApiClient): WordDuelLo
         playerId: session.playerId,
       });
 
-      return stateFromApiLobby(response.lobby, null, input.state.session, input.nowMs);
+      return stateFromApiLobby(
+        response.lobby,
+        input.state.realtime,
+        input.state.session,
+        input.nowMs,
+      );
     },
     async viewAsHost(input) {
       return {

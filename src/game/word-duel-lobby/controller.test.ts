@@ -307,6 +307,42 @@ describe('Word Duel lobby controller', () => {
     });
   });
 
+  it('keeps the issued realtime session while refreshing the lobby', async () => {
+    const realtime = {
+      realtimeSessionId: 'dwrs_session_a',
+      roomToken: 'dwr_room_1',
+      side: 'a' as const,
+    };
+    const recorder = createFetchRecorder([
+      jsonResponse({ invite: invitePayload(), lobby: lobbyPayload(), realtime }),
+      jsonResponse({ lobby: lobbyPayload() }),
+    ]);
+    const controller = createWordDuelLobbyController({
+      mode: 'runtime',
+      runtimeApiClient: createDuelWordsRuntimeApiClient({
+        fetchImpl: recorder.fetch,
+        runtimeConfig: {
+          apiBaseUrl: 'https://api.test',
+          disabledReason: null,
+          provider: 'apps_av_api',
+        },
+      }),
+    });
+    const created = await controller.createHostInvite({
+      gameLanguage: 'en',
+      host: HOST_ACTOR,
+      nowMs: NOW_MS,
+    });
+
+    const refreshed = await controller.refreshLobby({
+      nowMs: NOW_MS + 1_000,
+      state: created,
+    });
+
+    expect(refreshed.realtime).toEqual(realtime);
+    expect(recorder.calls.at(-1)?.method).toBe('GET');
+  });
+
   it('resolves a room code to the same safe invite-review state', async () => {
     const recorder = createFetchRecorder([
       jsonResponse({ invite: invitePayload() }),

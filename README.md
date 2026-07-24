@@ -5,7 +5,8 @@ Mobile-first Expo client for DuelWords AV.
 ## Current Status
 
 Current as of 2026-07-24: this repository has a public, guest-first Word Duel
-V1 hardening candidate, but is not yet ready for another TestFlight upload. **Challenge a Friend**
+V1 branding and hardening candidate, but is not yet ready for another
+TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
 enabled, that route can create a room-scoped guest, create or review an invite
 without auto-joining, join explicitly, Ready, start, play connected rounds,
@@ -37,7 +38,8 @@ English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
-The native shell now includes a paper-and-ink branded splash, onboarding with
+The native shell now includes the canonical-candidate DuelWords icon, separate
+light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding with
 guest skip, Account AV sign-in/create-account entry, Account, Settings, an
 adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords Pro preview
 with no purchase call. Account and Pro unavailable states use product language
@@ -46,27 +48,30 @@ is already mounted replaces the previous invite instead of reusing stale room
 state, and guests receive a local editable room alias by default.
 
 On 2026-07-24 an enabled preview run on dedicated iPhone 17 and iPad Pro 13
-simulators proved create/review/join, automatic lobby polling, Ready/countdown,
-all six rounds with both players, finalization, and the result screen. It also
-found and fixed a Convex projection bug that erased live heartbeats and caused
-premature `abandoned_inactive` finalization. The original repro then remained
-active as expected. A second defect found in the result journey extended the
-rematch window from one to ten minutes and restored Request rematch after a
-terminal expired/cancelled/declined proposal; preview API validation proved an
-accepted rematch creates the next lobby. Canonical web `/i/c/:token` edge
-routing, Universal Links, physical-iPad validation, and a replacement
-TestFlight build remain open.
+simulators proved create/review/join, event-driven lobby synchronization,
+foreground presence, Ready/countdown, active boards on both devices, accepted
+word submission, and the next-round transition. The pass removed a 1.5-second
+lobby polling loop, preserved backend-issued realtime sessions across explicit
+lobby refreshes, allowed the safe Convex pre-round projection (`roundNumber: 0`),
+and began presence heartbeats while participants are still in the lobby. The
+repository-owned preview flow smoke also passed timeout/open-next, rematch, and
+both passive-abandonment paths. Canonical web `/i/c/:token` edge routing,
+Universal Links, signed replacement-build validation, physical-iPad validation,
+and a replacement TestFlight build remain open.
 
-Local visual and accessibility QA is complete for the current public and
-engineering-preview surfaces. Deterministic checks covered all 18 exported web
-routes at desktop and narrow mobile widths, every accessible route in a
-dedicated iOS Simulator, and the current public/game-preview surfaces in an
-Android Pixel 9 AVD.
+The current branding pass reviewed every public/common and gameplay surface on
+dedicated iPhone and iPad simulators, including light/dark Home, the Tune-style
+footer/sidebar, onboarding, Account, Settings, auth entry, Pro, deletion,
+Practice, Play Avi, and Challenge. Earlier deterministic checks covered all 18
+exported web routes at desktop and narrow mobile widths and the current
+public/game-preview surfaces in an Android Pixel 9 AVD.
 Light/dark appearance, status and navigation bars, keyboard/board fit, the
 native not-found route, browser keyboard focus, EN/ES/FR/DE narrow layouts, and
 Android font scales through 150% were reviewed. This is local Expo Go and web
-evidence only; it is not signed-runtime, physical-device, deep-link, or store
-release evidence.
+evidence plus an unsigned native Release-simulator build; it is not
+signed-runtime, physical-device, deep-link, or store-release evidence. The
+fresh Release build verified the replacement native launch mark and bundled
+product onboarding on the dedicated iPhone 17.
 
 On 2026-07-24 a second dedicated native pass exercised the branded Home and
 common surfaces, Challenge and Daily fail-closed states, English and Spanish
@@ -172,11 +177,23 @@ remain separate release gates.
 
 ## iOS release-candidate configuration
 
-The checked-in Expo configuration defines the first internal iOS candidate as
-version `0.1.0`, build `1`, bundle identifier
+The checked-in Expo configuration still describes the already-uploaded first
+internal iOS candidate as version `0.1.0`, build `1`, bundle identifier
 `com.avalsys.duelwordsav`, and iPhone/iPad device families. RC0 is portrait and
 full-screen on both device types; iPad landscape and multitasking are not part
-of this candidate's acceptance contract.
+of this candidate's acceptance contract. Build `1` must not be uploaded again;
+the next approved TestFlight candidate must increment to build `2` after its
+exact source and runtime configuration are frozen.
+
+## Brand assets
+
+Deterministic SVG masters live in `assets/brand-source/`. Runtime PNG exports
+and generated splash/onboarding illustrations live in `assets/images/brand/`.
+Their private canonical promotion and review status are documented under
+`private/avalsys-suite/docs/brand-system/duelwords-av/`. The family follows Tune
+AV's shell mechanics and shared Avi V2/footer behavior while keeping a
+DuelWords-specific icon and editorial imagery. Final owner visual sign-off on
+the exact pixels remains mandatory before build `2`.
 
 Validate the non-secret identity and assets before any native build:
 

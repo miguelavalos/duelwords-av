@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2100" height="460" viewBox="0 0 2100 460">
+  <g fill="none" fill-rule="evenodd">
+    <g transform="translate(24 28)">
+      <path d="M64 66c86-18 171-18 257 0l-10 284c-79 25-157 25-237 0z" fill="#20292D" stroke="#F4EBD8" stroke-width="12"/>
+      <path d="M93 112h80v202H93zm105 0h80v202h-80z" stroke="#F4EBD8" stroke-width="8"/>
+      <path d="M93 180h80m-80 67h80m25-67h80m-80 67h80" stroke="#F4EBD8" stroke-width="6"/>
+      <path d="M99 253h68v55H99zm105 0h68v55h-68z" fill="#70B7AF" opacity=".94"/>
+      <path d="M188 84v250" stroke="#F4EBD8" stroke-width="5"/>
+      <path d="M182 78l6-11 6 11-6 11z" fill="#F4EBD8"/>
+      <path d="M65 374c82 22 173 22 256 0" stroke="#F4EBD8" stroke-width="5" stroke-linecap="round" opacity=".6"/>
+    </g>
+    <path d="M397 67v325" stroke="#F4EBD8" stroke-width="3" opacity=".3"/>
+    <text x="444" y="296" fill="#F4EBD8" font-family="Snell Roundhand, Brush Script MT, cursive" font-size="250" font-weight="700" letter-spacing="-9">DuelWords</text>
+    <path d="M466 350c243 17 579-22 1035-8" stroke="#F4EBD8" stroke-width="5" stroke-linecap="round" opacity=".7"/>
+    <g transform="translate(1840 116) rotate(-3 112 82)">
+      <path d="M18 39c58-16 129-16 193 2l-9 111c-58 14-121 14-182-1z" fill="#20292D" stroke="#70B7AF" stroke-width="7"/>
+      <text x="112" y="126" fill="#70B7AF" font-family="Avenir Next, Arial, sans-serif" font-size="84" font-weight="800" text-anchor="middle" letter-spacing="-8">AV</text>
+    </g>
+  </g>
+</svg>

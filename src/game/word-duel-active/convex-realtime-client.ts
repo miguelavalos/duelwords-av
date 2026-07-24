@@ -232,7 +232,7 @@ function readRoom(payload: unknown): ReadResult<DuelWordsRealtimeRoomView['room'
 
   const language = readLanguage(payload.language);
   const maxAttempts = readPositiveInteger(payload.maxAttempts);
-  const roundNumber = readPositiveInteger(payload.roundNumber);
+  const roundNumber = readNonNegativeInteger(payload.roundNumber);
   const serverNow = readNonNegativeNumber(payload.serverNow);
   const status = readRoomStatus(payload.status);
   const wordLength = readPositiveInteger(payload.wordLength);

@@ -38,7 +38,7 @@ export function SettingsScreen() {
     <AppScreen key={appearance} bottomInset={spacing.xxl}>
       <View style={styles.header}>
         <View style={styles.headerCopy}>
-          <DuelWordsWordmark compact />
+        <DuelWordsWordmark compact withIcon />
           <InkEyebrow>{copy.settings}</InkEyebrow>
           <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
           <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
@@ -84,7 +84,8 @@ export function SettingsScreen() {
         <ExternalRow label="Terms of use" onPress={() => openLink(links.terms)} />
         <ExternalRow label="Support" onPress={() => openLink(links.support)} />
         <ExternalRow label="Dictionary notices & licenses" onPress={() => openLink(links.notices)} />
-        <ExternalRow label="Delete account information" destructive onPress={() => openLink(links.deleteAccount)} />
+        <ExternalRow label="Account deletion support" destructive onPress={() => openLink(links.deleteAccount)} />
+        <InternalRow label="Delete Apps AV account" destructive onPress={() => router.push('/delete-account' as Href)} />
       </PaperCard>
 
       <PaperCard>
@@ -124,6 +125,15 @@ function ExternalRow({ destructive, label, onPress }: { destructive?: boolean; l
   return (
     <Pressable accessibilityRole="link" onPress={onPress} style={({ pressed }) => [styles.externalRow, pressed && styles.pressed]}>
       <Text style={[styles.externalLabel, destructive && styles.destructive]}>{label}</Text><Text style={[styles.externalArrow, destructive && styles.destructive]}>↗</Text>
+    </Pressable>
+  );
+}
+
+function InternalRow({ destructive, label, onPress }: { destructive?: boolean; label: string; onPress: () => void }) {
+  const styles = useStyles();
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.externalRow, pressed && styles.pressed]}>
+      <Text style={[styles.externalLabel, destructive && styles.destructive]}>{label}</Text><Text style={[styles.externalArrow, destructive && styles.destructive]}>→</Text>
     </Pressable>
   );
 }

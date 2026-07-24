@@ -17,10 +17,11 @@ export function PlayScreen() {
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const twoColumn = width >= 680;
+  const tablet = width >= 760;
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.header}>
+      {!tablet ? <View style={styles.header}>
         <View style={styles.headerCopy}>
           <DuelWordsWordmark />
           <Text style={styles.headerDetail}>{copy.homeDetail}</Text>
@@ -33,11 +34,12 @@ export function PlayScreen() {
             <SettingsGlyph />
           </ChromeButton>
         </View>
-      </View>
+      </View> : null}
 
       <View style={styles.heroCopy}>
         <InkEyebrow>{copy.home}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.homeTitle}</Text>
+        {tablet ? <Text style={styles.headerDetail}>{copy.homeDetail}</Text> : null}
       </View>
 
       <ModeCard

@@ -1,10 +1,11 @@
+import { Image } from 'expo-image';
 import { Redirect, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOnboardingComplete } from '@/onboarding/use-onboarding-complete';
-import { AppScreen } from '@/ui/app-screen';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, aviAssets } from '@/ui/brand';
+import { DuelWordsWordmark, duelWordsBrandAssets } from '@/ui/brand';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function ProductSplashScreen() {
@@ -16,7 +17,7 @@ export function ProductSplashScreen() {
     let active = true;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     void AccessibilityInfo.isReduceMotionEnabled().then((reduceMotion) => {
-      timeout = setTimeout(() => { if (active) setReady(true); }, reduceMotion ? 180 : 950);
+      timeout = setTimeout(() => { if (active) setReady(true); }, reduceMotion ? 220 : 1250);
     });
     return () => {
       active = false;
@@ -27,21 +28,25 @@ export function ProductSplashScreen() {
   if (ready) return <Redirect href={(complete ? '/(tabs)/play' : '/onboarding') as Href} />;
 
   return (
-    <AppScreen scroll={false}>
-      <View style={styles.stage}>
-        <AviArtwork size={174} source={aviAssets.onboarding} />
-        <View style={styles.copy}>
-          <DuelWordsWordmark />
-          <InkEyebrow>Word duels with friends</InkEyebrow>
-          <Text style={[styles.detail, { color: colors.textMuted }]}>Paper, ink, and a fair rival named Avi.</Text>
-        </View>
+    <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
+      <Image contentFit="cover" source={duelWordsBrandAssets.splashHero} style={StyleSheet.absoluteFill} />
+      <View style={styles.brandBlock}>
+        <DuelWordsWordmark withIcon />
+        <Text style={[styles.tagline, { color: colors.text }]}>A fair word duel, whenever you are ready.</Text>
+        <Text style={[styles.status, { color: colors.textMuted }]}>Preparing the board…</Text>
       </View>
-    </AppScreen>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  stage: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
-  copy: { alignItems: 'center', gap: spacing.sm },
-  detail: { maxWidth: 320, fontSize: typeScale.body, lineHeight: 22, textAlign: 'center' },
+  screen: { flex: 1 },
+  brandBlock: {
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.xl,
+    paddingTop: 34,
+  },
+  tagline: { maxWidth: 350, fontFamily: 'Georgia', fontSize: typeScale.lead, fontWeight: '700', textAlign: 'center' },
+  status: { fontSize: typeScale.small, fontWeight: '700' },
 });

@@ -13,16 +13,32 @@ export const aviAssets = {
   warning: require('../../assets/images/brand/avi-warning.png'),
 } as const;
 
-export function DuelWordsWordmark({ compact = false }: { compact?: boolean }) {
-  const { colors } = useAppTheme();
+export const duelWordsBrandAssets = {
+  lockup: require('../../assets/images/brand/duelwords-logo-lockup.png'),
+  lockupDark: require('../../assets/images/brand/duelwords-logo-lockup-dark.png'),
+  onboardingHero: require('../../assets/images/brand/duelwords-onboarding-hero.png'),
+  splashHero: require('../../assets/images/brand/duelwords-splash-hero.png'),
+  wordmark: require('../../assets/images/brand/duelwords-wordmark.png'),
+  wordmarkDark: require('../../assets/images/brand/duelwords-wordmark-dark.png'),
+} as const;
+
+export function DuelWordsWordmark({ compact = false, withIcon = false }: { compact?: boolean; withIcon?: boolean }) {
+  const { isDark } = useAppTheme();
+  const source = withIcon
+    ? (isDark ? duelWordsBrandAssets.lockupDark : duelWordsBrandAssets.lockup)
+    : (isDark ? duelWordsBrandAssets.wordmarkDark : duelWordsBrandAssets.wordmark);
+
   return (
-    <View accessible accessibilityLabel="DuelWords AV" accessibilityRole="image" style={styles.wordmarkRow}>
-      <Text style={[styles.wordmark, compact && styles.wordmarkCompact, { color: colors.text }]}>DuelWords</Text>
-      <View style={[styles.avStamp, compact && styles.avStampCompact, { borderColor: colors.accent }]}> 
-        <Text style={[styles.avStampText, compact && styles.avStampTextCompact, { color: colors.accent }]}>AV</Text>
-      </View>
-      <View style={[styles.penStroke, { backgroundColor: colors.secondary }]} />
-    </View>
+    <Image
+      accessibilityLabel="DuelWords AV"
+      accessibilityRole="image"
+      contentFit="contain"
+      source={source}
+      style={[
+        withIcon ? styles.lockup : styles.wordmark,
+        compact && (withIcon ? styles.lockupCompact : styles.wordmarkCompact),
+      ]}
+    />
   );
 }
 
@@ -35,18 +51,14 @@ export function AviArtwork({
   size?: number;
   source?: ImageSource;
 }) {
-  const { colors } = useAppTheme();
   return (
-    <View style={[styles.aviHalo, { width: size, height: size, borderColor: colors.border, backgroundColor: colors.surface }]}> 
+    <View style={[styles.aviFrame, { width: size, height: size }]}>
       <Image
         accessibilityLabel={accessibilityLabel}
         contentFit="contain"
         source={source}
-        style={{ width: size * 0.96, height: size * 0.96 }}
+        style={{ width: size, height: size }}
       />
-      <View style={[styles.aviPen, { backgroundColor: colors.inkSoft }]}> 
-        <View style={[styles.aviPenTip, { borderTopColor: colors.secondary }]} />
-      </View>
     </View>
   );
 }
@@ -71,7 +83,6 @@ export function PaperCard({
         },
         style,
       ]}>
-      <View style={[styles.cardTape, { backgroundColor: colors.secondarySoft }]} />
       {children}
     </View>
   );
@@ -124,86 +135,30 @@ export function SectionHeading({ detail, title }: { detail?: string; title: stri
 }
 
 const styles = StyleSheet.create({
-  wordmarkRow: {
-    minHeight: 46,
-    flexDirection: 'row',
-    alignItems: 'center',
+  wordmark: {
+    width: 242,
+    height: 58,
     alignSelf: 'flex-start',
   },
-  wordmark: {
-    fontFamily: 'Georgia',
-    fontSize: 31,
-    fontWeight: '700',
-    letterSpacing: -1.4,
+  wordmarkCompact: { width: 190, height: 46 },
+  lockup: {
+    width: 318,
+    height: 70,
+    alignSelf: 'flex-start',
   },
-  wordmarkCompact: { fontSize: 24 },
-  avStamp: {
-    marginLeft: 7,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderWidth: 1.5,
-    borderRadius: 7,
-    transform: [{ rotate: '-4deg' }],
-  },
-  avStampCompact: { paddingHorizontal: 5, paddingVertical: 2 },
-  avStampText: { fontSize: 14, fontWeight: '900', letterSpacing: 0.6 },
-  avStampTextCompact: { fontSize: 11 },
-  penStroke: {
-    position: 'absolute',
-    left: 2,
-    right: 36,
-    bottom: 1,
-    height: 2,
-    borderRadius: 2,
-    opacity: 0.82,
-    transform: [{ rotate: '-1deg' }],
-  },
-  aviHalo: {
+  lockupCompact: { width: 246, height: 56 },
+  aviFrame: {
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radii.lg,
-    transform: [{ rotate: '-1deg' }],
-  },
-  aviPen: {
-    position: 'absolute',
-    width: 7,
-    height: 44,
-    right: 6,
-    bottom: -6,
-    borderRadius: 4,
-    transform: [{ rotate: '34deg' }],
-  },
-  aviPenTip: {
-    position: 'absolute',
-    bottom: -7,
-    left: 0,
-    width: 0,
-    height: 0,
-    borderLeftWidth: 3.5,
-    borderRightWidth: 3.5,
-    borderTopWidth: 9,
-    borderLeftColor: 'transparent',
-    borderRightColor: 'transparent',
   },
   paperCard: {
     position: 'relative',
     gap: spacing.md,
     padding: spacing.lg,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
     borderRadius: radii.lg,
     borderCurve: 'continuous',
     boxShadow: '0 5px 18px rgba(38, 45, 43, 0.08)',
-  },
-  cardTape: {
-    position: 'absolute',
-    width: 54,
-    height: 12,
-    top: -6,
-    left: '50%',
-    marginLeft: -27,
-    opacity: 0.62,
-    transform: [{ rotate: '-2deg' }],
   },
   eyebrow: {
     fontSize: typeScale.tiny,

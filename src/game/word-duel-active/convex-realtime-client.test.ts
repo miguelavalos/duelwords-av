@@ -88,6 +88,22 @@ describe('DuelWords Convex realtime projection client', () => {
     expect(received).toEqual(['active_round', 'round_resolving']);
   });
 
+  it('accepts the safe pre-round lobby projection with round zero', async () => {
+    const convexClient = createFakeConvexClient({
+      queryPayload: safeRoomPayload({
+        room: {
+          roundNumber: 0,
+          status: 'lobby',
+        },
+      }),
+    });
+    const client = createDuelWordsConvexRealtimeProjectionClient({ convexClient });
+
+    const view = await client.getActiveRoomView(SESSION_REQUEST);
+
+    expect(view?.room).toMatchObject({ roundNumber: 0, status: 'lobby' });
+  });
+
   it('sends heartbeat and reactions through public Convex mutations only', async () => {
     const convexClient = createFakeConvexClient({
       mutationPayloads: [
