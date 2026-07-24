@@ -5,12 +5,18 @@
   },
   "build": {
     "simulator": {
+      "env": {
+        "DUELWORDSAV_IOS_BUILD_VARIANT": "development"
+      },
       "ios": {
         "simulator": true
       }
     },
     "testflight": {
       "distribution": "store",
+      "env": {
+        "DUELWORDSAV_IOS_BUILD_VARIANT": "release"
+      },
       "ios": {
         "autoIncrement": false
       }

@@ -7,8 +7,13 @@ const require = createRequire(import.meta.url);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const appJson = JSON.parse(readFileSync(resolve(repoRoot, 'app.json'), 'utf8'));
 const easJson = JSON.parse(readFileSync(resolve(repoRoot, 'eas.json'), 'utf8'));
+const development = process.argv.includes('--development');
 const expoConfig = require(resolve(repoRoot, 'app.config.js'))();
 const failures = [];
+const expectedBundleIdentifier = development
+  ? 'com.avalsys.duelwordsav.dev'
+  : 'com.avalsys.duelwordsav';
+const expectedKeychainAccessGroup = `935PM55U6R.${expectedBundleIdentifier}`;
 
 function expectEqual(label, actual, expected) {
   if (actual !== expected) {
@@ -26,7 +31,7 @@ expectEqual('expo.name', expoConfig.name, 'DuelWords AV');
 expectEqual('expo.slug', expoConfig.slug, 'duelwords-av');
 expectEqual('expo.version', expoConfig.version, '0.1.0');
 expectEqual('expo.orientation', expoConfig.orientation, 'portrait');
-expectEqual('expo.ios.bundleIdentifier', expoConfig.ios?.bundleIdentifier, 'com.avalsys.duelwordsav');
+expectEqual('expo.ios.bundleIdentifier', expoConfig.ios?.bundleIdentifier, expectedBundleIdentifier);
 expectEqual('expo.ios.buildNumber', expoConfig.ios?.buildNumber, '1');
 expectEqual('expo.ios.supportsTablet', expoConfig.ios?.supportsTablet, true);
 expectEqual('expo.ios.requireFullScreen', expoConfig.ios?.requireFullScreen, true);
@@ -36,6 +41,11 @@ expectEqual(
   false,
 );
 expectEqual('expo.scheme', expoConfig.scheme, 'duelwordsav');
+expectEqual(
+  'expo.extra.duelWordsAv.iosBuildVariant',
+  expoConfig.extra?.duelWordsAv?.iosBuildVariant,
+  development ? 'development' : 'release',
+);
 expectEqual('expo.plugins @clerk/expo', hasExpoPlugin('@clerk/expo'), true);
 expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
 expectEqual(
@@ -46,7 +56,7 @@ expectEqual(
 expectEqual(
   'expo.ios.entitlements keychain-access-groups',
   JSON.stringify(expoConfig.ios?.entitlements?.['keychain-access-groups']),
-  JSON.stringify(['935PM55U6R.com.avalsys.duelwordsav']),
+  JSON.stringify([expectedKeychainAccessGroup]),
 );
 expectEqual(
   'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_SERVICE',
@@ -56,7 +66,7 @@ expectEqual(
 expectEqual(
   'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_ACCESS_GROUP',
   expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP,
-  '935PM55U6R.com.avalsys.duelwordsav',
+  expectedKeychainAccessGroup,
 );
 const expoRouterPlugin = expoConfig.plugins?.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-router',
@@ -69,7 +79,17 @@ expectEqual(
 expectEqual('eas.cli.appVersionSource', easJson.cli?.appVersionSource, 'local');
 expectEqual('eas.cli.requireCommit', easJson.cli?.requireCommit, true);
 expectEqual('eas.build.simulator.ios.simulator', easJson.build?.simulator?.ios?.simulator, true);
+expectEqual(
+  'eas.build.simulator.env.DUELWORDSAV_IOS_BUILD_VARIANT',
+  easJson.build?.simulator?.env?.DUELWORDSAV_IOS_BUILD_VARIANT,
+  'development',
+);
 expectEqual('eas.build.testflight.distribution', easJson.build?.testflight?.distribution, 'store');
+expectEqual(
+  'eas.build.testflight.env.DUELWORDSAV_IOS_BUILD_VARIANT',
+  easJson.build?.testflight?.env?.DUELWORDSAV_IOS_BUILD_VARIANT,
+  'release',
+);
 expectEqual('eas.build.testflight.ios.autoIncrement', easJson.build?.testflight?.ios?.autoIncrement, false);
 
 for (const assetPath of [expoConfig.icon, expoConfig.ios?.icon]) {
@@ -131,5 +151,5 @@ if (failures.length > 0) {
   }
   process.exitCode = 1;
 } else {
-  console.log('DuelWords AV iOS release config check passed.');
+  console.log(`DuelWords AV iOS ${development ? 'development' : 'release'} config check passed.`);
 }

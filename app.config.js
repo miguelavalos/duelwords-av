@@ -1,6 +1,10 @@
 const appJson = require('./app.json');
 
 function createExpoConfig() {
+  const iosBuildVariant = normalizeIosBuildVariant(process.env.DUELWORDSAV_IOS_BUILD_VARIANT);
+  const iosBundleIdentifier = iosBuildVariant === 'development'
+    ? 'com.avalsys.duelwordsav.dev'
+    : appJson.expo.ios.bundleIdentifier;
   const apiBaseUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL);
   const apiDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED);
   const convexUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL);
@@ -11,12 +15,13 @@ function createExpoConfig() {
   const accountKeychainService = normalizedOptionalString(process.env.ACCOUNTAV_KEYCHAIN_SERVICE)
     ?? 'com.avalsys.duelwordsav.account';
   const accountKeychainAccessGroup = normalizedOptionalString(process.env.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)
-    ?? '935PM55U6R.com.avalsys.duelwordsav';
+    ?? `935PM55U6R.${iosBundleIdentifier}`;
 
   return {
     ...appJson.expo,
     ios: {
       ...appJson.expo.ios,
+      bundleIdentifier: iosBundleIdentifier,
       entitlements: {
         ...(appJson.expo.ios?.entitlements ?? {}),
         'com.apple.developer.applesignin': ['Default'],
@@ -43,9 +48,18 @@ function createExpoConfig() {
         apiDisabled,
         convexRealtimeDisabled,
         convexUrl,
+        iosBuildVariant,
       },
     },
   };
+}
+
+function normalizeIosBuildVariant(value) {
+  const normalized = normalizedOptionalString(value) ?? 'release';
+  if (normalized !== 'development' && normalized !== 'release') {
+    throw new Error('DUELWORDSAV_IOS_BUILD_VARIANT must be "development" or "release".');
+  }
+  return normalized;
 }
 
 function normalizedOptionalString(value) {

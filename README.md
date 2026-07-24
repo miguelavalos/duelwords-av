@@ -192,6 +192,14 @@ of this candidate's acceptance contract. Build `1` must not be uploaded again;
 the next approved TestFlight candidate must increment to build `2` after its
 exact source and runtime configuration are frozen.
 
+Development and simulator-native builds use the separate identifier
+`com.avalsys.duelwordsav.dev`. `pnpm run ios` selects that variant explicitly,
+and the EAS `simulator` profile does the same. Its Account AV keychain access
+group is `935PM55U6R.com.avalsys.duelwordsav.dev`; Release/TestFlight stays on
+`com.avalsys.duelwordsav` and its production access group. Direct Expo prebuild
+commands default to the safer Release identity unless
+`DUELWORDSAV_IOS_BUILD_VARIANT=development` is provided.
+
 ## Brand assets
 
 Deterministic SVG masters live in `assets/brand-source/`. Runtime PNG exports
@@ -206,6 +214,7 @@ Validate the non-secret identity and assets before any native build:
 
 ```bash
 pnpm run config:ios:check
+pnpm run config:ios:check:dev
 ```
 
 After the approved preview values have been resolved read-only into the current
