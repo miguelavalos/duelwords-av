@@ -13,7 +13,7 @@ import { getDuelWordsAccountAvConfig } from '@/account/account-av-config';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 type LoadState = 'idle' | 'loading' | 'requesting' | 'finalizing' | 'failed';
@@ -86,14 +86,11 @@ export function AccountDeletionScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.header}>
-        <View style={styles.headerCopy}>
-          <DuelWordsWordmark compact />
-          <InkEyebrow>ACCOUNT AV · SAFETY</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>Delete Apps AV account</Text>
-          <Text style={styles.subtitle}>This deletes the shared identity used by every connected Apps AV product—not only DuelWords AV.</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton>
+      <View style={styles.modalBar}><AppButton tone="quiet" onPress={() => router.back()}>Done</AppButton></View>
+      <View style={styles.headerCopy}>
+        <InkEyebrow>ACCOUNT AV · SAFETY</InkEyebrow>
+        <Text accessibilityRole="header" aria-level={1} style={styles.title}>Delete Apps AV account</Text>
+        <Text style={styles.subtitle}>This deletes the shared identity used by every connected Apps AV product—not only DuelWords AV.</Text>
       </View>
 
       {!signedIn ? (
@@ -188,7 +185,7 @@ function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'b
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-    header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
+    modalBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 34, lineHeight: 38, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 600, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },

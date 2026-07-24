@@ -62,7 +62,14 @@ and a replacement TestFlight build remain open.
 The current branding pass reviewed every public/common and gameplay surface on
 dedicated iPhone and iPad simulators, including light/dark Home, the Tune-style
 footer/sidebar, onboarding, Account, Settings, auth entry, Pro, deletion,
-Practice, Play Avi, and Challenge. Earlier deterministic checks covered all 18
+Practice, Play Avi, and Challenge. A final side-by-side pass also ran Tune AV in
+its own iPhone 17 simulator and checked each shared surface individually.
+DuelWords now uses the same shared hierarchy: Settings at the left of the
+centered product wordmark, Account at the right, a three-destination phone
+footer pill with Avi in its own circular control, persistent shell navigation
+on Account and Settings, and sheet-style Pro/auth/deletion surfaces without
+repeating the product lockup inside their content. iPad adapts the same
+destinations to its persistent sidebar. Earlier deterministic checks covered all 18
 exported web routes at desktop and narrow mobile widths and the current
 public/game-preview surfaces in an Android Pixel 9 AVD.
 Light/dark appearance, status and navigation bars, keyboard/board fit, the

@@ -46,8 +46,8 @@ export function AviScreen() {
       <PaperCard>
         <SectionHeading title={copy.aviAccountTitle} detail={copy.aviAccountDetail} />
         <View style={styles.actions}>
-          <AppButton tone="secondary" style={styles.action} onPress={() => router.push('/account' as Href)}>{copy.account}</AppButton>
-          <AppButton tone="quiet" style={styles.action} onPress={() => router.push('/settings')}>{copy.openSettings}</AppButton>
+          <AppButton tone="secondary" style={styles.action} onPress={() => router.push('/(tabs)/account' as Href)}>{copy.account}</AppButton>
+          <AppButton tone="quiet" style={styles.action} onPress={() => router.push('/(tabs)/settings' as Href)}>{copy.openSettings}</AppButton>
         </View>
       </PaperCard>
     </AppScreen>

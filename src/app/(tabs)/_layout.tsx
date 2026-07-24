@@ -1,4 +1,4 @@
-import { router as appRouter, Tabs } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { Image } from 'expo-image';
 import type { BottomTabBarProps } from 'expo-router/build/react-navigation/bottom-tabs/types';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -104,6 +104,8 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="settings" options={{ href: null, title: copy.settings }} />
+      <Tabs.Screen name="account" options={{ href: null, title: copy.account }} />
     </Tabs>
   );
 }
@@ -129,6 +131,48 @@ function DuelWordsTabBar({
     rivals: copy.rivals,
     stats: copy.stats,
   };
+  const primaryRoutes = state.routes
+    .map((route, index) => ({ index, route }))
+    .filter(({ route }) => ['play', 'rivals', 'stats', 'avi'].includes(route.name));
+  const mainRoutes = primaryRoutes.filter(({ route }) => route.name !== 'avi');
+  const aviRoute = primaryRoutes.find(({ route }) => route.name === 'avi');
+  const selectedRoute = state.routes[state.index]?.name;
+
+  function renderTab(route: typeof state.routes[number], index: number, tabletItem: boolean) {
+    const focused = state.index === index;
+    const label = labels[route.name] ?? String(descriptors[route.key].options.title ?? route.name);
+    const color = focused ? colors.accent : colors.textMuted;
+
+    function onPress() {
+      const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+      if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+    }
+
+    return (
+      <Pressable
+        key={route.key}
+        accessibilityLabel={label}
+        accessibilityRole="tab"
+        accessibilityState={{ selected: focused }}
+        onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.customTabItem,
+          tabletItem ? styles.customTabItemTablet : styles.customTabItemPhone,
+          focused && { backgroundColor: colors.surfaceSoft },
+          pressed && styles.customTabItemPressed,
+        ]}>
+        {route.name === 'avi' ? (
+          <View style={[styles.aviIconFrame, focused && { borderColor: colors.accent, backgroundColor: colors.surfaceSoft }]}>
+            <Image source={aviAssets.footer} contentFit="contain" style={styles.aviIcon} />
+          </View>
+        ) : (
+          <TabIcon color={color} kind={route.name === 'play' ? 'home' : route.name === 'rivals' ? 'rivals' : 'stats'} />
+        )}
+        {tabletItem ? <Text numberOfLines={1} style={[styles.customTabLabel, { color }]}>{label}</Text> : null}
+      </Pressable>
+    );
+  }
 
   return (
     <View
@@ -137,7 +181,7 @@ function DuelWordsTabBar({
         styles.customTabBar,
         tablet ? styles.customTabBarTablet : styles.customTabBarPhone,
         {
-          backgroundColor: colors.surface,
+          backgroundColor: tablet ? colors.surface : colors.background,
           borderColor: colors.border,
           paddingTop: tablet ? insets.top + 16 : 8,
           paddingBottom: tablet ? Math.max(insets.bottom, 18) : Math.max(insets.bottom, 8),
@@ -148,59 +192,38 @@ function DuelWordsTabBar({
           <DuelWordsWordmark compact withIcon />
         </View>
       ) : null}
-      {state.routes.map((route, index) => {
-        const focused = state.index === index;
-        const label = labels[route.name] ?? String(descriptors[route.key].options.title ?? route.name);
-        const color = focused ? colors.accent : colors.textMuted;
-
-        function onPress() {
-          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-          if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
-        }
-
-        return (
-          <Pressable
-            key={route.key}
-            accessibilityLabel={label}
-            accessibilityRole="tab"
-            accessibilityState={{ selected: focused }}
-            onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
-            onPress={onPress}
-            style={({ pressed }) => [
-              styles.customTabItem,
-              tablet ? styles.customTabItemTablet : styles.customTabItemPhone,
-              focused && { backgroundColor: colors.surfaceSoft },
-              pressed && styles.customTabItemPressed,
-            ]}>
-            {route.name === 'avi' ? (
-              <View style={[styles.aviIconFrame, focused && { borderColor: colors.accent, backgroundColor: colors.surfaceSoft }]}>
-                <Image source={aviAssets.footer} contentFit="contain" style={styles.aviIcon} />
-              </View>
-            ) : (
-              <TabIcon color={color} kind={route.name === 'play' ? 'home' : route.name === 'rivals' ? 'rivals' : 'stats'} />
-            )}
-            <Text numberOfLines={1} style={[styles.customTabLabel, { color }]}>{label}</Text>
-          </Pressable>
-        );
-      })}
+      {tablet ? primaryRoutes.map(({ index, route }) => renderTab(route, index, true)) : (
+        <>
+          <View style={[styles.phoneMainPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+            {mainRoutes.map(({ index, route }) => renderTab(route, index, false))}
+          </View>
+          {aviRoute ? (
+            <View style={[styles.phoneAviPill, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+              {renderTab(aviRoute.route, aviRoute.index, false)}
+            </View>
+          ) : null}
+        </>
+      )}
       {tablet ? (
         <>
           <View style={styles.tabletSidebarSpacer} />
           <Pressable
             accessibilityLabel={copy.settings}
             accessibilityRole="button"
-            onPress={() => appRouter.push('/settings')}
-            style={({ pressed }) => [styles.tabletChromeItem, pressed && styles.customTabItemPressed]}>
-            <SettingsGlyph color={colors.textMuted} />
-            <Text style={[styles.customTabLabel, { color: colors.textMuted }]}>{copy.settings}</Text>
+            accessibilityState={{ selected: selectedRoute === 'settings' }}
+            onPress={() => navigation.navigate('settings')}
+            style={({ pressed }) => [styles.tabletChromeItem, selectedRoute === 'settings' && { backgroundColor: colors.surfaceSoft }, pressed && styles.customTabItemPressed]}>
+            <SettingsGlyph color={selectedRoute === 'settings' ? colors.accent : colors.textMuted} />
+            <Text style={[styles.customTabLabel, { color: selectedRoute === 'settings' ? colors.accent : colors.textMuted }]}>{copy.settings}</Text>
           </Pressable>
           <Pressable
             accessibilityLabel={copy.account}
             accessibilityRole="button"
-            onPress={() => appRouter.push('/account')}
-            style={({ pressed }) => [styles.tabletChromeItem, pressed && styles.customTabItemPressed]}>
-            <AccountGlyph color={colors.textMuted} />
-            <Text style={[styles.customTabLabel, { color: colors.textMuted }]}>{copy.account}</Text>
+            accessibilityState={{ selected: selectedRoute === 'account' }}
+            onPress={() => navigation.navigate('account')}
+            style={({ pressed }) => [styles.tabletChromeItem, selectedRoute === 'account' && { backgroundColor: colors.surfaceSoft }, pressed && styles.customTabItemPressed]}>
+            <AccountGlyph color={selectedRoute === 'account' ? colors.accent : colors.textMuted} />
+            <Text style={[styles.customTabLabel, { color: selectedRoute === 'account' ? colors.accent : colors.textMuted }]}>{copy.account}</Text>
           </Pressable>
         </>
       ) : null}
@@ -307,9 +330,30 @@ const styles = StyleSheet.create({
   },
   sidebarBrand: { minHeight: 86, alignItems: 'center', justifyContent: 'center', overflow: 'hidden', marginBottom: 10 },
   customTabBarPhone: {
-    minHeight: 72,
+    minHeight: 82,
     flexDirection: 'row',
-    paddingHorizontal: 6,
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 14,
+  },
+  phoneMainPill: {
+    flex: 1,
+    minHeight: 58,
+    flexDirection: 'row',
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 29,
+    borderCurve: 'continuous',
+    boxShadow: '0 8px 22px rgba(38, 45, 43, 0.12)',
+  },
+  phoneAviPill: {
+    width: 58,
+    height: 58,
+    overflow: 'hidden',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 29,
+    borderCurve: 'continuous',
+    boxShadow: '0 8px 22px rgba(38, 45, 43, 0.12)',
   },
   customTabItem: {
     alignItems: 'center',
@@ -325,7 +369,7 @@ const styles = StyleSheet.create({
   },
   customTabItemPhone: {
     flex: 1,
-    gap: 4,
+    minHeight: 56,
   },
   customTabItemPressed: { opacity: 0.62 },
   customTabLabel: { fontSize: 12, fontWeight: '800' },

@@ -1,13 +1,13 @@
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AccountScreen() {
@@ -17,17 +17,24 @@ export function AccountScreen() {
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const signedIn = account.user !== null;
+  const { width } = useWindowDimensions();
+  const tablet = width >= 760;
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.header}>
-        <View style={styles.headerCopy}>
-          <DuelWordsWordmark compact withIcon />
-          <InkEyebrow>Account AV</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
-          <Text style={styles.subtitle}>{signedIn ? 'Your identity, continuity, and DuelWords access.' : 'Play locally as a guest. Sign in only when account continuity adds value.'}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>Done</AppButton>
+      {!tablet ? (
+        <AppChromeHeader
+          accountLabel={copy.account}
+          onAccountPress={() => undefined}
+          onSettingsPress={() => router.replace('/(tabs)/settings' as Href)}
+          selected="account"
+          settingsLabel={copy.settings}
+        />
+      ) : null}
+      <View style={styles.headerCopy}>
+        <InkEyebrow>Account AV</InkEyebrow>
+        <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
+        <Text style={styles.subtitle}>{signedIn ? 'Your identity, continuity, and DuelWords access.' : 'Play locally as a guest. Sign in only when account continuity adds value.'}</Text>
       </View>
 
       <PaperCard emphasized>
@@ -74,7 +81,7 @@ export function AccountScreen() {
       <PaperCard>
         <SectionHeading title="Preferences & account safety" detail="Settings stay device-local. Account deletion follows the secure Account AV workflow." />
         <View style={styles.buttonRow}>
-          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/settings')}>{copy.settings}</AppButton>
+          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/(tabs)/settings' as Href)}>{copy.settings}</AppButton>
           {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>Delete Apps AV account</AppButton> : null}
         </View>
       </PaperCard>
@@ -102,7 +109,6 @@ function initials(name: string | null | undefined) {
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-    header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },

@@ -6,7 +6,7 @@ import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/w
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
-import { AviArtwork, ChromeButton, DuelWordsWordmark, InkEyebrow, PaperCard } from '@/ui/brand';
+import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function PlayScreen() {
@@ -21,20 +21,14 @@ export function PlayScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      {!tablet ? <View style={styles.header}>
-        <View style={styles.headerCopy}>
-          <DuelWordsWordmark />
-          <Text style={styles.headerDetail}>{copy.homeDetail}</Text>
-        </View>
-        <View style={styles.headerActions}>
-          <ChromeButton accessibilityLabel={copy.account} onPress={() => router.push('/account' as Href)}>
-            <AccountGlyph />
-          </ChromeButton>
-          <ChromeButton accessibilityLabel={copy.settings} onPress={() => router.push('/settings')}>
-            <SettingsGlyph />
-          </ChromeButton>
-        </View>
-      </View> : null}
+      {!tablet ? (
+        <AppChromeHeader
+          accountLabel={copy.account}
+          onAccountPress={() => router.push('/(tabs)/account' as Href)}
+          onSettingsPress={() => router.push('/(tabs)/settings' as Href)}
+          settingsLabel={copy.settings}
+        />
+      ) : null}
 
       <View style={styles.heroCopy}>
         <InkEyebrow>{copy.home}</InkEyebrow>
@@ -128,23 +122,9 @@ function ModeCard({ avi, compact, detail, eyebrow, mark, onPress, primary, title
   );
 }
 
-function AccountGlyph() {
-  const { colors } = useAppTheme();
-  const styles = useStyles();
-  return <View style={styles.glyph}><View style={[styles.glyphHead, { backgroundColor: colors.text }]} /><View style={[styles.glyphBody, { borderColor: colors.text }]} /></View>;
-}
-
-function SettingsGlyph() {
-  const { colors } = useAppTheme();
-  const styles = useStyles();
-  return <View style={styles.settingsGlyph}>{[18, 12, 18].map((size, index) => <View key={index} style={{ width: size, height: 2, borderRadius: 1, backgroundColor: colors.text, alignSelf: index === 1 ? 'flex-end' : 'auto' }} />)}</View>;
-}
-
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-    header: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: spacing.md },
-    headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     headerDetail: { maxWidth: 520, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
     headerActions: { flexDirection: 'row', gap: spacing.sm },
     heroCopy: { gap: spacing.xs, paddingTop: spacing.sm },
@@ -165,9 +145,5 @@ function useStyles() {
     dailyCopy: { flex: 1, gap: 2 },
     aviBrief: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
     aviBriefCopy: { flex: 1, gap: spacing.xs },
-    glyph: { width: 20, height: 20, alignItems: 'center' },
-    glyphHead: { width: 7, height: 7, borderRadius: 4 },
-    glyphBody: { position: 'absolute', bottom: 0, width: 18, height: 9, borderWidth: 2, borderBottomWidth: 0, borderTopLeftRadius: 9, borderTopRightRadius: 9 },
-    settingsGlyph: { width: 18, gap: 4 },
   }), [colors]);
 }

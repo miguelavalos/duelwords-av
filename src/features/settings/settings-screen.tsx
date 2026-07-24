@@ -9,7 +9,7 @@ import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 const links = {
@@ -28,6 +28,8 @@ export function SettingsScreen() {
   const copy = experienceCopy(interfaceLocale);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
+  const { width } = useWindowDimensions();
+  const tablet = width >= 760;
 
   async function setHaptics(enabled: boolean) {
     setPreferences((current) => ({ ...current, hapticsEnabled: enabled }));
@@ -36,14 +38,18 @@ export function SettingsScreen() {
 
   return (
     <AppScreen key={appearance} bottomInset={spacing.xxl}>
-      <View style={styles.header}>
-        <View style={styles.headerCopy}>
-        <DuelWordsWordmark compact withIcon />
-          <InkEyebrow>{copy.settings}</InkEyebrow>
-          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
-          <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>{t(interfaceLocale, 'done')}</AppButton>
+      {!tablet ? (
+        <AppChromeHeader
+          accountLabel={copy.account}
+          onAccountPress={() => router.replace('/(tabs)/account' as Href)}
+          onSettingsPress={() => undefined}
+          selected="settings"
+          settingsLabel={copy.settings}
+        />
+      ) : null}
+      <View style={styles.headerCopy}>
+        <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
+        <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
       </View>
 
       <PaperCard>
@@ -73,7 +79,7 @@ export function SettingsScreen() {
       <PaperCard>
         <SectionHeading title="Account & plan" detail="Account AV and DuelWords Pro remain separate from game-language preferences." />
         <View style={styles.buttonRow}>
-          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/account' as Href)}>{copy.account}</AppButton>
+          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/(tabs)/account' as Href)}>{copy.account}</AppButton>
           <AppButton tone="quiet" style={styles.flexButton} onPress={() => router.push('/pro' as Href)}>DuelWords Pro</AppButton>
         </View>
       </PaperCard>
@@ -144,9 +150,7 @@ function openLink(url: string) {
 
 function useStyles() {
   const { colors } = useAppTheme();
-  const { width } = useWindowDimensions();
   return useMemo(() => StyleSheet.create({
-    header: { flexDirection: width <= 360 ? 'column' : 'row', alignItems: width <= 360 ? 'stretch' : 'flex-start', gap: spacing.md },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 35, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
@@ -171,5 +175,5 @@ function useStyles() {
     aboutRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.lg, paddingVertical: spacing.xs },
     aboutLabel: { color: colors.textMuted, fontSize: typeScale.small, fontWeight: '700' },
     aboutValue: { flex: 1, color: colors.text, fontSize: typeScale.small, fontWeight: '800', textAlign: 'right' },
-  }), [colors, width]);
+  }), [colors]);
 }

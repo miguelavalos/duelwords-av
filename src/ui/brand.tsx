@@ -22,7 +22,7 @@ export const duelWordsBrandAssets = {
   wordmarkDark: require('../../assets/images/brand/duelwords-wordmark-dark.png'),
 } as const;
 
-export function DuelWordsWordmark({ compact = false, withIcon = false }: { compact?: boolean; withIcon?: boolean }) {
+export function DuelWordsWordmark({ centered = false, compact = false, withIcon = false }: { centered?: boolean; compact?: boolean; withIcon?: boolean }) {
   const { isDark } = useAppTheme();
   const source = withIcon
     ? (isDark ? duelWordsBrandAssets.lockupDark : duelWordsBrandAssets.lockup)
@@ -37,6 +37,7 @@ export function DuelWordsWordmark({ compact = false, withIcon = false }: { compa
       style={[
         withIcon ? styles.lockup : styles.wordmark,
         compact && (withIcon ? styles.lockupCompact : styles.wordmarkCompact),
+        centered && styles.centered,
       ]}
     />
   );
@@ -124,6 +125,53 @@ export function ChromeButton({
   );
 }
 
+export function AppChromeHeader({
+  accountLabel,
+  onAccountPress,
+  onSettingsPress,
+  selected,
+  settingsLabel,
+}: {
+  accountLabel: string;
+  onAccountPress: () => void;
+  onSettingsPress: () => void;
+  selected?: 'account' | 'settings';
+  settingsLabel: string;
+}) {
+  return (
+    <View style={styles.appChromeHeader}>
+      <ChromeButton accessibilityLabel={settingsLabel} onPress={onSettingsPress} selected={selected === 'settings'}>
+        <SettingsChromeGlyph />
+      </ChromeButton>
+      <View style={styles.appChromeBrand}><DuelWordsWordmark centered compact /></View>
+      <ChromeButton accessibilityLabel={accountLabel} onPress={onAccountPress} selected={selected === 'account'}>
+        <AccountChromeGlyph />
+      </ChromeButton>
+    </View>
+  );
+}
+
+export function AccountChromeGlyph() {
+  const { colors } = useAppTheme();
+  return (
+    <View style={styles.accountGlyph}>
+      <View style={[styles.accountGlyphHead, { backgroundColor: colors.text }]} />
+      <View style={[styles.accountGlyphBody, { borderColor: colors.text }]} />
+    </View>
+  );
+}
+
+export function SettingsChromeGlyph() {
+  const { colors } = useAppTheme();
+  return (
+    <View style={styles.settingsGlyph}>
+      {[18, 12, 18].map((size, index) => (
+        <View key={index} style={{ width: size, height: 2, borderRadius: 1, backgroundColor: colors.text, alignSelf: index === 1 ? 'flex-end' : 'auto' }} />
+      ))}
+    </View>
+  );
+}
+
 export function SectionHeading({ detail, title }: { detail?: string; title: string }) {
   const { colors } = useAppTheme();
   return (
@@ -147,6 +195,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   lockupCompact: { width: 246, height: 56 },
+  centered: { alignSelf: 'center' },
   aviFrame: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -175,6 +224,12 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderCurve: 'continuous',
   },
+  appChromeHeader: { minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  appChromeBrand: { flex: 1, minWidth: 0, alignItems: 'center', overflow: 'hidden' },
+  accountGlyph: { width: 20, height: 20, alignItems: 'center' },
+  accountGlyphHead: { width: 7, height: 7, borderRadius: 4 },
+  accountGlyphBody: { position: 'absolute', bottom: 0, width: 18, height: 9, borderWidth: 2, borderBottomWidth: 0, borderTopLeftRadius: 9, borderTopRightRadius: 9 },
+  settingsGlyph: { width: 18, gap: 4 },
   sectionHeading: { gap: spacing.xs },
   sectionTitle: {
     fontFamily: 'Georgia',

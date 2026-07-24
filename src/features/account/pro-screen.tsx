@@ -5,7 +5,7 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function ProScreen() {
@@ -17,7 +17,11 @@ export function ProScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.topBar}><DuelWordsWordmark compact withIcon /><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
+      <View style={styles.topBar}>
+        <View style={styles.topBarSide}><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
+        <Text style={styles.topBarTitle}>Pro</Text>
+        <View style={styles.topBarSide} />
+      </View>
 
       <View style={styles.hero}>
         <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
@@ -79,7 +83,9 @@ function Benefit({ detail, title }: { detail: string; title: string }) {
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+    topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
+    topBarSide: { flex: 1, alignItems: 'flex-start' },
+    topBarTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900', textAlign: 'center' },
     hero: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
     heroCopy: { flex: 1, minWidth: 250, maxWidth: 560, gap: spacing.sm },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },
