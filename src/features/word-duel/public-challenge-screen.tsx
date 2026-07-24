@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
+import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
 import type {
@@ -10,6 +11,7 @@ import type {
   DuelWordsApiFinalResult,
   DuelWordsApiRematchProposal,
 } from '@/game/word-duel-lobby/api-client';
+import { DuelWordsApiError } from '@/game/word-duel-lobby/api-client';
 import {
   createWordDuelLobbyControllerStateFromAcceptedRematchProposal,
   createWordDuelLobbyController,
@@ -17,6 +19,7 @@ import {
 } from '@/game/word-duel-lobby/controller';
 import type { WordDuelLobbyPlayer } from '@/game/word-duel-lobby/view-model';
 import {
+  createWordDuelDefaultGuestDisplayName,
   createWordDuelGuestActor,
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
@@ -54,20 +57,24 @@ export function PublicWordDuelChallengeScreen({
   const router = useRouter();
   const { colors } = useAppTheme();
   const styles = usePublicChallengeStyles();
+  const account = useDuelWordsAccount();
   const [preferences] = useAppPreferences();
   const interfaceLocale = initialInterfaceLocale ?? preferences.interfaceLocale;
   const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
     publicDuelT(interfaceLocale, key, values);
-  const runtime = useDuelWordsRuntimeClients();
+  const runtime = useDuelWordsRuntimeClients({ getAuthToken: account.getToken });
   const controller = useMemo(
     () => createWordDuelLobbyController({ mode: 'runtime', runtimeApiClient: runtime.appsApi }),
     [runtime.appsApi],
   );
   const guestActorRef = useRef<GuestActor | null>(null);
-  const initialPreviewStartedRef = useRef(false);
+  const initialPreviewKeyRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
+  const lobbyRefreshInFlightRef = useRef(false);
   const [busyAction, setBusyAction] = useState<string | null>(null);
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useState(
+    () => createWordDuelDefaultGuestDisplayName(randomUUID),
+  );
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(
     initialGameLanguage ?? preferences.gameLanguage,
   );
@@ -81,23 +88,83 @@ export function PublicWordDuelChallengeScreen({
   const isBusy = busyAction !== null;
 
   useEffect(() => {
-    if (initialPreviewStartedRef.current || !runtime.ok) {
+    if (account.user?.displayName && lobbyState === null) {
+      setDisplayName(account.user.displayName);
+    }
+  }, [account.user?.displayName, lobbyState]);
+
+  useEffect(() => {
+    if (!runtime.ok) {
       return;
     }
 
-    if (initialInviteInput.trim().length > 0) {
-      initialPreviewStartedRef.current = true;
-      previewInvite(initialInviteInput);
+    const invite = initialInviteInput.trim();
+    const code = initialRoomCode.trim();
+    const previewKey = invite.length > 0
+      ? `invite:${invite}`
+      : code.length > 0
+        ? `code:${code}`
+        : null;
+
+    if (previewKey === null || initialPreviewKeyRef.current === previewKey) {
       return;
     }
 
-    if (initialRoomCode.trim().length > 0) {
-      initialPreviewStartedRef.current = true;
-      previewRoomCode(initialRoomCode);
+    initialPreviewKeyRef.current = previewKey;
+    const parsedInvite = invite.length > 0 ? parseWordDuelInviteEntry(invite) : null;
+    const parsedCode = code.length > 0 ? normalizeWordDuelRoomCode(code) : null;
+    if (parsedInvite !== null && !parsedInvite.ok) {
+      setStatusMessage(parsedInvite.reason === 'unsupported_host'
+        ? copy('unsupportedInvite')
+        : copy('validInviteRequired'));
+      return;
     }
-    // Deep-link preview is deliberately attempted once per mounted route.
+    if (parsedCode !== null && !parsedCode.ok) {
+      setStatusMessage(copy('roomCodeInvalid'));
+      return;
+    }
+
+    activeOpeningStartedRef.current = false;
+    setActiveController(null);
+    setFinalResult(null);
+    setLobbyState(null);
+    setRematchProposal(null);
+    setInviteInput(invite);
+    setRoomCode(code);
+    setStatusMessage(null);
+    setBusyAction(invite.length > 0 ? 'preview' : 'preview-code');
+
+    let cancelled = false;
+    void (async () => {
+      try {
+        const nextState = invite.length > 0
+          ? await controller.previewInviteByToken({
+              inviteToken: parsedInvite!.value,
+              nowMs: Date.now(),
+            })
+          : await controller.previewInviteByRoomCode({
+              nowMs: Date.now(),
+              roomCode: parsedCode!.value,
+            });
+        if (cancelled || initialPreviewKeyRef.current !== previewKey) return;
+        setLobbyState(nextState);
+        setStatusMessage(copy('reviewBeforeJoin'));
+      } catch (error) {
+        if (cancelled || initialPreviewKeyRef.current !== previewKey) return;
+        setStatusMessage(actionErrorMessage(error, copy));
+      } finally {
+        if (!cancelled && initialPreviewKeyRef.current === previewKey) {
+          setBusyAction(null);
+        }
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // copy is component-local; the preview key makes this effect idempotent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialInviteInput, initialRoomCode, runtime.ok]);
+  }, [controller, initialInviteInput, initialRoomCode, runtime.ok]);
 
   useEffect(() => {
     const countdownEndsAt = lobbyState?.lobby.countdown?.endsAtMs;
@@ -120,6 +187,28 @@ export function PublicWordDuelChallengeScreen({
     // runAction is component-local; including it would recreate this deadline timer every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [controller, isBusy, lobbyState]);
+
+  useEffect(() => {
+    if (
+      !lobbyState?.session.playerId
+      || (lobbyState.lobby.status !== 'lobby' && lobbyState.lobby.status !== 'countdown')
+    ) {
+      return undefined;
+    }
+
+    const interval = setInterval(() => {
+      if (lobbyRefreshInFlightRef.current) return;
+      lobbyRefreshInFlightRef.current = true;
+      void controller.refreshLobby({ nowMs: Date.now(), state: lobbyState })
+        .then((nextState) => setLobbyState(nextState))
+        .catch(() => undefined)
+        .finally(() => {
+          lobbyRefreshInFlightRef.current = false;
+        });
+    }, 1_500);
+
+    return () => clearInterval(interval);
+  }, [controller, lobbyState]);
 
   useEffect(() => {
     if (
@@ -167,18 +256,25 @@ export function PublicWordDuelChallengeScreen({
     setStatusMessage(null);
     try {
       await action();
-    } catch {
-      setStatusMessage(copy('actionUnavailable'));
+    } catch (error) {
+      setStatusMessage(actionErrorMessage(error, copy));
     } finally {
       setBusyAction(null);
     }
   }
 
-  function currentGuestActor(): GuestActor | null {
+  function currentActor(): DuelWordsApiActor | null {
     const normalized = normalizeWordDuelGuestDisplayName(displayName);
     if (!normalized.ok) {
       setStatusMessage(displayNameErrorLabel(interfaceLocale, normalized.reason));
       return null;
+    }
+
+    if (account.user) {
+      return {
+        actorType: 'account_user',
+        safeDisplayName: normalized.value,
+      };
     }
 
     if (guestActorRef.current === null) {
@@ -197,7 +293,7 @@ export function PublicWordDuelChallengeScreen({
   }
 
   function createInvite() {
-    const host = currentGuestActor();
+    const host = currentActor();
     if (!host) {
       return;
     }
@@ -253,7 +349,7 @@ export function PublicWordDuelChallengeScreen({
     if (!lobbyState) {
       return;
     }
-    const player = currentGuestActor();
+    const player = currentActor();
     if (!player) {
       return;
     }
@@ -423,7 +519,7 @@ export function PublicWordDuelChallengeScreen({
           accessibilityLabelledBy="word-duel-display-name-label"
           autoCapitalize="words"
           autoCorrect={false}
-          editable={!isBusy && lobbyState === null}
+          editable={!isBusy && lobbyState === null && account.user === null}
           maxLength={32}
           onChangeText={setDisplayName}
           placeholder={copy('displayNamePlaceholder')}
@@ -431,7 +527,7 @@ export function PublicWordDuelChallengeScreen({
           style={styles.input}
           value={displayName}
         />
-        <Text style={styles.helper}>{copy('roomNameHelp')}</Text>
+        <Text style={styles.helper}>{account.user ? 'Using your Account AV display name for this room.' : copy('roomNameHelp')}</Text>
       </View>
 
       {lobbyState === null ? (
@@ -522,6 +618,18 @@ export function PublicWordDuelChallengeScreen({
       ) : null}
     </AppScreen>
   );
+}
+
+function actionErrorMessage(
+  error: unknown,
+  copy: (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) => string,
+) {
+  if (error instanceof DuelWordsApiError) {
+    if (error.code === 'game_full') return copy('challengeClosed');
+    if (error.code === 'game_expired') return copy('challengeClosed');
+    if (error.status >= 500 || error.status === 0) return copy('safeRealtimeUnavailable');
+  }
+  return copy('actionUnavailable');
 }
 
 function ConnectedResultPanel({

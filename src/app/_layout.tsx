@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
 
+import { DuelWordsAccountAvProvider } from '@/account/account-av-provider';
 import { ensureDuelWordsDiagnosticsReady } from '@/diagnostics/runtime';
 import { AppThemeProvider, useResolvedAppTheme } from '@/ui/theme';
 
@@ -11,8 +12,9 @@ export default function RootLayout() {
   const appTheme = useResolvedAppTheme();
 
   return (
-    <ThemeProvider value={appTheme.isDark ? DarkTheme : DefaultTheme}>
-      <AppThemeProvider value={appTheme}>
+    <DuelWordsAccountAvProvider>
+      <ThemeProvider value={appTheme.isDark ? DarkTheme : DefaultTheme}>
+        <AppThemeProvider value={appTheme}>
         <Head>
           <title>DuelWords AV</title>
           <meta
@@ -22,6 +24,10 @@ export default function RootLayout() {
         </Head>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="account" />
+          <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="onboarding" />
+          <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
           <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
           <Stack.Screen name="word-duel/active-demo" />
           <Stack.Screen name="word-duel/challenge" options={{ title: 'Word Duel — DuelWords AV' }} />
@@ -34,7 +40,8 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />
-      </AppThemeProvider>
-    </ThemeProvider>
+        </AppThemeProvider>
+      </ThemeProvider>
+    </DuelWordsAccountAvProvider>
   );
 }

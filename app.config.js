@@ -5,11 +5,38 @@ function createExpoConfig() {
   const apiDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED);
   const convexUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL);
   const convexRealtimeDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED);
+  const accountPublishableKey = normalizedOptionalString(
+    process.env.ACCOUNTAV_PUBLISHABLE_KEY ?? process.env.EXPO_PUBLIC_ACCOUNTAV_PUBLISHABLE_KEY,
+  );
+  const accountKeychainService = normalizedOptionalString(process.env.ACCOUNTAV_KEYCHAIN_SERVICE)
+    ?? 'com.avalsys.duelwordsav.account';
+  const accountKeychainAccessGroup = normalizedOptionalString(process.env.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)
+    ?? '935PM55U6R.com.avalsys.duelwordsav';
 
   return {
     ...appJson.expo,
+    ios: {
+      ...appJson.expo.ios,
+      entitlements: {
+        ...(appJson.expo.ios?.entitlements ?? {}),
+        'com.apple.developer.applesignin': ['Default'],
+        'keychain-access-groups': [accountKeychainAccessGroup],
+      },
+      infoPlist: {
+        ...(appJson.expo.ios?.infoPlist ?? {}),
+        ACCOUNTAV_KEYCHAIN_ACCESS_GROUP: accountKeychainAccessGroup,
+        ACCOUNTAV_KEYCHAIN_SERVICE: accountKeychainService,
+        ACCOUNTAV_PUBLISHABLE_KEY: accountPublishableKey ?? '',
+      },
+    },
     extra: {
       ...(appJson.expo.extra ?? {}),
+      accountAv: {
+        apiBaseUrl,
+        keychainAccessGroup: accountKeychainAccessGroup,
+        keychainService: accountKeychainService,
+        publishableKey: accountPublishableKey,
+      },
       duelWordsAv: {
         ...(appJson.expo.extra?.duelWordsAv ?? {}),
         apiBaseUrl,

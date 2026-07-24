@@ -12,11 +12,12 @@
   },
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web --port 8098",
     "config:ios:check": "node scripts/check-ios-release-config.mjs",
     "config:ios:check:preview": "node scripts/check-ios-release-config.mjs --require-preview-runtime",
+    "dictionary:generate": "node scripts/generate-local-dictionaries.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "verify": "pnpm run config:ios:check && pnpm run typecheck && pnpm run test",
@@ -25,6 +26,7 @@
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
   "dependencies": {
+    "@clerk/expo": "4.0.2",
     "@expo/ui": "~57.0.3",
     "convex": "1.42.1",
     "expo": "~57.0.2",
@@ -36,6 +38,7 @@
     "expo-image": "~57.0.0",
     "expo-linking": "~57.0.1",
     "expo-router": "~57.0.3",
+    "expo-secure-store": "~57.0.1",
     "expo-splash-screen": "~57.0.2",
     "expo-sqlite": "~57.0.1",
     "expo-status-bar": "~57.0.0",

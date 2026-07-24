@@ -31,6 +31,8 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "@clerk/expo",
+      "expo-secure-store",
       [
         "expo-router",
         {

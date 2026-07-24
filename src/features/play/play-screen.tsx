@@ -1,4 +1,4 @@
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
@@ -36,17 +36,29 @@ export function PlayScreen() {
           </View>
           <Text style={styles.subtitle}>{t(interfaceLocale, 'playSubtitle')}</Text>
         </View>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={t(interfaceLocale, 'settings')}
-          onPress={() => router.push('/settings')}
-          style={styles.settingsButton}>
-          <View style={styles.settingsGlyph}>
-            <View style={styles.settingsLine} />
-            <View style={[styles.settingsLine, styles.settingsLineMiddle]} />
-            <View style={styles.settingsLine} />
-          </View>
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Account"
+            onPress={() => router.push('/account' as Href)}
+            style={styles.settingsButton}>
+            <View style={styles.accountGlyph}>
+              <View style={styles.accountHead} />
+              <View style={styles.accountBody} />
+            </View>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t(interfaceLocale, 'settings')}
+            onPress={() => router.push('/settings')}
+            style={styles.settingsButton}>
+            <View style={styles.settingsGlyph}>
+              <View style={styles.settingsLine} />
+              <View style={[styles.settingsLine, styles.settingsLineMiddle]} />
+              <View style={styles.settingsLine} />
+            </View>
+          </Pressable>
+        </View>
       </View>
 
       <View style={styles.selectorBlock}>
@@ -196,6 +208,32 @@ function usePlayStyles() {
     backgroundColor: colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  accountGlyph: {
+    width: 20,
+    height: 20,
+    alignItems: 'center',
+  },
+  accountHead: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: colors.text,
+  },
+  accountBody: {
+    position: 'absolute',
+    bottom: 0,
+    width: 17,
+    height: 9,
+    borderWidth: 2,
+    borderColor: colors.text,
+    borderBottomWidth: 0,
+    borderTopLeftRadius: 9,
+    borderTopRightRadius: 9,
   },
   settingsGlyph: {
     width: 18,

@@ -16,6 +16,12 @@ function expectEqual(label, actual, expected) {
   }
 }
 
+function hasExpoPlugin(name) {
+  return expoConfig.plugins?.some(
+    (plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name),
+  ) ?? false;
+}
+
 expectEqual('expo.name', expoConfig.name, 'DuelWords AV');
 expectEqual('expo.slug', expoConfig.slug, 'duelwords-av');
 expectEqual('expo.version', expoConfig.version, '0.1.0');
@@ -30,6 +36,28 @@ expectEqual(
   false,
 );
 expectEqual('expo.scheme', expoConfig.scheme, 'duelwordsav');
+expectEqual('expo.plugins @clerk/expo', hasExpoPlugin('@clerk/expo'), true);
+expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
+expectEqual(
+  'expo.ios.entitlements com.apple.developer.applesignin',
+  JSON.stringify(expoConfig.ios?.entitlements?.['com.apple.developer.applesignin']),
+  JSON.stringify(['Default']),
+);
+expectEqual(
+  'expo.ios.entitlements keychain-access-groups',
+  JSON.stringify(expoConfig.ios?.entitlements?.['keychain-access-groups']),
+  JSON.stringify(['935PM55U6R.com.avalsys.duelwordsav']),
+);
+expectEqual(
+  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_SERVICE',
+  expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_SERVICE,
+  'com.avalsys.duelwordsav.account',
+);
+expectEqual(
+  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_ACCESS_GROUP',
+  expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP,
+  '935PM55U6R.com.avalsys.duelwordsav',
+);
 const expoRouterPlugin = expoConfig.plugins?.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-router',
 );
@@ -65,6 +93,24 @@ if (process.argv.includes('--require-preview-runtime')) {
       failures.push(`${name} must resolve to a non-empty HTTPS URL.`);
     }
   }
+
+  if (
+    typeof expoConfig.extra?.accountAv?.publishableKey !== 'string'
+    || expoConfig.extra.accountAv.publishableKey.trim().length === 0
+  ) {
+    failures.push('ACCOUNTAV_PUBLISHABLE_KEY must resolve to a non-empty value.');
+  }
+
+  expectEqual(
+    'Account AV keychain service mirror',
+    expoConfig.extra?.accountAv?.keychainService,
+    expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_SERVICE,
+  );
+  expectEqual(
+    'Account AV keychain access-group mirror',
+    expoConfig.extra?.accountAv?.keychainAccessGroup,
+    expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP,
+  );
 
   expectEqual(
     'EXPO_PUBLIC_DUELWORDSAV_API_DISABLED',

@@ -34,6 +34,11 @@ export function normalizeWordDuelGuestDisplayName(input: string): WordDuelGuestD
   return { ok: true, value };
 }
 
+export function createWordDuelDefaultGuestDisplayName(randomUuid: () => string): string {
+  const suffix = randomUuid().replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase();
+  return suffix.length === 4 ? `Guest ${suffix}` : 'Guest';
+}
+
 export function createWordDuelGuestActor(input: {
   displayName: string;
   randomUuid: () => string;

@@ -15,7 +15,7 @@ describe('word duel shared UI model helpers', () => {
     const initial = createLocalGame({
       dictionary: getLocalDictionary('en'),
       language: 'en',
-      target: 'crane',
+      target: 'sling',
     });
     const first = applyGuess(initial, 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
@@ -36,21 +36,21 @@ describe('word duel shared UI model helpers', () => {
     const initial = createLocalGame({
       dictionary: getLocalDictionary('en'),
       language: 'en',
-      target: 'crane',
+      target: 'sling',
     });
     const first = applyGuess(initial, 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
       throw new Error('Expected fixture guess to be accepted.');
     }
-    const second = applyGuess(first.state, 'crane', getLocalDictionary('en'));
+    const second = applyGuess(first.state, 'sling', getLocalDictionary('en'));
     if (!second.accepted) {
       throw new Error('Expected target guess to be accepted.');
     }
 
     const feedback = createKeyboardFeedbackFromGuesses(second.state.guesses);
 
-    expect(feedback.get('e')).toBe('exact');
-    expect(feedback.get('a')).toBe('exact');
+    expect(feedback.get('l')).toBe('exact');
+    expect(feedback.get('s')).toBe('exact');
     expect(feedback.get('f')).toBe('absent');
   });
 

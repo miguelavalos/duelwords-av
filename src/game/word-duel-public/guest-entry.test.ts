@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createWordDuelDefaultGuestDisplayName,
   createWordDuelGuestActor,
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
@@ -8,6 +9,13 @@ import {
 } from './guest-entry';
 
 describe('public guest Word Duel entry', () => {
+  it('creates a local editable guest alias without establishing identity', () => {
+    expect(createWordDuelDefaultGuestDisplayName(
+      () => '12345678-1234-1234-1234-123456789abc',
+    )).toBe('Guest 1234');
+    expect(createWordDuelDefaultGuestDisplayName(() => 'x')).toBe('Guest');
+  });
+
   it('normalizes a room-scoped guest display name and enforces the backend length boundary', () => {
     expect(normalizeWordDuelGuestDisplayName('  María   Sol  ')).toEqual({
       ok: true,

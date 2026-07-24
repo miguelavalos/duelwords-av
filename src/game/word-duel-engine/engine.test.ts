@@ -58,7 +58,7 @@ describe('scoreGuess', () => {
 
 describe('applyGuess', () => {
   it('does not consume an attempt for an invalid local fixture word', () => {
-    const state = game('en', 'crane');
+    const state = game('en', 'sling');
     const result = applyGuess(state, 'xxxxx', getLocalDictionary('en'));
 
     expect(result.accepted).toBe(false);
@@ -69,7 +69,7 @@ describe('applyGuess', () => {
   });
 
   it('rejects too-short and too-long guesses without consuming attempts', () => {
-    const state = game('en', 'crane');
+    const state = game('en', 'sling');
     const shortResult = applyGuess(state, 'can', getLocalDictionary('en'));
     const longResult = applyGuess(state, 'cranes', getLocalDictionary('en'));
 
@@ -80,7 +80,7 @@ describe('applyGuess', () => {
   });
 
   it('wins immediately on a correct English guess', () => {
-    const result = applyGuess(game('en', 'crane'), 'crane', getLocalDictionary('en'));
+    const result = applyGuess(game('en', 'sling'), 'sling', getLocalDictionary('en'));
 
     expect(result.accepted).toBe(true);
     expect(result.state.status).toBe('won');
@@ -95,21 +95,21 @@ describe('applyGuess', () => {
   });
 
   it('loses after six accepted non-winning guesses', () => {
-    const guesses = ['flame', 'civic', 'sling', 'brave', 'cocoa', 'belle'];
+    const guesses = ['flame', 'civic', 'brave', 'cocoa', 'belle', 'crane'];
     const finalState = guesses.reduce((state, guessWord) => {
       const result = applyGuess(state, guessWord, getLocalDictionary('en'));
       if (!result.accepted) {
         throw new Error(`Expected ${guessWord} to be accepted.`);
       }
       return result.state;
-    }, game('en', 'crane'));
+    }, game('en', 'sling'));
 
     expect(finalState.guesses).toHaveLength(WORD_DUEL_MAX_ATTEMPTS);
     expect(finalState.status).toBe('lost');
   });
 
   it('rejects guesses after game over', () => {
-    const won = applyGuess(game('en', 'crane'), 'crane', getLocalDictionary('en'));
+    const won = applyGuess(game('en', 'sling'), 'sling', getLocalDictionary('en'));
     if (!won.accepted) {
       throw new Error('Expected winning guess to be accepted.');
     }
@@ -123,17 +123,24 @@ describe('applyGuess', () => {
 });
 
 describe('local fixtures and safe summaries', () => {
-  it('keeps valid guesses and target words separate in each local fixture profile', () => {
+  it('bundles the complete approved valid-guess and target profiles', () => {
+    const expectedCounts = {
+      en: { targets: 589, validGuesses: 8_734 },
+      es: { targets: 731, validGuesses: 7_571 },
+    } as const;
     for (const language of ['en', 'es'] as const) {
       const entries = LOCAL_WORD_FIXTURES[language];
-      expect(entries.some((entry) => entry.isValidGuess && !entry.isTarget)).toBe(true);
       expect(entries.every((entry) => entry.length === 5)).toBe(true);
-      expect(entries.filter((entry) => entry.isTarget).length).toBeGreaterThanOrEqual(3);
+      expect(entries).toHaveLength(expectedCounts[language].targets);
+      expect(getLocalDictionary(language).validGuesses).toHaveLength(expectedCounts[language].validGuesses);
+      expect(getLocalDictionary(language).targetWords).toHaveLength(expectedCounts[language].targets);
+      expect(getLocalDictionary(language).targetWords.every((target) =>
+        getLocalDictionary(language).validGuesses.includes(target))).toBe(true);
     }
   });
 
   it('creates a local summary without target, guesses, boards, or Wordle-like share blocks', () => {
-    const first = applyGuess(game('en', 'crane'), 'flame', getLocalDictionary('en'));
+    const first = applyGuess(game('en', 'sling'), 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
       throw new Error('Expected first guess to be accepted.');
     }
@@ -141,7 +148,7 @@ describe('local fixtures and safe summaries', () => {
     const summary = createLocalPracticeSummary(first.state);
     const serialized = JSON.stringify(summary);
 
-    expect(serialized).not.toContain('crane');
+    expect(serialized).not.toContain('sling');
     expect(serialized).not.toContain('flame');
     expect(serialized).not.toContain('🟩');
     expect(serialized).not.toContain('⬛');

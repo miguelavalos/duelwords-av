@@ -4,8 +4,8 @@ Mobile-first Expo client for DuelWords AV.
 
 ## Current Status
 
-Current as of 2026-07-18: this repository has a public, guest-first Word Duel
-V1 candidate path, but is not yet a release candidate. **Challenge a Friend**
+Current as of 2026-07-24: this repository has a public, guest-first Word Duel
+V1 hardening candidate, but is not yet ready for another TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
 enabled, that route can create a room-scoped guest, create or review an invite
 without auto-joining, join explicitly, Ready, start, play connected rounds,
@@ -14,10 +14,13 @@ a participant-scoped rematch. Room-code lookup and canonical invite-token
 parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
 
-The public Play catalog now contains only the V1 product entries: Challenge a
-Friend and offline Practice. Lobby, active-duel, result, Solo/Daily, Play Avi,
-and connected-runtime engineering previews remain available by direct internal
-route for deterministic development, but are not linked from Play.
+The public Play catalog contains Challenge a Friend and offline Practice.
+Practice and deterministic Play Avi use bundled EN/ES dictionaries and make no
+word-list request. Daily is the only planned solo mode allowed to fetch a
+server-selected word; Challenge remains server-arbitrated because both devices
+must share one authoritative target and result. Lobby, active-duel, result,
+Solo/Daily, Play Avi, and connected-runtime engineering previews remain
+available by direct internal route when they are not linked from Play.
 
 Interface language (EN/ES/CA/FR/DE), game language (EN/ES), and appearance
 (system/light/dark) are versioned local preferences. Web uses browser
@@ -27,11 +30,19 @@ react to these preferences. English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
-Local previews still cover invite/lobby/Ready/countdown, active duel,
-result/rematch, Solo/Daily, and deterministic Play Avi. The hidden connected
-runtime remains as an engineering console, not the product entry point. The
-signed two-device mobile smoke, canonical web `/i/c/:token` edge/deep-link
-rewrite, enabled preview runtime, and release gates have not been run.
+The native shell now includes splash, onboarding with guest skip, Account AV
+sign-in/create-account entry, Account, Settings, and an honest DuelWords Pro
+preview with no purchase call. Opening a new invite while the Challenge screen
+is already mounted replaces the previous invite instead of reusing stale room
+state, and guests receive a local editable room alias by default.
+
+On 2026-07-24 an enabled preview run on dedicated iPhone 17 and iPad Pro 13
+simulators proved create/review/join, automatic lobby polling, Ready/countdown,
+an active first round, two accepted guesses, and transition to round 2. It also
+found and fixed a Convex projection bug that erased live heartbeats and caused
+premature `abandoned_inactive` finalization. The original repro then remained
+active as expected. Canonical web `/i/c/:token` edge routing, Universal Links,
+physical-iPad validation, and a replacement TestFlight build remain open.
 
 Local visual and accessibility QA is complete for the current public and
 engineering-preview surfaces. Deterministic checks covered all 18 exported web
@@ -49,9 +60,10 @@ The current cumulative status and remaining gates live in the private
 their individual slice at the time and should not be read as the current
 cumulative product state.
 
-This repo currently contains the early local client slices: app shell, local
-Word Duel practice, a pure TypeScript word engine, typed interface locale
-foundation, tiny hand-authored EN/ES fixtures for tests and practice, and a
+This repo currently contains the app shell, local Word Duel practice, a pure
+TypeScript word engine, typed interface locale foundation, generated bundled
+EN/ES dictionaries with source/license notices plus small deterministic test
+fixtures, and a
 local invite/lobby/Ready/countdown preview, active-duel preview screen for the
 V1 1v1 mobile layout with a typed mock adapter for the approved round-scoped
 active gameplay API contract plus a local mock adapter for the approved
@@ -91,11 +103,11 @@ participant final results and current rematch discovery remain API-only explicit
 actions. Post-finalization Convex rematch proposal projection and automatic
 polling remain out of scope; each participant uses the public Refresh action.
 
-It does not contain production dictionaries, enabled-by-default Apps AV API
-network calls, enabled-by-default Convex runtime connections, generated Convex
-API imports, Account AV login, Sentry SDK wiring, Sentry DSNs, ads, Pro, push
-notifications, store metadata, bundle ids, provider keys, or deploy
-configuration.
+It does not enable Apps AV API or Convex network calls by default. Account AV
+is integrated through Clerk Expo and SecureStore, but account-only persistence,
+real Pro purchases, ads, push, Sentry provider wiring, canonical associated
+links, and production runtime remain outside the current candidate. No provider
+key or backend deploy credential belongs in this repository.
 
 ## Run Locally
 

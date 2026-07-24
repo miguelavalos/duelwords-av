@@ -124,7 +124,7 @@ describe('Avi bot duel local view model', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
     const submitted = submitAviBotDuelGuess({ input: 'flame', nowMs: NOW_MS + 1_000, session });
 
-    expect(session.target.normalizedWord).toBe('crane');
+    expect(session.target.normalizedWord).toBe('abbot');
     if (!submitted.accepted) {
       throw new Error('Expected human fixture guess to be accepted.');
     }
@@ -198,16 +198,14 @@ describe('Avi bot duel local view model', () => {
 
   it('keeps external share free of target, guesses, bot path, boards and Wordle-like grids', () => {
     const started = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
-    const first = submitAndResolve(started, 'flame', NOW_MS);
-    const final = submitAndResolve(first, 'civic', NOW_MS + 10_000);
+    const final = submitAndResolve(started, started.target.displayWord, NOW_MS);
     const share = createAviBotDuelViewModel(final).safeSharePreview;
     const serialized = JSON.stringify(share).toLowerCase();
 
     expect(share).not.toBeNull();
     for (const forbidden of [
       started.target.normalizedWord,
-      'flame',
-      'civic',
+      started.target.displayWord,
       final.botState.guesses[0]?.normalizedWord ?? '',
       'feedback',
       'board',

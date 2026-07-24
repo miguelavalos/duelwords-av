@@ -75,7 +75,7 @@ describe('word duel solo and daily local preview', () => {
       gameLanguage: 'es',
       mode: 'solo_practice',
       nowMs: NOW_MS,
-      seed: 0,
+      seed: 55,
     });
 
     expect(english.state.language).toBe('en');
