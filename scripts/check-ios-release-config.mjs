@@ -47,7 +47,9 @@ expectEqual(
   development ? 'development' : 'release',
 );
 expectEqual('expo.plugins @clerk/expo', hasExpoPlugin('@clerk/expo'), true);
+expectEqual('expo.plugins expo-apple-authentication', hasExpoPlugin('expo-apple-authentication'), true);
 expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
+expectEqual('expo.plugins expo-web-browser', hasExpoPlugin('expo-web-browser'), true);
 expectEqual(
   'expo.ios.entitlements com.apple.developer.applesignin',
   JSON.stringify(expoConfig.ios?.entitlements?.['com.apple.developer.applesignin']),

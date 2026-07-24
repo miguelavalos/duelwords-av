@@ -25,7 +25,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="account" />
-          <Stack.Screen name="auth" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="auth" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="delete-account" options={{ presentation: 'modal' }} />
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="pro" options={{ presentation: 'modal' }} />

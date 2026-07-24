@@ -7,6 +7,7 @@ import { radii, spacing, typeScale, useAppTheme } from './theme';
 export const aviAssets = {
   footer: require('../../assets/images/brand/avi-footer.png'),
   fullBody: require('../../assets/images/brand/avi-full-body.png'),
+  loginPeek: require('../../assets/images/brand/avi-login-sheet-peek.png'),
   neutral: require('../../assets/images/brand/avi-neutral.png'),
   onboarding: require('../../assets/images/brand/avi-onboarding.png'),
   thinking: require('../../assets/images/brand/avi-thinking.png'),

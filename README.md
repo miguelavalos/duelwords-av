@@ -40,7 +40,7 @@ initialization fails in tests if a locale omits a public-journey key.
 
 The native shell now includes the canonical-candidate DuelWords icon, separate
 light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding with
-guest skip, Account AV sign-in/create-account entry, Account, Settings, an
+guest skip, the canonical Tune AV Account AV provider sheet, Account, Settings, an
 adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords Pro preview
 with no purchase call. Account and Pro unavailable states use product language
 rather than deployment terminology. Opening a new invite while the Challenge screen
@@ -63,7 +63,12 @@ The current branding pass reviewed every public/common and gameplay surface on
 dedicated iPhone and iPad simulators, including light/dark Home, the Tune-style
 footer/sidebar, onboarding, Account, Settings, auth entry, Pro, deletion,
 Practice, Play Avi, and Challenge. A final side-by-side pass also ran Tune AV in
-its own iPhone 17 simulator and checked each shared surface individually.
+its own iPhone 17 simulator and checked each shared surface individually. The
+onboarding/auth pass translates the shared Apps AV metrics directly: centered
+brand and hero copy, inset 30-point-radius panel, drag-to-dismiss behavior,
+Apple then Google provider order, guest skip, legal copy, and the canonical
+`AviV2LoginSheetPeek` artwork. Account entry reuses the same expanded
+onboarding experience rather than opening a generic Clerk form.
 DuelWords now uses the same shared hierarchy: Settings at the left of the
 centered product wordmark, Account at the right, a three-destination phone
 footer pill with Avi in its own circular control, persistent shell navigation
@@ -139,7 +144,10 @@ actions. Post-finalization Convex rematch proposal projection and automatic
 polling remain out of scope; each participant uses the public Refresh action.
 
 It does not enable Apps AV API or Convex network calls by default. Account AV
-is integrated through Clerk Expo and SecureStore, but account-only persistence,
+is integrated through Clerk Expo and SecureStore. Native Apple and Google
+provider flows use Clerk's Expo adapters, activate the returned session, and
+then resolve the internal Apps AV identity through Account AV; provider ids are
+never published as product user ids. Account-only persistence,
 real Pro purchases, ads, push, Sentry provider wiring, canonical associated
 links, and production runtime remain outside the current candidate. No provider
 key or backend deploy credential belongs in this repository.

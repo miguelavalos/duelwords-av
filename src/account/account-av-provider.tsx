@@ -1,4 +1,5 @@
-import { ClerkProvider, useAuth, useClerk } from '@clerk/expo';
+import { ClerkProvider, useAuth, useClerk, useSSO } from '@clerk/expo';
+import { useSignInWithApple } from '@clerk/expo/apple';
 import * as SecureStore from 'expo-secure-store';
 import {
   createContext,
@@ -13,6 +14,7 @@ import {
 
 import { fetchAccountAvIdentity, type AccountAvInternalUser, type DuelWordsAccess } from './account-api-client';
 import { getDuelWordsAccountAvConfig } from './account-av-config';
+import { AccountAuthCancelledError, isAccountAuthCancellation } from './account-auth-errors';
 
 type AccountStatus = 'account_error' | 'guest' | 'loading' | 'signed_in' | 'signed_in_offline' | 'unavailable';
 
@@ -21,6 +23,8 @@ type AccountAvContextValue = {
   available: boolean;
   getToken: () => Promise<string | null>;
   refresh: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   status: AccountStatus;
   user: AccountAvInternalUser | null;
@@ -33,6 +37,8 @@ const NO_ACCOUNT: AccountAvContextValue = {
   available: false,
   getToken: async () => null,
   refresh: async () => undefined,
+  signInWithApple: async () => undefined,
+  signInWithGoogle: async () => undefined,
   signOut: async () => undefined,
   status: 'unavailable',
   user: null,
@@ -68,6 +74,8 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
 }) {
   const { getToken, isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
   const clerk = useClerk();
+  const { startAppleAuthenticationFlow } = useSignInWithApple();
+  const { startSSOFlow } = useSSO();
   const [user, setUser] = useState<AccountAvInternalUser | null>(null);
   const [access, setAccess] = useState<DuelWordsAccess>(GUEST_ACCESS);
   const [status, setStatus] = useState<AccountStatus>('loading');
@@ -130,15 +138,35 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     setStatus('guest');
   }, [clerk, identityCache]);
 
+  const signInWithApple = useCallback(async () => {
+    try {
+      const result = await startAppleAuthenticationFlow();
+      await activateCreatedSession(result.createdSessionId, result.setActive);
+    } catch (error) {
+      if (isAccountAuthCancellation(error)) throw new AccountAuthCancelledError();
+      throw error;
+    }
+  }, [startAppleAuthenticationFlow]);
+
+  const signInWithGoogle = useCallback(async () => {
+    const result = await startSSOFlow({ strategy: 'oauth_google' });
+    if (result.authSessionResult?.type === 'cancel' || result.authSessionResult?.type === 'dismiss') {
+      throw new AccountAuthCancelledError();
+    }
+    await activateCreatedSession(result.createdSessionId, result.setActive);
+  }, [startSSOFlow]);
+
   const value = useMemo<AccountAvContextValue>(() => ({
     access,
     available: true,
     getToken: tokenProvider,
     refresh,
+    signInWithApple,
+    signInWithGoogle,
     signOut,
     status,
     user,
-  }), [access, refresh, signOut, status, tokenProvider, user]);
+  }), [access, refresh, signInWithApple, signInWithGoogle, signOut, status, tokenProvider, user]);
 
   return <AccountAvContext.Provider value={value}>{children}</AccountAvContext.Provider>;
 }
@@ -197,4 +225,14 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
       clearTimeout(timeout);
     }
   }
+}
+
+async function activateCreatedSession(
+  createdSessionId: string | null,
+  setActive: ((params: { session: string }) => Promise<unknown>) | undefined,
+) {
+  if (!createdSessionId || !setActive) {
+    throw new Error('Account AV did not return an active session.');
+  }
+  await setActive({ session: createdSessionId });
 }

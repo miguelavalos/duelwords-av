@@ -1,69 +1,14 @@
-import { AuthView } from '@clerk/expo/native';
-import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
-import { useEffect, useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
-import { useDuelWordsAccount } from '@/account/account-av-provider';
-import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, aviAssets } from '@/ui/brand';
-import { spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { AccountOnboardingExperience } from '@/features/onboarding/onboarding-screen';
 
 export function AuthScreen() {
   const router = useRouter();
-  const { mode: modeParam } = useLocalSearchParams<{ mode?: string | string[] }>();
-  const account = useDuelWordsAccount();
-  const styles = useStyles();
-  const mode = (Array.isArray(modeParam) ? modeParam[0] : modeParam) === 'signUp' ? 'signUp' : 'signIn';
-  const title = mode === 'signUp' ? 'Create your Account AV account' : 'Sign in to Account AV';
-
-  useEffect(() => {
-    if (account.status === 'signed_in') router.replace('/(tabs)/account' as Href);
-  }, [account.status, router]);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.topBar}>
-        <View style={styles.topBarSide} />
-        <DuelWordsWordmark centered compact />
-        <View style={styles.topBarSide}><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
-      </View>
-      <View style={styles.headerCopy}>
-        <Text style={styles.kicker}>Account AV</Text>
-        <Text accessibilityRole="header" aria-level={1} style={styles.title}>{title}</Text>
-        <Text style={styles.subtitle}>Keep future DuelWords history, rivals, and Pro access tied to your Apps AV account.</Text>
-      </View>
-      <View style={styles.aviIntro}>
-        <AviArtwork size={74} source={aviAssets.onboarding} />
-        <Text style={styles.aviCopy}>Avi will keep the game ready while Account AV handles your shared sign-in securely.</Text>
-      </View>
-      {account.available ? (
-        <View style={styles.auth}><AuthView isDismissible mode={mode} onDismiss={() => router.back()} /></View>
-      ) : (
-        <View style={styles.unavailable}>
-          <Text style={styles.unavailableTitle}>Account AV is temporarily unavailable</Text>
-          <Text style={styles.subtitle}>You can continue as a guest with Practice and Play Avi.</Text>
-          <AppButton onPress={() => router.replace('/play')}>Continue as guest</AppButton>
-        </View>
-      )}
-    </SafeAreaView>
+    <AccountOnboardingExperience
+      initialAuthExpanded
+      onFinish={(path) => router.replace(path)}
+    />
   );
-}
-
-function useStyles() {
-  const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
-    safeArea: { flex: 1, backgroundColor: colors.background },
-    topBar: { minHeight: 68, flexDirection: 'row', alignItems: 'center', paddingHorizontal: spacing.lg },
-    topBarSide: { flex: 1, alignItems: 'flex-end' },
-    headerCopy: { alignItems: 'center', gap: spacing.xs, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
-    kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
-    title: { color: colors.text, fontSize: 26, fontWeight: '900', letterSpacing: -0.7, textAlign: 'center' },
-    subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center' },
-    auth: { flex: 1 },
-    aviIntro: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, marginHorizontal: spacing.lg, marginBottom: spacing.sm, padding: spacing.md, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: 18 },
-    aviCopy: { flex: 1, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, fontWeight: '700' },
-    unavailable: { margin: spacing.lg, padding: spacing.lg, gap: spacing.md, backgroundColor: colors.surface, borderRadius: 14 },
-    unavailableTitle: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
-  }), [colors]);
 }
