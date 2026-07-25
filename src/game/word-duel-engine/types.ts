@@ -1,7 +1,7 @@
 export const WORD_DUEL_WORD_LENGTH = 5;
 export const WORD_DUEL_MAX_ATTEMPTS = 6;
 
-export type GameLanguage = 'en' | 'es';
+export type GameLanguage = 'en' | 'es' | 'ca' | 'fr' | 'de';
 
 export type LetterFeedback = 'exact' | 'present' | 'absent';
 

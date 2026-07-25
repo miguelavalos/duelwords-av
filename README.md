@@ -16,23 +16,27 @@ parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
 
 The public Play catalog contains Challenge a Friend and offline Practice.
-Practice and deterministic Play Avi use bundled EN/ES dictionaries and make no
-word-list request. Native word acceptance and non-Daily target selection stay
-on-device; the app must never download an allowed-word list per round. Daily is
-the only planned mode allowed to fetch its selected word before play. Challenge
-remains server-arbitrated for fairness, but the client does not fetch its target
-during gameplay; it receives only the authorized reveal in the finalized
-result. Lobby, active-duel, result,
+Practice, Solo Practice, and deterministic Play Avi use bundled
+EN/ES/CA/FR/DE dictionaries and make no word-list request. Native word
+acceptance and non-Daily local target selection stay on-device; the app must
+never download an allowed-word list per round. Daily is the only planned mode
+allowed to fetch its selected word before play. Challenge remains
+server-arbitrated for fairness and currently supports EN/ES in API/D1, but the
+client does not fetch its target during gameplay; it receives only the
+authorized reveal in the finalized result. Lobby, active-duel, result,
 Solo/Daily, Play Avi, and connected-runtime engineering previews remain
 available by direct internal route when they are not linked from Play.
 
 Interface language (EN/ES/CA/FR/DE) and appearance (system/light/dark) are
 versioned local preferences. Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
-The Home screen deliberately has no word-language selector. EN/ES word
-language is selected within a compact Game settings section in Challenge,
-Practice, or Play Avi; it applies only to that game and Challenge locks it when
-the room is created. The shell, Settings, and public
+The Home screen deliberately has no word-language selector. Word language is
+selected from a compact, accessible Game settings picker inside Challenge,
+Practice, Solo/Daily, or Play Avi; it applies only to that game and Challenge
+locks it when the room is created. Local modes offer EN/ES/CA/FR/DE. Connected
+Challenge intentionally offers EN/ES until matching API/D1 dictionaries exist.
+The picker is list-based rather than a segmented control so all choices remain
+clear on phones and iPads. The shell, Settings, and public
 challenge/lobby/game/result/rematch path react to their applicable choices.
 English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
@@ -109,6 +113,24 @@ required Account AV client configuration without exposing it, and passed a
 light/dark visual footer review. Accessibility-driven taps confirmed Home,
 Rivals, Stats, and Avi remain reachable through the floating footer.
 
+The same local candidate now resolves Avi's deterministic response
+automatically after the scheduled thinking delay; the former manual
+`Avi submits` development control is not part of the player experience. Avi's
+attempt strip never reveals its word or letters. Each completed attempt exposes
+only two aggregate counts: letters that belong to the target (including exact
+matches) and the subset already in the correct position. The compact iPhone
+keyboard also fills the dead space between keys and clamps rapid input inside
+the atomic five-letter state update.
+
+The same 2026-07-25 pass expands offline play to five languages. Bundled counts
+are EN 8,734/589, ES 7,571/731, CA 5,481/500, FR 5,654/500, and DE 6,299/500
+for valid guesses/targets. CA/FR/DE are generated reproducibly from pinned
+Mozilla Gaia sources with recorded hashes and notices. A dedicated iPhone 17
+completed a Catalan Play Avi game using accentless keyboard input, while the
+iPad Pro 13 showed the five-choice centered picker without layout loss.
+Connected Challenge was separately verified to show only EN/ES until its
+server dictionaries are expanded.
+
 The current cumulative status and remaining gates live in the private
 `docs/avi-words/current-work-handoff.md`. Dated implementation records describe
 their individual slice at the time and should not be read as the current
@@ -116,7 +138,7 @@ cumulative product state.
 
 This repo currently contains the app shell, local Word Duel practice, a pure
 TypeScript word engine, typed interface locale foundation, generated bundled
-EN/ES dictionaries with source/license notices plus small deterministic test
+EN/ES/CA/FR/DE dictionaries with source/license notices plus deterministic test
 fixtures, and a
 local invite/lobby/Ready/countdown preview, active-duel preview screen for the
 V1 1v1 mobile layout with a typed mock adapter for the approved round-scoped
@@ -513,7 +535,14 @@ game id; it only creates a start request after recipient acceptance.
 - Keep the public Play catalog limited to Challenge a Friend and offline
   Practice until a secondary mode has authoritative V1 runtime and acceptance
   evidence. The public journey and both catalog entries are localized in
-  EN/ES/CA/FR/DE; game language remains independent at EN/ES.
+  EN/ES/CA/FR/DE.
+- Complete the CA/FR/DE launch curation pass. Their bundled allowlists and
+  500-word target pools are reproducible from a pinned, license-reviewed source,
+  but the targets are frequency-ranked rather than fully human-reviewed.
+- Import matching approved CA/FR/DE dictionaries into Apps AV API/D1 before
+  enabling those languages in connected Challenge. Until then its selector is
+  deliberately limited to EN/ES so room creation cannot advertise a language
+  the server will reject.
 - Preserve the closed local visual/accessibility baseline during signed-device
   work. Current deterministic evidence covers page titles, explicit H1/H2
   levels, one main landmark, visible input labels, live status announcements,
@@ -526,17 +555,26 @@ game id; it only creates a start request after recipient acceptance.
 ## Current Game Rules
 
 - Word Duel practice uses 5-letter words and 6 attempts.
-- Game languages are English and Spanish.
+- Local game languages are English, Spanish, Catalan, French, and German.
+- Connected Challenge game languages remain English and Spanish until the
+  server dictionary import is complete.
 - Interface locale foundation exists for English, Spanish, Catalan, French,
   and German.
 - Spanish input is accent-tolerant for vowels, while `ñ` remains distinct from
-  `n`.
+  `n`. Catalan, French, and German local lookup folds accents and umlauts to the
+  corresponding five-key Latin spelling; German sharp s is excluded because it
+  expands when normalized.
 - Invalid guesses do not consume attempts.
+- Play Avi resolves the opponent turn automatically and exposes only aggregate
+  valid-letter/correct-position counts for Avi's completed attempts.
 - Feedback uses a duplicate-letter-safe two-pass algorithm.
 
-The local fixtures are non-production test data. Connected gameplay will use
-Apps AV API/D1 as dictionary and game authority, with Convex only as a safe
-realtime projection.
+The bundled dictionaries are the offline native candidate. English and Spanish
+use the reviewed internal MVP packages; Catalan, French, and German use pinned
+Gaia-derived allowlists and frequency-ranked target pools that still require a
+final human launch-curation pass. Connected gameplay continues to use Apps AV
+API/D1 as dictionary and game authority, with Convex only as a safe realtime
+projection.
 
 The diagnostics runtime installs the native Sentry SDK with native crash
 handling, zero tracing, no default PII, an allowlisted breadcrumb vocabulary,

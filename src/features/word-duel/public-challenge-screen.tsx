@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Share, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -31,7 +31,7 @@ import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import { experienceCopy } from '@/i18n/experience-copy';
-import type { InterfaceLocale } from '@/i18n/locales';
+import { GAME_LANGUAGES, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -39,6 +39,7 @@ import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { ActiveDuelScreen } from './active-duel-screen';
+import { GameLanguagePicker } from './components/game-language-picker';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
 import { publicDuelT } from './public-duel-copy';
@@ -52,6 +53,14 @@ type PublicWordDuelChallengeScreenProps = {
 };
 
 type GuestActor = Extract<DuelWordsApiActor, { actorType: 'guest_session' }>;
+
+const CONNECTED_GAME_LANGUAGES = GAME_LANGUAGES.filter(
+  (language) => language.code === 'en' || language.code === 'es',
+);
+
+function connectedGameLanguage(language: GameLanguage): GameLanguage {
+  return language === 'es' ? 'es' : 'en';
+}
 
 export function PublicWordDuelChallengeScreen({
   initialGameLanguage,
@@ -81,9 +90,8 @@ export function PublicWordDuelChallengeScreen({
   const [displayName, setDisplayName] = useState(
     () => createWordDuelDefaultGuestDisplayName(randomUUID),
   );
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(
-    initialGameLanguage ?? preferences.gameLanguage,
-  );
+  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(() =>
+    connectedGameLanguage(initialGameLanguage ?? preferences.gameLanguage));
   const [inviteInput, setInviteInput] = useState(initialInviteInput);
   const [roomCode, setRoomCode] = useState(initialRoomCode);
   const [lobbyState, setLobbyState] = useState<WordDuelLobbyControllerState | null>(null);
@@ -570,25 +578,14 @@ export function PublicWordDuelChallengeScreen({
         <>
           <View style={styles.panel}>
             <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
-            <Text style={styles.inputLabel}>⚙︎ {experience.gameSettings} · {experience.gameLanguage}</Text>
-            <View style={styles.segmented}>
-              {(['en', 'es'] as const).map((language) => {
-                const selected = language === gameLanguage;
-                return (
-                  <Pressable
-                    key={language}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected }}
-                    disabled={isBusy}
-                    onPress={() => setGameLanguage(language)}
-                    style={[styles.segment, selected && styles.segmentSelected]}>
-                    <Text style={[styles.segmentText, selected && styles.segmentTextSelected]}>
-                      {language === 'en' ? 'English' : 'Español'}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
+            <GameLanguagePicker
+              disabled={isBusy}
+              dismissLabel={copy('close')}
+              label={`${experience.gameSettings} · ${experience.gameLanguage}`}
+              onChange={setGameLanguage}
+              options={CONNECTED_GAME_LANGUAGES}
+              value={gameLanguage}
+            />
             <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
               {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
             </AppButton>
@@ -959,11 +956,6 @@ function usePublicChallengeStyles() {
   helper: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
   inputLabel: { color: colors.text, fontSize: typeScale.small, fontWeight: '800' },
   input: { minHeight: 48, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, color: colors.text, fontSize: typeScale.body, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
-  segmented: { flexDirection: 'row', borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, overflow: 'hidden' },
-  segment: { flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background },
-  segmentSelected: { backgroundColor: colors.accent },
-  segmentText: { color: colors.textMuted, fontWeight: '800' },
-  segmentTextSelected: { color: colors.onAccent },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   unavailableBox: { gap: spacing.sm, borderRadius: radii.md, backgroundColor: colors.pressureSoft, padding: spacing.lg },
   unavailableRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

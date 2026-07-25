@@ -13,11 +13,17 @@ import type { ActiveDuelBoardRow, ActiveDuelViewModel } from './view-model';
 const FINAL_TARGET_BY_LANGUAGE: Record<GameLanguage, string> = {
   en: 'cider',
   es: 'cinta',
+  ca: 'també',
+  fr: 'comme',
+  de: 'wurde',
 };
 
 const OPPONENT_RESULT_WORDS: Record<GameLanguage, readonly string[]> = {
   en: ['slate', 'pride', 'sound', 'cider'],
   es: ['perla', 'salto', 'brisa', 'cinta'],
+  ca: ['sobre', 'entre', 'sense', 'també'],
+  fr: ['cette', 'entre', 'aussi', 'comme'],
+  de: ['einer', 'durch', 'nicht', 'wurde'],
 };
 
 export function createActiveDuelFinalResultLocalPayload(

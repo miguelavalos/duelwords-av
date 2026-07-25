@@ -393,7 +393,9 @@ function readReaction(payload: unknown): ReadResult<DuelWordsRealtimeReactionVie
 }
 
 function readLanguage(value: unknown): GameLanguage | null {
-  return value === 'en' || value === 'es' ? value : null;
+  return value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr'
+    ? value
+    : null;
 }
 
 function readRoomStatus(value: unknown): DuelWordsRealtimeRoomStatus | null {

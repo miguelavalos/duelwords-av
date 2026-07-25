@@ -1,4 +1,5 @@
 import { getLocalDictionary, getPracticeTarget, type WordEntry } from '../dictionaries/local-fixtures';
+import { gameLanguageLabel } from '../../i18n/locales';
 import {
   applyGuess,
   createLocalGame,
@@ -178,7 +179,7 @@ export function createSoloDailyViewModel(
 export function createSafeSoloDailySharePreview(
   session: WordDuelSoloDailySession,
 ): WordDuelSoloDailySharePreview {
-  const languageLabel = session.state.language === 'es' ? 'Spanish' : 'English';
+  const languageLabel = gameLanguageLabel(session.state.language);
   const attempts =
     session.state.status === 'won'
       ? `${session.state.guesses.length}/${WORD_DUEL_MAX_ATTEMPTS}`

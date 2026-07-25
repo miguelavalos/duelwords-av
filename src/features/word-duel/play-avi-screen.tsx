@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
@@ -11,18 +11,20 @@ import {
   resolveAviBotRound,
   submitAviBotDuelGuess,
   type AviBotDuelStatus,
-  type AviBotOpponentMarkerState,
+  type AviBotOpponentAttemptSummary,
+  type AviBotOpponentRoundState,
   type AviBotReactionId,
 } from '@/game/word-duel-bot/view-model';
 import type { WordDuelResultOutcome, WordDuelResultReason } from '@/game/word-duel-result/view-model';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { GAME_LANGUAGES, t, type InterfaceLocale } from '@/i18n/locales';
+import { t, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
+import { GameLanguagePicker } from './components/game-language-picker';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import { fillEditingRow } from './components/word-duel-ui-model';
 import {
@@ -36,9 +38,10 @@ type PlayAviScreenProps = {
 };
 
 type AviDuelCopy = {
-  aviSubmits: string;
   botDuel: string;
+  cluesReady: string;
   close: string;
+  correctPosition: string;
   couldNotOpenResult: string;
   draw: string;
   home: string;
@@ -59,6 +62,7 @@ type AviDuelCopy = {
   submitted: string;
   thinking: string;
   unavailable: string;
+  validLetters: string;
   waitingForAvi: string;
   won: string;
   yourTurn: string;
@@ -66,11 +70,11 @@ type AviDuelCopy = {
 };
 
 const AVI_DUEL_COPY: Record<InterfaceLocale, AviDuelCopy> = {
-  en: { aviSubmits: 'Avi submits', botDuel: 'Local duel', close: 'Close', couldNotOpenResult: 'Could not open result', draw: 'Draw', home: 'Home', issue: 'Issue', lost: 'Lost', newChallenge: 'New challenge', noWinner: 'No winner', normal: 'Normal', offlineDuel: 'Offline duel', openResult: 'Open result', opening: 'Opening…', opponent: 'Opponent', playAvi: 'Play Avi', resultReady: 'Result ready', round: 'Round', roundLocked: 'Round locked', solved: 'Solved', submitted: 'Submitted', thinking: 'Thinking', unavailable: 'Unavailable', waitingForAvi: 'Waiting for Avi', won: 'Won', yourTurn: 'Your turn', reactions: { gg: 'GG', nice: 'Nice', no_pressure: 'No pressure', tick_tock: 'Time', your_turn: 'Your turn' } },
-  es: { aviSubmits: 'Avi responde', botDuel: 'Duelo local', close: 'Cerrar', couldNotOpenResult: 'No se pudo abrir el resultado', draw: 'Empate', home: 'Inicio', issue: 'Incidencia', lost: 'Perdiste', newChallenge: 'Nuevo duelo', noWinner: 'Sin ganador', normal: 'Normal', offlineDuel: 'Duelo sin conexión', openResult: 'Abrir resultado', opening: 'Abriendo…', opponent: 'Rival', playAvi: 'Jugar con Avi', resultReady: 'Resultado listo', round: 'Ronda', roundLocked: 'Ronda cerrada', solved: 'Resuelto', submitted: 'Enviado', thinking: 'Pensando', unavailable: 'No disponible', waitingForAvi: 'Esperando a Avi', won: 'Ganaste', yourTurn: 'Tu turno', reactions: { gg: 'GG', nice: 'Bien', no_pressure: 'Sin presión', tick_tock: 'Tiempo', your_turn: 'Tu turno' } },
-  ca: { aviSubmits: 'L’Avi respon', botDuel: 'Duel local', close: 'Tancar', couldNotOpenResult: 'No s’ha pogut obrir el resultat', draw: 'Empat', home: 'Inici', issue: 'Incidència', lost: 'Has perdut', newChallenge: 'Duel nou', noWinner: 'Sense guanyador', normal: 'Normal', offlineDuel: 'Duel sense connexió', openResult: 'Obrir resultat', opening: 'Obrint…', opponent: 'Rival', playAvi: 'Jugar amb l’Avi', resultReady: 'Resultat preparat', round: 'Ronda', roundLocked: 'Ronda tancada', solved: 'Resolt', submitted: 'Enviat', thinking: 'Pensant', unavailable: 'No disponible', waitingForAvi: 'Esperant l’Avi', won: 'Has guanyat', yourTurn: 'El teu torn', reactions: { gg: 'GG', nice: 'Bé', no_pressure: 'Sense pressió', tick_tock: 'Temps', your_turn: 'El teu torn' } },
-  fr: { aviSubmits: 'Avi répond', botDuel: 'Duel local', close: 'Fermer', couldNotOpenResult: 'Impossible d’ouvrir le résultat', draw: 'Égalité', home: 'Accueil', issue: 'Problème', lost: 'Perdu', newChallenge: 'Nouveau duel', noWinner: 'Aucun gagnant', normal: 'Normal', offlineDuel: 'Duel hors ligne', openResult: 'Ouvrir le résultat', opening: 'Ouverture…', opponent: 'Rival', playAvi: 'Jouer contre Avi', resultReady: 'Résultat prêt', round: 'Manche', roundLocked: 'Manche terminée', solved: 'Résolu', submitted: 'Envoyé', thinking: 'Réflexion', unavailable: 'Indisponible', waitingForAvi: 'En attente d’Avi', won: 'Gagné', yourTurn: 'À vous', reactions: { gg: 'GG', nice: 'Bien joué', no_pressure: 'Sans pression', tick_tock: 'Temps', your_turn: 'À vous' } },
-  de: { aviSubmits: 'Avi antwortet', botDuel: 'Lokales Duell', close: 'Schließen', couldNotOpenResult: 'Ergebnis konnte nicht geöffnet werden', draw: 'Unentschieden', home: 'Start', issue: 'Problem', lost: 'Verloren', newChallenge: 'Neues Duell', noWinner: 'Kein Gewinner', normal: 'Normal', offlineDuel: 'Offline-Duell', openResult: 'Ergebnis öffnen', opening: 'Wird geöffnet…', opponent: 'Gegner', playAvi: 'Gegen Avi spielen', resultReady: 'Ergebnis bereit', round: 'Runde', roundLocked: 'Runde beendet', solved: 'Gelöst', submitted: 'Gesendet', thinking: 'Denkt nach', unavailable: 'Nicht verfügbar', waitingForAvi: 'Warten auf Avi', won: 'Gewonnen', yourTurn: 'Du bist dran', reactions: { gg: 'GG', nice: 'Gut', no_pressure: 'Kein Druck', tick_tock: 'Zeit', your_turn: 'Du bist dran' } },
+  en: { botDuel: 'Local duel', cluesReady: 'Clues ready', close: 'Close', correctPosition: 'Correct position', couldNotOpenResult: 'Could not open result', draw: 'Draw', home: 'Home', issue: 'Issue', lost: 'Lost', newChallenge: 'New challenge', noWinner: 'No winner', normal: 'Normal', offlineDuel: 'Offline duel', openResult: 'Open result', opening: 'Opening…', opponent: 'Opponent', playAvi: 'Play Avi', resultReady: 'Result ready', round: 'Round', roundLocked: 'Round locked', solved: 'Solved', submitted: 'Submitted', thinking: 'Thinking', unavailable: 'Unavailable', validLetters: 'Valid letters', waitingForAvi: 'Waiting for Avi', won: 'Won', yourTurn: 'Your turn', reactions: { gg: 'GG', nice: 'Nice', no_pressure: 'No pressure', tick_tock: 'Time', your_turn: 'Your turn' } },
+  es: { botDuel: 'Duelo local', cluesReady: 'Pistas listas', close: 'Cerrar', correctPosition: 'Posición correcta', couldNotOpenResult: 'No se pudo abrir el resultado', draw: 'Empate', home: 'Inicio', issue: 'Incidencia', lost: 'Perdiste', newChallenge: 'Nuevo duelo', noWinner: 'Sin ganador', normal: 'Normal', offlineDuel: 'Duelo sin conexión', openResult: 'Abrir resultado', opening: 'Abriendo…', opponent: 'Rival', playAvi: 'Jugar con Avi', resultReady: 'Resultado listo', round: 'Ronda', roundLocked: 'Ronda cerrada', solved: 'Resuelto', submitted: 'Enviado', thinking: 'Pensando', unavailable: 'No disponible', validLetters: 'Letras válidas', waitingForAvi: 'Esperando a Avi', won: 'Ganaste', yourTurn: 'Tu turno', reactions: { gg: 'GG', nice: 'Bien', no_pressure: 'Sin presión', tick_tock: 'Tiempo', your_turn: 'Tu turno' } },
+  ca: { botDuel: 'Duel local', cluesReady: 'Pistes preparades', close: 'Tancar', correctPosition: 'Posició correcta', couldNotOpenResult: 'No s’ha pogut obrir el resultat', draw: 'Empat', home: 'Inici', issue: 'Incidència', lost: 'Has perdut', newChallenge: 'Duel nou', noWinner: 'Sense guanyador', normal: 'Normal', offlineDuel: 'Duel sense connexió', openResult: 'Obrir resultat', opening: 'Obrint…', opponent: 'Rival', playAvi: 'Jugar amb l’Avi', resultReady: 'Resultat preparat', round: 'Ronda', roundLocked: 'Ronda tancada', solved: 'Resolt', submitted: 'Enviat', thinking: 'Pensant', unavailable: 'No disponible', validLetters: 'Lletres vàlides', waitingForAvi: 'Esperant l’Avi', won: 'Has guanyat', yourTurn: 'El teu torn', reactions: { gg: 'GG', nice: 'Bé', no_pressure: 'Sense pressió', tick_tock: 'Temps', your_turn: 'El teu torn' } },
+  fr: { botDuel: 'Duel local', cluesReady: 'Indices prêts', close: 'Fermer', correctPosition: 'Position correcte', couldNotOpenResult: 'Impossible d’ouvrir le résultat', draw: 'Égalité', home: 'Accueil', issue: 'Problème', lost: 'Perdu', newChallenge: 'Nouveau duel', noWinner: 'Aucun gagnant', normal: 'Normal', offlineDuel: 'Duel hors ligne', openResult: 'Ouvrir le résultat', opening: 'Ouverture…', opponent: 'Rival', playAvi: 'Jouer contre Avi', resultReady: 'Résultat prêt', round: 'Manche', roundLocked: 'Manche terminée', solved: 'Résolu', submitted: 'Envoyé', thinking: 'Réflexion', unavailable: 'Indisponible', validLetters: 'Lettres valides', waitingForAvi: 'En attente d’Avi', won: 'Gagné', yourTurn: 'À vous', reactions: { gg: 'GG', nice: 'Bien joué', no_pressure: 'Sans pression', tick_tock: 'Temps', your_turn: 'À vous' } },
+  de: { botDuel: 'Lokales Duell', cluesReady: 'Hinweise bereit', close: 'Schließen', correctPosition: 'Richtige Position', couldNotOpenResult: 'Ergebnis konnte nicht geöffnet werden', draw: 'Unentschieden', home: 'Start', issue: 'Problem', lost: 'Verloren', newChallenge: 'Neues Duell', noWinner: 'Kein Gewinner', normal: 'Normal', offlineDuel: 'Offline-Duell', openResult: 'Ergebnis öffnen', opening: 'Wird geöffnet…', opponent: 'Gegner', playAvi: 'Gegen Avi spielen', resultReady: 'Ergebnis bereit', round: 'Runde', roundLocked: 'Runde beendet', solved: 'Gelöst', submitted: 'Gesendet', thinking: 'Denkt nach', unavailable: 'Nicht verfügbar', validLetters: 'Gültige Buchstaben', waitingForAvi: 'Warten auf Avi', won: 'Gewonnen', yourTurn: 'Du bist dran', reactions: { gg: 'GG', nice: 'Gut', no_pressure: 'Kein Druck', tick_tock: 'Zeit', your_turn: 'Du bist dran' } },
 };
 
 export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps) {
@@ -100,6 +104,19 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const boardWidth = Math.min(width - spacing.lg * 2, 338);
   const regularTileSize = Math.max(34, Math.min(44, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
   const tileSize = compactViewport ? Math.min(34, regularTileSize) : regularTileSize;
+
+  useEffect(() => {
+    if (session.status !== 'active' || session.phase !== 'waiting_for_avi' || !session.pendingRound) {
+      return;
+    }
+
+    const timeout = setTimeout(() => {
+      setSession((current) => resolveAviBotRound({ nowMs: Date.now(), session: current }));
+      setMessage('');
+    }, Math.max(0, session.pendingRound.botDueAtMs - Date.now()));
+
+    return () => clearTimeout(timeout);
+  }, [session.pendingRound, session.phase, session.status]);
 
   function reset(language: GameLanguage, seed: number) {
     setGameLanguage(language);
@@ -142,16 +159,15 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       return;
     }
 
-    if (Array.from(input).length >= WORD_DUEL_WORD_LENGTH) {
-      return;
-    }
-
     const normalizedKey = normalizeAviBotInput(key, gameLanguage);
     if (!normalizedKey) {
       return;
     }
 
-    setInput((current) => `${current}${normalizedKey}`);
+    setInput((current) => {
+      if (Array.from(current).length >= WORD_DUEL_WORD_LENGTH) return current;
+      return `${current}${normalizedKey}`;
+    });
     setMessage('');
   }
 
@@ -170,11 +186,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     setSession(result.session);
     setInput('');
     setMessage(duelCopy.waitingForAvi);
-  }
-
-  function resolveRound() {
-    setSession((current) => resolveAviBotRound({ nowMs: Date.now(), session: current }));
-    setMessage('');
   }
 
   async function openResult() {
@@ -242,26 +253,12 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         </AppButton>
       </View>
 
-      <View style={styles.gameSettings}>
-        <Text style={styles.gameSettingsLabel}>⚙︎ {copy.gameSettings} · {copy.gameLanguage}</Text>
-        <View style={styles.languageRow}>
-          {GAME_LANGUAGES.map((language) => {
-            const selected = language.code === gameLanguage;
-            return (
-              <Pressable
-                key={language.code}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => changeLanguage(language.code)}
-                style={[styles.languageButton, selected && styles.languageButtonSelected]}>
-                <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
-                  {language.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+      <GameLanguagePicker
+        dismissLabel={t(interfaceLocale, 'done')}
+        label={`${copy.gameSettings} · ${copy.gameLanguage}`}
+        onChange={changeLanguage}
+        value={gameLanguage}
+      />
 
       <View style={[styles.timerRow, compactViewport && styles.timerRowCompact]}>
         <View>
@@ -281,8 +278,8 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
 
       <OpponentSummary
         activeReaction={activeReaction}
+        attempts={viewModel.opponent.attemptSummaries}
         compact={compactViewport}
-        markers={viewModel.opponent.attemptMarkers}
         roundState={viewModel.opponent.roundState}
         copy={duelCopy}
       />
@@ -298,10 +295,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         <Text style={styles.stateLabel}>{stateLabel(viewModel.phase, viewModel.status, duelCopy)}</Text>
         <Text style={styles.stateDetail}>{message || detailLabel(viewModel.phase, viewModel.status, duelCopy)}</Text>
       </View>
-
-      {viewModel.canResolveRound ? (
-        <AppButton onPress={resolveRound}>{duelCopy.aviSubmits}</AppButton>
-      ) : null}
 
       {viewModel.targetReveal.visible && viewModel.targetReveal.displayWord ? (
         <View style={styles.resultLine}>
@@ -360,16 +353,16 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
 
 function OpponentSummary({
   activeReaction,
+  attempts,
   compact,
   copy,
-  markers,
   roundState,
 }: {
   activeReaction: AviBotReactionId | null;
+  attempts: readonly AviBotOpponentAttemptSummary[];
   compact: boolean;
   copy: AviDuelCopy;
-  markers: readonly AviBotOpponentMarkerState[];
-  roundState: AviBotOpponentMarkerState;
+  roundState: AviBotOpponentRoundState;
 }) {
   const styles = usePlayAviStyles();
   return (
@@ -382,14 +375,31 @@ function OpponentSummary({
             <Text style={[styles.opponentName, compact && styles.opponentNameCompact]}>Avi · {copy.normal}</Text>
           </View>
         </View>
-        <View style={[styles.presencePill, compact && styles.presencePillCompact]}>
-          <Text style={styles.presenceText}>{opponentStateLabel(roundState, copy)}</Text>
-        </View>
+        {roundState !== 'waiting' ? (
+          <View style={[styles.presencePill, compact && styles.presencePillCompact]}>
+            <Text style={styles.presenceText}>{opponentStateLabel(roundState, copy)}</Text>
+          </View>
+        ) : null}
+      </View>
+      <View style={styles.clueLegend}>
+        <Text style={styles.clueLegendText}>● {copy.validLetters}</Text>
+        <Text style={styles.clueLegendText}>◎ {copy.correctPosition}</Text>
       </View>
       <View style={styles.markerRow}>
-        {markers.map((marker, index) => (
-          <View key={`avi-marker-${index}`} style={[styles.marker, compact && styles.markerCompact, markerStyle(marker, styles)]}>
-            <Text style={styles.markerText}>{markerLabel(marker)}</Text>
+        {attempts.map((attempt) => (
+          <View
+            key={`avi-attempt-${attempt.attemptNumber}`}
+            accessible
+            accessibilityLabel={opponentAttemptAccessibilityLabel(attempt, copy)}
+            style={[styles.marker, compact && styles.markerCompact, markerStyle(attempt.state, styles)]}>
+            <Text style={styles.markerAttempt}>{attempt.attemptNumber}</Text>
+            <Text style={[
+              styles.markerText,
+              attempt.state === 'scored' && styles.markerTextScored,
+              attempt.state === 'technical_error' && styles.markerTextTechnical,
+            ]}>
+              {opponentAttemptLabel(attempt)}
+            </Text>
           </View>
         ))}
       </View>
@@ -458,52 +468,48 @@ function rejectionMessage(rejection: GuessRejection, locale: InterfaceLocale, co
   return t(locale, 'invalidWord');
 }
 
-function markerLabel(marker: AviBotOpponentMarkerState): string {
-  if (marker === 'solved') {
-    return '=';
-  }
-  if (marker === 'submitted') {
-    return '•';
-  }
-  if (marker === 'technical_error') {
-    return '!';
-  }
-  if (marker === 'failed') {
-    return 'x';
-  }
-  return '';
+function opponentAttemptLabel(attempt: AviBotOpponentAttemptSummary): string {
+  if (attempt.state === 'scored') return `${attempt.validCount}·${attempt.exactCount}`;
+  if (attempt.state === 'thinking') return '…';
+  if (attempt.state === 'technical_error') return '!';
+  return '–';
 }
 
-function markerStyle(marker: AviBotOpponentMarkerState, styles: ReturnType<typeof usePlayAviStyles>) {
-  if (marker === 'solved') {
-    return styles.markerSolved;
+function opponentAttemptAccessibilityLabel(attempt: AviBotOpponentAttemptSummary, copy: AviDuelCopy): string {
+  if (attempt.state === 'scored') {
+    return `${copy.round} ${attempt.attemptNumber}. ${copy.validLetters}: ${attempt.validCount}. ${copy.correctPosition}: ${attempt.exactCount}.`;
   }
-  if (marker === 'failed') {
-    return styles.markerFailed;
+
+  const stateLabel = attempt.state === 'thinking'
+    ? copy.thinking
+    : attempt.state === 'technical_error'
+      ? copy.unavailable
+      : null;
+  return stateLabel
+    ? `${copy.round} ${attempt.attemptNumber}. ${stateLabel}.`
+    : `${copy.round} ${attempt.attemptNumber}.`;
+}
+
+function markerStyle(state: AviBotOpponentAttemptSummary['state'], styles: ReturnType<typeof usePlayAviStyles>) {
+  if (state === 'scored') {
+    return styles.markerScored;
   }
-  if (marker === 'submitted') {
+  if (state === 'thinking') {
     return styles.markerSubmitted;
   }
-  if (marker === 'technical_error') {
+  if (state === 'technical_error') {
     return styles.markerTechnical;
   }
   return styles.markerWaiting;
 }
 
-function opponentStateLabel(state: AviBotOpponentMarkerState, copy: AviDuelCopy): string {
-  if (state === 'solved') {
-    return copy.solved;
-  }
-  if (state === 'failed') {
-    return copy.resultReady;
-  }
-  if (state === 'submitted') {
-    return copy.submitted;
-  }
+function opponentStateLabel(state: AviBotOpponentRoundState, copy: AviDuelCopy): string {
+  if (state === 'clues_ready') return copy.cluesReady;
+  if (state === 'thinking') return copy.thinking;
   if (state === 'technical_error') {
     return copy.issue;
   }
-  return copy.thinking;
+  return copy.waitingForAvi;
 }
 
 function stateLabel(phase: string, status: string, copy: AviDuelCopy): string {
@@ -591,33 +597,6 @@ function usePlayAviStyles() {
     color: colors.text,
     fontSize: typeScale.title,
     fontWeight: '900',
-  },
-  languageRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  gameSettings: { gap: spacing.xs },
-  gameSettingsLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
-  languageButton: {
-    flex: 1,
-    minHeight: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  languageButtonSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.surfaceSoft,
-  },
-  languageText: {
-    color: colors.textMuted,
-    fontWeight: '800',
-  },
-  languageTextSelected: {
-    color: colors.accent,
   },
   timerRow: {
     minHeight: 60,
@@ -718,16 +697,27 @@ function usePlayAviStyles() {
     flexDirection: 'row',
     gap: spacing.xs,
   },
+  clueLegend: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: spacing.md,
+  },
+  clueLegendText: {
+    color: colors.textMuted,
+    fontSize: 9,
+    fontWeight: '900',
+    textTransform: 'uppercase',
+  },
   marker: {
     flex: 1,
-    height: 24,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
     borderWidth: StyleSheet.hairlineWidth,
   },
   markerCompact: {
-    height: 18,
+    height: 30,
   },
   markerWaiting: {
     borderColor: colors.border,
@@ -737,22 +727,34 @@ function usePlayAviStyles() {
     borderColor: colors.secondary,
     backgroundColor: colors.secondarySoft,
   },
-  markerSolved: {
-    borderColor: colors.feedbackExact,
-    backgroundColor: colors.feedbackExact,
-  },
-  markerFailed: {
-    borderColor: colors.feedbackAbsent,
-    backgroundColor: colors.feedbackAbsent,
+  markerScored: {
+    borderColor: colors.accent,
+    backgroundColor: colors.surfaceSoft,
   },
   markerTechnical: {
     borderColor: colors.danger,
     backgroundColor: colors.danger,
   },
   markerText: {
-    color: colors.onAccent,
+    color: colors.textMuted,
     fontSize: typeScale.tiny,
     fontWeight: '900',
+    fontVariant: ['tabular-nums'],
+  },
+  markerTextScored: {
+    color: colors.text,
+  },
+  markerTextTechnical: {
+    color: colors.onAccent,
+  },
+  markerAttempt: {
+    position: 'absolute',
+    top: 2,
+    left: 4,
+    color: colors.textMuted,
+    fontSize: 8,
+    fontWeight: '900',
+    fontVariant: ['tabular-nums'],
   },
   reactionBubble: {
     alignSelf: 'flex-start',

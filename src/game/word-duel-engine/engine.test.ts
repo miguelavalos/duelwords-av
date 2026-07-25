@@ -32,6 +32,12 @@ describe('normalizeGuess', () => {
   it('keeps Spanish ñ distinct from plain n', () => {
     expect(normalizeGuess('cañón', 'es')).not.toBe(normalizeGuess('canon', 'es'));
   });
+
+  it('accepts accentless input for Catalan, French, and German', () => {
+    expect(normalizeGuess('també', 'ca')).toBe('tambe');
+    expect(normalizeGuess('après', 'fr')).toBe('apres');
+    expect(normalizeGuess('Käfer', 'de')).toBe('kafer');
+  });
 });
 
 describe('scoreGuess', () => {
@@ -94,6 +100,18 @@ describe('applyGuess', () => {
     expect(result.state.status).toBe('won');
   });
 
+  it.each(['ca', 'fr', 'de'] as const)('wins with a bundled %s target', (language) => {
+    const target = LOCAL_WORD_FIXTURES[language][0];
+    const result = applyGuess(
+      game(language, target.displayWord),
+      target.normalizedWord,
+      getLocalDictionary(language),
+    );
+
+    expect(result.accepted).toBe(true);
+    expect(result.state.status).toBe('won');
+  });
+
   it('loses after six accepted non-winning guesses', () => {
     const guesses = ['flame', 'civic', 'brave', 'cocoa', 'belle', 'crane'];
     const finalState = guesses.reduce((state, guessWord) => {
@@ -123,19 +141,41 @@ describe('applyGuess', () => {
 });
 
 describe('local fixtures and safe summaries', () => {
-  it('bundles the complete approved valid-guess and target profiles', () => {
+  it('bundles the expected valid-guess and target profiles', () => {
     const expectedCounts = {
       en: { targets: 589, validGuesses: 8_734 },
       es: { targets: 731, validGuesses: 7_571 },
+      ca: { targets: 500, validGuesses: 5_481 },
+      fr: { targets: 500, validGuesses: 5_654 },
+      de: { targets: 500, validGuesses: 6_299 },
     } as const;
-    for (const language of ['en', 'es'] as const) {
+    for (const language of ['en', 'es', 'ca', 'fr', 'de'] as const) {
       const entries = LOCAL_WORD_FIXTURES[language];
+      const dictionary = getLocalDictionary(language);
       expect(entries.every((entry) => entry.length === 5)).toBe(true);
       expect(entries).toHaveLength(expectedCounts[language].targets);
-      expect(getLocalDictionary(language).validGuesses).toHaveLength(expectedCounts[language].validGuesses);
-      expect(getLocalDictionary(language).targetWords).toHaveLength(expectedCounts[language].targets);
-      expect(getLocalDictionary(language).targetWords.every((target) =>
-        getLocalDictionary(language).validGuesses.includes(target))).toBe(true);
+      expect(dictionary.validGuesses).toHaveLength(expectedCounts[language].validGuesses);
+      expect(new Set(dictionary.validGuesses).size).toBe(dictionary.validGuesses.length);
+      expect(dictionary.validGuesses.every((word) => Array.from(word).length === 5)).toBe(true);
+      expect(dictionary.targetWords).toHaveLength(expectedCounts[language].targets);
+      expect(new Set(dictionary.targetWords).size).toBe(dictionary.targetWords.length);
+      expect(dictionary.targetWords.every((target) => dictionary.validGuesses.includes(target))).toBe(true);
+    }
+  });
+
+  it('keeps sensitive Gaia entries valid for input but out of target selection', () => {
+    const exclusions = {
+      ca: ['merda'],
+      fr: ['arabe', 'juifs', 'juive'],
+      de: ['adolf', 'juden'],
+    } as const;
+
+    for (const language of ['ca', 'fr', 'de'] as const) {
+      const dictionary = getLocalDictionary(language);
+      for (const excluded of exclusions[language]) {
+        expect(dictionary.validGuesses).toContain(excluded);
+        expect(dictionary.targetWords).not.toContain(excluded);
+      }
     }
   });
 

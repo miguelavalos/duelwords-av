@@ -1,5 +1,6 @@
 import type { GameLanguage, GuessRow, LetterFeedback } from '../word-duel-engine';
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
+import { gameLanguageLabel } from '../../i18n/locales';
 import { createIdleRematchProposal, type WordDuelRematchProposal } from './rematch-proposal';
 
 export type WordDuelResultOutcome = 'win' | 'loss' | 'draw' | 'no_winner' | 'technical';
@@ -286,7 +287,7 @@ export function createDemoWordDuelResultViewModel(input: {
 export function createSafeResultSharePreview(
   result: Omit<WordDuelResultViewModel, 'safeSharePreview'>,
 ): WordDuelResultSharePreview {
-  const languageLabel = result.gameLanguage === 'es' ? 'Spanish' : 'English';
+  const languageLabel = gameLanguageLabel(result.gameLanguage);
   const attempts = `${result.own.attemptsUsed}/${result.maxAttempts}`;
   const outcome = shareOutcomeLabel(result.outcome, result.opponent.safeDisplayName);
 
@@ -415,7 +416,7 @@ function isWordDuelResultLocalPayload(value: unknown): value is WordDuelResultLo
   }
 
   return value.version === 'word-duel-local-result-v1'
-    && (value.gameLanguage === 'en' || value.gameLanguage === 'es')
+    && isGameLanguage(value.gameLanguage)
     && typeof value.matchStarted === 'boolean'
     && typeof value.maxAttempts === 'number'
     && typeof value.wordLength === 'number'
@@ -424,6 +425,10 @@ function isWordDuelResultLocalPayload(value: unknown): value is WordDuelResultLo
     && (typeof value.targetDisplayWord === 'string' || value.targetDisplayWord === null)
     && isLocalPlayerPayload(value.own)
     && (value.opponent === null || isLocalPlayerPayload(value.opponent));
+}
+
+function isGameLanguage(value: unknown): value is GameLanguage {
+  return value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr';
 }
 
 function isLocalPlayerPayload(value: unknown): value is WordDuelResultLocalPlayerPayload {

@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
+import { gameLanguageLabel as languageLabel } from '@/i18n/locales';
 import { createWordDuelActiveHandoffFromLobby } from '@/game/word-duel-active/handoff';
 import {
   createLocalMockWordDuelLobbyControllerState,
@@ -410,10 +411,6 @@ function LobbyAdSlot() {
       <Text style={styles.adText}>Ad</Text>
     </View>
   );
-}
-
-function languageLabel(language: GameLanguage): string {
-  return language === 'es' ? 'Spanish' : 'English';
 }
 
 function playerStateLabel(state: WordDuelLobbyPlayer['state']): string {

@@ -16,6 +16,21 @@ export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
     ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
     ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
   ],
+  ca: [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
+  ],
+  fr: [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
+  ],
+  de: [
+    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
+  ],
 };
 
 type KeyboardFeedbackByKey = ReadonlyMap<string, LetterFeedback> | Readonly<Record<string, LetterFeedback>>;
@@ -52,6 +67,7 @@ export function WordDuelKeyboard({
                 key={key}
                 accessibilityRole="button"
                 disabled={disabled}
+                hitSlop={{ bottom: 2, left: 2, right: 2, top: 2 }}
                 onPress={() => onKeyPress(key)}
                 style={({ pressed }) => [
                   styles.key,
@@ -130,7 +146,7 @@ function useWordDuelKeyboardStyles() {
     paddingHorizontal: 2,
   },
   keyCompact: {
-    minHeight: 42,
+    minHeight: 44,
   },
   actionKey: {
     flex: 1.55,

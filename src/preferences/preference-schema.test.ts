@@ -29,7 +29,17 @@ describe('app preference schema', () => {
       gameLanguage: 'ca',
       interfaceLocale: 'xx',
       version: 2,
-    })).toEqual(DEFAULT_APP_PREFERENCES);
+    })).toEqual({
+      ...DEFAULT_APP_PREFERENCES,
+      gameLanguage: 'ca',
+    });
+  });
+
+  it.each(['ca', 'de', 'en', 'es', 'fr'] as const)('persists %s as a playable language', (gameLanguage) => {
+    expect(parseAppPreferences({
+      ...DEFAULT_APP_PREFERENCES,
+      gameLanguage,
+    }).gameLanguage).toBe(gameLanguage);
   });
 
   it('fails closed for corrupt JSON and unknown schema versions', () => {

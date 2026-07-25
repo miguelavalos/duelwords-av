@@ -75,6 +75,7 @@ export function ActiveDuelScreen({
     [interfaceLocale],
   );
   const clientRequestNumber = useRef(0);
+  const draftRef = useRef('');
   const isOpeningResultRef = useRef(false);
   const presenceReconciliationInFlightRef = useRef(false);
   const reactionRequestNumber = useRef(0);
@@ -92,7 +93,6 @@ export function ActiveDuelScreen({
     }),
     [activeHandoff, controller],
   );
-  const [draft, setDraft] = useState('');
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [statusDetail, setStatusDetail] = useState(() => copy('rivalReady'));
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
@@ -102,7 +102,7 @@ export function ActiveDuelScreen({
   const tileSize = compactViewport ? Math.min(40, regularTileSize) : regularTileSize;
 
   useEffect(() => {
-    setDraft('');
+    clearDraft();
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
     setStatusDetail(copy('rivalReady'));
@@ -123,7 +123,7 @@ export function ActiveDuelScreen({
       void activeDuelController.timeoutRound({ roundNumber: viewModel.roundNumber })
         .then((result) => {
           setViewModel(result.viewModel);
-          setDraft('');
+          clearDraft();
           setStatusDetail(copy('roundTimedOut'));
         })
         .catch(() => {
@@ -180,9 +180,13 @@ export function ActiveDuelScreen({
 
   function updateDraft(nextDraft: string) {
     const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');
-    setDraft(clampedDraft);
+    draftRef.current = clampedDraft;
     setViewModel((current) => updateActiveDuelEditingLetters(current, Array.from(clampedDraft)));
     setStatusDetail(copy('rivalReady'));
+  }
+
+  function clearDraft() {
+    draftRef.current = '';
   }
 
   function handleKeyPress(key: string) {
@@ -191,7 +195,7 @@ export function ActiveDuelScreen({
     }
 
     if (key === 'DEL') {
-      updateDraft(Array.from(draft).slice(0, -1).join(''));
+      updateDraft(Array.from(draftRef.current).slice(0, -1).join(''));
       return;
     }
 
@@ -200,11 +204,12 @@ export function ActiveDuelScreen({
       return;
     }
 
-    updateDraft(`${draft}${key}`);
+    updateDraft(`${draftRef.current}${key}`);
   }
 
   async function submitDraft() {
-    const letters = Array.from(draft);
+    const currentDraft = draftRef.current;
+    const letters = Array.from(currentDraft);
     if (letters.length !== viewModel.wordLength) {
       setStatusDetail(copy('wordLength', { count: viewModel.wordLength }));
       return;
@@ -215,11 +220,11 @@ export function ActiveDuelScreen({
     try {
       const result = await activeDuelController.submitGuess({
         clientRequestId: `active-demo-submit-${viewModel.roundNumber}-${clientRequestNumber.current}`,
-        guess: draft,
+        guess: currentDraft,
         roundNumber: viewModel.roundNumber,
       });
       setViewModel(result.viewModel);
-      setDraft('');
+      clearDraft();
       setStatusDetail(copy('submitted'));
       if (activeDuelController.source === 'local_mock') {
         activeDuelController.publishLocalPlayerSubmittedProjection({
@@ -302,7 +307,7 @@ export function ActiveDuelScreen({
         roundNumber: viewModel.roundNumber,
       });
       setViewModel(result.viewModel);
-      setDraft('');
+      clearDraft();
       setStatusDetail(result.advanced ? copy('nextRoundReady') : copy('roundResolving'));
     } catch {
       setStatusDetail(copy('couldNotOpenNext'));

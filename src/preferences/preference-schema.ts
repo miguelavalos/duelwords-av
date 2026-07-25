@@ -58,7 +58,7 @@ function isAppearance(value: unknown): value is AppAppearance {
 }
 
 function isGameLanguage(value: unknown): value is GameLanguage {
-  return value === 'en' || value === 'es';
+  return value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr';
 }
 
 function isInterfaceLocale(value: unknown): value is InterfaceLocale {

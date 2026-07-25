@@ -13,7 +13,14 @@ export const INTERFACE_LOCALES: readonly { code: InterfaceLocale; label: string 
 export const GAME_LANGUAGES: readonly { code: GameLanguage; label: string }[] = [
   { code: 'en', label: 'English' },
   { code: 'es', label: 'Español' },
+  { code: 'ca', label: 'Català' },
+  { code: 'fr', label: 'Français' },
+  { code: 'de', label: 'Deutsch' },
 ];
+
+export function gameLanguageLabel(language: GameLanguage): string {
+  return GAME_LANGUAGES.find((option) => option.code === language)?.label ?? language.toUpperCase();
+}
 
 type CopyKey =
   | 'appName'

@@ -27,7 +27,7 @@ import {
   type WordDuelResultReason,
   type WordDuelResultViewModel,
 } from '@/game/word-duel-result/view-model';
-import { GAME_LANGUAGES } from '@/i18n/locales';
+import { GAME_LANGUAGES, gameLanguageLabel as languageLabel } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
@@ -493,10 +493,6 @@ function rematchTerminalTitle(status: WordDuelRematchProposal['status']): string
     return 'Rematch cancelled';
   }
   return 'Rematch closed';
-}
-
-function languageLabel(language: GameLanguage): string {
-  return language === 'es' ? 'Spanish' : 'English';
 }
 
 function modeLabel(mode: WordDuelResultMode): string {

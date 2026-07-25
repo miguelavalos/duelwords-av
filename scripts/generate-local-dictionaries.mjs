@@ -10,12 +10,20 @@ for (let index = 0; index < argv.length; index += 2) {
 const validRoot = args.get('--valid-fixture');
 const targetRoot = args.get('--target-fixture');
 const outputRoot = args.get('--output') ?? 'src/game/dictionaries/generated';
+const requestedLanguages = (args.get('--languages') ?? 'en,es')
+  .split(',')
+  .map((language) => language.trim())
+  .filter(Boolean);
+const knownLanguages = new Set(['en', 'es', 'ca', 'fr', 'de']);
 if (!validRoot || !targetRoot) {
-  throw new Error('Usage: node scripts/generate-local-dictionaries.mjs --valid-fixture <dir> --target-fixture <dir> [--output <dir>]');
+  throw new Error('Usage: node scripts/generate-local-dictionaries.mjs --valid-fixture <dir> --target-fixture <dir> [--languages en,es,ca,fr,de] [--output <dir>]');
+}
+if (requestedLanguages.length === 0 || requestedLanguages.some((language) => !knownLanguages.has(language))) {
+  throw new Error('Languages must be a non-empty comma-separated subset of en,es,ca,fr,de.');
 }
 
 await mkdir(outputRoot, { recursive: true });
-for (const language of ['en', 'es']) {
+for (const language of requestedLanguages) {
   const validRows = await readJsonLines(path.join(validRoot, language, 'valid-guesses.jsonl'));
   const targetRows = await readJsonLines(path.join(targetRoot, language, 'target-words.jsonl'));
   const validGuesses = validRows.map((row) => row.normalized_word);

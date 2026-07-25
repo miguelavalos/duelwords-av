@@ -166,6 +166,44 @@ describe('Avi bot duel local view model', () => {
     expect(finalView.safeSharePreview?.text).toContain('Play Avi');
   });
 
+  it('shows only aggregate opponent clues after Avi resolves its turn', () => {
+    const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
+    const submitted = submitAviBotDuelGuess({ input: 'flame', nowMs: NOW_MS + 1_000, session });
+    if (!submitted.accepted) {
+      throw new Error('Expected fixture guess to be accepted.');
+    }
+
+    const waitingView = createAviBotDuelViewModel(submitted.session);
+    expect(waitingView.opponent.attemptSummaries[0]).toEqual({
+      attemptNumber: 1,
+      exactCount: null,
+      state: 'thinking',
+      validCount: null,
+    });
+
+    const resolved = resolveAviBotRound({ nowMs: NOW_MS + 12_000, session: submitted.session });
+    const resolvedView = createAviBotDuelViewModel(resolved);
+    expect(resolvedView.opponent.attemptSummaries[0]).toEqual({
+      attemptNumber: 1,
+      exactCount: 0,
+      state: 'scored',
+      validCount: 1,
+    });
+    expect(JSON.stringify(resolvedView.opponent.attemptSummaries).toLowerCase()).not.toMatch(
+      /crane|guess|feedback|letter|target/,
+    );
+  });
+
+  it('does not expose a manual Avi resolution control in the view model', () => {
+    const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
+    const submitted = submitAviBotDuelGuess({ input: 'flame', nowMs: NOW_MS + 1_000, session });
+    if (!submitted.accepted) {
+      throw new Error('Expected fixture guess to be accepted.');
+    }
+
+    expect(createAviBotDuelViewModel(submitted.session)).not.toHaveProperty('canResolveRound');
+  });
+
   it('exposes only safe opponent realtime projection', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
     const submitted = submitAviBotDuelGuess({ input: 'flame', nowMs: NOW_MS + 1_000, session });
@@ -181,6 +219,12 @@ describe('Avi bot duel local view model', () => {
       opponentKind: 'bot',
       opponentName: 'Avi',
       opponentProfile: 'normal',
+    });
+    expect(projection.attemptSummaries[0]).toEqual({
+      attemptNumber: 1,
+      exactCount: null,
+      state: 'thinking',
+      validCount: null,
     });
     for (const forbidden of [
       'target',

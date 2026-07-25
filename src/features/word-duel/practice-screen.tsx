@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
-import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { getLocalDictionary, getPracticeTarget } from '@/game/dictionaries/local-fixtures';
 import {
@@ -14,13 +14,14 @@ import {
   WORD_DUEL_WORD_LENGTH,
 } from '@/game/word-duel-engine';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
+import { GameLanguagePicker } from './components/game-language-picker';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import {
   createKeyboardFeedbackFromGuesses,
@@ -86,16 +87,15 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       return;
     }
 
-    if (Array.from(input).length >= WORD_DUEL_WORD_LENGTH) {
-      return;
-    }
-
     const normalizedKey = normalizeGuess(key, gameState.language);
     if (!normalizedKey) {
       return;
     }
 
-    setInput((current) => `${current}${normalizedKey}`);
+    setInput((current) => {
+      if (Array.from(current).length >= WORD_DUEL_WORD_LENGTH) return current;
+      return `${current}${normalizedKey}`;
+    });
     setMessage('');
   }
 
@@ -170,26 +170,12 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
         </AppButton>
       </View>
 
-      <View style={styles.gameSettings}>
-        <Text style={styles.gameSettingsLabel}>⚙︎ {copy.gameSettings} · {copy.gameLanguage}</Text>
-        <View style={styles.languageRow}>
-          {GAME_LANGUAGES.map((language) => {
-            const selected = language.code === gameLanguage;
-            return (
-              <Pressable
-                key={language.code}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => reset(language.code, 0)}
-                style={[styles.languageButton, selected && styles.languageButtonSelected]}>
-                <Text style={[styles.languageText, selected && styles.languageTextSelected]}>
-                  {language.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
+      <GameLanguagePicker
+        dismissLabel={t(interfaceLocale, 'done')}
+        label={`${copy.gameSettings} · ${copy.gameLanguage}`}
+        onChange={(language) => reset(language, 0)}
+        value={gameLanguage}
+      />
 
       <View style={styles.statusRow}>
         <View>
@@ -296,33 +282,6 @@ function usePracticeStyles() {
     color: colors.text,
     fontSize: typeScale.title,
     fontWeight: '900',
-  },
-  languageRow: {
-    flexDirection: 'row',
-    gap: spacing.sm,
-  },
-  gameSettings: { gap: spacing.xs },
-  gameSettingsLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', letterSpacing: 0.5, textTransform: 'uppercase' },
-  languageButton: {
-    flex: 1,
-    minHeight: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-  },
-  languageButtonSelected: {
-    borderColor: colors.accent,
-    backgroundColor: colors.surfaceSoft,
-  },
-  languageText: {
-    color: colors.textMuted,
-    fontWeight: '800',
-  },
-  languageTextSelected: {
-    color: colors.accent,
   },
   statusRow: {
     minHeight: 58,

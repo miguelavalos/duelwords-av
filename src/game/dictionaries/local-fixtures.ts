@@ -2,6 +2,9 @@ import { normalizeGuess } from '../word-duel-engine/normalize';
 import type { DictionaryProfile, GameLanguage } from '../word-duel-engine/types';
 import englishDictionary from './generated/en.json';
 import spanishDictionary from './generated/es.json';
+import catalanDictionary from './generated/ca.json';
+import frenchDictionary from './generated/fr.json';
+import germanDictionary from './generated/de.json';
 
 export type WordEntry = {
   id: string;
@@ -20,6 +23,9 @@ type BundledDictionary = { validGuesses: string[]; targets: [string, string][] }
 const BUNDLED_DICTIONARIES: Record<GameLanguage, BundledDictionary> = {
   en: englishDictionary as BundledDictionary,
   es: spanishDictionary as BundledDictionary,
+  ca: catalanDictionary as unknown as BundledDictionary,
+  fr: frenchDictionary as unknown as BundledDictionary,
+  de: germanDictionary as unknown as BundledDictionary,
 };
 
 export const LOCAL_FIXTURE_NOTICE =
@@ -28,6 +34,9 @@ export const LOCAL_FIXTURE_NOTICE =
 export const LOCAL_WORD_FIXTURES: Record<GameLanguage, readonly WordEntry[]> = {
   en: targetEntries('en'),
   es: targetEntries('es'),
+  ca: targetEntries('ca'),
+  fr: targetEntries('fr'),
+  de: targetEntries('de'),
 };
 
 export function getLocalDictionary(language: GameLanguage): DictionaryProfile {

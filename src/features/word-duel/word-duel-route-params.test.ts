@@ -22,7 +22,10 @@ describe('word duel route params', () => {
   it('parses supported game languages with English fallback', () => {
     expect(parseGameLanguageParam('es')).toBe('es');
     expect(parseGameLanguageParam(['es', 'en'])).toBe('es');
-    expect(parseGameLanguageParam('ca')).toBe('en');
+    expect(parseGameLanguageParam('ca')).toBe('ca');
+    expect(parseGameLanguageParam('fr')).toBe('fr');
+    expect(parseGameLanguageParam('de')).toBe('de');
+    expect(parseGameLanguageParam('xx')).toBe('en');
     expect(parseGameLanguageParam(undefined)).toBe('en');
   });
 
@@ -111,7 +114,7 @@ describe('word duel route params', () => {
       source: 'runtime',
       wordLength: '7',
     })).toEqual({
-      gameLanguage: 'en',
+      gameLanguage: 'ca',
       maxAttempts: 6,
       mode: 'human_duel',
       source: 'direct_active_demo',

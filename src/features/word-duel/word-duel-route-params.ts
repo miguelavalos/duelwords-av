@@ -56,7 +56,10 @@ export type WordDuelActiveHandoffSearchParams = {
 };
 
 export function parseGameLanguageParam(value: WordDuelSearchParamValue): GameLanguage {
-  return firstParam(value) === 'es' ? 'es' : 'en';
+  const language = firstParam(value);
+  return language === 'ca' || language === 'de' || language === 'es' || language === 'fr'
+    ? language
+    : 'en';
 }
 
 export function parseInterfaceLocaleParam(value: WordDuelSearchParamValue): InterfaceLocale | null {

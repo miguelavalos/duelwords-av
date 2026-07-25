@@ -22,7 +22,8 @@ import {
 export type AviBotProfile = 'normal';
 export type AviBotDuelStatus = 'active' | 'won' | 'lost' | 'draw' | 'no_winner' | 'technical_error_bot';
 export type AviBotRoundPhase = 'editing' | 'waiting_for_avi' | 'finalized';
-export type AviBotOpponentMarkerState = 'waiting' | 'submitted' | 'solved' | 'failed' | 'technical_error';
+export type AviBotOpponentAttemptState = 'waiting' | 'thinking' | 'scored' | 'technical_error';
+export type AviBotOpponentRoundState = 'waiting' | 'thinking' | 'clues_ready' | 'technical_error';
 export type AviBotReactionId = 'nice' | 'your_turn' | 'tick_tock' | 'no_pressure' | 'gg';
 export type AviBotOwnRowState = 'revealed' | 'submitted_pending' | 'editing' | 'empty';
 
@@ -94,21 +95,28 @@ export type AviBotBoardRow = {
   state: AviBotOwnRowState;
 };
 
+export type AviBotOpponentAttemptSummary = {
+  attemptNumber: number;
+  exactCount: number | null;
+  state: AviBotOpponentAttemptState;
+  validCount: number | null;
+};
+
 export type AviBotSafeOpponentSummary = {
-  attemptMarkers: AviBotOpponentMarkerState[];
+  attemptSummaries: AviBotOpponentAttemptSummary[];
   kind: 'bot';
   profileLabel: 'Bot Normal';
-  roundState: AviBotOpponentMarkerState;
+  roundState: AviBotOpponentRoundState;
   safeDisplayName: 'Avi';
 };
 
 export type AviBotSafeRealtimeProjection = {
-  attemptMarkers: AviBotOpponentMarkerState[];
+  attemptSummaries: AviBotOpponentAttemptSummary[];
   mode: 'bot_duel';
   opponentKind: 'bot';
   opponentName: 'Avi';
   opponentProfile: 'normal';
-  opponentStatus: AviBotOpponentMarkerState;
+  opponentStatus: AviBotOpponentRoundState;
   roundNumber: number;
 };
 
@@ -123,7 +131,6 @@ export type AviBotDuelViewModel = {
     visible: boolean;
   };
   availableReactions: readonly AviBotReactionId[];
-  canResolveRound: boolean;
   gameLanguage: GameLanguage;
   isInputOpen: boolean;
   isLocalPreviewOnly: true;
@@ -167,6 +174,9 @@ const AVI_BOT_REACTIONS: readonly AviBotReactionId[] = [
 const OPENING_POOLS: Record<GameLanguage, readonly string[]> = {
   en: ['crane', 'flame', 'civic', 'sling', 'brave'],
   es: ['perla', 'nieve', 'canto', 'silla', 'cañon'],
+  ca: ['tambe', 'sobre', 'entre', 'sense', 'nomes'],
+  fr: ['comme', 'cette', 'entre', 'etait', 'aussi'],
+  de: ['wurde', 'einer', 'durch', 'nicht', 'einem'],
 };
 
 export function createAviBotDuelSession({
@@ -319,7 +329,6 @@ export function createAviBotDuelViewModel(session: AviBotDuelSession): AviBotDue
       visible: isFinal,
     },
     availableReactions: session.reactions,
-    canResolveRound: session.status === 'active' && session.phase === 'waiting_for_avi',
     gameLanguage: session.gameLanguage,
     isInputOpen: session.status === 'active' && session.phase === 'editing',
     isLocalPreviewOnly: true,
@@ -345,7 +354,7 @@ export function createAviBotSafeRealtimeProjection(session: AviBotDuelSession): 
   const opponent = createAviBotSafeOpponentSummary(session);
 
   return {
-    attemptMarkers: opponent.attemptMarkers,
+    attemptSummaries: opponent.attemptSummaries,
     mode: 'bot_duel',
     opponentKind: 'bot',
     opponentName: 'Avi',
@@ -461,47 +470,65 @@ function appendGuessRow(state: LocalWordDuelState, row: GuessRow): LocalWordDuel
 }
 
 function createAviBotSafeOpponentSummary(session: AviBotDuelSession): AviBotSafeOpponentSummary {
-  const markers: AviBotOpponentMarkerState[] = Array.from({ length: WORD_DUEL_MAX_ATTEMPTS }, (_, index) => {
-    const guess = session.botState.guesses[index];
-    if (!guess) {
-      return 'waiting';
-    }
-    return guess.normalizedWord === session.target.normalizedWord ? 'solved' : 'failed';
-  });
+  const attemptSummaries: AviBotOpponentAttemptSummary[] = Array.from(
+    { length: WORD_DUEL_MAX_ATTEMPTS },
+    (_, index) => {
+      const guess = session.botState.guesses[index];
+      if (!guess) {
+        return emptyOpponentAttempt(index + 1, 'waiting');
+      }
+
+      return {
+        attemptNumber: index + 1,
+        exactCount: guess.feedback.filter((item) => item === 'exact').length,
+        state: 'scored',
+        validCount: guess.feedback.filter((item) => item === 'exact' || item === 'present').length,
+      };
+    },
+  );
 
   if (session.status === 'technical_error_bot') {
-    markers[Math.max(0, session.roundNumber - 1)] = 'technical_error';
+    attemptSummaries[Math.max(0, session.roundNumber - 1)] = emptyOpponentAttempt(
+      session.roundNumber,
+      'technical_error',
+    );
   } else if (session.pendingRound) {
-    markers[session.pendingRound.roundNumber - 1] = 'waiting';
+    attemptSummaries[session.pendingRound.roundNumber - 1] = emptyOpponentAttempt(
+      session.pendingRound.roundNumber,
+      'thinking',
+    );
   }
 
   return {
-    attemptMarkers: markers,
+    attemptSummaries,
     kind: 'bot',
     profileLabel: 'Bot Normal',
-    roundState: opponentRoundState(session, markers),
+    roundState: opponentRoundState(session),
     safeDisplayName: 'Avi',
   };
 }
 
-function opponentRoundState(
-  session: AviBotDuelSession,
-  markers: readonly AviBotOpponentMarkerState[],
-): AviBotOpponentMarkerState {
+function emptyOpponentAttempt(
+  attemptNumber: number,
+  state: Exclude<AviBotOpponentAttemptState, 'scored'>,
+): AviBotOpponentAttemptSummary {
+  return {
+    attemptNumber,
+    exactCount: null,
+    state,
+    validCount: null,
+  };
+}
+
+function opponentRoundState(session: AviBotDuelSession): AviBotOpponentRoundState {
   if (session.status === 'technical_error_bot') {
     return 'technical_error';
   }
-  if (session.status === 'lost' || session.status === 'draw') {
-    return 'solved';
-  }
-  if (session.status === 'won' || session.status === 'no_winner') {
-    return 'failed';
-  }
   if (session.phase === 'waiting_for_avi') {
-    return 'waiting';
+    return 'thinking';
   }
 
-  return markers[session.roundNumber - 2] ?? 'waiting';
+  return session.botState.guesses.length > 0 ? 'clues_ready' : 'waiting';
 }
 
 function createOwnBoardRows(session: AviBotDuelSession): AviBotBoardRow[] {

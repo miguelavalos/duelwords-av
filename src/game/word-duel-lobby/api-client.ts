@@ -1127,7 +1127,7 @@ function requireLiteral<T extends boolean | number | string>(value: unknown, exp
 }
 
 function readLanguage(value: unknown): GameLanguage {
-  if (value === 'en' || value === 'es') {
+  if (value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr') {
     return value;
   }
 

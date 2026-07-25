@@ -19,6 +19,7 @@
     "config:ios:check:dev": "DUELWORDSAV_IOS_BUILD_VARIANT=development node scripts/check-ios-release-config.mjs --development",
     "config:ios:check:preview": "node scripts/check-ios-release-config.mjs --require-preview-runtime",
     "dictionary:generate": "node scripts/generate-local-dictionaries.mjs",
+    "dictionary:generate:gaia": "node scripts/generate-gaia-local-dictionaries.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "verify": "pnpm run config:ios:check && pnpm run typecheck && pnpm run test",
