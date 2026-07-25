@@ -7,7 +7,7 @@ import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
-import { spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { layout, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function StatsScreen() {
   const router = useRouter();
@@ -17,7 +17,7 @@ export function StatsScreen() {
   const { width } = useWindowDimensions();
 
   return (
-    <AppScreen bottomInset={spacing.xxl}>
+    <AppScreen bottomInset={width < 760 ? layout.phoneShellBottomInset : spacing.xxl}>
       {width < 760 ? <DuelWordsWordmark compact /> : null}
       <View style={styles.header}>
         <InkEyebrow>{copy.stats}</InkEyebrow>

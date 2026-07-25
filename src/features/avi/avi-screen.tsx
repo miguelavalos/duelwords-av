@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
@@ -7,16 +7,17 @@ import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
-import { spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { layout, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AviScreen() {
   const router = useRouter();
   const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const { colors } = useAppTheme();
+  const { width } = useWindowDimensions();
 
   return (
-    <AppScreen bottomInset={spacing.xxl}>
+    <AppScreen bottomInset={width < 760 ? layout.phoneShellBottomInset : spacing.xxl}>
       <DuelWordsWordmark compact />
       <View style={styles.hero}>
         <AviArtwork size={142} source={aviAssets.onboarding} />

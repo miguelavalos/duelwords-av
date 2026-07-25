@@ -23,6 +23,7 @@ type TargetRotationState = {
 };
 
 export type TargetRotationStorage = Pick<Storage, 'getItem' | 'setItem'>;
+export type TargetRotationResetStorage = Pick<Storage, 'removeItem'>;
 
 const STORAGE_KEY = 'duelwords-av:target-rotation:v1';
 
@@ -97,6 +98,14 @@ export function commitTargetSelection(
     targetCount: selection.targetCount,
   };
   storage.setItem(STORAGE_KEY, JSON.stringify(state));
+  return true;
+}
+
+export function resetTargetRotation(
+  storage: TargetRotationResetStorage | null = deviceStorage(),
+): boolean {
+  if (!storage) return false;
+  storage.removeItem(STORAGE_KEY);
   return true;
 }
 
@@ -208,7 +217,7 @@ function emptyState(): TargetRotationState {
   return { streams: {}, version: 1 };
 }
 
-function deviceStorage(): TargetRotationStorage | null {
+function deviceStorage(): Storage | null {
   return typeof localStorage === 'undefined' ? null : localStorage;
 }
 

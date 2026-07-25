@@ -233,11 +233,14 @@ private struct DuelWordsSidebarSurface: View {
 private struct DuelWordsSettingsSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
+    @Environment(\.avBrandPalette) private var brandPalette
+    @State private var didResetLocalData = false
+    @State private var resetConfirmationIsPresented = false
 
     var body: some View {
         AVSettingsProfileScreenScaffold(
             title: "Settings",
-            subtitle: "Preferences on this device, account access, help, and legal information.",
+            subtitle: "Preferences on this device, help, and legal information.",
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
         ) {
@@ -266,39 +269,50 @@ private struct DuelWordsSettingsSurface: View {
                 action: action
             )
         } content: {
-            interfaceLanguageCard
-            appearanceCard
-            accountCard
+            appPreferencesCard
+            onDeviceCard
             helpCard
-            aboutCard
         }
-    }
-
-    private var interfaceLanguageCard: some View {
-        AVSettingsSectionCard(
-            title: "Interface language",
-            subtitle: "Language used by navigation, help, account, and game messages."
+        .confirmationDialog(
+            "Reset local game data?",
+            isPresented: $resetConfirmationIsPresented,
+            titleVisibility: .visible
         ) {
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 118), spacing: 10)], spacing: 10) {
-                option("English", value: "en", systemImage: "character.book.closed")
-                option("Español", value: "es", systemImage: "character.book.closed")
-                option("Català", value: "ca", systemImage: "character.book.closed")
-                option("Français", value: "fr", systemImage: "character.book.closed")
-                option("Deutsch", value: "de", systemImage: "character.book.closed")
+            Button("Reset local game rotation", role: .destructive) {
+                action("resetLocalData", nil)
+                didResetLocalData = true
             }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This starts fresh local target decks. Your interface preferences and Account AV identity are not changed.")
         }
     }
 
-    private var appearanceCard: some View {
+    private var appPreferencesCard: some View {
         AVSettingsSectionCard(
-            title: "Appearance",
-            subtitle: "The paper, ink, boards, and chrome follow this choice."
+            title: "App preferences",
+            subtitle: "Choose how DuelWords AV appears on this device."
         ) {
+            AVSettingsInfoRow(
+                systemImage: "globe",
+                title: "App language",
+                detail: "Choose the language used by navigation, help, account, and game messages."
+            )
+
+            interfaceLanguageSelector
+
+            AVSettingsInfoRow(
+                systemImage: "circle.lefthalf.filled",
+                title: "Appearance",
+                detail: "Choose whether DuelWords AV follows the system or always uses a fixed appearance."
+            )
+
             HStack(spacing: 10) {
                 appearanceOption("System", value: "system", systemImage: "circle.lefthalf.filled")
                 appearanceOption("Light", value: "light", systemImage: "sun.max.fill")
                 appearanceOption("Dark", value: "dark", systemImage: "moon.fill")
             }
+
             AVSettingsToggleRow(
                 systemImage: "iphone.radiowaves.left.and.right",
                 title: "Haptics",
@@ -311,23 +325,73 @@ private struct DuelWordsSettingsSurface: View {
         }
     }
 
-    private var accountCard: some View {
+    private var interfaceLanguageSelector: some View {
+        Menu {
+            ForEach(DuelWordsInterfaceLocaleOption.all) { locale in
+                Button {
+                    action("setInterfaceLocale", locale.id)
+                } label: {
+                    if props.interfaceLocale == locale.id {
+                        Label(locale.menuTitle, systemImage: "checkmark")
+                    } else {
+                        Text(locale.menuTitle)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(selectedInterfaceLocale.displayName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(brandPalette.ink)
+                    Text(selectedInterfaceLocale.autonym)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(brandPalette.ink.opacity(0.68))
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(brandPalette.accent)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(brandPalette.accent.opacity(0.07))
+            )
+            .overlay {
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .stroke(brandPalette.accent.opacity(0.18), lineWidth: 1)
+            }
+        }
+    }
+
+    private var selectedInterfaceLocale: DuelWordsInterfaceLocaleOption {
+        DuelWordsInterfaceLocaleOption.all.first(where: { $0.id == props.interfaceLocale })
+            ?? DuelWordsInterfaceLocaleOption.all[0]
+    }
+
+    private var onDeviceCard: some View {
         AVSettingsSectionCard(
-            title: "Account & plan",
-            subtitle: "Account AV and DuelWords Pro remain separate from game-language preferences."
+            title: "On this device",
+            subtitle: "Local play remains separate from your shared Account AV identity."
         ) {
-            AVSettingsActionRow(
-                systemImage: "person.crop.circle",
-                title: "Account",
-                detail: props.signedIn ? "Review your connected Apps AV identity." : "Play as a guest or connect Account AV.",
-                action: { action("account", nil) }
+            AVSettingsInfoRow(systemImage: "app.badge", title: "Version", detail: "0.1.0 (1)")
+            AVSettingsInfoRow(systemImage: "text.book.closed", title: "Word lists", detail: "Bundled EN, ES, CA, FR, and DE")
+            AVSettingsInfoRow(systemImage: "arrow.triangle.2.circlepath", title: "Local targets", detail: "Shared no-repeat deck for Practice, Solo, and Play Avi")
+            AVSettingsInfoRow(systemImage: "calendar", title: "Daily word", detail: "Server-selected only")
+            AVSettingsButton(
+                title: "Reset local game rotation",
+                style: .destructive,
+                action: { resetConfirmationIsPresented = true }
             )
-            AVSettingsActionRow(
-                systemImage: "sparkles.rectangle.stack",
-                title: "DuelWords Pro",
-                detail: "Review access and fair-play benefits.",
-                action: { action("paywall", nil) }
-            )
+            if didResetLocalData {
+                AVSettingsStatusCard(
+                    systemImage: "checkmark.circle",
+                    title: "Local rotation reset",
+                    detail: "The next local game will start a fresh target deck."
+                )
+            }
         }
     }
 
@@ -336,9 +400,11 @@ private struct DuelWordsSettingsSurface: View {
             title: "Privacy, help & legal",
             subtitle: "Public DuelWords AV information opens through secure HTTPS pages."
         ) {
+            AVSettingsActionRow(systemImage: "shippingbox", title: "Open-source notices", detail: "Licenses for bundled dictionaries and software.", action: { action("openNotices", nil) })
+            AVSettingsActionRow(systemImage: "chevron.left.forwardslash.chevron.right", title: "Source code", detail: "Open the public DuelWords AV repository.", action: { action("openSource", nil) })
+            AVSettingsActionRow(systemImage: "questionmark.circle", title: "Support", detail: "Open DuelWords AV support.", action: { action("openSupport", nil) })
             AVSettingsActionRow(systemImage: "hand.raised", title: "Privacy policy", detail: "How DuelWords AV handles product and account data.", action: { action("openPrivacy", nil) })
             AVSettingsActionRow(systemImage: "doc.text", title: "Terms of use", detail: "Terms that apply to DuelWords AV.", action: { action("openTerms", nil) })
-            AVSettingsActionRow(systemImage: "questionmark.circle", title: "Support", detail: "Open DuelWords AV support.", action: { action("openSupport", nil) })
             AVSettingsDestructiveActionCard(
                 sectionTitle: "Account safety",
                 systemImage: "person.crop.circle.badge.minus",
@@ -346,20 +412,6 @@ private struct DuelWordsSettingsSurface: View {
                 detail: "Review the secure deletion workflow and consequences.",
                 action: { action("deleteAccount", nil) }
             )
-        }
-    }
-
-    private var aboutCard: some View {
-        AVSettingsSectionCard(title: "About DuelWords AV", subtitle: "Word duels with friends, or Avi.") {
-            AVSettingsInfoRow(systemImage: "app.badge", title: "Version", detail: "0.1.0 (1)")
-            AVSettingsInfoRow(systemImage: "text.book.closed", title: "Word lists", detail: "Bundled English and Spanish")
-            AVSettingsInfoRow(systemImage: "calendar", title: "Daily word", detail: "Server-selected only")
-        }
-    }
-
-    private func option(_ title: String, value: String, systemImage: String) -> some View {
-        AVSettingsOptionButton(title: title, systemImage: systemImage, isSelected: props.interfaceLocale == value) {
-            action("setInterfaceLocale", value)
         }
     }
 
@@ -384,9 +436,11 @@ private struct DuelWordsAccountSurface: View {
             DuelWordsHeaderSurface(props: headerProps, action: action)
         } content: {
             identityCard
-            continuityCard
             proCard
-            safetyCard
+            continuityCard
+            if props.signedIn {
+                safetyCard
+            }
         }
     }
 
@@ -411,11 +465,14 @@ private struct DuelWordsAccountSurface: View {
             AVSettingsInfoRow(systemImage: "person.crop.circle", title: "Identity", detail: props.signedIn ? (props.displayName.isEmpty ? "Connected" : props.displayName) : "Guest · local")
             AVSettingsInfoRow(systemImage: "sparkles.rectangle.stack", title: "Plan", detail: props.planTier == "pro" ? "DuelWords Pro" : props.signedIn ? "Free" : "Guest")
             if props.signedIn {
-                AVSettingsButton(title: "Refresh access", style: .secondary, action: { action("refreshAccount", nil) })
                 AVSettingsButton(title: "Sign out", style: .secondary, action: { action("signOut", nil) })
             } else {
-                AVSettingsButton(title: "Create account", style: .primary, action: { action("signUp", nil) })
-                AVSettingsButton(title: "Sign in", style: .secondary, action: { action("signIn", nil) })
+                AVSettingsButton(
+                    title: props.accountAvailable ? "Connect Account AV" : "Account AV unavailable",
+                    style: .primary,
+                    action: { action("signIn", nil) }
+                )
+                .disabled(!props.accountAvailable)
             }
         }
     }
@@ -430,18 +487,42 @@ private struct DuelWordsAccountSurface: View {
     private var proCard: some View {
         AVSettingsSectionCard(title: "DuelWords Pro", subtitle: "More history. The same fair game.") {
             AVSettingsInfoRow(systemImage: "checkmark.shield", title: "Fair play", detail: "Pro never adds hints, time, attempts, or different feedback.")
-            AVSettingsButton(title: props.planTier == "pro" ? "View Pro access" : "Explore DuelWords Pro", style: .primary, action: { action("paywall", nil) })
+            AVSettingsButton(
+                title: proActionTitle,
+                style: .primary,
+                action: { action(props.signedIn ? "paywall" : "signIn", nil) }
+            )
+            .disabled(!props.signedIn && !props.accountAvailable)
         }
     }
 
+    private var proActionTitle: String {
+        if props.planTier == "pro" { return "View Pro access" }
+        if props.signedIn { return "Explore DuelWords Pro" }
+        return props.accountAvailable ? "Sign in for DuelWords Pro" : "Account AV unavailable"
+    }
+
     private var safetyCard: some View {
-        AVSettingsSectionCard(title: "Preferences & account safety", subtitle: "Settings stay device-local. Account deletion follows Account AV.") {
-            AVSettingsActionRow(systemImage: "gearshape", title: "Settings", detail: "Interface, appearance, help, and legal.", action: { action("settings", nil) })
-            if props.signedIn {
-                AVSettingsDestructiveActionCard(sectionTitle: "Account safety", systemImage: "trash", title: "Delete Apps AV account", detail: "Review deletion before confirming.", action: { action("deleteAccount", nil) })
-            }
+        AVSettingsSectionCard(title: "Account safety", subtitle: "Account deletion follows the guarded Account AV workflow.") {
+            AVSettingsDestructiveActionCard(sectionTitle: "Account safety", systemImage: "trash", title: "Delete Apps AV account", detail: "Review deletion before confirming.", action: { action("deleteAccount", nil) })
         }
     }
+}
+
+private struct DuelWordsInterfaceLocaleOption: Identifiable {
+    let id: String
+    let displayName: String
+    let autonym: String
+
+    var menuTitle: String { "\(displayName) (\(autonym))" }
+
+    static let all = [
+        DuelWordsInterfaceLocaleOption(id: "en", displayName: "English", autonym: "English"),
+        DuelWordsInterfaceLocaleOption(id: "es", displayName: "Spanish", autonym: "Español"),
+        DuelWordsInterfaceLocaleOption(id: "ca", displayName: "Catalan", autonym: "Català"),
+        DuelWordsInterfaceLocaleOption(id: "fr", displayName: "French", autonym: "Français"),
+        DuelWordsInterfaceLocaleOption(id: "de", displayName: "German", autonym: "Deutsch")
+    ]
 }
 
 private struct DuelWordsPaywallSurface: View {

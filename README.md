@@ -51,6 +51,16 @@ rather than deployment terminology. Opening a new invite while the Challenge scr
 is already mounted replaces the previous invite instead of reusing stale room
 state, and guests receive a local editable room alias by default.
 
+Home, Settings, and Account now follow Tune AV's common-screen ordering as
+well as its shared shell. Home puts Avi's brief directly below the title.
+Settings begins with one compact App preferences card (app language,
+appearance, haptics), followed by on-device data and help/legal; Account and
+Pro no longer appear as duplicate Settings destinations. Account orders the
+identity summary, product access, continuity, and signed-in-only safety, and a
+guest has one canonical `Connect Account AV` entry into the Apple/Google
+provider sheet. Both size classes use the same hierarchy; iPad adapts it to the
+shared utility sidebar.
+
 The iPhone footer embeds the same Apps AV SwiftUI tab capsule and separate Avi
 control used by Tune AV, through the shared package's footer-only `floating`
 configuration. Its surrounding host is transparent, so DuelWords content
@@ -277,6 +287,21 @@ Validate the non-secret identity and assets before any native build:
 pnpm run config:ios:check
 pnpm run config:ios:check:dev
 ```
+
+For a development native runtime, generate the ignored Xcode environment from
+the private read-only config flow and validate the values Xcode will actually
+export to Expo's JavaScript bundle phase. Run the generator after every Expo
+prebuild, because prebuild recreates the ignored `ios/` tree:
+
+```bash
+pnpm run config:ios:generate:dev
+pnpm run config:ios:runtime:dev
+```
+
+Pass `ios/Config/Local.xcconfig` to direct `xcodebuild`/XcodeBuildMCP builds.
+The file is never committed or printed. Preview-candidate preparation uses
+`config:ios:generate:preview` and `config:ios:runtime:preview`; it remains
+subject to the private TestFlight runbook and exact-build approval.
 
 After the approved preview values have been resolved read-only into the current
 shell, require the complete connected-runtime contract without printing its

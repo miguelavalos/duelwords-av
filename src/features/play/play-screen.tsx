@@ -7,7 +7,7 @@ import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard } from '@/ui/brand';
-import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { layout, radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function PlayScreen() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export function PlayScreen() {
   const tablet = width >= 760;
 
   return (
-    <AppScreen bottomInset={spacing.xxl}>
+    <AppScreen bottomInset={tablet ? spacing.xxl : layout.phoneShellBottomInset}>
       {!tablet ? (
         <AppChromeHeader
           accountLabel={copy.account}
@@ -35,6 +35,21 @@ export function PlayScreen() {
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.homeTitle}</Text>
         {tablet ? <Text style={styles.headerDetail}>{copy.homeDetail}</Text> : null}
       </View>
+
+      <Pressable accessibilityRole="button" onPress={() => router.push('/avi' as Href)}>
+        {({ pressed }) => (
+          <PaperCard emphasized style={{ opacity: pressed ? 0.78 : 1 }}>
+            <View style={styles.aviBrief}>
+              <AviArtwork size={86} />
+              <View style={styles.aviBriefCopy}>
+                <InkEyebrow>Avi</InkEyebrow>
+                <Text style={styles.modeTitle}>{copy.aviBriefTitle}</Text>
+                <Text style={styles.modeDetail}>{copy.aviBriefDetail}</Text>
+              </View>
+            </View>
+          </PaperCard>
+        )}
+      </Pressable>
 
       <ModeCard
         eyebrow="Live 1 vs 1"
@@ -78,20 +93,6 @@ export function PlayScreen() {
         )}
       </Pressable>
 
-      <Pressable accessibilityRole="button" onPress={() => router.push('/avi' as Href)}>
-        {({ pressed }) => (
-          <PaperCard emphasized style={{ opacity: pressed ? 0.78 : 1 }}>
-            <View style={styles.aviBrief}>
-              <AviArtwork size={86} />
-              <View style={styles.aviBriefCopy}>
-                <InkEyebrow>Avi</InkEyebrow>
-                <Text style={styles.modeTitle}>{copy.aviBriefTitle}</Text>
-                <Text style={styles.modeDetail}>{copy.aviBriefDetail}</Text>
-              </View>
-            </View>
-          </PaperCard>
-        )}
-      </Pressable>
     </AppScreen>
   );
 }

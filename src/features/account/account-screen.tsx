@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
@@ -14,12 +14,17 @@ import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 export function AccountScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
+  const refreshAccount = account.refresh;
   const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const signedIn = account.user !== null;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
+
+  useEffect(() => {
+    void refreshAccount();
+  }, [refreshAccount]);
 
   function handleSharedAction({ action }: SharedAppleAction) {
     if (action === 'settings') router.replace('/(tabs)/settings' as Href);

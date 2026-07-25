@@ -30,13 +30,13 @@ function createExpoConfig() {
       entitlements: {
         ...(appJson.expo.ios?.entitlements ?? {}),
         'com.apple.developer.applesignin': ['Default'],
-        'keychain-access-groups': [accountKeychainAccessGroup],
+        'keychain-access-groups': ['$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)'],
       },
       infoPlist: {
         ...(appJson.expo.ios?.infoPlist ?? {}),
-        ACCOUNTAV_KEYCHAIN_ACCESS_GROUP: accountKeychainAccessGroup,
-        ACCOUNTAV_KEYCHAIN_SERVICE: accountKeychainService,
-        ACCOUNTAV_PUBLISHABLE_KEY: accountPublishableKey ?? '',
+        ACCOUNTAV_KEYCHAIN_ACCESS_GROUP: '$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)',
+        ACCOUNTAV_KEYCHAIN_SERVICE: '$(ACCOUNTAV_KEYCHAIN_SERVICE)',
+        ACCOUNTAV_PUBLISHABLE_KEY: '$(ACCOUNTAV_PUBLISHABLE_KEY)',
       },
     },
     extra: {

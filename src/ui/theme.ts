@@ -116,4 +116,5 @@ export const typeScale = {
 
 export const layout = {
   maxContentWidth: 840,
+  phoneShellBottomInset: 126,
 };

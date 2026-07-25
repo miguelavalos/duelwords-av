@@ -56,19 +56,24 @@ expectEqual(
   JSON.stringify(['Default']),
 );
 expectEqual(
-  'expo.ios.entitlements keychain-access-groups',
+  'expo.ios.entitlements keychain-access-groups template',
   JSON.stringify(expoConfig.ios?.entitlements?.['keychain-access-groups']),
-  JSON.stringify([expectedKeychainAccessGroup]),
+  JSON.stringify(['$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)']),
 );
 expectEqual(
-  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_SERVICE',
+  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_SERVICE template',
   expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_SERVICE,
-  'com.avalsys.duelwordsav.account',
+  '$(ACCOUNTAV_KEYCHAIN_SERVICE)',
 );
 expectEqual(
-  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_ACCESS_GROUP',
+  'expo.ios.infoPlist ACCOUNTAV_KEYCHAIN_ACCESS_GROUP template',
   expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP,
-  expectedKeychainAccessGroup,
+  '$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)',
+);
+expectEqual(
+  'expo.ios.infoPlist ACCOUNTAV_PUBLISHABLE_KEY template',
+  expoConfig.ios?.infoPlist?.ACCOUNTAV_PUBLISHABLE_KEY,
+  '$(ACCOUNTAV_PUBLISHABLE_KEY)',
 );
 const expoRouterPlugin = expoConfig.plugins?.find(
   (plugin) => Array.isArray(plugin) && plugin[0] === 'expo-router',
@@ -123,15 +128,11 @@ if (process.argv.includes('--require-preview-runtime')) {
     failures.push('ACCOUNTAV_PUBLISHABLE_KEY must resolve to a non-empty value.');
   }
 
+  expectEqual('Account AV keychain service', expoConfig.extra?.accountAv?.keychainService, 'com.avalsys.duelwordsav.account');
   expectEqual(
-    'Account AV keychain service mirror',
-    expoConfig.extra?.accountAv?.keychainService,
-    expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_SERVICE,
-  );
-  expectEqual(
-    'Account AV keychain access-group mirror',
+    'Account AV keychain access group',
     expoConfig.extra?.accountAv?.keychainAccessGroup,
-    expoConfig.ios?.infoPlist?.ACCOUNTAV_KEYCHAIN_ACCESS_GROUP,
+    expectedKeychainAccessGroup,
   );
 
   expectEqual(

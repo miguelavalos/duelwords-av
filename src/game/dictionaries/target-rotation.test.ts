@@ -4,6 +4,7 @@ import {
   advanceTargetSelection,
   commitTargetSelection,
   planTargetSelection,
+  resetTargetRotation,
   type TargetRotationStorage,
 } from './target-rotation';
 
@@ -119,5 +120,20 @@ describe('local target rotation', () => {
       storage,
       targetCount: 750,
     }).position).toBe(1);
+  });
+
+  it('resets only the persisted local target deck', () => {
+    const values = new Map<string, string>([
+      ['duelwords-av:target-rotation:v1', JSON.stringify({ streams: {}, version: 1 })],
+      ['duelwords-av:preferences:v1', '{"appearance":"dark"}'],
+    ]);
+    const storage = {
+      removeItem: (key: string) => values.delete(key),
+    };
+
+    expect(resetTargetRotation(storage)).toBe(true);
+    expect(values.has('duelwords-av:target-rotation:v1')).toBe(false);
+    expect(values.has('duelwords-av:preferences:v1')).toBe(true);
+    expect(resetTargetRotation(null)).toBe(false);
   });
 });

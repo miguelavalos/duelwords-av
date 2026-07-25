@@ -1,10 +1,12 @@
 import Constants from 'expo-constants';
 import * as Haptics from 'expo-haptics';
+import * as WebBrowser from 'expo-web-browser';
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Linking, Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { resetTargetRotation } from '@/game/dictionaries/target-rotation';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
@@ -18,6 +20,7 @@ const links = {
   deleteAccount: 'https://duelwords-av.avalsys.com/delete-account/',
   notices: 'https://duelwords-av.avalsys.com/notices/',
   privacy: 'https://duelwords-av.avalsys.com/privacy/',
+  source: 'https://github.com/miguelavalos/duelwords-av',
   support: 'https://duelwords-av.avalsys.com/support/',
   terms: 'https://duelwords-av.avalsys.com/terms/',
 } as const;
@@ -46,6 +49,9 @@ export function SettingsScreen() {
     else if (action === 'openPrivacy') openLink(links.privacy);
     else if (action === 'openTerms') openLink(links.terms);
     else if (action === 'openSupport') openLink(links.support);
+    else if (action === 'openNotices') openLink(links.notices);
+    else if (action === 'openSource') openLink(links.source);
+    else if (action === 'resetLocalData') resetTargetRotation();
     else if (action === 'setInterfaceLocale' && INTERFACE_LOCALES.some((locale) => locale.code === value)) {
       setPreferences((current) => ({ ...current, interfaceLocale: value as typeof current.interfaceLocale }));
     } else if (action === 'setAppearance' && (value === 'system' || value === 'light' || value === 'dark')) {
@@ -182,7 +188,7 @@ function InternalRow({ destructive, label, onPress }: { destructive?: boolean; l
 }
 
 function openLink(url: string) {
-  void Linking.openURL(url);
+  void WebBrowser.openBrowserAsync(url);
 }
 
 function useStyles() {
