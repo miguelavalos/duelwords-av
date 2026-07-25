@@ -81,14 +81,19 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
   const [access, setAccess] = useState<DuelWordsAccess>(GUEST_ACCESS);
   const [status, setStatus] = useState<AccountStatus>('loading');
   const userRef = useRef<AccountAvInternalUser | null>(null);
+  const clerkGetTokenRef = useRef(getToken);
+
+  useEffect(() => {
+    clerkGetTokenRef.current = getToken;
+  }, [getToken]);
 
   const tokenProvider = useCallback(async () => {
     if (!isSignedIn) {
       return null;
     }
 
-    return withTimeout(getToken(), ACCOUNT_TOKEN_TIMEOUT_MS);
-  }, [getToken, isSignedIn]);
+    return withTimeout(clerkGetTokenRef.current(), ACCOUNT_TOKEN_TIMEOUT_MS);
+  }, [isSignedIn]);
   const publishIdentity = useCallback(async (identityTokenProvider: () => Promise<string | null>) => {
     const identity = await fetchAccountAvIdentity({ baseUrl, getToken: identityTokenProvider });
     await identityCache.save(identity).catch(() => undefined);
