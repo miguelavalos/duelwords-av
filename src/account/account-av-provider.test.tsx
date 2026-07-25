@@ -1,13 +1,39 @@
+import { useEffect } from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { DuelWordsAccountAvProvider } from './account-av-provider';
+import { DuelWordsAccountAvProvider, useDuelWordsAccount } from './account-av-provider';
 
-const authState = vi.hoisted(() => ({
-  isLoaded: true,
-  isSignedIn: true,
-  tokenCalls: 0,
-}));
+const clerkMocks = vi.hoisted(() => {
+  const authState = {
+    isLoaded: true,
+    isSignedIn: true,
+    sessionId: 'session-existing' as string | null,
+    tokenCalls: 0,
+  };
+  const sessionGetToken = vi.fn(async () => 'activated-session-token');
+  type TestSession = { getToken: typeof sessionGetToken; id: string };
+  const clerk = {
+    client: { sessions: [] as TestSession[] },
+    session: null as TestSession | null,
+    signOut: vi.fn(async () => undefined),
+  };
+  const setActive = vi.fn(async ({ session: sessionId }: { session: string }) => {
+    const session = { getToken: sessionGetToken, id: sessionId };
+    authState.isSignedIn = true;
+    authState.sessionId = sessionId;
+    clerk.client.sessions = [session];
+    clerk.session = session;
+  });
+  return {
+    authState,
+    clerk,
+    sessionGetToken,
+    setActive,
+    startAppleAuthenticationFlow: vi.fn(),
+    startSSOFlow: vi.fn(),
+  };
+});
 const fetchAccountAvIdentity = vi.hoisted(() => vi.fn());
 
 vi.mock('@clerk/expo', () => ({
@@ -15,18 +41,19 @@ vi.mock('@clerk/expo', () => ({
   useAuth: () => ({
     // Clerk may return a new function identity after its session state updates.
     getToken: async () => {
-      authState.tokenCalls += 1;
+      clerkMocks.authState.tokenCalls += 1;
       return 'preview-token';
     },
-    isLoaded: authState.isLoaded,
-    isSignedIn: authState.isSignedIn,
+    isLoaded: clerkMocks.authState.isLoaded,
+    isSignedIn: clerkMocks.authState.isSignedIn,
+    sessionId: clerkMocks.authState.sessionId,
   }),
-  useClerk: () => ({ signOut: vi.fn() }),
-  useSSO: () => ({ startSSOFlow: vi.fn() }),
+  useClerk: () => clerkMocks.clerk,
+  useSSO: () => ({ startSSOFlow: clerkMocks.startSSOFlow }),
 }));
 
 vi.mock('@clerk/expo/apple', () => ({
-  useSignInWithApple: () => ({ startAppleAuthenticationFlow: vi.fn() }),
+  useSignInWithApple: () => ({ startAppleAuthenticationFlow: clerkMocks.startAppleAuthenticationFlow }),
 }));
 
 vi.mock('expo-secure-store', () => ({
@@ -49,14 +76,41 @@ vi.mock('./account-api-client', () => ({ fetchAccountAvIdentity }));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+type AccountValue = ReturnType<typeof useDuelWordsAccount>;
+let accountValue: AccountValue | undefined;
+
+function AccountProbe() {
+  const value = useDuelWordsAccount();
+  useEffect(() => {
+    accountValue = value;
+  }, [value]);
+  return null;
+}
+
 describe('DuelWordsAccountAvProvider', () => {
   let renderer: ReactTestRenderer | undefined;
 
   beforeEach(() => {
-    authState.isLoaded = true;
-    authState.isSignedIn = true;
-    authState.tokenCalls = 0;
+    clerkMocks.authState.isLoaded = true;
+    clerkMocks.authState.isSignedIn = true;
+    clerkMocks.authState.sessionId = 'session-existing';
+    clerkMocks.authState.tokenCalls = 0;
+    clerkMocks.sessionGetToken.mockReset().mockResolvedValue('activated-session-token');
+    clerkMocks.setActive.mockReset().mockImplementation(async ({ session: sessionId }: { session: string }) => {
+      const session = { getToken: clerkMocks.sessionGetToken, id: sessionId };
+      clerkMocks.authState.isSignedIn = true;
+      clerkMocks.authState.sessionId = sessionId;
+      clerkMocks.clerk.client.sessions = [session];
+      clerkMocks.clerk.session = session;
+    });
+    clerkMocks.clerk.signOut.mockClear();
+    clerkMocks.startAppleAuthenticationFlow.mockReset();
+    clerkMocks.startSSOFlow.mockReset();
+    const existingSession = { getToken: clerkMocks.sessionGetToken, id: 'session-existing' };
+    clerkMocks.clerk.client.sessions = [existingSession];
+    clerkMocks.clerk.session = existingSession;
     fetchAccountAvIdentity.mockReset();
+    accountValue = undefined;
   });
 
   afterEach(() => {
@@ -80,13 +134,110 @@ describe('DuelWordsAccountAvProvider', () => {
       });
 
     await act(async () => {
-      renderer = create(<DuelWordsAccountAvProvider>{null}</DuelWordsAccountAvProvider>);
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
       await Promise.resolve();
       await Promise.resolve();
       await Promise.resolve();
     });
 
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
-    expect(authState.tokenCalls).toBe(1);
+    expect(clerkMocks.authState.tokenCalls).toBe(1);
+  });
+
+  it('publishes the internal Account AV user before Apple sign-in completes', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+    clerkMocks.startAppleAuthenticationFlow.mockResolvedValue({
+      createdSessionId: 'session-apple',
+      setActive: clerkMocks.setActive,
+    });
+    fetchAccountAvIdentity.mockImplementation(async (input: { getToken: () => Promise<string | null> }) => {
+      expect(await input.getToken()).toBe('activated-session-token');
+      return {
+        access: { accessMode: 'signedInPro', planTier: 'pro' },
+        user: { displayName: 'Apple player', email: null, id: 'user-apple' },
+      };
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signInWithApple();
+    });
+
+    expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-apple' });
+    expect(clerkMocks.sessionGetToken).toHaveBeenCalledTimes(1);
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('signed_in');
+    expect(accountValue?.user?.id).toBe('user-apple');
+  });
+
+  it('publishes the internal Account AV user before Google sign-in completes', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+    clerkMocks.startSSOFlow.mockResolvedValue({
+      authSessionResult: { type: 'success' },
+      createdSessionId: 'session-google',
+      setActive: clerkMocks.setActive,
+    });
+    fetchAccountAvIdentity.mockImplementation(async (input: { getToken: () => Promise<string | null> }) => {
+      expect(await input.getToken()).toBe('activated-session-token');
+      return {
+        access: { accessMode: 'signedInFree', planTier: 'free' },
+        user: { displayName: 'Google player', email: null, id: 'user-google' },
+      };
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signInWithGoogle();
+    });
+
+    expect(clerkMocks.startSSOFlow).toHaveBeenCalledWith({ strategy: 'oauth_google' });
+    expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-google' });
+    expect(clerkMocks.sessionGetToken).toHaveBeenCalledTimes(1);
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('signed_in');
+    expect(accountValue?.user?.id).toBe('user-google');
+  });
+
+  it('surfaces one bounded Account AV failure after session activation', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+    clerkMocks.startAppleAuthenticationFlow.mockResolvedValue({
+      createdSessionId: 'session-offline',
+      setActive: clerkMocks.setActive,
+    });
+    fetchAccountAvIdentity.mockRejectedValue(new Error('account_api_unavailable'));
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    let signInError: unknown;
+    await act(async () => {
+      try {
+        await accountValue?.signInWithApple();
+      } catch (error) {
+        signInError = error;
+      }
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(signInError).toBeInstanceOf(Error);
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('account_error');
   });
 });

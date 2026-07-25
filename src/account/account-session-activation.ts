@@ -5,9 +5,10 @@ export type AccountSessionActivator =
 export async function activateCreatedSession(
   createdSessionId: string | null,
   setActive: AccountSessionActivator,
-): Promise<void> {
+): Promise<string> {
   if (!createdSessionId || !setActive) {
     throw new Error('Account AV did not return an active session.');
   }
   await setActive({ session: createdSessionId });
+  return createdSessionId;
 }

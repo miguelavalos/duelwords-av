@@ -73,7 +73,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
   children: ReactNode;
   identityCache: IdentityCache;
 }) {
-  const { getToken, isLoaded, isSignedIn } = useAuth({ treatPendingAsSignedOut: false });
+  const { getToken, isLoaded, isSignedIn, sessionId } = useAuth({ treatPendingAsSignedOut: false });
   const clerk = useClerk();
   const { startAppleAuthenticationFlow } = useSignInWithApple();
   const { startSSOFlow } = useSSO();
@@ -82,6 +82,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
   const [status, setStatus] = useState<AccountStatus>('loading');
   const userRef = useRef<AccountAvInternalUser | null>(null);
   const clerkGetTokenRef = useRef(getToken);
+  const automaticResolutionSessionRef = useRef<string | null>(null);
 
   useEffect(() => {
     clerkGetTokenRef.current = getToken;
@@ -109,6 +110,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     }
     if (!isSignedIn) {
       await identityCache.clear().catch(() => undefined);
+      automaticResolutionSessionRef.current = null;
       userRef.current = null;
       setUser(null);
       setAccess(GUEST_ACCESS);
@@ -135,12 +137,19 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
   }, [identityCache, isLoaded, isSignedIn, publishIdentity, tokenProvider]);
 
   useEffect(() => {
+    if (isSignedIn && sessionId && automaticResolutionSessionRef.current === sessionId) {
+      return;
+    }
+    if (isSignedIn && sessionId) {
+      automaticResolutionSessionRef.current = sessionId;
+    }
     void refresh();
-  }, [refresh]);
+  }, [isSignedIn, refresh, sessionId]);
 
   const signOut = useCallback(async () => {
     await clerk.signOut();
     await identityCache.clear().catch(() => undefined);
+    automaticResolutionSessionRef.current = null;
     userRef.current = null;
     setUser(null);
     setAccess(GUEST_ACCESS);
@@ -151,20 +160,36 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     try {
       if (!isLoaded) throw new Error('Account AV is still loading.');
       const result = await startAppleAuthenticationFlow();
-      await activateCreatedSession(result.createdSessionId, result.setActive);
+      const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
+      automaticResolutionSessionRef.current = activatedSessionId;
+      await publishActivatedSessionIdentity({
+        activatedSessionId,
+        clerk,
+        publishIdentity,
+        userRef,
+        setStatus,
+      });
     } catch (error) {
       if (isAccountAuthCancellation(error)) throw new AccountAuthCancelledError();
       throw error;
     }
-  }, [isLoaded, startAppleAuthenticationFlow]);
+  }, [clerk, isLoaded, publishIdentity, startAppleAuthenticationFlow]);
 
   const signInWithGoogle = useCallback(async () => {
     const result = await startSSOFlow({ strategy: 'oauth_google' });
     if (result.authSessionResult?.type === 'cancel' || result.authSessionResult?.type === 'dismiss') {
       throw new AccountAuthCancelledError();
     }
-    await activateCreatedSession(result.createdSessionId, result.setActive);
-  }, [startSSOFlow]);
+    const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
+    automaticResolutionSessionRef.current = activatedSessionId;
+    await publishActivatedSessionIdentity({
+      activatedSessionId,
+      clerk,
+      publishIdentity,
+      userRef,
+      setStatus,
+    });
+  }, [clerk, publishIdentity, startSSOFlow]);
 
   const value = useMemo<AccountAvContextValue>(() => ({
     access,
@@ -234,5 +259,25 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
     if (timeout !== undefined) {
       clearTimeout(timeout);
     }
+  }
+}
+
+async function publishActivatedSessionIdentity(input: {
+  activatedSessionId: string;
+  clerk: ReturnType<typeof useClerk>;
+  publishIdentity: (getToken: () => Promise<string | null>) => Promise<void>;
+  setStatus: (status: AccountStatus) => void;
+  userRef: { current: AccountAvInternalUser | null };
+}) {
+  const session = input.clerk.client?.sessions.find(({ id }) => id === input.activatedSessionId)
+    ?? (input.clerk.session?.id === input.activatedSessionId ? input.clerk.session : null);
+  try {
+    if (!session) {
+      throw new Error('Account AV activated session is unavailable.');
+    }
+    await input.publishIdentity(() => withTimeout(session.getToken(), ACCOUNT_TOKEN_TIMEOUT_MS));
+  } catch (error) {
+    input.setStatus(input.userRef.current ? 'signed_in_offline' : 'account_error');
+    throw error;
   }
 }
