@@ -37,6 +37,17 @@ describe('duelwords sentry diagnostics facade', () => {
     expect(webFallback.reasonDisabled).toBe('unsupported_platform');
   });
 
+  it('treats non-text Expo extra values as a missing DSN', () => {
+    const config = createDuelWordsDiagnosticsConfig({
+      dsn: false as unknown as string,
+      environment: 'preview',
+      platform: 'ios',
+    });
+
+    expect(config.enabled).toBe(false);
+    expect(config.reasonDisabled).toBe('missing_dsn');
+  });
+
   it('initializes only when config is explicitly enabled', () => {
     const initCalls: string[] = [];
     const client: DuelWordsDiagnosticsClient = {

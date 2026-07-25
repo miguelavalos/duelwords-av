@@ -1,4 +1,5 @@
 allowBuilds:
+  '@sentry/cli': true
   browser-tabs-lock: false
   bufferutil: false
   core-js: false

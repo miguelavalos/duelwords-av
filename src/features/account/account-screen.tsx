@@ -8,17 +8,46 @@ import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AccountScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
-  const [{ interfaceLocale }] = useAppPreferences();
+  const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const signedIn = account.user !== null;
   const { width } = useWindowDimensions();
   const tablet = width >= 760;
+
+  function handleSharedAction({ action }: SharedAppleAction) {
+    if (action === 'settings') router.replace('/(tabs)/settings' as Href);
+    else if (action === 'paywall') router.push('/pro' as Href);
+    else if (action === 'deleteAccount') router.push('/delete-account' as Href);
+    else if (action === 'signIn') router.push('/auth?mode=signIn' as Href);
+    else if (action === 'signUp') router.push('/auth?mode=signUp' as Href);
+    else if (action === 'refreshAccount') void account.refresh();
+    else if (action === 'signOut') void account.signOut();
+  }
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        accountAvailable={account.available}
+        appearance={appearance}
+        displayName={account.user?.displayName ?? ''}
+        email={account.user?.email ?? ''}
+        hapticsEnabled={hapticsEnabled}
+        interfaceLocale={interfaceLocale}
+        onAction={handleSharedAction}
+        planTier={account.access.planTier}
+        signedIn={signedIn}
+        style={styles.sharedScreen}
+        surface="account"
+      />
+    );
+  }
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
@@ -109,6 +138,7 @@ function initials(name: string | null | undefined) {
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+    sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },

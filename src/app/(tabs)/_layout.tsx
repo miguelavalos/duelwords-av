@@ -6,6 +6,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { DuelWordsWordmark, aviAssets } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface } from '@/ui/shared-apple-surface';
 import { useAppTheme } from '@/ui/theme';
 
 type TabIconProps = {
@@ -42,7 +43,7 @@ function TabIcon({ color, kind }: TabIconProps) {
 }
 
 export default function TabsLayout() {
-  const [{ interfaceLocale }] = useAppPreferences();
+  const [{ appearance, interfaceLocale }] = useAppPreferences();
   const { colors } = useAppTheme();
   const { width } = useWindowDimensions();
   const copy = experienceCopy(interfaceLocale);
@@ -50,7 +51,7 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      tabBar={(props) => <DuelWordsTabBar {...props} copy={copy} colors={colors} tablet={tablet} />}
+      tabBar={(props) => <DuelWordsTabBar {...props} appearance={appearance} copy={copy} colors={colors} tablet={tablet} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
@@ -58,16 +59,18 @@ export default function TabsLayout() {
         tabBarActiveBackgroundColor: tablet ? colors.surfaceSoft : 'transparent',
         tabBarInactiveBackgroundColor: 'transparent',
         tabBarStyle: {
-          backgroundColor: colors.surface,
+          backgroundColor: isSharedAppleSurfaceAvailable && !tablet ? 'transparent' : colors.surface,
           borderColor: colors.border,
+          borderTopWidth: isSharedAppleSurfaceAvailable && !tablet ? 0 : undefined,
           minHeight: tablet ? undefined : 72,
+          position: isSharedAppleSurfaceAvailable && !tablet ? 'absolute' : 'relative',
           width: tablet ? 232 : undefined,
           paddingTop: tablet ? 18 : 8,
           paddingBottom: tablet ? 18 : 8,
         },
         tabBarPosition: tablet ? 'left' : 'bottom',
         tabBarLabelPosition: tablet ? 'beside-icon' : 'below-icon',
-        tabBarItemStyle: tablet ? styles.tabletTabItem : undefined,
+        tabBarItemStyle: !isSharedAppleSurfaceAvailable && tablet ? styles.tabletTabItem : undefined,
         tabBarHideOnKeyboard: true,
         sceneStyle: { backgroundColor: colors.background },
         tabBarLabelStyle: styles.tabLabel,
@@ -113,6 +116,7 @@ export default function TabsLayout() {
 type AppColors = ReturnType<typeof useAppTheme>['colors'];
 
 function DuelWordsTabBar({
+  appearance,
   colors,
   copy,
   descriptors,
@@ -121,6 +125,7 @@ function DuelWordsTabBar({
   state,
   tablet,
 }: BottomTabBarProps & {
+  appearance: 'dark' | 'light' | 'system';
   colors: AppColors;
   copy: ReturnType<typeof experienceCopy>;
   tablet: boolean;
@@ -137,6 +142,22 @@ function DuelWordsTabBar({
   const mainRoutes = primaryRoutes.filter(({ route }) => route.name !== 'avi');
   const aviRoute = primaryRoutes.find(({ route }) => route.name === 'avi');
   const selectedRoute = state.routes[state.index]?.name;
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        appearance={appearance}
+        onAction={({ action, value }) => {
+          if (action !== 'tab' || !value) return;
+          const destination = state.routes.find((route) => route.name === value);
+          if (destination) navigation.navigate(destination.name, destination.params);
+        }}
+        selectedTab={selectedRoute}
+        style={tablet ? styles.sharedSidebar : styles.sharedFooter}
+        surface={tablet ? 'sidebar' : 'footer'}
+      />
+    );
+  }
 
   function renderTab(route: typeof state.routes[number], index: number, tabletItem: boolean) {
     const focused = state.index === index;
@@ -240,6 +261,17 @@ function SettingsGlyph({ color }: { color: string }) {
 }
 
 const styles = StyleSheet.create({
+  sharedFooter: {
+    position: 'absolute',
+    right: 0,
+    bottom: 0,
+    left: 0,
+    height: 104,
+  },
+  sharedSidebar: {
+    width: 264,
+    height: '100%',
+  },
   tabLabel: {
     fontSize: 12,
     fontWeight: '800',

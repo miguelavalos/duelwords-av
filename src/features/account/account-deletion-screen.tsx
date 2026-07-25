@@ -11,9 +11,11 @@ import {
 } from '@/account/account-api-client';
 import { getDuelWordsAccountAvConfig } from '@/account/account-av-config';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 type LoadState = 'idle' | 'loading' | 'requesting' | 'finalizing' | 'failed';
@@ -21,6 +23,7 @@ type LoadState = 'idle' | 'loading' | 'requesting' | 'finalizing' | 'failed';
 export function AccountDeletionScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
+  const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const config = useMemo(getDuelWordsAccountAvConfig, []);
   const [eligibility, setEligibility] = useState<AccountDeletionEligibility | null>(null);
   const [confirmation, setConfirmation] = useState('');
@@ -45,8 +48,8 @@ export function AccountDeletionScreen() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  async function submitDeletion() {
-    if (!config.accountApiBaseUrl || confirmation !== 'DELETE') return;
+  async function submitDeletion(confirmationValue = confirmation) {
+    if (!config.accountApiBaseUrl || confirmationValue.trim().toUpperCase() !== 'DELETE') return;
     setState('requesting');
     setError(null);
     try {
@@ -83,6 +86,38 @@ export function AccountDeletionScreen() {
 
   const busy = state === 'loading' || state === 'requesting' || state === 'finalizing';
   const canFinalize = eligibility?.currentJob?.status === 'awaitingIdentityDeletion';
+
+  function handleSharedAction({ action, value }: SharedAppleAction) {
+    if (action === 'close') router.back();
+    else if (action === 'signIn') router.replace('/auth?mode=signIn' as Href);
+    else if (action === 'retry') void refresh();
+    else if (action === 'confirmDelete') void submitDeletion(value);
+    else if (action === 'finalizeDelete') void submitFinalization();
+    else if (action === 'continueGuest') void finishCompletedDeletion();
+    else if (action === 'openDeletionSupport') void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/');
+  }
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        accountAvailable={account.available}
+        appearance={appearance}
+        deletionBlockersJSON={JSON.stringify(eligibility?.blockers ?? [])}
+        deletionBusy={busy}
+        deletionCanFinalize={canFinalize}
+        deletionError={error ?? ''}
+        deletionStatus={eligibility?.status ?? ''}
+        deletionWarningsJSON={JSON.stringify(eligibility?.warnings ?? [])}
+        hapticsEnabled={hapticsEnabled}
+        interfaceLocale={interfaceLocale}
+        onAction={handleSharedAction}
+        planTier={account.access.planTier}
+        signedIn={signedIn}
+        style={styles.sharedScreen}
+        surface="delete-account"
+      />
+    );
+  }
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
@@ -185,6 +220,7 @@ function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'b
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+    sharedScreen: { flex: 1 },
     modalBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 34, lineHeight: 38, fontWeight: '700', letterSpacing: -1 },

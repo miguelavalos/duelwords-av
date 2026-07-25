@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react-native';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import Head from 'expo-router/head';
 import { StatusBar } from 'expo-status-bar';
@@ -6,9 +7,9 @@ import { DuelWordsAccountAvProvider } from '@/account/account-av-provider';
 import { ensureDuelWordsDiagnosticsReady } from '@/diagnostics/runtime';
 import { AppThemeProvider, useResolvedAppTheme } from '@/ui/theme';
 
-ensureDuelWordsDiagnosticsReady();
+const diagnosticsConfig = ensureDuelWordsDiagnosticsReady();
 
-export default function RootLayout() {
+function RootLayout() {
   const appTheme = useResolvedAppTheme();
 
   return (
@@ -48,3 +49,5 @@ export default function RootLayout() {
     </DuelWordsAccountAvProvider>
   );
 }
+
+export default diagnosticsConfig.enabled ? Sentry.wrap(RootLayout) : RootLayout;

@@ -9,6 +9,11 @@ function createExpoConfig() {
   const apiDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED);
   const convexUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL);
   const convexRealtimeDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED);
+  const sentryDsn = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN);
+  const sentryEnvironment = normalizeSentryEnvironment(
+    process.env.EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT,
+    iosBuildVariant,
+  );
   const accountPublishableKey = normalizedOptionalString(
     process.env.ACCOUNTAV_PUBLISHABLE_KEY ?? process.env.EXPO_PUBLIC_ACCOUNTAV_PUBLISHABLE_KEY,
   );
@@ -49,9 +54,22 @@ function createExpoConfig() {
         convexRealtimeDisabled,
         convexUrl,
         iosBuildVariant,
+        sentry: {
+          dsn: sentryDsn,
+          environment: sentryEnvironment,
+        },
       },
     },
   };
+}
+
+function normalizeSentryEnvironment(value, iosBuildVariant) {
+  const normalized = normalizedOptionalString(value)
+    ?? (iosBuildVariant === 'development' ? 'debug' : 'preview');
+  if (!['debug', 'preview', 'production'].includes(normalized)) {
+    throw new Error('EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT must be "debug", "preview", or "production".');
+  }
+  return normalized;
 }
 
 function normalizeIosBuildVariant(value) {

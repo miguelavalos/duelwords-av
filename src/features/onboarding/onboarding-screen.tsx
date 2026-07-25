@@ -6,10 +6,13 @@ import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-n
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AccountAuthOptionsPanel } from '@/features/account/account-auth-options-panel';
+import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { isAccountAuthCancellation } from '@/account/account-auth-errors';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useOnboardingComplete } from '@/onboarding/use-onboarding-complete';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AviArtwork, DuelWordsWordmark, aviAssets, duelWordsBrandAssets } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { useAppTheme } from '@/ui/theme';
 
 export function OnboardingScreen() {
@@ -31,16 +34,60 @@ export function AccountOnboardingExperience({
   initialAuthExpanded: boolean;
   onFinish: (path: Href) => void;
 }) {
+  const account = useDuelWordsAccount();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const [{ interfaceLocale }] = useAppPreferences();
+  const [{ appearance, interfaceLocale }] = useAppPreferences();
   const { isDark } = useAppTheme();
   const copy = experienceCopy(interfaceLocale);
   const intro = copy.onboardingPages[0];
   const [showAuth, setShowAuth] = useState(initialAuthExpanded);
+  const [activeProvider, setActiveProvider] = useState<'' | 'apple' | 'google'>('');
+  const [authError, setAuthError] = useState('');
   const styles = useStyles();
   const tablet = width >= 820;
   const contentMinHeight = Math.max(0, height - insets.top - insets.bottom);
+
+  async function handleSharedAction(event: SharedAppleAction) {
+    if (event.action === 'skip') {
+      onFinish('/(tabs)/play' as Href);
+      return;
+    }
+
+    const provider = event.action === 'signInApple' ? 'apple' : event.action === 'signInGoogle' ? 'google' : null;
+    if (!provider || activeProvider) return;
+
+    setActiveProvider(provider);
+    setAuthError('');
+    try {
+      if (provider === 'apple') await account.signInWithApple();
+      else await account.signInWithGoogle();
+      await account.refresh().catch(() => undefined);
+      onFinish('/(tabs)/account' as Href);
+    } catch (error) {
+      if (!isAccountAuthCancellation(error)) {
+        setAuthError('Account AV could not complete sign-in. Please try again.');
+      }
+    } finally {
+      setActiveProvider('');
+    }
+  }
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        accountAvailable={account.available}
+        activeProvider={activeProvider}
+        appearance={appearance}
+        authError={authError}
+        authInitiallyPresented={initialAuthExpanded}
+        interfaceLocale={interfaceLocale}
+        onAction={(event) => { void handleSharedAction(event); }}
+        style={styles.root}
+        surface="onboarding"
+      />
+    );
+  }
 
   const content = (
     <View style={[styles.content, { minHeight: contentMinHeight }]}>

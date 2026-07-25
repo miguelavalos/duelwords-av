@@ -2,6 +2,9 @@ import { Image, type ImageSource } from 'expo-image';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 
+import { useAppPreferences } from '@/preferences/use-app-preferences';
+
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface } from './shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from './theme';
 
 export const aviAssets = {
@@ -139,6 +142,24 @@ export function AppChromeHeader({
   selected?: 'account' | 'settings';
   settingsLabel: string;
 }) {
+  const [{ appearance, interfaceLocale }] = useAppPreferences();
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        appearance={appearance}
+        interfaceLocale={interfaceLocale}
+        onAction={({ action }) => {
+          if (action === 'settings') onSettingsPress();
+          else if (action === 'account') onAccountPress();
+        }}
+        selectedTab={selected}
+        style={styles.sharedAppleHeader}
+        surface="header"
+      />
+    );
+  }
+
   return (
     <View style={styles.appChromeHeader}>
       <ChromeButton accessibilityLabel={settingsLabel} onPress={onSettingsPress} selected={selected === 'settings'}>
@@ -184,6 +205,10 @@ export function SectionHeading({ detail, title }: { detail?: string; title: stri
 }
 
 const styles = StyleSheet.create({
+  sharedAppleHeader: {
+    width: '100%',
+    height: 54,
+  },
   wordmark: {
     width: 242,
     height: 58,

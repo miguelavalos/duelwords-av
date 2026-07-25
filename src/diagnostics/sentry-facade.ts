@@ -308,8 +308,8 @@ function scrubTags(tags: Record<string, string>): Record<string, string> {
   return safeTags;
 }
 
-function normalizeDsn(dsn: string | null | undefined): string | null {
-  const normalized = dsn?.trim() ?? '';
+function normalizeDsn(dsn: unknown): string | null {
+  const normalized = typeof dsn === 'string' ? dsn.trim() : '';
   if (normalized.length === 0) {
     return null;
   }

@@ -4,7 +4,7 @@ Mobile-first Expo client for DuelWords AV.
 
 ## Current Status
 
-Current as of 2026-07-24: this repository has a public, guest-first Word Duel
+Current as of 2026-07-25: this repository has a public, guest-first Word Duel
 V1 branding and hardening candidate, but is not yet ready for another
 TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
@@ -46,6 +46,13 @@ with no purchase call. Account and Pro unavailable states use product language
 rather than deployment terminology. Opening a new invite while the Challenge screen
 is already mounted replaces the previous invite instead of reusing stale room
 state, and guests receive a local editable room alias by default.
+
+The iPhone footer embeds the same Apps AV SwiftUI tab capsule and separate Avi
+control used by Tune AV, through the shared package's footer-only `floating`
+configuration. Its surrounding host is transparent, so DuelWords content
+remains visible beneath the native material instead of ending in an opaque
+footer block. The full Tune scaffold keeps its existing backdrop behavior,
+while iPad continues to use the shared persistent sidebar.
 
 On 2026-07-24 an enabled preview run on dedicated iPhone 17 and iPad Pro 13
 simulators proved create/review/join, event-driven lobby synchronization,
@@ -95,6 +102,13 @@ interface language. The word-language selector remains only inside each game.
 Light/dark appearance and extra-extra-large iPhone text were also checked and
 restored to normal simulator settings after the pass.
 
+On 2026-07-25 the shared-Apple integration was rebuilt from a fresh Expo
+prebuild against the development identity. The resulting iPhone simulator
+binary linked Apps AV, Expo Glass, Account AV/Clerk, and Sentry, embedded the
+required Account AV client configuration without exposing it, and passed a
+light/dark visual footer review. Accessibility-driven taps confirmed Home,
+Rivals, Stats, and Avi remain reachable through the floating footer.
+
 The current cumulative status and remaining gates live in the private
 `docs/avi-words/current-work-handoff.md`. Dated implementation records describe
 their individual slice at the time and should not be read as the current
@@ -110,7 +124,8 @@ active gameplay API contract plus a local mock adapter for the approved
 Convex-safe realtime projection contract, an SDK-shaped injected Convex
 realtime adapter for that same safe projection surface, and a local
 post-finalization result preview with rematch proposal states. It also includes
-a local Sentry-shaped diagnostics facade with no provider traffic. A
+a no-spoiler diagnostics facade backed by `@sentry/react-native`. Debug builds
+and builds without a DSN remain disabled and create no provider traffic. A
 client-safe realtime config boundary and backend-issued realtime session
 envelope parser exist, and a closed real Convex SDK bridge can build the three
 approved function references without generated API imports. Realtime and Apps
@@ -148,8 +163,8 @@ is integrated through Clerk Expo and SecureStore. Native Apple and Google
 provider flows use Clerk's Expo adapters, activate the returned session, and
 then resolve the internal Apps AV identity through Account AV; provider ids are
 never published as product user ids. Account-only persistence,
-real Pro purchases, ads, push, Sentry provider wiring, canonical associated
-links, and production runtime remain outside the current candidate. No provider
+real Pro purchases, ads, push, Sentry project/DSN verification, canonical
+associated links, and production runtime remain outside the current candidate. No provider
 key or backend deploy credential belongs in this repository.
 
 ## Run Locally
@@ -523,6 +538,10 @@ The local fixtures are non-production test data. Connected gameplay will use
 Apps AV API/D1 as dictionary and game authority, with Convex only as a safe
 realtime projection.
 
-The diagnostics facade is local-only. It defines the no-spoiler Sentry privacy
-contract and initializes disabled when no DSN is present; it does not install
-the Sentry SDK or send events.
+The diagnostics runtime installs the native Sentry SDK with native crash
+handling, zero tracing, no default PII, an allowlisted breadcrumb vocabulary,
+and payload scrubbing that rejects game words, guesses, boards, room/invite/
+player/session identifiers, provider identity, URLs, and account data. It
+initializes disabled in debug builds or when no DSN is present. A release-like
+smoke against the owner-approved Sentry project is still required before the
+next TestFlight candidate.

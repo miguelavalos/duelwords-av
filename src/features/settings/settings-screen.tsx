@@ -4,12 +4,14 @@ import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Linking, Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 
+import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 const links = {
@@ -22,6 +24,7 @@ const links = {
 
 export function SettingsScreen() {
   const router = useRouter();
+  const account = useDuelWordsAccount();
   const styles = useStyles();
   const [preferences, setPreferences] = useAppPreferences();
   const { appearance, hapticsEnabled, interfaceLocale } = preferences;
@@ -34,6 +37,40 @@ export function SettingsScreen() {
   async function setHaptics(enabled: boolean) {
     setPreferences((current) => ({ ...current, hapticsEnabled: enabled }));
     if (enabled) await Haptics.selectionAsync().catch(() => undefined);
+  }
+
+  function handleSharedAction({ action, value }: SharedAppleAction) {
+    if (action === 'account') router.replace('/(tabs)/account' as Href);
+    else if (action === 'paywall') router.push('/pro' as Href);
+    else if (action === 'deleteAccount') router.push('/delete-account' as Href);
+    else if (action === 'openPrivacy') openLink(links.privacy);
+    else if (action === 'openTerms') openLink(links.terms);
+    else if (action === 'openSupport') openLink(links.support);
+    else if (action === 'setInterfaceLocale' && INTERFACE_LOCALES.some((locale) => locale.code === value)) {
+      setPreferences((current) => ({ ...current, interfaceLocale: value as typeof current.interfaceLocale }));
+    } else if (action === 'setAppearance' && (value === 'system' || value === 'light' || value === 'dark')) {
+      setPreferences((current) => ({ ...current, appearance: value }));
+    } else if (action === 'setHaptics') {
+      void setHaptics(value === 'true');
+    }
+  }
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        accountAvailable={account.available}
+        appearance={appearance}
+        displayName={account.user?.displayName ?? ''}
+        email={account.user?.email ?? ''}
+        hapticsEnabled={hapticsEnabled}
+        interfaceLocale={interfaceLocale}
+        onAction={handleSharedAction}
+        planTier={account.access.planTier}
+        signedIn={account.user !== null}
+        style={styles.sharedScreen}
+        surface="settings"
+      />
+    );
   }
 
   return (
@@ -151,6 +188,7 @@ function openLink(url: string) {
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+    sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 35, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },

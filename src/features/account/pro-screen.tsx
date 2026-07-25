@@ -3,17 +3,47 @@ import { useMemo } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function ProScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
+  const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const styles = useStyles();
   const isPro = account.access.planTier === 'pro';
   const signedIn = account.user !== null;
+
+  function handleSharedAction({ action }: SharedAppleAction) {
+    if (action === 'close') router.back();
+    else if (action === 'signIn') router.replace('/auth?mode=signIn' as Href);
+    else if (action === 'refreshAccount') void account.refresh();
+    else if (action === 'openTerms') void Linking.openURL('https://duelwords-av.avalsys.com/terms/');
+    else if (action === 'openPrivacy') void Linking.openURL('https://duelwords-av.avalsys.com/privacy/');
+    else if (action === 'openSupport') void Linking.openURL('https://duelwords-av.avalsys.com/support/');
+  }
+
+  if (isSharedAppleSurfaceAvailable) {
+    return (
+      <SharedAppleSurface
+        accountAvailable={account.available}
+        appearance={appearance}
+        displayName={account.user?.displayName ?? ''}
+        email={account.user?.email ?? ''}
+        hapticsEnabled={hapticsEnabled}
+        interfaceLocale={interfaceLocale}
+        onAction={handleSharedAction}
+        planTier={account.access.planTier}
+        signedIn={signedIn}
+        style={styles.sharedScreen}
+        surface="paywall"
+      />
+    );
+  }
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
@@ -83,6 +113,7 @@ function Benefit({ detail, title }: { detail: string; title: string }) {
 function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+    sharedScreen: { flex: 1 },
     topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
     topBarSide: { flex: 1, alignItems: 'flex-start' },
     topBarTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900', textAlign: 'center' },

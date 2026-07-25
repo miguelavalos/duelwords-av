@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOnboardingComplete } from '@/onboarding/use-onboarding-complete';
 import { DuelWordsWordmark, duelWordsBrandAssets } from '@/ui/brand';
+import { isSharedAppleSurfaceAvailable, SharedAppleSurface } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function ProductSplashScreen() {
@@ -26,6 +27,10 @@ export function ProductSplashScreen() {
   }, []);
 
   if (ready) return <Redirect href={(complete ? '/(tabs)/play' : '/onboarding') as Href} />;
+
+  if (isSharedAppleSurfaceAvailable) {
+    return <SharedAppleSurface style={styles.screen} surface="splash" />;
+  }
 
   return (
     <SafeAreaView style={[styles.screen, { backgroundColor: colors.background }]}>
