@@ -1,6 +1,6 @@
 import type { GameLanguage } from '../word-duel-engine/types';
 
-export type LocalTargetMode = 'play_avi' | 'practice';
+export type LocalTargetMode = 'play_avi' | 'practice' | 'solo_practice';
 
 export type TargetRotationSelection = Readonly<{
   index: number;
@@ -169,8 +169,8 @@ function randomSeed(random: () => number): number {
 }
 
 function streamKey(language: GameLanguage, mode: LocalTargetMode): string {
-  // Practice and Play Avi share one device-local deck so switching modes does
-  // not surface a word that the player has just seen elsewhere.
+  // All non-Daily local modes share one device-local deck so switching modes
+  // does not surface a word that the player has just seen elsewhere.
   void mode;
   return `local:${language}`;
 }

@@ -1,8 +1,15 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection } from '@/game/word-duel-engine';
+import { getLocalTargetCount } from '@/game/dictionaries/local-fixtures';
+import {
+  advanceTargetSelection,
+  commitTargetSelection,
+  planTargetSelection,
+  type TargetRotationSelection,
+} from '@/game/dictionaries/target-rotation';
 import {
   WORD_DUEL_WORD_LENGTH,
 } from '@/game/word-duel-engine';
@@ -46,15 +53,20 @@ export function WordDuelSoloDailyScreen({
   const [{ interfaceLocale }] = useAppPreferences();
   const styles = useSoloDailyStyles();
   const isOpeningResultRef = useRef(false);
+  const [targetSelection, setTargetSelection] = useState(() =>
+    planTargetSelection({
+      language: initialGameLanguage,
+      mode: 'solo_practice',
+      targetCount: getLocalTargetCount(initialGameLanguage),
+    }));
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [mode, setMode] = useState<WordDuelSoloDailyMode>(initialMode);
-  const [soloSeed, setSoloSeed] = useState(0);
   const [session, setSession] = useState(() =>
     createSoloDailySession({
       gameLanguage: initialGameLanguage,
       mode: initialMode,
       nowMs: Date.now(),
-      seed: 0,
+      seed: initialMode === 'solo_practice' ? targetSelection.index : 0,
     }),
   );
   const [input, setInput] = useState('');
@@ -68,15 +80,24 @@ export function WordDuelSoloDailyScreen({
   const regularTileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
   const tileSize = compactViewport ? Math.min(46, regularTileSize) : regularTileSize;
 
-  function reset(nextMode: WordDuelSoloDailyMode, nextLanguage: GameLanguage, seed: number) {
+  useEffect(() => {
+    if (mode === 'solo_practice') commitTargetSelection(targetSelection);
+  }, [mode, targetSelection]);
+
+  function reset(
+    nextMode: WordDuelSoloDailyMode,
+    nextLanguage: GameLanguage,
+    selection: TargetRotationSelection,
+  ) {
     setGameLanguage(nextLanguage);
     setMode(nextMode);
+    setTargetSelection(selection);
     setSession(
       createSoloDailySession({
         gameLanguage: nextLanguage,
         mode: nextMode,
         nowMs: Date.now(),
-        seed,
+        seed: nextMode === 'solo_practice' ? selection.index : 0,
       }),
     );
     setInput('');
@@ -86,17 +107,29 @@ export function WordDuelSoloDailyScreen({
   }
 
   function changeMode(nextMode: WordDuelSoloDailyMode) {
-    reset(nextMode, gameLanguage, soloSeed);
+    const selection = nextMode === 'solo_practice'
+      ? planTargetSelection({
+          language: gameLanguage,
+          mode: 'solo_practice',
+          targetCount: getLocalTargetCount(gameLanguage),
+        })
+      : targetSelection;
+    reset(nextMode, gameLanguage, selection);
   }
 
   function changeLanguage(language: GameLanguage) {
-    reset(mode, language, soloSeed);
+    const selection = mode === 'solo_practice'
+      ? planTargetSelection({
+          language,
+          mode: 'solo_practice',
+          targetCount: getLocalTargetCount(language),
+        })
+      : targetSelection;
+    reset(mode, language, selection);
   }
 
   function newSoloGame() {
-    const nextSeed = soloSeed + 1;
-    setSoloSeed(nextSeed);
-    reset('solo_practice', gameLanguage, nextSeed);
+    reset('solo_practice', gameLanguage, advanceTargetSelection(targetSelection));
   }
 
   function handleKey(key: string) {

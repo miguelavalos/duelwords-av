@@ -126,8 +126,8 @@ The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500
 for valid guesses/targets. All five target decks are frequency-ranked from
 pinned Mozilla Gaia sources with recorded hashes and target-only exclusions;
-EN/ES ranking is intersected with their existing reviewed allowlists. Practice
-and Play Avi share a persistent shuffled deck per language, so a device uses
+EN/ES ranking is intersected with their existing reviewed allowlists. Practice,
+Solo Practice, and Play Avi share a persistent shuffled deck per language, so a device uses
 every target once before beginning another cycle and never repeats at the cycle
 boundary. A dedicated iPhone 17
 completed a Catalan Play Avi game using accentless keyboard input, while the
@@ -500,7 +500,8 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
 ## Local Preview Routes
 
 - `/word-duel/practice`: offline practice engine with the bundled five-language
-  dictionaries and persistent no-repeat target rotation.
+  dictionaries and persistent no-repeat target rotation shared with other
+  non-Daily local modes.
 - `/word-duel/lobby-demo`: local invite, join review, lobby, one-way Ready,
   countdown, and active-duel handoff preview through the lobby controller's
   `local_mock` source. It uses a safe demo invite link and room code only.
@@ -582,7 +583,7 @@ game id; it only creates a start request after recipient acceptance.
   corresponding five-key Latin spelling; German sharp s is excluded because it
   expands when normalized.
 - Invalid guesses do not consume attempts.
-- Practice and Play Avi share one persistent shuffled target deck per language;
+- Practice, Solo Practice, and Play Avi share one persistent shuffled target deck per language;
   no target repeats until that language's full deck has been used.
 - Play Avi resolves the opponent turn automatically and exposes only aggregate
   valid-letter/correct-position counts for Avi's completed attempts.

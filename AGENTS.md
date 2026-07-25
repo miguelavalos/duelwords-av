@@ -120,7 +120,7 @@ Current implementation slice:
 - Sentry diagnostics facade backed by `@sentry/react-native`, disabled in debug
   builds or without a DSN and scrubbed against game/account secrets.
 - Bundled offline EN/ES/CA/FR/DE allowlists and frequency-ranked target decks.
-  Practice and Play Avi share a persistent shuffled deck per language and must
+  Practice, Solo Practice, and Play Avi share a persistent shuffled deck per language and must
   not repeat a target before exhausting that deck. Keep target selection local;
   only a future official Daily may obtain its chosen word from the server.
 - Account AV/Clerk native integration and the already-uploaded internal build 1

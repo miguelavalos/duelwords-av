@@ -68,12 +68,16 @@ describe('local target rotation', () => {
     const englishAvi = planTargetSelection({
       language: 'en', mode: 'play_avi', random: () => 0.1, storage, targetCount: 10,
     });
+    const englishSolo = planTargetSelection({
+      language: 'en', mode: 'solo_practice', random: () => 0.1, storage, targetCount: 10,
+    });
     const spanishPractice = planTargetSelection({
       language: 'es', mode: 'practice', random: () => 0.1, storage, targetCount: 10,
     });
 
     expect(nextEnglishPractice.position).toBe(1);
     expect(englishAvi.position).toBe(1);
+    expect(englishSolo.position).toBe(1);
     expect(spanishPractice.position).toBe(0);
   });
 
