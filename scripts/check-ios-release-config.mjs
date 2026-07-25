@@ -78,6 +78,21 @@ expectEqual('expo.plugins expo-apple-authentication', hasExpoPlugin('expo-apple-
 expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
 expectEqual('expo.plugins expo-web-browser', hasExpoPlugin('expo-web-browser'), true);
 expectEqual(
+  'expo-splash-screen backgroundColor',
+  expoPluginOptions('expo-splash-screen')?.backgroundColor,
+  '#FBF7EB',
+);
+expectEqual(
+  'expo-splash-screen full product lockup',
+  expoPluginOptions('expo-splash-screen')?.image,
+  './assets/images/brand/duelwords-logo-lockup.png',
+);
+expectEqual(
+  'expo-splash-screen lockup width',
+  expoPluginOptions('expo-splash-screen')?.imageWidth,
+  280,
+);
+expectEqual(
   'expo.ios.entitlements com.apple.developer.applesignin',
   JSON.stringify(expoConfig.ios?.entitlements?.['com.apple.developer.applesignin']),
   JSON.stringify(['Default']),

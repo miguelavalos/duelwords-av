@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { Redirect, type Href } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useState } from 'react';
 import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,7 +14,7 @@ import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 export function ProductSplashScreen() {
   const [complete] = useOnboardingComplete();
   const [ready, setReady] = useState(false);
-  const [{ appearance, interfaceLocale }] = useAppPreferences();
+  const [{ interfaceLocale }] = useAppPreferences();
   const { colors } = useAppTheme();
 
   useEffect(() => {
@@ -32,12 +33,15 @@ export function ProductSplashScreen() {
 
   if (isSharedAppleSurfaceAvailable) {
     return (
-      <SharedAppleSurface
-        appearance={appearance}
-        interfaceLocale={interfaceLocale}
-        style={styles.screen}
-        surface="splash"
-      />
+      <>
+        <SharedAppleSurface
+          appearance="light"
+          interfaceLocale={interfaceLocale}
+          style={styles.screen}
+          surface="splash"
+        />
+        <StatusBar style="dark" />
+      </>
     );
   }
 

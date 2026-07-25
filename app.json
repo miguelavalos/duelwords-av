@@ -50,8 +50,8 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FBF7EB",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 178
+          "image": "./assets/images/brand/duelwords-logo-lockup.png",
+          "imageWidth": 280
         }
       ]
     ],

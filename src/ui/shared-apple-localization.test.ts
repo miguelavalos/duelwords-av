@@ -64,11 +64,12 @@ describe('shared Apple localization contract', () => {
     }
   });
 
-  it('drives the Swift experience and splash from the explicit app preferences', () => {
+  it('drives the Swift locale from preferences and keeps the warm-paper splash light', () => {
     expect(experienceSource).toContain('experience(interfaceLocale: String)');
     expect(surfaceSource).toContain('.environment(\\.locale, locale)');
     expect(surfaceSource).toContain('props.localized(props.authError)');
-    expect(splashSource).toContain('appearance={appearance}');
+    expect(splashSource).toContain('appearance="light"');
+    expect(splashSource).toContain('<StatusBar style="dark" />');
     expect(splashSource).toContain('interfaceLocale={interfaceLocale}');
     expect(tabLayoutSource).toContain('interfaceLocale={interfaceLocale}');
   });
