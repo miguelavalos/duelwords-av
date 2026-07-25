@@ -4,7 +4,7 @@ Mobile-first Expo client for DuelWords AV.
 
 ## Current Status
 
-Current as of 2026-07-25: this repository has a public, guest-first Word Duel
+Current as of 2026-07-26: this repository has a public, guest-first Word Duel
 V1 branding and hardening candidate, but is not yet ready for another
 TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
@@ -67,6 +67,12 @@ guest has one canonical `Connect Account AV` entry into the Apple/Google
 provider sheet. Both size classes use the same hierarchy; iPad adapts it to the
 shared utility sidebar.
 
+The native Settings version row reads `CFBundleShortVersionString` and
+`CFBundleVersion` from the installed app instead of hard-coding candidate `1`,
+so a future build `2` cannot continue to identify itself as the first upload.
+The React fallback and the shared Apple surface both describe the complete
+bundled EN/ES/CA/FR/DE word-list set.
+
 The iPhone footer embeds the same Apps AV SwiftUI tab capsule and separate Avi
 control used by Tune AV, through the shared package's footer-only `floating`
 configuration. Its surrounding host is transparent, so DuelWords content
@@ -83,8 +89,9 @@ lobby refreshes, allowed the safe Convex pre-round projection (`roundNumber: 0`)
 and began presence heartbeats while participants are still in the lobby. The
 repository-owned preview flow smoke also passed timeout/open-next, rematch, and
 both passive-abandonment paths. Canonical web `/i/c/:token` edge routing,
-Universal Links, signed replacement-build validation, physical-iPad validation,
-and a replacement TestFlight build remain open.
+Universal Links, physical replacement-build validation on iPhone/iPad, and a
+replacement TestFlight build remain open; local Simulator signing is already
+covered separately below.
 
 The current branding pass reviewed every public/common and gameplay surface on
 dedicated iPhone and iPad simulators, including light/dark Home, the Tune-style
@@ -135,10 +142,11 @@ collapsed onboarding and expanded Apple/Google provider sheet use the same
 shared geometry, provider order, Avi treatment, guest skip, and legal layout.
 Home, transparent floating footer, iPad sidebar, Settings, guest Account,
 Pro, and delete-account also passed direct interaction. English Practice
-accepted a bundled valid word; Play Avi accepted and resolved a valid English
-word automatically while showing only aggregate opponent clues; switching its
-in-game picker to Spanish reset the local duel and accepted a bundled Spanish
-word. An earlier unsigned compile-only install correctly failed Clerk keychain
+accepted a bundled valid word; Play Avi accepted and resolved a valid bundled
+word in each of EN/ES/CA/FR/DE, advanced the round automatically, and showed
+only aggregate opponent clues. Changing the in-game language reset the local
+duel correctly. Connected Challenge remains deliberately limited to EN/ES. An
+earlier unsigned compile-only install correctly failed Clerk keychain
 access with OSStatus `-34018`; it is not valid auth evidence. Account AV became
 available and the provider sheet opened normally after the exact same app was
 signed to run locally, with no source patch or configuration change.

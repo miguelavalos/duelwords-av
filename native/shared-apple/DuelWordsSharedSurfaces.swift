@@ -389,7 +389,7 @@ private struct DuelWordsSettingsSurface: View {
             title: props.localized("On this device"),
             subtitle: props.localized("Local play remains separate from your shared Account AV identity.")
         ) {
-            AVSettingsInfoRow(systemImage: "app.badge", title: props.localized("Version"), detail: "0.1.0 (1)")
+            AVSettingsInfoRow(systemImage: "app.badge", title: props.localized("Version"), detail: appVersionDisplay)
             AVSettingsInfoRow(systemImage: "text.book.closed", title: props.localized("Word lists"), detail: props.localized("Bundled EN, ES, CA, FR, and DE"))
             AVSettingsInfoRow(systemImage: "arrow.triangle.2.circlepath", title: props.localized("Local targets"), detail: props.localized("Shared no-repeat deck for Practice, Solo, and Play Avi"))
             AVSettingsInfoRow(systemImage: "calendar", title: props.localized("Daily word"), detail: props.localized("Server-selected only"))
@@ -406,6 +406,17 @@ private struct DuelWordsSettingsSurface: View {
                 )
             }
         }
+    }
+
+    private var appVersionDisplay: String {
+        let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
+        let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
+        let resolvedVersion = version.flatMap { $0.isEmpty ? nil : $0 } ?? "—"
+
+        guard let build, !build.isEmpty else {
+            return resolvedVersion
+        }
+        return "\(resolvedVersion) (\(build))"
     }
 
     private var helpCard: some View {

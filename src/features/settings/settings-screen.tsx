@@ -140,7 +140,7 @@ export function SettingsScreen() {
       <PaperCard>
         <SectionHeading title="About DuelWords AV" detail="Word duels with friends, or Avi." />
         <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Version</Text><Text selectable style={styles.aboutValue}>{version} ({build})</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Word lists</Text><Text style={styles.aboutValue}>Bundled EN / ES</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Word lists</Text><Text style={styles.aboutValue}>Bundled EN / ES / CA / FR / DE</Text></View>
         <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Daily word</Text><Text style={styles.aboutValue}>Server-selected only</Text></View>
       </PaperCard>
     </AppScreen>
