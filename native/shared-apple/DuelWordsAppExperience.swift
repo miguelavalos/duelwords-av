@@ -18,13 +18,10 @@ enum DuelWordsAppExperience {
             termsURL: URL(string: "https://duelwords-av.avalsys.com/terms/"),
             accountDeletionURL: URL(string: "https://duelwords-av.avalsys.com/delete-account/")
         ),
-        brandPalette: AVBrandPalette(
-            ink: Color(red: 24 / 255, green: 50 / 255, blue: 71 / 255),
-            accent: Color(red: 41 / 255, green: 106 / 255, blue: 112 / 255),
-            canvas: Color(red: 244 / 255, green: 235 / 255, blue: 216 / 255),
-            launchSurfaceStart: Color(red: 0.97, green: 0.94, blue: 0.86),
-            launchSurfaceMid: Color(red: 0.99, green: 0.97, blue: 0.91)
-        ),
+        // Common Apps AV surfaces intentionally use the same canonical palette
+        // as Tune AV. Product-specific paper/ink colors belong to the game
+        // screens and artwork, not shared chrome, account, settings, or paywall.
+        brandPalette: .standard,
         visualAssets: AVCommonAppVisualAssets(
             headerLogoName: "DuelWordsHeaderLogo",
             splashLogoName: "DuelWordsSplashLogo",

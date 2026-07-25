@@ -25,12 +25,10 @@ function RootLayout() {
         </Head>
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="account" />
           <Stack.Screen name="auth" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="delete-account" options={{ presentation: 'modal' }} />
           <Stack.Screen name="onboarding" />
           <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
-          <Stack.Screen name="settings" options={{ presentation: 'modal' }} />
           <Stack.Screen name="word-duel/active-demo" />
           <Stack.Screen name="word-duel/challenge" options={{ title: 'Word Duel — DuelWords AV' }} />
           <Stack.Screen name="word-duel/connected-runtime" />

@@ -13,11 +13,20 @@ const ASSETS = {
   AviFooterIcon: 'avi-footer.png',
   AviV2LoginSheetPeek: 'avi-login-sheet-peek.png',
   AviV2OnboardingCTA: 'avi-onboarding.png',
-  DuelWordsHeaderLogo: 'duelwords-wordmark.png',
-  DuelWordsOnboardingBrand: 'duelwords-wordmark.png',
+  DuelWordsHeaderLogo: {
+    light: 'duelwords-wordmark.png',
+    dark: 'duelwords-wordmark-dark.png',
+  },
+  DuelWordsOnboardingBrand: {
+    light: 'duelwords-logo-lockup.png',
+    dark: 'duelwords-logo-lockup-dark.png',
+  },
   DuelWordsOnboardingHero: 'duelwords-onboarding-hero.png',
   DuelWordsSplashHero: 'duelwords-splash-hero.png',
-  DuelWordsSplashLogo: 'duelwords-logo-lockup.png',
+  DuelWordsSplashLogo: {
+    light: 'duelwords-logo-lockup.png',
+    dark: 'duelwords-logo-lockup-dark.png',
+  },
 };
 
 function withDuelWordsSharedApple(config) {
@@ -71,19 +80,45 @@ function withDuelWordsSharedApple(config) {
       fs.copyFileSync(path.join(nativeSourceRoot, file), path.join(generatedSourceRoot, file));
     }
 
-    for (const [assetName, sourceName] of Object.entries(ASSETS)) {
+    for (const [assetName, source] of Object.entries(ASSETS)) {
       const imageSetRoot = path.join(assetCatalogRoot, `${assetName}.imageset`);
       fs.mkdirSync(imageSetRoot, { recursive: true });
-      fs.copyFileSync(
-        path.join(projectRoot, 'assets', 'images', 'brand', sourceName),
-        path.join(imageSetRoot, sourceName),
-      );
+      for (const existingName of fs.readdirSync(imageSetRoot)) {
+        if (existingName !== 'Contents.json') {
+          fs.rmSync(path.join(imageSetRoot, existingName));
+        }
+      }
+
+      const sourceNames = typeof source === 'string' ? [source] : [source.light, source.dark];
+      for (const sourceName of sourceNames) {
+        fs.copyFileSync(
+          path.join(projectRoot, 'assets', 'images', 'brand', sourceName),
+          path.join(imageSetRoot, sourceName),
+        );
+      }
+
+      const images = typeof source === 'string'
+        ? [
+            { filename: source, idiom: 'universal', scale: '1x' },
+            { idiom: 'universal', scale: '2x' },
+            { idiom: 'universal', scale: '3x' },
+          ]
+        : [
+            {
+              appearances: [{ appearance: 'luminosity', value: 'light' }],
+              filename: source.light,
+              idiom: 'universal',
+              scale: '1x',
+            },
+            {
+              appearances: [{ appearance: 'luminosity', value: 'dark' }],
+              filename: source.dark,
+              idiom: 'universal',
+              scale: '1x',
+            },
+          ];
       fs.writeFileSync(path.join(imageSetRoot, 'Contents.json'), `${JSON.stringify({
-        images: [
-          { filename: sourceName, idiom: 'universal', scale: '1x' },
-          { idiom: 'universal', scale: '2x' },
-          { idiom: 'universal', scale: '3x' },
-        ],
+        images,
         info: { author: 'xcode', version: 1 },
       }, null, 2)}\n`);
     }

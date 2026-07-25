@@ -38,14 +38,24 @@ struct DuelWordsSharedSurfaceRoot: View {
                 Color.clear
             }
         }
-        .preferredColorScheme(preferredColorScheme)
+        .avCommonAppExperience(DuelWordsAppExperience.experience)
+        .tint(DuelWordsAppExperience.experience.brandPalette.accent)
+        .modifier(DuelWordsAppearanceModifier(appearance: props.appearance))
     }
+}
 
-    private var preferredColorScheme: ColorScheme? {
-        switch props.appearance {
-        case "light": .light
-        case "dark": .dark
-        default: nil
+private struct DuelWordsAppearanceModifier: ViewModifier {
+    let appearance: String
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        switch appearance {
+        case "light":
+            content.environment(\.colorScheme, .light)
+        case "dark":
+            content.environment(\.colorScheme, .dark)
+        default:
+            content
         }
     }
 }
@@ -241,6 +251,7 @@ private struct DuelWordsSettingsSurface: View {
         AVSettingsProfileScreenScaffold(
             title: "Settings",
             subtitle: "Preferences on this device, help, and legal information.",
+            backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
         ) {
@@ -343,10 +354,10 @@ private struct DuelWordsSettingsSurface: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text(selectedInterfaceLocale.displayName)
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundStyle(brandPalette.ink)
+                        .foregroundStyle(AVBrandColor.textPrimary)
                     Text(selectedInterfaceLocale.autonym)
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(brandPalette.ink.opacity(0.68))
+                        .foregroundStyle(AVBrandColor.textSecondary)
                 }
                 Spacer()
                 Image(systemName: "chevron.up.chevron.down")
@@ -430,6 +441,7 @@ private struct DuelWordsAccountSurface: View {
         AVSettingsProfileScreenScaffold(
             title: "Account",
             subtitle: props.signedIn ? "Your identity, continuity, and DuelWords access." : "Play locally as a guest. Sign in when account continuity adds value.",
+            backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
         ) {
@@ -530,7 +542,12 @@ private struct DuelWordsPaywallSurface: View {
     let action: DuelWordsSharedAction
 
     var body: some View {
-        AVPaywallSheetScaffold(navigationTitle: "DuelWords Pro", closeTitle: "Close", onClose: { action("close", nil) }) {
+        AVPaywallSheetScaffold(
+            navigationTitle: "DuelWords Pro",
+            closeTitle: "Close",
+            backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
+            onClose: { action("close", nil) }
+        ) {
             AVPaywallHeader(
                 eyebrow: "DuelWords Pro",
                 title: props.planTier == "pro" ? "Pro is active." : "More of your story. None of the unfair stuff.",
@@ -575,6 +592,7 @@ private struct DuelWordsDeleteAccountSurface: View {
             horizontalPadding: 24,
             topPadding: 24,
             bottomPadding: 24,
+            backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             closeTitle: "Done",
             closeAccessibilityIdentifier: "accountDeletion.done",
             onClose: { action("close", nil) }

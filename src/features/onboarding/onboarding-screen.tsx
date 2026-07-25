@@ -62,7 +62,6 @@ export function AccountOnboardingExperience({
     try {
       if (provider === 'apple') await account.signInWithApple();
       else await account.signInWithGoogle();
-      await account.refresh().catch(() => undefined);
       onFinish('/(tabs)/account' as Href);
     } catch (error) {
       if (!isAccountAuthCancellation(error)) {
@@ -110,7 +109,7 @@ export function AccountOnboardingExperience({
       ) : (
         <View style={[styles.ctaSection, { paddingBottom: Math.max(52, insets.bottom + 44), maxWidth: tablet ? 560 : undefined }]}>
           <View style={styles.ctaPrimaryWrap}>
-            <LinearGradient colors={['rgba(41,106,112,0.18)', 'rgba(41,106,112,0)']} style={styles.ctaGlow} />
+            <LinearGradient colors={['rgba(109,190,69,0.18)', 'rgba(109,190,69,0)']} style={styles.ctaGlow} />
             <View pointerEvents="none" style={styles.ctaAvi}><AviArtwork size={146} source={aviAssets.onboarding} /></View>
             <Text accessibilityRole="button" onPress={() => setShowAuth(true)} style={styles.ctaPrimary}>{copy.onboardingContinue}</Text>
           </View>

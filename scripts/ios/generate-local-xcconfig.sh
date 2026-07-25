@@ -5,6 +5,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 workspace_root="$(cd "$repo_root/../.." && pwd)"
 suite_root="${AVALSYS_SUITE_DIR:-$workspace_root/private/avalsys-suite}"
 output_path="$repo_root/ios/Config/Local.xcconfig"
+xcode_env_path="$repo_root/ios/.xcode.env.local"
 env_name=""
 
 usage() {
@@ -140,5 +141,67 @@ mkdir -p "$(dirname "$output_path")"
     printf 'EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN = %s\n' "$(escape_xcconfig_url "$sentry_dsn")"
   fi
 } > "$output_path"
+
+managed_start='# BEGIN DUELWORDSAV MANAGED RUNTIME'
+managed_end='# END DUELWORDSAV MANAGED RUNTIME'
+preserved_env="$(mktemp)"
+generated_env="$(mktemp)"
+trap 'rm -f "$preserved_env" "$generated_env"' EXIT
+
+if [ -f "$xcode_env_path" ]; then
+  awk -v start="$managed_start" -v end="$managed_end" '
+    $0 == start { managed = 1; next }
+    $0 == end { managed = 0; next }
+    !managed { print }
+  ' "$xcode_env_path" > "$preserved_env"
+fi
+
+shell_export() {
+  local name="$1"
+  local value="$2"
+  printf 'export %s=%q\n' "$name" "$value"
+}
+
+{
+  cat "$preserved_env"
+  printf '%s\n' "$managed_start"
+  shell_export DUELWORDSAV_IOS_BUILD_VARIANT "$build_variant"
+  shell_export ACCOUNTAV_PUBLISHABLE_KEY "$publishable_key"
+  shell_export ACCOUNTAV_KEYCHAIN_SERVICE 'com.avalsys.duelwordsav.account'
+  shell_export ACCOUNTAV_KEYCHAIN_ACCESS_GROUP "935PM55U6R.$bundle_identifier"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL "$api_base_url"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_API_DISABLED "$api_disabled"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL "$convex_url"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED "$realtime_disabled"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT "$sentry_environment"
+  if [ -n "$sentry_dsn" ]; then
+    shell_export EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN "$sentry_dsn"
+  fi
+  printf '%s\n' "$managed_end"
+} > "$generated_env"
+mv "$generated_env" "$xcode_env_path"
+chmod 600 "$xcode_env_path"
+
+configure_xcode_project() {
+  local configurator="$repo_root/scripts/ios/configure-local-xcconfig.rb"
+  if ruby -e "require 'xcodeproj'" >/dev/null 2>&1; then
+    ruby "$configurator" "$repo_root"
+    return
+  fi
+
+  local pod_bin
+  local pod_gem_home
+  pod_bin="$(command -v pod || true)"
+  pod_gem_home="$(sed -n 's/^GEM_HOME="\([^"]*\)".*/\1/p' "$pod_bin" 2>/dev/null | head -n 1)"
+  if [ -n "$pod_gem_home" ] && GEM_HOME="$pod_gem_home" ruby -e "require 'xcodeproj'" >/dev/null 2>&1; then
+    GEM_HOME="$pod_gem_home" ruby "$configurator" "$repo_root"
+    return
+  fi
+
+  echo "The CocoaPods xcodeproj runtime is unavailable." >&2
+  return 1
+}
+
+configure_xcode_project
 
 echo "Generated ignored iOS runtime config for $env_name."

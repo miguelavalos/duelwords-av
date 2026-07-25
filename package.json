@@ -24,6 +24,7 @@
     "config:ios:runtime:dev": "bash scripts/ios/check-runtime-config.sh --env dev",
     "config:ios:runtime:preview": "bash scripts/ios/check-runtime-config.sh --env preview",
     "config:ios:runtime:prod": "bash scripts/ios/check-runtime-config.sh --env prod",
+    "config:ios:built-account": "node scripts/ios/check-built-account-config.mjs",
     "dictionary:generate": "node scripts/generate-local-dictionaries.mjs",
     "dictionary:generate:gaia": "node scripts/generate-gaia-local-dictionaries.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
@@ -34,7 +35,7 @@
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
   "dependencies": {
-    "@clerk/expo": "4.0.2",
+    "@clerk/expo": "4.0.3",
     "@expo/ui": "~57.0.3",
     "@sentry/react-native": "~7.11.0",
     "convex": "1.42.1",

@@ -43,13 +43,19 @@ cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
 The native shell now includes the canonical-candidate DuelWords icon, separate
-light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding with
-guest skip, the canonical Tune AV Account AV provider sheet, Account, Settings, an
-adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords Pro preview
-with no purchase call. Account and Pro unavailable states use product language
-rather than deployment terminology. Opening a new invite while the Challenge screen
-is already mounted replaces the previous invite instead of reusing stale room
-state, and guests receive a local editable room alias by default.
+light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding
+with guest skip, the canonical Tune AV Account AV provider sheet, Account,
+Settings, an adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords
+Pro preview with no purchase call. The identity boundary is strict: game boards,
+mode copy, icon, wordmark, lockup, and editorial artwork may express the
+DuelWords paper-and-ink product; common splash/onboarding mechanics, auth,
+header controls, footer/sidebar, Settings, Account, paywall, deletion, legal,
+support, spacing, state grammar, and colors use the shared Apps AV components
+and canonical `AVBrandPalette.standard`, exactly as Tune AV does. Account and
+Pro unavailable states use product language rather than deployment terminology.
+Opening a new invite while the Challenge screen is already mounted replaces the
+previous invite instead of reusing stale room state, and guests receive a local
+editable room alias by default.
 
 Home, Settings, and Account now follow Tune AV's common-screen ordering as
 well as its shared shell. Home puts Avi's brief directly below the title.
@@ -253,6 +259,12 @@ planned canonical public invite/result host. It does not configure or prove
 the `/i/c/:token` edge rewrite, Universal Links, or Android App Links, which
 remain separate release gates.
 
+Do not keep development (`com.avalsys.duelwordsav.dev`) and production
+(`com.avalsys.duelwordsav`) installed on the same simulator when testing the
+convenience `duelwordsav://` scheme: iOS may hand the URL to the older build.
+Use separate dedicated simulators, or the bundle-specific
+`com.avalsys.duelwordsav://` scheme when validating the production app.
+
 ## iOS release-candidate configuration
 
 The checked-in Expo configuration still describes the already-uploaded first
@@ -276,10 +288,11 @@ commands default to the safer Release identity unless
 Deterministic SVG masters live in `assets/brand-source/`. Runtime PNG exports
 and generated splash/onboarding illustrations live in `assets/images/brand/`.
 Their private canonical promotion and review status are documented under
-`private/avalsys-suite/docs/brand-system/duelwords-av/`. The family follows Tune
-AV's shell mechanics and shared Avi V2/footer behavior while keeping a
-DuelWords-specific icon and editorial imagery. Final owner visual sign-off on
-the exact pixels remains mandatory before build `2`.
+`private/avalsys-suite/docs/brand-system/duelwords-av/`. The product family
+keeps a DuelWords-specific icon, mark, lockup, and editorial imagery. Every
+common surface uses the same shared components, canonical palette, layout
+grammar, Avi V2 assets, and footer behavior as Tune AV. Final owner visual
+sign-off on the exact pixels remains mandatory before build `2`.
 
 Validate the non-secret identity and assets before any native build:
 

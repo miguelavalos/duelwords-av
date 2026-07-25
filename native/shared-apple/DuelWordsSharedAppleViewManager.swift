@@ -16,7 +16,12 @@ final class DuelWordsSharedAppleHostView: UIView {
     var surface: NSString = "" { didSet { render() } }
     var selectedTab: NSString = "play" { didSet { render() } }
     var interfaceLocale: NSString = "en" { didSet { render() } }
-    var appearance: NSString = "system" { didSet { render() } }
+    var appearance: NSString = "system" {
+        didSet {
+            applyAppearanceOverride()
+            render()
+        }
+    }
     var accountAvailable = false { didSet { render() } }
     var signedIn = false { didSet { render() } }
     var displayName: NSString = "" { didSet { render() } }
@@ -39,12 +44,14 @@ final class DuelWordsSharedAppleHostView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundColor = .clear
+        applyAppearanceOverride()
         render()
     }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         backgroundColor = .clear
+        applyAppearanceOverride()
         render()
     }
 
@@ -93,7 +100,6 @@ final class DuelWordsSharedAppleHostView: UIView {
                 if let value { payload["value"] = value }
                 self?.onAction?(payload)
             }
-            .avCommonAppExperience(DuelWordsAppExperience.experience)
         )
 
         if let hostingController {
@@ -103,6 +109,8 @@ final class DuelWordsSharedAppleHostView: UIView {
 
         let controller = UIHostingController(rootView: rootView)
         controller.view.backgroundColor = .clear
+        controller.overrideUserInterfaceStyle = resolvedInterfaceStyle
+        controller.view.overrideUserInterfaceStyle = resolvedInterfaceStyle
         controller.view.frame = bounds
         controller.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(controller.view)
@@ -118,6 +126,21 @@ final class DuelWordsSharedAppleHostView: UIView {
         hostingController.didMove(toParent: parentViewController)
         hostingController.view.setNeedsLayout()
         hostingController.view.layoutIfNeeded()
+    }
+
+    private func applyAppearanceOverride() {
+        let style = resolvedInterfaceStyle
+        overrideUserInterfaceStyle = style
+        hostingController?.overrideUserInterfaceStyle = style
+        hostingController?.view.overrideUserInterfaceStyle = style
+    }
+
+    private var resolvedInterfaceStyle: UIUserInterfaceStyle {
+        switch appearance as String {
+        case "light": .light
+        case "dark": .dark
+        default: .unspecified
+        }
     }
 
     private func nearestViewController() -> UIViewController? {

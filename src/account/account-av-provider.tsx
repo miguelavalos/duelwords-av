@@ -15,6 +15,7 @@ import {
 import { fetchAccountAvIdentity, type AccountAvInternalUser, type DuelWordsAccess } from './account-api-client';
 import { getDuelWordsAccountAvConfig } from './account-av-config';
 import { AccountAuthCancelledError, isAccountAuthCancellation } from './account-auth-errors';
+import { activateCreatedSession } from './account-session-activation';
 
 type AccountStatus = 'account_error' | 'guest' | 'loading' | 'signed_in' | 'signed_in_offline' | 'unavailable';
 
@@ -88,6 +89,14 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
 
     return withTimeout(getToken(), ACCOUNT_TOKEN_TIMEOUT_MS);
   }, [getToken, isSignedIn]);
+  const publishIdentity = useCallback(async (identityTokenProvider: () => Promise<string | null>) => {
+    const identity = await fetchAccountAvIdentity({ baseUrl, getToken: identityTokenProvider });
+    await identityCache.save(identity).catch(() => undefined);
+    userRef.current = identity.user;
+    setUser(identity.user);
+    setAccess(identity.access);
+    setStatus('signed_in');
+  }, [baseUrl, identityCache]);
   const refresh = useCallback(async () => {
     if (!isLoaded) {
       setStatus('loading');
@@ -114,16 +123,11 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
       }
     }
     try {
-      const identity = await fetchAccountAvIdentity({ baseUrl, getToken: tokenProvider });
-      await identityCache.save(identity).catch(() => undefined);
-      userRef.current = identity.user;
-      setUser(identity.user);
-      setAccess(identity.access);
-      setStatus('signed_in');
+      await publishIdentity(tokenProvider);
     } catch {
       setStatus(userRef.current ? 'signed_in_offline' : 'account_error');
     }
-  }, [baseUrl, identityCache, isLoaded, isSignedIn, tokenProvider]);
+  }, [identityCache, isLoaded, isSignedIn, publishIdentity, tokenProvider]);
 
   useEffect(() => {
     void refresh();
@@ -140,13 +144,14 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
 
   const signInWithApple = useCallback(async () => {
     try {
+      if (!isLoaded) throw new Error('Account AV is still loading.');
       const result = await startAppleAuthenticationFlow();
       await activateCreatedSession(result.createdSessionId, result.setActive);
     } catch (error) {
       if (isAccountAuthCancellation(error)) throw new AccountAuthCancelledError();
       throw error;
     }
-  }, [startAppleAuthenticationFlow]);
+  }, [isLoaded, startAppleAuthenticationFlow]);
 
   const signInWithGoogle = useCallback(async () => {
     const result = await startSSOFlow({ strategy: 'oauth_google' });
@@ -158,7 +163,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
 
   const value = useMemo<AccountAvContextValue>(() => ({
     access,
-    available: true,
+    available: isLoaded,
     getToken: tokenProvider,
     refresh,
     signInWithApple,
@@ -166,7 +171,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     signOut,
     status,
     user,
-  }), [access, refresh, signInWithApple, signInWithGoogle, signOut, status, tokenProvider, user]);
+  }), [access, isLoaded, refresh, signInWithApple, signInWithGoogle, signOut, status, tokenProvider, user]);
 
   return <AccountAvContext.Provider value={value}>{children}</AccountAvContext.Provider>;
 }
@@ -225,14 +230,4 @@ async function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T
       clearTimeout(timeout);
     }
   }
-}
-
-async function activateCreatedSession(
-  createdSessionId: string | null,
-  setActive: ((params: { session: string }) => Promise<unknown>) | undefined,
-) {
-  if (!createdSessionId || !setActive) {
-    throw new Error('Account AV did not return an active session.');
-  }
-  await setActive({ session: createdSessionId });
 }

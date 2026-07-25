@@ -7,6 +7,7 @@ const require = createRequire(import.meta.url);
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const appJson = JSON.parse(readFileSync(resolve(repoRoot, 'app.json'), 'utf8'));
 const easJson = JSON.parse(readFileSync(resolve(repoRoot, 'eas.json'), 'utf8'));
+const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
 const development = process.argv.includes('--development');
 const expoConfig = require(resolve(repoRoot, 'app.config.js'))();
 const failures = [];
@@ -25,6 +26,13 @@ function hasExpoPlugin(name) {
   return expoConfig.plugins?.some(
     (plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name),
   ) ?? false;
+}
+
+function expoPluginOptions(name) {
+  const plugin = expoConfig.plugins?.find(
+    (entry) => entry === name || (Array.isArray(entry) && entry[0] === name),
+  );
+  return Array.isArray(plugin) ? plugin[1] : undefined;
 }
 
 expectEqual('expo.name', expoConfig.name, 'DuelWords AV');
@@ -47,6 +55,11 @@ expectEqual(
   development ? 'development' : 'release',
 );
 expectEqual('expo.plugins @clerk/expo', hasExpoPlugin('@clerk/expo'), true);
+expectEqual(
+  'expo.plugins @clerk/expo keychainService',
+  expoPluginOptions('@clerk/expo')?.keychainService,
+  'com.avalsys.duelwordsav.account',
+);
 expectEqual('expo.plugins expo-apple-authentication', hasExpoPlugin('expo-apple-authentication'), true);
 expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
 expectEqual('expo.plugins expo-web-browser', hasExpoPlugin('expo-web-browser'), true);
@@ -98,6 +111,7 @@ expectEqual(
   'release',
 );
 expectEqual('eas.build.testflight.ios.autoIncrement', easJson.build?.testflight?.ios?.autoIncrement, false);
+expectEqual('package @clerk/expo', packageJson.dependencies?.['@clerk/expo'], '4.0.3');
 
 for (const assetPath of [expoConfig.icon, expoConfig.ios?.icon]) {
   if (typeof assetPath !== 'string' || !existsSync(resolve(repoRoot, assetPath))) {

@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#F4EBD8",
+        "backgroundColor": "#FBF7EB",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -31,7 +31,12 @@
     },
     "plugins": [
       "./plugins/with-duelwords-shared-apple",
-      "@clerk/expo",
+      [
+        "@clerk/expo",
+        {
+          "keychainService": "com.avalsys.duelwordsav.account"
+        }
+      ],
       "expo-apple-authentication",
       "expo-secure-store",
       "expo-web-browser",
@@ -44,7 +49,7 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#F4EBD8",
+          "backgroundColor": "#FBF7EB",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 178
         }
