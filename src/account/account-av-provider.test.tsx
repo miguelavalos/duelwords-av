@@ -35,6 +35,11 @@ const clerkMocks = vi.hoisted(() => {
   };
 });
 const fetchAccountAvIdentity = vi.hoisted(() => vi.fn());
+const secureStoreMocks = vi.hoisted(() => ({
+  deleteItemAsync: vi.fn(async () => undefined),
+  getItemAsync: vi.fn(async () => null as string | null),
+  setItemAsync: vi.fn(async () => undefined),
+}));
 
 vi.mock('@clerk/expo', () => ({
   ClerkProvider: ({ children }: { children: unknown }) => children,
@@ -58,9 +63,9 @@ vi.mock('@clerk/expo/apple', () => ({
 
 vi.mock('expo-secure-store', () => ({
   AFTER_FIRST_UNLOCK: 'after-first-unlock',
-  deleteItemAsync: vi.fn(async () => undefined),
-  getItemAsync: vi.fn(async () => null),
-  setItemAsync: vi.fn(async () => undefined),
+  deleteItemAsync: secureStoreMocks.deleteItemAsync,
+  getItemAsync: secureStoreMocks.getItemAsync,
+  setItemAsync: secureStoreMocks.setItemAsync,
 }));
 
 vi.mock('./account-av-config', () => ({
@@ -106,6 +111,9 @@ describe('DuelWordsAccountAvProvider', () => {
     clerkMocks.clerk.signOut.mockClear();
     clerkMocks.startAppleAuthenticationFlow.mockReset();
     clerkMocks.startSSOFlow.mockReset();
+    secureStoreMocks.deleteItemAsync.mockClear();
+    secureStoreMocks.getItemAsync.mockReset().mockResolvedValue(null);
+    secureStoreMocks.setItemAsync.mockClear();
     const existingSession = { getToken: clerkMocks.sessionGetToken, id: 'session-existing' };
     clerkMocks.clerk.client.sessions = [existingSession];
     clerkMocks.clerk.session = existingSession;
@@ -239,5 +247,84 @@ describe('DuelWordsAccountAvProvider', () => {
     expect(signInError).toBeInstanceOf(Error);
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('account_error');
+  });
+
+  it('restores the last internal Account AV user when startup resolution is temporarily unavailable', async () => {
+    secureStoreMocks.getItemAsync.mockResolvedValue(JSON.stringify({
+      access: { accessMode: 'signedInPro', planTier: 'pro' },
+      user: { displayName: 'Cached player', email: null, id: 'user-cached' },
+    }));
+    fetchAccountAvIdentity.mockRejectedValue(new Error('account_api_unavailable'));
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(accountValue?.status).toBe('signed_in_offline');
+    expect(accountValue?.user?.id).toBe('user-cached');
+    expect(accountValue?.access.planTier).toBe('pro');
+    expect(clerkMocks.clerk.signOut).not.toHaveBeenCalled();
+  });
+
+  it('preserves the current internal user when a manual refresh temporarily fails', async () => {
+    fetchAccountAvIdentity.mockResolvedValueOnce({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'Current player', email: null, id: 'user-current' },
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    fetchAccountAvIdentity.mockRejectedValueOnce(new Error('account_api_unavailable'));
+    await act(async () => {
+      await accountValue?.refresh();
+    });
+
+    expect(accountValue?.status).toBe('signed_in_offline');
+    expect(accountValue?.user?.id).toBe('user-current');
+    expect(clerkMocks.clerk.signOut).not.toHaveBeenCalled();
+  });
+
+  it('clears the internal identity after a confirmed signed-out restore', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(accountValue?.status).toBe('guest');
+    expect(accountValue?.user).toBeNull();
+    expect(secureStoreMocks.deleteItemAsync).toHaveBeenCalled();
+  });
+
+  it('clears provider and internal state only on explicit sign-out', async () => {
+    fetchAccountAvIdentity.mockResolvedValue({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'Current player', email: null, id: 'user-current' },
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signOut();
+    });
+
+    expect(clerkMocks.clerk.signOut).toHaveBeenCalledTimes(1);
+    expect(secureStoreMocks.deleteItemAsync).toHaveBeenCalled();
+    expect(accountValue?.status).toBe('guest');
+    expect(accountValue?.user).toBeNull();
   });
 });
