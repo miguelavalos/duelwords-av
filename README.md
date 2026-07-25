@@ -106,11 +106,10 @@ exported web routes at desktop and narrow mobile widths and the current
 public/game-preview surfaces in an Android Pixel 9 AVD.
 Light/dark appearance, status and navigation bars, keyboard/board fit, the
 native not-found route, browser keyboard focus, EN/ES/FR/DE narrow layouts, and
-Android font scales through 150% were reviewed. This is local Expo Go and web
-evidence plus an unsigned native Release-simulator build; it is not
-signed-runtime, physical-device, deep-link, or store-release evidence. The
-fresh Release build verified the replacement native launch mark and bundled
-product onboarding on the dedicated iPhone 17.
+Android font scales through 150% were reviewed. This is local Expo Go, web, and
+signed-to-run-locally Simulator evidence; it is not physical-device or
+store-release evidence. The fresh Release build verified the replacement
+native launch mark and bundled product onboarding on the dedicated iPhone 17.
 
 On 2026-07-24 a second dedicated native pass exercised the branded Home and
 common surfaces, Challenge and Daily fail-closed states, English and Spanish
@@ -128,6 +127,21 @@ binary linked Apps AV, Expo Glass, Account AV/Clerk, and Sentry, embedded the
 required Account AV client configuration without exposing it, and passed a
 light/dark visual footer review. Accessibility-driven taps confirmed Home,
 Rivals, Stats, and Avi remain reachable through the floating footer.
+
+On 2026-07-26 the current preview-configured Release source was rebuilt with
+normal Simulator ad-hoc signing and installed from scratch on the dedicated
+iPhone 17 and iPad Pro 13. DuelWords and Tune AV were run side by side: their
+collapsed onboarding and expanded Apple/Google provider sheet use the same
+shared geometry, provider order, Avi treatment, guest skip, and legal layout.
+Home, transparent floating footer, iPad sidebar, Settings, guest Account,
+Pro, and delete-account also passed direct interaction. English Practice
+accepted a bundled valid word; Play Avi accepted and resolved a valid English
+word automatically while showing only aggregate opponent clues; switching its
+in-game picker to Spanish reset the local duel and accepted a bundled Spanish
+word. An earlier unsigned compile-only install correctly failed Clerk keychain
+access with OSStatus `-34018`; it is not valid auth evidence. Account AV became
+available and the provider sheet opened normally after the exact same app was
+signed to run locally, with no source patch or configuration change.
 
 The same local candidate now resolves Avi's deterministic response
 automatically after the scheduled thinking delay; the former manual
@@ -288,6 +302,13 @@ group is `935PM55U6R.com.avalsys.duelwordsav.dev`; Release/TestFlight stays on
 `com.avalsys.duelwordsav` and its production access group. Direct Expo prebuild
 commands default to the safer Release identity unless
 `DUELWORDSAV_IOS_BUILD_VARIANT=development` is provided.
+
+Keep normal Simulator signing enabled when validating Account AV or Clerk.
+`CODE_SIGNING_ALLOWED=NO` is suitable only for compile checks: the resulting
+app cannot use the configured keychain access group and may render Account AV
+as unavailable even when its embedded client configuration is correct. A
+runtime auth check must use Xcode's local ad-hoc signature (`Sign to Run
+Locally`) or a development-signed physical build.
 
 ## Brand assets
 
