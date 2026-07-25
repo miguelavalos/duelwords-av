@@ -1,8 +1,14 @@
 import { useRouter } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import { getLocalDictionary, getPracticeTarget } from '@/game/dictionaries/local-fixtures';
+import { getLocalDictionary, getLocalTargetCount, getPracticeTarget } from '@/game/dictionaries/local-fixtures';
+import {
+  advanceTargetSelection,
+  commitTargetSelection,
+  planTargetSelection,
+  type TargetRotationSelection,
+} from '@/game/dictionaries/target-rotation';
 import {
   applyGuess,
   createLocalGame,
@@ -45,15 +51,20 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const copy = experienceCopy(interfaceLocale);
   const styles = usePracticeStyles();
   const isOpeningResultRef = useRef(false);
+  const [targetSelection, setTargetSelection] = useState(() =>
+    planTargetSelection({
+      language: initialGameLanguage,
+      mode: 'practice',
+      targetCount: getLocalTargetCount(initialGameLanguage),
+    }));
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
-  const [gameIndex, setGameIndex] = useState(0);
-  const [gameState, setGameState] = useState(() => buildGame(initialGameLanguage, 0));
+  const [gameState, setGameState] = useState(() => buildGame(initialGameLanguage, targetSelection.index));
   const [input, setInput] = useState('');
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
 
   const dictionary = useMemo(() => getLocalDictionary(gameState.language), [gameState.language]);
-  const targetEntry = getPracticeTarget(gameState.language, gameIndex);
+  const targetEntry = getPracticeTarget(gameState.language, targetSelection.index);
   const summary = createLocalPracticeSummary(gameState);
   const rows = createRowsFromLocalWordDuelState(gameState, input);
   const keyFeedback = createKeyboardFeedbackFromGuesses(gameState.guesses);
@@ -61,10 +72,14 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const regularTileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
   const tileSize = compactViewport ? Math.min(46, regularTileSize) : regularTileSize;
 
-  function reset(language = gameLanguage, index = gameIndex) {
-    setGameLanguage(language);
-    setGameIndex(index);
-    setGameState(buildGame(language, index));
+  useEffect(() => {
+    commitTargetSelection(targetSelection);
+  }, [targetSelection]);
+
+  function reset(selection: TargetRotationSelection) {
+    setGameLanguage(selection.language);
+    setTargetSelection(selection);
+    setGameState(buildGame(selection.language, selection.index));
     setInput('');
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
@@ -173,7 +188,11 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       <GameLanguagePicker
         dismissLabel={t(interfaceLocale, 'done')}
         label={`${copy.gameSettings} · ${copy.gameLanguage}`}
-        onChange={(language) => reset(language, 0)}
+        onChange={(language) => reset(planTargetSelection({
+          language,
+          mode: 'practice',
+          targetCount: getLocalTargetCount(language),
+        }))}
         value={gameLanguage}
       />
 
@@ -220,7 +239,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
             style={styles.actionButton}>
             {isOpeningResult ? 'Opening...' : 'Open result'}
           </AppButton>
-          <AppButton onPress={() => reset(gameLanguage, gameIndex + 1)} style={styles.actionButton}>
+          <AppButton onPress={() => reset(advanceTargetSelection(targetSelection))} style={styles.actionButton}>
             {t(interfaceLocale, 'newGame')}
           </AppButton>
         </View>

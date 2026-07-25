@@ -121,10 +121,10 @@ describe('Avi bot duel local view model', () => {
   });
 
   it('prevents Normal Avi from winning on the first guess when opener matches target', () => {
-    const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
-    const submitted = submitAviBotDuelGuess({ input: 'flame', nowMs: NOW_MS + 1_000, session });
+    const session = createAviBotDuelSession({ gameLanguage: 'ca', gameSeed: 0, nowMs: NOW_MS });
+    const submitted = submitAviBotDuelGuess({ input: 'sobre', nowMs: NOW_MS + 1_000, session });
 
-    expect(session.target.normalizedWord).toBe('abbot');
+    expect(session.target.normalizedWord).toBe('tambe');
     if (!submitted.accepted) {
       throw new Error('Expected human fixture guess to be accepted.');
     }

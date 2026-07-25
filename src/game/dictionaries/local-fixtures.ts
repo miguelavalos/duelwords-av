@@ -21,8 +21,8 @@ export type WordEntry = {
 type BundledDictionary = { validGuesses: string[]; targets: [string, string][] };
 
 const BUNDLED_DICTIONARIES: Record<GameLanguage, BundledDictionary> = {
-  en: englishDictionary as BundledDictionary,
-  es: spanishDictionary as BundledDictionary,
+  en: englishDictionary as unknown as BundledDictionary,
+  es: spanishDictionary as unknown as BundledDictionary,
   ca: catalanDictionary as unknown as BundledDictionary,
   fr: frenchDictionary as unknown as BundledDictionary,
   de: germanDictionary as unknown as BundledDictionary,
@@ -52,6 +52,10 @@ export function getLocalDictionary(language: GameLanguage): DictionaryProfile {
 export function getPracticeTarget(language: GameLanguage, seed: number): WordEntry {
   const targets = LOCAL_WORD_FIXTURES[language].filter((entry) => entry.isTarget);
   return targets[Math.abs(seed) % targets.length];
+}
+
+export function getLocalTargetCount(language: GameLanguage): number {
+  return BUNDLED_DICTIONARIES[language].targets.length;
 }
 
 function word(

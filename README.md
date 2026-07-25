@@ -123,9 +123,13 @@ keyboard also fills the dead space between keys and clamps rapid input inside
 the atomic five-letter state update.
 
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
-are EN 8,734/589, ES 7,571/731, CA 5,481/500, FR 5,654/500, and DE 6,299/500
-for valid guesses/targets. CA/FR/DE are generated reproducibly from pinned
-Mozilla Gaia sources with recorded hashes and notices. A dedicated iPhone 17
+are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500
+for valid guesses/targets. All five target decks are frequency-ranked from
+pinned Mozilla Gaia sources with recorded hashes and target-only exclusions;
+EN/ES ranking is intersected with their existing reviewed allowlists. Practice
+and Play Avi share a persistent shuffled deck per language, so a device uses
+every target once before beginning another cycle and never repeats at the cycle
+boundary. A dedicated iPhone 17
 completed a Catalan Play Avi game using accentless keyboard input, while the
 iPad Pro 13 showed the five-choice centered picker without layout loss.
 Connected Challenge was separately verified to show only EN/ES until its
@@ -205,6 +209,18 @@ pnpm run verify
 pnpm run lint
 pnpm run web
 ```
+
+Reproduce the checked-in Gaia-derived target ranking and CA/FR/DE allowlists:
+
+```bash
+pnpm run dictionary:generate:gaia
+```
+
+The command verifies the five pinned source hashes before writing. For EN/ES
+it preserves the checked-in reviewed allowlists and only rebuilds the
+frequency-ranked target decks; for CA/FR/DE it rebuilds both allowlists and
+targets. Regenerating the reviewed EN/ES allowlists themselves remains a
+private fixture-pipeline operation.
 
 The web dev server uses port `8098`.
 
@@ -483,8 +499,8 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
 
 ## Local Preview Routes
 
-- `/word-duel/practice`: local practice engine with tiny non-production
-  fixtures.
+- `/word-duel/practice`: offline practice engine with the bundled five-language
+  dictionaries and persistent no-repeat target rotation.
 - `/word-duel/lobby-demo`: local invite, join review, lobby, one-way Ready,
   countdown, and active-duel handoff preview through the lobby controller's
   `local_mock` source. It uses a safe demo invite link and room code only.
@@ -536,9 +552,10 @@ game id; it only creates a start request after recipient acceptance.
   Practice until a secondary mode has authoritative V1 runtime and acceptance
   evidence. The public journey and both catalog entries are localized in
   EN/ES/CA/FR/DE.
-- Complete the CA/FR/DE launch curation pass. Their bundled allowlists and
-  500-word target pools are reproducible from a pinned, license-reviewed source,
-  but the targets are frequency-ranked rather than fully human-reviewed.
+- Complete final launch curation for all five target decks. Their bundled
+  allowlists and 500/750-word target pools are reproducible from pinned,
+  license-reviewed sources, but the current frequency ranking and auditable
+  exclusions are internal-candidate evidence rather than final human approval.
 - Import matching approved CA/FR/DE dictionaries into Apps AV API/D1 before
   enabling those languages in connected Challenge. Until then its selector is
   deliberately limited to EN/ES so room creation cannot advertise a language
@@ -565,16 +582,19 @@ game id; it only creates a start request after recipient acceptance.
   corresponding five-key Latin spelling; German sharp s is excluded because it
   expands when normalized.
 - Invalid guesses do not consume attempts.
+- Practice and Play Avi share one persistent shuffled target deck per language;
+  no target repeats until that language's full deck has been used.
 - Play Avi resolves the opponent turn automatically and exposes only aggregate
   valid-letter/correct-position counts for Avi's completed attempts.
 - Feedback uses a duplicate-letter-safe two-pass algorithm.
 
 The bundled dictionaries are the offline native candidate. English and Spanish
-use the reviewed internal MVP packages; Catalan, French, and German use pinned
-Gaia-derived allowlists and frequency-ranked target pools that still require a
-final human launch-curation pass. Connected gameplay continues to use Apps AV
-API/D1 as dictionary and game authority, with Convex only as a safe realtime
-projection.
+use reviewed internal MVP allowlists; their 750-target decks are ranked by the
+pinned Gaia frequency source after intersection with those allowlists. Catalan,
+French, and German use pinned Gaia-derived allowlists and 500-target decks. All
+target decks still require a final human launch-curation pass. Connected
+gameplay continues to use Apps AV API/D1 as dictionary and game authority, with
+Convex only as a safe realtime projection.
 
 The diagnostics runtime installs the native Sentry SDK with native crash
 handling, zero tracing, no default PII, an allowlisted breadcrumb vocabulary,

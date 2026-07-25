@@ -4,6 +4,13 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 
 import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
 import { WORD_DUEL_WORD_LENGTH } from '@/game/word-duel-engine';
+import { getLocalTargetCount } from '@/game/dictionaries/local-fixtures';
+import {
+  advanceTargetSelection,
+  commitTargetSelection,
+  planTargetSelection,
+  type TargetRotationSelection,
+} from '@/game/dictionaries/target-rotation';
 import {
   createAviBotDuelSession,
   createAviBotDuelViewModel,
@@ -86,8 +93,13 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const duelCopy = AVI_DUEL_COPY[interfaceLocale];
   const styles = usePlayAviStyles();
   const isOpeningResultRef = useRef(false);
+  const [targetSelection, setTargetSelection] = useState(() =>
+    planTargetSelection({
+      language: initialGameLanguage,
+      mode: 'play_avi',
+      targetCount: getLocalTargetCount(initialGameLanguage),
+    }));
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
-  const [gameSeed, setGameSeed] = useState(0);
   const [input, setInput] = useState('');
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
@@ -95,7 +107,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const [session, setSession] = useState(() =>
     createAviBotDuelSession({
       gameLanguage: initialGameLanguage,
-      gameSeed: 0,
+      gameSeed: targetSelection.index,
       nowMs: Date.now(),
     }),
   );
@@ -118,13 +130,17 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     return () => clearTimeout(timeout);
   }, [session.pendingRound, session.phase, session.status]);
 
-  function reset(language: GameLanguage, seed: number) {
-    setGameLanguage(language);
-    setGameSeed(seed);
+  useEffect(() => {
+    commitTargetSelection(targetSelection);
+  }, [targetSelection]);
+
+  function reset(selection: TargetRotationSelection) {
+    setGameLanguage(selection.language);
+    setTargetSelection(selection);
     setSession(
       createAviBotDuelSession({
-        gameLanguage: language,
-        gameSeed: seed,
+        gameLanguage: selection.language,
+        gameSeed: selection.index,
         nowMs: Date.now(),
       }),
     );
@@ -136,11 +152,15 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   }
 
   function changeLanguage(language: GameLanguage) {
-    reset(language, gameSeed);
+    reset(planTargetSelection({
+      language,
+      mode: 'play_avi',
+      targetCount: getLocalTargetCount(language),
+    }));
   }
 
   function newChallenge() {
-    reset(gameLanguage, gameSeed + 1);
+    reset(advanceTargetSelection(targetSelection));
   }
 
   function handleKey(key: string) {

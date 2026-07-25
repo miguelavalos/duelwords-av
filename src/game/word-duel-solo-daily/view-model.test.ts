@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
+import { LOCAL_WORD_FIXTURES } from '../dictionaries/local-fixtures';
 import {
   applySoloDailyGuess,
   createSafeSoloDailySharePreview,
@@ -65,6 +66,7 @@ describe('word duel solo and daily local preview', () => {
   });
 
   it('keeps English and Spanish game language independent per session', () => {
+    const spanishEnyeIndex = LOCAL_WORD_FIXTURES.es.findIndex((entry) => entry.displayWord.includes('ñ'));
     const english = createSoloDailySession({
       gameLanguage: 'en',
       mode: 'solo_practice',
@@ -75,13 +77,14 @@ describe('word duel solo and daily local preview', () => {
       gameLanguage: 'es',
       mode: 'solo_practice',
       nowMs: NOW_MS,
-      seed: 55,
+      seed: spanishEnyeIndex,
     });
 
     expect(english.state.language).toBe('en');
     expect(spanish.state.language).toBe('es');
     expect(english.target.language).toBe('en');
     expect(spanish.target.language).toBe('es');
+    expect(spanishEnyeIndex).toBeGreaterThanOrEqual(0);
     expect(spanish.target.displayWord).toContain('ñ');
   });
 

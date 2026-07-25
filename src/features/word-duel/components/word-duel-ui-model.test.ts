@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { getLocalDictionary } from '../../../game/dictionaries/local-fixtures';
+import { getLocalDictionary, LOCAL_WORD_FIXTURES } from '../../../game/dictionaries/local-fixtures';
 import { applyGuess, createLocalGame, WORD_DUEL_MAX_ATTEMPTS } from '../../../game/word-duel-engine';
 
 import {
@@ -15,7 +15,7 @@ describe('word duel shared UI model helpers', () => {
     const initial = createLocalGame({
       dictionary: getLocalDictionary('en'),
       language: 'en',
-      target: 'sling',
+      target: LOCAL_WORD_FIXTURES.en[0].displayWord,
     });
     const first = applyGuess(initial, 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
@@ -36,21 +36,22 @@ describe('word duel shared UI model helpers', () => {
     const initial = createLocalGame({
       dictionary: getLocalDictionary('en'),
       language: 'en',
-      target: 'sling',
+      target: LOCAL_WORD_FIXTURES.en[0].displayWord,
     });
     const first = applyGuess(initial, 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
       throw new Error('Expected fixture guess to be accepted.');
     }
-    const second = applyGuess(first.state, 'sling', getLocalDictionary('en'));
+    const second = applyGuess(first.state, LOCAL_WORD_FIXTURES.en[0].displayWord, getLocalDictionary('en'));
     if (!second.accepted) {
       throw new Error('Expected target guess to be accepted.');
     }
 
     const feedback = createKeyboardFeedbackFromGuesses(second.state.guesses);
 
-    expect(feedback.get('l')).toBe('exact');
-    expect(feedback.get('s')).toBe('exact');
+    for (const letter of new Set(Array.from(LOCAL_WORD_FIXTURES.en[0].normalizedWord))) {
+      expect(feedback.get(letter)).toBe('exact');
+    }
     expect(feedback.get('f')).toBe('absent');
   });
 

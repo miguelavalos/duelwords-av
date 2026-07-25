@@ -16,8 +16,9 @@ DuelWords AV runbook.
 Current implementation slice:
 
 - Expo Router SDK 57 shell.
-- Versioned local preferences for interface locale (EN/ES/CA/FR/DE), game
-  language (EN/ES), and system/light/dark appearance. Web uses browser
+- Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
+  system/light/dark appearance. Word language is game-scoped: local modes use
+  EN/ES/CA/FR/DE and connected Challenge remains EN/ES. Web uses browser
   `localStorage`; native uses `expo-sqlite/localStorage/install`. Keep the
   platform-specific boundary so web never imports the SQLite WASM worker.
 - Public guest-first `/word-duel/challenge` entry linked from Play. It supports
@@ -116,12 +117,16 @@ Current implementation slice:
 - Local Solo/Daily preview and deterministic Play Avi bot-duel preview. These
   are local product-shape slices only; they do not implement the authoritative
   API/D1 modes planned by `DW-013` and `DW-014`.
-- Local Sentry-shaped diagnostics facade with no SDK, DSN, provider traffic, or
-  real event sending.
-- Tiny hand-authored EN/ES fixtures for tests and local practice only.
-- No production dictionaries, enabled-by-default Convex runtime connection,
-  enabled-by-default Apps AV API network calls, Account AV, Sentry SDK/DSN
-  wiring, live ads, Pro, push, Store, TestFlight, or remote deploys.
+- Sentry diagnostics facade backed by `@sentry/react-native`, disabled in debug
+  builds or without a DSN and scrubbed against game/account secrets.
+- Bundled offline EN/ES/CA/FR/DE allowlists and frequency-ranked target decks.
+  Practice and Play Avi share a persistent shuffled deck per language and must
+  not repeat a target before exhausting that deck. Keep target selection local;
+  only a future official Daily may obtain its chosen word from the server.
+- Account AV/Clerk native integration and the already-uploaded internal build 1
+  exist. No enabled-by-default Convex/API runtime, live ads, real Pro purchase,
+  push, replacement TestFlight build, or production deploy is authorized by
+  this repository state.
 
 This machine is **Home**. Home may perform development, tests, signed runtime,
 environment-backed smokes, deploys, and other approved work under the normal

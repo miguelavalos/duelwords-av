@@ -19,6 +19,8 @@ function game(language: GameLanguage, target: string): LocalWordDuelState {
   });
 }
 
+const ENGLISH_TEST_TARGET = LOCAL_WORD_FIXTURES.en[0].displayWord;
+
 describe('normalizeGuess', () => {
   it('normalizes English by lowercasing, removing accents, and keeping only letters', () => {
     expect(normalizeGuess('  CrânE! ', 'en')).toBe('crane');
@@ -64,7 +66,7 @@ describe('scoreGuess', () => {
 
 describe('applyGuess', () => {
   it('does not consume an attempt for an invalid local fixture word', () => {
-    const state = game('en', 'sling');
+    const state = game('en', ENGLISH_TEST_TARGET);
     const result = applyGuess(state, 'xxxxx', getLocalDictionary('en'));
 
     expect(result.accepted).toBe(false);
@@ -75,7 +77,7 @@ describe('applyGuess', () => {
   });
 
   it('rejects too-short and too-long guesses without consuming attempts', () => {
-    const state = game('en', 'sling');
+    const state = game('en', ENGLISH_TEST_TARGET);
     const shortResult = applyGuess(state, 'can', getLocalDictionary('en'));
     const longResult = applyGuess(state, 'cranes', getLocalDictionary('en'));
 
@@ -86,7 +88,7 @@ describe('applyGuess', () => {
   });
 
   it('wins immediately on a correct English guess', () => {
-    const result = applyGuess(game('en', 'sling'), 'sling', getLocalDictionary('en'));
+    const result = applyGuess(game('en', ENGLISH_TEST_TARGET), ENGLISH_TEST_TARGET, getLocalDictionary('en'));
 
     expect(result.accepted).toBe(true);
     expect(result.state.status).toBe('won');
@@ -120,14 +122,14 @@ describe('applyGuess', () => {
         throw new Error(`Expected ${guessWord} to be accepted.`);
       }
       return result.state;
-    }, game('en', 'sling'));
+    }, game('en', ENGLISH_TEST_TARGET));
 
     expect(finalState.guesses).toHaveLength(WORD_DUEL_MAX_ATTEMPTS);
     expect(finalState.status).toBe('lost');
   });
 
   it('rejects guesses after game over', () => {
-    const won = applyGuess(game('en', 'sling'), 'sling', getLocalDictionary('en'));
+    const won = applyGuess(game('en', ENGLISH_TEST_TARGET), ENGLISH_TEST_TARGET, getLocalDictionary('en'));
     if (!won.accepted) {
       throw new Error('Expected winning guess to be accepted.');
     }
@@ -143,8 +145,8 @@ describe('applyGuess', () => {
 describe('local fixtures and safe summaries', () => {
   it('bundles the expected valid-guess and target profiles', () => {
     const expectedCounts = {
-      en: { targets: 589, validGuesses: 8_734 },
-      es: { targets: 731, validGuesses: 7_571 },
+      en: { targets: 750, validGuesses: 8_734 },
+      es: { targets: 750, validGuesses: 7_571 },
       ca: { targets: 500, validGuesses: 5_481 },
       fr: { targets: 500, validGuesses: 5_654 },
       de: { targets: 500, validGuesses: 6_299 },
@@ -180,7 +182,7 @@ describe('local fixtures and safe summaries', () => {
   });
 
   it('creates a local summary without target, guesses, boards, or Wordle-like share blocks', () => {
-    const first = applyGuess(game('en', 'sling'), 'flame', getLocalDictionary('en'));
+    const first = applyGuess(game('en', ENGLISH_TEST_TARGET), 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
       throw new Error('Expected first guess to be accepted.');
     }
@@ -188,7 +190,7 @@ describe('local fixtures and safe summaries', () => {
     const summary = createLocalPracticeSummary(first.state);
     const serialized = JSON.stringify(summary);
 
-    expect(serialized).not.toContain('sling');
+    expect(serialized).not.toContain(ENGLISH_TEST_TARGET);
     expect(serialized).not.toContain('flame');
     expect(serialized).not.toContain('🟩');
     expect(serialized).not.toContain('⬛');
