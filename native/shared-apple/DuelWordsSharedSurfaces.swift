@@ -14,6 +14,8 @@ struct DuelWordsSharedSurfaceRoot: View {
     let action: DuelWordsSharedAction
 
     var body: some View {
+        let experience = DuelWordsAppExperience.experience(interfaceLocale: props.interfaceLocale)
+        let locale = DuelWordsNativeL10n(interfaceLocale: props.interfaceLocale).locale
         Group {
             switch props.surface {
             case "splash":
@@ -38,8 +40,9 @@ struct DuelWordsSharedSurfaceRoot: View {
                 Color.clear
             }
         }
-        .avCommonAppExperience(DuelWordsAppExperience.experience)
-        .tint(DuelWordsAppExperience.experience.brandPalette.accent)
+        .avCommonAppExperience(experience)
+        .environment(\.locale, locale)
+        .tint(experience.brandPalette.accent)
         .modifier(DuelWordsAppearanceModifier(appearance: props.appearance))
     }
 }
@@ -80,15 +83,15 @@ private struct DuelWordsOnboardingSurface: View {
             ctaCompanionOffset: CGSize(width: -2, height: -112)
         ) {
             AVAuthOptionsPanel(
-                title: "Connect your account",
-                subtitle: "Use your Account AV account to continue across devices.",
+                title: props.localized("Connect your account"),
+                subtitle: props.localized("Use your Account AV account to continue across devices."),
                 legalConsentText: legalConsentText,
                 unavailableMessage: props.authError.isEmpty
-                    ? (props.accountAvailable ? nil : "Local play remains available on this device.")
-                    : props.authError,
-                skipTitle: "Skip for now",
-                appleTitle: "Continue with Apple",
-                googleTitle: "Continue with Google",
+                    ? (props.accountAvailable ? nil : props.localized("Local play remains available on this device."))
+                    : props.localized(props.authError),
+                skipTitle: props.localized("Skip for now"),
+                appleTitle: props.localized("Continue with Apple"),
+                googleTitle: props.localized("Continue with Google"),
                 isBusy: !props.activeProvider.isEmpty,
                 activeProvider: activeProvider,
                 isAvailable: props.accountAvailable,
@@ -132,8 +135,7 @@ private struct DuelWordsOnboardingSurface: View {
     }
 
     private var legalConsentText: AttributedString {
-        let markdown = "By continuing, you agree to the [Terms](https://duelwords-av.avalsys.com/terms/) and [Privacy Policy](https://duelwords-av.avalsys.com/privacy/) of DuelWords AV."
-        return (try? AttributedString(markdown: markdown)) ?? AttributedString(markdown)
+        props.localizedCopy.markdown("By continuing, you agree to the [Terms](https://duelwords-av.avalsys.com/terms/) and [Privacy Policy](https://duelwords-av.avalsys.com/privacy/) of DuelWords AV.")
     }
 }
 
@@ -144,8 +146,8 @@ private struct DuelWordsHeaderSurface: View {
     var body: some View {
         AVAppShellConfiguredBrandHeader(
             activeItem: activeItem,
-            settingsAccessibilityLabel: "Settings",
-            accountAccessibilityLabel: "Account",
+            settingsAccessibilityLabel: props.localized("Settings"),
+            accountAccessibilityLabel: props.localized("Account"),
             openSettings: { action("settings", nil) },
             openAccount: { action("account", nil) }
         )
@@ -170,7 +172,7 @@ private struct DuelWordsFooterSurface: View {
             selectedTabID: props.selectedTab,
             tabs: tabs,
             assistantID: "avi",
-            assistantAccessibilityLabel: DuelWordsAppExperience.experience.identity.assistantName,
+            assistantAccessibilityLabel: DuelWordsAppExperience.identity.assistantName,
             assistantAccessibilityIdentifier: "footer.avi",
             footerConfiguration: .floating,
             onSelectTab: { action("tab", $0) },
@@ -178,7 +180,7 @@ private struct DuelWordsFooterSurface: View {
             footerPlayer: { EmptyView() },
             assistantIcon: { _ in
                 AVAppShellFooterAssistantAssetIcon(
-                    assetName: DuelWordsAppExperience.experience.visualAssets?.footerAssistantName ?? "AviFooterIcon"
+                    assetName: DuelWordsAppExperience.experience(interfaceLocale: props.interfaceLocale).visualAssets?.footerAssistantName ?? "AviFooterIcon"
                 )
             }
         )
@@ -186,9 +188,9 @@ private struct DuelWordsFooterSurface: View {
 
     private var tabs: [AVAppShellTab<String>] {
         [
-            AVAppShellTab(id: "play", title: "Home", systemImage: "house.fill", accessibilityIdentifier: "footer.home"),
-            AVAppShellTab(id: "rivals", title: "Rivals", systemImage: "person.2.fill", accessibilityIdentifier: "footer.rivals"),
-            AVAppShellTab(id: "stats", title: "Stats", systemImage: "chart.bar.fill", accessibilityIdentifier: "footer.stats")
+            AVAppShellTab(id: "play", title: props.localized("Home"), systemImage: "house.fill", accessibilityIdentifier: "footer.home"),
+            AVAppShellTab(id: "rivals", title: props.localized("Rivals"), systemImage: "person.2.fill", accessibilityIdentifier: "footer.rivals"),
+            AVAppShellTab(id: "stats", title: props.localized("Stats"), systemImage: "chart.bar.fill", accessibilityIdentifier: "footer.stats")
         ]
     }
 }
@@ -208,15 +210,15 @@ private struct DuelWordsSidebarSurface: View {
             )
             .padding(.bottom, 12)
 
-            sidebarButton("Home", systemImage: "house.fill", route: "play")
-            sidebarButton("Rivals", systemImage: "person.2.fill", route: "rivals")
-            sidebarButton("Stats", systemImage: "chart.bar.fill", route: "stats")
+            sidebarButton(props.localized("Home"), systemImage: "house.fill", route: "play")
+            sidebarButton(props.localized("Rivals"), systemImage: "person.2.fill", route: "rivals")
+            sidebarButton(props.localized("Stats"), systemImage: "chart.bar.fill", route: "stats")
             sidebarButton("Avi", systemImage: "sparkles", route: "avi")
 
             Spacer(minLength: 16)
 
-            sidebarButton("Settings", systemImage: "gearshape.fill", route: "settings", fontSize: 15)
-            sidebarButton("Account", systemImage: "person.crop.circle.fill", route: "account", fontSize: 15)
+            sidebarButton(props.localized("Settings"), systemImage: "gearshape.fill", route: "settings", fontSize: 15)
+            sidebarButton(props.localized("Account"), systemImage: "person.crop.circle.fill", route: "account", fontSize: 15)
         }
         .padding(.horizontal, AVAppShellTabletSidebarMetric.horizontalPadding)
         .padding(.vertical, AVAppShellTabletSidebarMetric.verticalPadding)
@@ -249,8 +251,8 @@ private struct DuelWordsSettingsSurface: View {
 
     var body: some View {
         AVSettingsProfileScreenScaffold(
-            title: "Settings",
-            subtitle: "Preferences on this device, help, and legal information.",
+            title: props.localized("Settings"),
+            subtitle: props.localized("Preferences on this device, help, and legal information."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
@@ -285,49 +287,49 @@ private struct DuelWordsSettingsSurface: View {
             helpCard
         }
         .confirmationDialog(
-            "Reset local game data?",
+            props.localized("Reset local game data?"),
             isPresented: $resetConfirmationIsPresented,
             titleVisibility: .visible
         ) {
-            Button("Reset local game rotation", role: .destructive) {
+            Button(props.localized("Reset local game rotation"), role: .destructive) {
                 action("resetLocalData", nil)
                 didResetLocalData = true
             }
-            Button("Cancel", role: .cancel) {}
+            Button(props.localized("Cancel"), role: .cancel) {}
         } message: {
-            Text("This starts fresh local target decks. Your interface preferences and Account AV identity are not changed.")
+            Text(props.localized("This starts fresh local target decks. Your interface preferences and Account AV identity are not changed."))
         }
     }
 
     private var appPreferencesCard: some View {
         AVSettingsSectionCard(
-            title: "App preferences",
-            subtitle: "Choose how DuelWords AV appears on this device."
+            title: props.localized("App preferences"),
+            subtitle: props.localized("Choose how DuelWords AV appears on this device.")
         ) {
             AVSettingsInfoRow(
                 systemImage: "globe",
-                title: "App language",
-                detail: "Choose the language used by navigation, help, account, and game messages."
+                title: props.localized("App language"),
+                detail: props.localized("Choose the language used by navigation, help, account, and game messages.")
             )
 
             interfaceLanguageSelector
 
             AVSettingsInfoRow(
                 systemImage: "circle.lefthalf.filled",
-                title: "Appearance",
-                detail: "Choose whether DuelWords AV follows the system or always uses a fixed appearance."
+                title: props.localized("Appearance"),
+                detail: props.localized("Choose whether DuelWords AV follows the system or always uses a fixed appearance.")
             )
 
             HStack(spacing: 10) {
-                appearanceOption("System", value: "system", systemImage: "circle.lefthalf.filled")
-                appearanceOption("Light", value: "light", systemImage: "sun.max.fill")
-                appearanceOption("Dark", value: "dark", systemImage: "moon.fill")
+                appearanceOption(props.localized("System"), value: "system", systemImage: "circle.lefthalf.filled")
+                appearanceOption(props.localized("Light"), value: "light", systemImage: "sun.max.fill")
+                appearanceOption(props.localized("Dark"), value: "dark", systemImage: "moon.fill")
             }
 
             AVSettingsToggleRow(
                 systemImage: "iphone.radiowaves.left.and.right",
-                title: "Haptics",
-                detail: "Short feedback for selections and accepted local actions.",
+                title: props.localized("Haptics"),
+                detail: props.localized("Short feedback for selections and accepted local actions."),
                 isOn: Binding(
                     get: { props.hapticsEnabled },
                     set: { action("setHaptics", $0 ? "true" : "false") }
@@ -338,7 +340,7 @@ private struct DuelWordsSettingsSurface: View {
 
     private var interfaceLanguageSelector: some View {
         Menu {
-            ForEach(DuelWordsInterfaceLocaleOption.all) { locale in
+            ForEach(DuelWordsInterfaceLocaleOption.all(copy: props.localizedCopy)) { locale in
                 Button {
                     action("setInterfaceLocale", locale.id)
                 } label: {
@@ -378,29 +380,29 @@ private struct DuelWordsSettingsSurface: View {
     }
 
     private var selectedInterfaceLocale: DuelWordsInterfaceLocaleOption {
-        DuelWordsInterfaceLocaleOption.all.first(where: { $0.id == props.interfaceLocale })
-            ?? DuelWordsInterfaceLocaleOption.all[0]
+        let locales = DuelWordsInterfaceLocaleOption.all(copy: props.localizedCopy)
+        return locales.first(where: { $0.id == props.interfaceLocale }) ?? locales[0]
     }
 
     private var onDeviceCard: some View {
         AVSettingsSectionCard(
-            title: "On this device",
-            subtitle: "Local play remains separate from your shared Account AV identity."
+            title: props.localized("On this device"),
+            subtitle: props.localized("Local play remains separate from your shared Account AV identity.")
         ) {
-            AVSettingsInfoRow(systemImage: "app.badge", title: "Version", detail: "0.1.0 (1)")
-            AVSettingsInfoRow(systemImage: "text.book.closed", title: "Word lists", detail: "Bundled EN, ES, CA, FR, and DE")
-            AVSettingsInfoRow(systemImage: "arrow.triangle.2.circlepath", title: "Local targets", detail: "Shared no-repeat deck for Practice, Solo, and Play Avi")
-            AVSettingsInfoRow(systemImage: "calendar", title: "Daily word", detail: "Server-selected only")
+            AVSettingsInfoRow(systemImage: "app.badge", title: props.localized("Version"), detail: "0.1.0 (1)")
+            AVSettingsInfoRow(systemImage: "text.book.closed", title: props.localized("Word lists"), detail: props.localized("Bundled EN, ES, CA, FR, and DE"))
+            AVSettingsInfoRow(systemImage: "arrow.triangle.2.circlepath", title: props.localized("Local targets"), detail: props.localized("Shared no-repeat deck for Practice, Solo, and Play Avi"))
+            AVSettingsInfoRow(systemImage: "calendar", title: props.localized("Daily word"), detail: props.localized("Server-selected only"))
             AVSettingsButton(
-                title: "Reset local game rotation",
+                title: props.localized("Reset local game rotation"),
                 style: .destructive,
                 action: { resetConfirmationIsPresented = true }
             )
             if didResetLocalData {
                 AVSettingsStatusCard(
                     systemImage: "checkmark.circle",
-                    title: "Local rotation reset",
-                    detail: "The next local game will start a fresh target deck."
+                    title: props.localized("Local rotation reset"),
+                    detail: props.localized("The next local game will start a fresh target deck.")
                 )
             }
         }
@@ -408,19 +410,19 @@ private struct DuelWordsSettingsSurface: View {
 
     private var helpCard: some View {
         AVSettingsSectionCard(
-            title: "Privacy, help & legal",
-            subtitle: "Public DuelWords AV information opens through secure HTTPS pages."
+            title: props.localized("Privacy, help & legal"),
+            subtitle: props.localized("Public DuelWords AV information opens through secure HTTPS pages.")
         ) {
-            AVSettingsActionRow(systemImage: "shippingbox", title: "Open-source notices", detail: "Licenses for bundled dictionaries and software.", action: { action("openNotices", nil) })
-            AVSettingsActionRow(systemImage: "chevron.left.forwardslash.chevron.right", title: "Source code", detail: "Open the public DuelWords AV repository.", action: { action("openSource", nil) })
-            AVSettingsActionRow(systemImage: "questionmark.circle", title: "Support", detail: "Open DuelWords AV support.", action: { action("openSupport", nil) })
-            AVSettingsActionRow(systemImage: "hand.raised", title: "Privacy policy", detail: "How DuelWords AV handles product and account data.", action: { action("openPrivacy", nil) })
-            AVSettingsActionRow(systemImage: "doc.text", title: "Terms of use", detail: "Terms that apply to DuelWords AV.", action: { action("openTerms", nil) })
+            AVSettingsActionRow(systemImage: "shippingbox", title: props.localized("Open-source notices"), detail: props.localized("Licenses for bundled dictionaries and software."), action: { action("openNotices", nil) })
+            AVSettingsActionRow(systemImage: "chevron.left.forwardslash.chevron.right", title: props.localized("Source code"), detail: props.localized("Open the public DuelWords AV repository."), action: { action("openSource", nil) })
+            AVSettingsActionRow(systemImage: "questionmark.circle", title: props.localized("Support"), detail: props.localized("Open DuelWords AV support."), action: { action("openSupport", nil) })
+            AVSettingsActionRow(systemImage: "hand.raised", title: props.localized("Privacy policy"), detail: props.localized("How DuelWords AV handles product and account data."), action: { action("openPrivacy", nil) })
+            AVSettingsActionRow(systemImage: "doc.text", title: props.localized("Terms of use"), detail: props.localized("Terms that apply to DuelWords AV."), action: { action("openTerms", nil) })
             AVSettingsDestructiveActionCard(
-                sectionTitle: "Account safety",
+                sectionTitle: props.localized("Account safety"),
                 systemImage: "person.crop.circle.badge.minus",
-                title: "Delete Apps AV account",
-                detail: "Review the secure deletion workflow and consequences.",
+                title: props.localized("Delete Apps AV account"),
+                detail: props.localized("Review the secure deletion workflow and consequences."),
                 action: { action("deleteAccount", nil) }
             )
         }
@@ -439,8 +441,8 @@ private struct DuelWordsAccountSurface: View {
 
     var body: some View {
         AVSettingsProfileScreenScaffold(
-            title: "Account",
-            subtitle: props.signedIn ? "Your identity, continuity, and DuelWords access." : "Play locally as a guest. Sign in when account continuity adds value.",
+            title: props.localized("Account"),
+            subtitle: props.signedIn ? props.localized("Your identity, continuity, and DuelWords access.") : props.localized("Play locally as a guest. Sign in when account continuity adds value."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
@@ -471,16 +473,16 @@ private struct DuelWordsAccountSurface: View {
 
     private var identityCard: some View {
         AVSettingsSectionCard(
-            title: props.signedIn ? "Connected account" : "Guest player",
-            subtitle: props.signedIn ? (props.email.isEmpty ? "Account AV identity verified." : props.email) : "No account is required for local play."
+            title: props.signedIn ? props.localized("Connected account") : props.localized("Guest player"),
+            subtitle: props.signedIn ? (props.email.isEmpty ? props.localized("Account AV identity verified.") : props.email) : props.localized("No account is required for local play.")
         ) {
-            AVSettingsInfoRow(systemImage: "person.crop.circle", title: "Identity", detail: props.signedIn ? (props.displayName.isEmpty ? "Connected" : props.displayName) : "Guest · local")
-            AVSettingsInfoRow(systemImage: "sparkles.rectangle.stack", title: "Plan", detail: props.planTier == "pro" ? "DuelWords Pro" : props.signedIn ? "Free" : "Guest")
+            AVSettingsInfoRow(systemImage: "person.crop.circle", title: props.localized("Identity"), detail: props.signedIn ? (props.displayName.isEmpty ? props.localized("Connected") : props.displayName) : props.localized("Guest · local"))
+            AVSettingsInfoRow(systemImage: "sparkles.rectangle.stack", title: props.localized("Plan"), detail: props.planTier == "pro" ? "DuelWords Pro" : props.signedIn ? props.localized("Free") : props.localized("Guest"))
             if props.signedIn {
-                AVSettingsButton(title: "Sign out", style: .secondary, action: { action("signOut", nil) })
+                AVSettingsButton(title: props.localized("Sign out"), style: .secondary, action: { action("signOut", nil) })
             } else {
                 AVSettingsButton(
-                    title: props.accountAvailable ? "Connect Account AV" : "Account AV unavailable",
+                    title: props.accountAvailable ? props.localized("Connect Account AV") : props.localized("Account AV unavailable"),
                     style: .primary,
                     action: { action("signIn", nil) }
                 )
@@ -490,15 +492,15 @@ private struct DuelWordsAccountSurface: View {
     }
 
     private var continuityCard: some View {
-        AVSettingsSectionCard(title: "Continuity", subtitle: props.signedIn ? "Account AV has verified this identity." : "Practice, Daily, and Play Avi stay on this device while you are a guest.") {
-            AVSettingsInfoRow(systemImage: "gamecontroller", title: "Game history", detail: "Stored on this device")
-            AVSettingsInfoRow(systemImage: "person.2", title: "Rivals", detail: props.signedIn ? "Account surface prepared" : "Sign-in required")
+        AVSettingsSectionCard(title: props.localized("Continuity"), subtitle: props.signedIn ? props.localized("Account AV has verified this identity.") : props.localized("Practice, Daily, and Play Avi stay on this device while you are a guest.")) {
+            AVSettingsInfoRow(systemImage: "gamecontroller", title: props.localized("Game history"), detail: props.localized("Stored on this device"))
+            AVSettingsInfoRow(systemImage: "person.2", title: props.localized("Rivals"), detail: props.signedIn ? props.localized("Account surface prepared") : props.localized("Sign-in required"))
         }
     }
 
     private var proCard: some View {
-        AVSettingsSectionCard(title: "DuelWords Pro", subtitle: "More history. The same fair game.") {
-            AVSettingsInfoRow(systemImage: "checkmark.shield", title: "Fair play", detail: "Pro never adds hints, time, attempts, or different feedback.")
+        AVSettingsSectionCard(title: "DuelWords Pro", subtitle: props.localized("More history. The same fair game.")) {
+            AVSettingsInfoRow(systemImage: "checkmark.shield", title: props.localized("Fair play"), detail: props.localized("Pro never adds hints, time, attempts, or different feedback."))
             AVSettingsButton(
                 title: proActionTitle,
                 style: .primary,
@@ -509,14 +511,14 @@ private struct DuelWordsAccountSurface: View {
     }
 
     private var proActionTitle: String {
-        if props.planTier == "pro" { return "View Pro access" }
-        if props.signedIn { return "Explore DuelWords Pro" }
-        return props.accountAvailable ? "Sign in for DuelWords Pro" : "Account AV unavailable"
+        if props.planTier == "pro" { return props.localized("View Pro access") }
+        if props.signedIn { return props.localized("Explore DuelWords Pro") }
+        return props.accountAvailable ? props.localized("Sign in for DuelWords Pro") : props.localized("Account AV unavailable")
     }
 
     private var safetyCard: some View {
-        AVSettingsSectionCard(title: "Account safety", subtitle: "Account deletion follows the guarded Account AV workflow.") {
-            AVSettingsDestructiveActionCard(sectionTitle: "Account safety", systemImage: "trash", title: "Delete Apps AV account", detail: "Review deletion before confirming.", action: { action("deleteAccount", nil) })
+        AVSettingsSectionCard(title: props.localized("Account safety"), subtitle: props.localized("Account deletion follows the guarded Account AV workflow.")) {
+            AVSettingsDestructiveActionCard(sectionTitle: props.localized("Account safety"), systemImage: "trash", title: props.localized("Delete Apps AV account"), detail: props.localized("Review deletion before confirming."), action: { action("deleteAccount", nil) })
         }
     }
 }
@@ -528,13 +530,15 @@ private struct DuelWordsInterfaceLocaleOption: Identifiable {
 
     var menuTitle: String { "\(displayName) (\(autonym))" }
 
-    static let all = [
-        DuelWordsInterfaceLocaleOption(id: "en", displayName: "English", autonym: "English"),
-        DuelWordsInterfaceLocaleOption(id: "es", displayName: "Spanish", autonym: "Español"),
-        DuelWordsInterfaceLocaleOption(id: "ca", displayName: "Catalan", autonym: "Català"),
-        DuelWordsInterfaceLocaleOption(id: "fr", displayName: "French", autonym: "Français"),
-        DuelWordsInterfaceLocaleOption(id: "de", displayName: "German", autonym: "Deutsch")
-    ]
+    static func all(copy: DuelWordsNativeL10n) -> [DuelWordsInterfaceLocaleOption] {
+        [
+            DuelWordsInterfaceLocaleOption(id: "en", displayName: copy.text("English"), autonym: "English"),
+            DuelWordsInterfaceLocaleOption(id: "es", displayName: copy.text("Spanish"), autonym: "Español"),
+            DuelWordsInterfaceLocaleOption(id: "ca", displayName: copy.text("Catalan"), autonym: "Català"),
+            DuelWordsInterfaceLocaleOption(id: "fr", displayName: copy.text("French"), autonym: "Français"),
+            DuelWordsInterfaceLocaleOption(id: "de", displayName: copy.text("German"), autonym: "Deutsch")
+        ]
+    }
 }
 
 private struct DuelWordsPaywallSurface: View {
@@ -544,38 +548,38 @@ private struct DuelWordsPaywallSurface: View {
     var body: some View {
         AVPaywallSheetScaffold(
             navigationTitle: "DuelWords Pro",
-            closeTitle: "Close",
+            closeTitle: props.localized("Close"),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             onClose: { action("close", nil) }
         ) {
             AVPaywallHeader(
                 eyebrow: "DuelWords Pro",
-                title: props.planTier == "pro" ? "Pro is active." : "More of your story. None of the unfair stuff.",
-                subtitle: "Pro expands private continuity without changing the rules of a duel."
+                title: props.planTier == "pro" ? props.localized("Pro is active.") : props.localized("More of your story. None of the unfair stuff."),
+                subtitle: props.localized("Pro expands private continuity without changing the rules of a duel.")
             )
             AVPaywallOfferCard(
-                title: props.planTier == "pro" ? "Your access" : props.signedIn ? "Subscriptions are coming later" : "Account AV required",
-                detail: props.planTier == "pro" ? "Active Apps AV entitlement." : "Purchases are not offered in this build.",
-                primaryButtonTitle: props.planTier == "pro" ? "Done" : props.signedIn ? "Not offered in this build" : "Sign in to continue",
+                title: props.planTier == "pro" ? props.localized("Your access") : props.signedIn ? props.localized("Subscriptions are coming later") : props.localized("Account AV required"),
+                detail: props.planTier == "pro" ? props.localized("Active Apps AV entitlement.") : props.localized("Purchases are not offered in this build."),
+                primaryButtonTitle: props.planTier == "pro" ? props.localized("Done") : props.signedIn ? props.localized("Not offered in this build") : props.localized("Sign in to continue"),
                 primaryButtonIsDisabled: props.signedIn && props.planTier != "pro",
                 primaryAction: { action(props.planTier == "pro" ? "close" : "signIn", nil) },
                 avatar: {
                     Image("AviV2OnboardingCTA").resizable().scaledToFit()
                 },
                 restoreButton: {
-                    AVPaywallRestoreButton(title: "Refresh Apps AV access", action: { action("refreshAccount", nil) })
+                    AVPaywallRestoreButton(title: props.localized("Refresh Apps AV access"), action: { action("refreshAccount", nil) })
                 }
             )
             AVPaywallBenefitList(items: [
-                AVPaywallBenefitItem(id: "ads", systemImage: "rectangle.slash", title: "No ads", detail: "Keep Home and result surfaces quiet."),
-                AVPaywallBenefitItem(id: "history", systemImage: "clock.arrow.circlepath", title: "Deeper private history", detail: "Retain more finalized summaries privately."),
-                AVPaywallBenefitItem(id: "fair", systemImage: "checkmark.shield", title: "Same fair rules", detail: "No hints, extra time, attempts, or feedback."),
-                AVPaywallBenefitItem(id: "account", systemImage: "person.crop.circle.badge.checkmark", title: "Account-backed access", detail: "Apps AV remains the entitlement authority.")
+                AVPaywallBenefitItem(id: "ads", systemImage: "rectangle.slash", title: props.localized("No ads"), detail: props.localized("Keep Home and result surfaces quiet.")),
+                AVPaywallBenefitItem(id: "history", systemImage: "clock.arrow.circlepath", title: props.localized("Deeper private history"), detail: props.localized("Retain more finalized summaries privately.")),
+                AVPaywallBenefitItem(id: "fair", systemImage: "checkmark.shield", title: props.localized("Same fair rules"), detail: props.localized("No hints, extra time, attempts, or feedback.")),
+                AVPaywallBenefitItem(id: "account", systemImage: "person.crop.circle.badge.checkmark", title: props.localized("Account-backed access"), detail: props.localized("Apps AV remains the entitlement authority."))
             ])
             AVPaywallFooterActions(actions: [
-                AVPaywallFooterAction(title: "Terms", accessibilityIdentifier: "paywall.terms", action: { action("openTerms", nil) }),
-                AVPaywallFooterAction(title: "Privacy", accessibilityIdentifier: "paywall.privacy", action: { action("openPrivacy", nil) }),
-                AVPaywallFooterAction(title: "Support", accessibilityIdentifier: "paywall.support", action: { action("openSupport", nil) })
+                AVPaywallFooterAction(title: props.localized("Terms"), accessibilityIdentifier: "paywall.terms", action: { action("openTerms", nil) }),
+                AVPaywallFooterAction(title: props.localized("Privacy"), accessibilityIdentifier: "paywall.privacy", action: { action("openPrivacy", nil) }),
+                AVPaywallFooterAction(title: props.localized("Support"), accessibilityIdentifier: "paywall.support", action: { action("openSupport", nil) })
             ])
         }
     }
@@ -593,30 +597,30 @@ private struct DuelWordsDeleteAccountSurface: View {
             topPadding: 24,
             bottomPadding: 24,
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
-            closeTitle: "Done",
+            closeTitle: props.localized("Done"),
             closeAccessibilityIdentifier: "accountDeletion.done",
             onClose: { action("close", nil) }
         ) {
             AVSettingsScreenHeader(
-                title: "Delete Apps AV account",
-                subtitle: "This deletes the shared identity used by connected Apps AV products—not only DuelWords AV.",
+                title: props.localized("Delete Apps AV account"),
+                subtitle: props.localized("This deletes the shared identity used by connected Apps AV products—not only DuelWords AV."),
                 titleAccessibilityIdentifier: "accountDeletion.title"
             )
 
             if !props.signedIn {
                 AVSettingsStatusCard(
                     systemImage: "person.crop.circle.badge.exclamationmark",
-                    title: "Sign in first",
-                    detail: "Account deletion is available for the currently authenticated Account AV identity."
+                    title: props.localized("Sign in first"),
+                    detail: props.localized("Account deletion is available for the currently authenticated Account AV identity.")
                 )
-                AVSettingsButton(title: "Sign in to Account AV", style: .primary, action: { action("signIn", nil) })
+                AVSettingsButton(title: props.localized("Sign in to Account AV"), style: .primary, action: { action("signIn", nil) })
             } else if props.deletionBusy && props.deletionStatus.isEmpty {
-                AVSettingsLoadingState("Checking Account AV…")
+                AVSettingsLoadingState(props.localized("Checking Account AV…"))
             } else {
                 AVSettingsNoticeCard(
                     systemImage: "person.2.badge.gearshape",
-                    title: "Shared Apps AV account",
-                    detail: "Remote account data and connected app links are removed. Local-only practice data on this device is separate."
+                    title: props.localized("Shared Apps AV account"),
+                    detail: props.localized("Remote account data and connected app links are removed. Local-only practice data on this device is separate.")
                 )
                 stateContent
             }
@@ -629,27 +633,27 @@ private struct DuelWordsDeleteAccountSurface: View {
         if !props.deletionError.isEmpty {
             AVSettingsStatusCard(
                 systemImage: "exclamationmark.triangle",
-                title: "Account AV could not continue",
+                title: props.localized("Account AV could not continue"),
                 detail: props.deletionError
             )
-            AVSettingsButton(title: "Retry safely", style: .secondary, action: { action("retry", nil) })
+            AVSettingsButton(title: props.localized("Retry safely"), style: .secondary, action: { action("retry", nil) })
         }
 
         switch props.deletionStatus {
         case "eligible":
             AVSettingsStatusCard(
                 systemImage: "checkmark.shield",
-                title: "Deletion is available",
-                detail: "Review every consequence before making the permanent request."
+                title: props.localized("Deletion is available"),
+                detail: props.localized("Review every consequence before making the permanent request.")
             )
             deletionItems(warnings, prefix: "warning")
-            Text("Type DELETE exactly. This cannot be undone and may not cancel subscriptions billed by Apple, Google, or another provider.")
+            Text(props.localized("Type DELETE exactly. This cannot be undone and may not cancel subscriptions billed by Apple, Google, or another provider."))
                 .font(.system(size: 14, weight: .semibold))
             AVSettingsTextField("DELETE", text: $confirmation, accessibilityIdentifier: "accountDeletion.confirmation")
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
             AVSettingsButton(
-                title: props.deletionBusy ? "Requesting deletion…" : "Delete Apps AV account",
+                title: props.deletionBusy ? props.localized("Requesting deletion…") : props.localized("Delete Apps AV account"),
                 style: .destructivePrimary,
                 isLoading: props.deletionBusy,
                 action: confirmDeletion
@@ -659,24 +663,24 @@ private struct DuelWordsDeleteAccountSurface: View {
         case "blocked":
             AVSettingsStatusCard(
                 systemImage: "lock.shield",
-                title: "Action needed before deletion",
-                detail: "Account AV reports conditions that must be resolved before retrying."
+                title: props.localized("Action needed before deletion"),
+                detail: props.localized("Account AV reports conditions that must be resolved before retrying.")
             )
             deletionItems(blockers, prefix: "blocker")
             deletionItems(warnings, prefix: "warning")
-            AVSettingsButton(title: "Refresh status", style: .secondary, action: { action("retry", nil) })
+            AVSettingsButton(title: props.localized("Refresh status"), style: .secondary, action: { action("retry", nil) })
         case "inProgress":
             AVSettingsStatusCard(
                 systemImage: "clock.badge.exclamationmark",
-                title: "Deletion is in progress",
-                detail: "The request is already recorded. Refresh its state instead of submitting it again."
+                title: props.localized("Deletion is in progress"),
+                detail: props.localized("The request is already recorded. Refresh its state instead of submitting it again.")
             )
             deletionItems(blockers, prefix: "blocker")
             deletionItems(warnings, prefix: "warning")
-            AVSettingsButton(title: "Refresh status", style: .secondary, action: { action("retry", nil) })
+            AVSettingsButton(title: props.localized("Refresh status"), style: .secondary, action: { action("retry", nil) })
             if props.deletionCanFinalize {
                 AVSettingsButton(
-                    title: props.deletionBusy ? "Finishing deletion…" : "Finish deletion",
+                    title: props.deletionBusy ? props.localized("Finishing deletion…") : props.localized("Finish deletion"),
                     style: .primary,
                     isLoading: props.deletionBusy,
                     action: { action("finalizeDelete", nil) }
@@ -686,22 +690,22 @@ private struct DuelWordsDeleteAccountSurface: View {
         case "completed":
             AVSettingsStatusCard(
                 systemImage: "checkmark.circle",
-                title: "Account deleted",
-                detail: "The shared Account AV deletion workflow has completed. DuelWords AV will return to guest mode."
+                title: props.localized("Account deleted"),
+                detail: props.localized("The shared Account AV deletion workflow has completed. DuelWords AV will return to guest mode.")
             )
-            AVSettingsButton(title: "Continue as guest", style: .primary, action: { action("continueGuest", nil) })
+            AVSettingsButton(title: props.localized("Continue as guest"), style: .primary, action: { action("continueGuest", nil) })
         default:
             if props.deletionError.isEmpty {
                 AVSettingsStatusCard(
                     systemImage: "safari",
-                    title: "Deletion status unavailable",
-                    detail: "No account changes were made. Retry or open the public support page."
+                    title: props.localized("Deletion status unavailable"),
+                    detail: props.localized("No account changes were made. Retry or open the public support page.")
                 )
-                AVSettingsButton(title: "Retry safely", style: .secondary, action: { action("retry", nil) })
+                AVSettingsButton(title: props.localized("Retry safely"), style: .secondary, action: { action("retry", nil) })
             }
         }
 
-        AVSettingsButton(title: "Open deletion support", style: .secondary, action: { action("openDeletionSupport", nil) })
+        AVSettingsButton(title: props.localized("Open deletion support"), style: .secondary, action: { action("openDeletionSupport", nil) })
     }
 
     private var canConfirm: Bool {
@@ -727,7 +731,7 @@ private struct DuelWordsDeleteAccountSurface: View {
                 id: "\(prefix).\(item.type).\(index)",
                 title: item.label,
                 detail: item.detail,
-                linkTitle: item.managementUrl == nil ? nil : "Manage",
+                linkTitle: item.managementUrl == nil ? nil : props.localized("Manage"),
                 linkDestination: item.managementUrl.flatMap(URL.init(string:)),
                 accessibilityIdentifier: "accountDeletion.\(prefix).\(item.type)"
             )
@@ -744,5 +748,15 @@ private struct DuelWordsDeletionItem: Decodable {
     static func decode(_ json: String) -> [DuelWordsDeletionItem] {
         guard let data = json.data(using: .utf8) else { return [] }
         return (try? JSONDecoder().decode([DuelWordsDeletionItem].self, from: data)) ?? []
+    }
+}
+
+private extension DuelWordsSharedSurfaceProps {
+    var localizedCopy: DuelWordsNativeL10n {
+        DuelWordsNativeL10n(interfaceLocale: interfaceLocale)
+    }
+
+    func localized(_ english: String) -> String {
+        localizedCopy.text(english)
     }
 }

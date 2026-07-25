@@ -65,7 +65,7 @@ export function AccountOnboardingExperience({
       onFinish('/(tabs)/account' as Href);
     } catch (error) {
       if (!isAccountAuthCancellation(error)) {
-        setAuthError('Account AV could not complete sign-in. Please try again.');
+        setAuthError(copy.accountSignInFailed);
       }
     } finally {
       setActiveProvider('');

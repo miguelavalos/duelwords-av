@@ -5,6 +5,7 @@ import { AccessibilityInfo, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useOnboardingComplete } from '@/onboarding/use-onboarding-complete';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { DuelWordsWordmark, duelWordsBrandAssets } from '@/ui/brand';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
@@ -12,6 +13,7 @@ import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 export function ProductSplashScreen() {
   const [complete] = useOnboardingComplete();
   const [ready, setReady] = useState(false);
+  const [{ appearance, interfaceLocale }] = useAppPreferences();
   const { colors } = useAppTheme();
 
   useEffect(() => {
@@ -29,7 +31,14 @@ export function ProductSplashScreen() {
   if (ready) return <Redirect href={(complete ? '/(tabs)/play' : '/onboarding') as Href} />;
 
   if (isSharedAppleSurfaceAvailable) {
-    return <SharedAppleSurface style={styles.screen} surface="splash" />;
+    return (
+      <SharedAppleSurface
+        appearance={appearance}
+        interfaceLocale={interfaceLocale}
+        style={styles.screen}
+        surface="splash"
+      />
+    );
   }
 
   return (

@@ -51,7 +51,16 @@ export default function TabsLayout() {
 
   return (
     <Tabs
-      tabBar={(props) => <DuelWordsTabBar {...props} appearance={appearance} copy={copy} colors={colors} tablet={tablet} />}
+      tabBar={(props) => (
+        <DuelWordsTabBar
+          {...props}
+          appearance={appearance}
+          copy={copy}
+          colors={colors}
+          interfaceLocale={interfaceLocale}
+          tablet={tablet}
+        />
+      )}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
@@ -121,6 +130,7 @@ function DuelWordsTabBar({
   copy,
   descriptors,
   insets,
+  interfaceLocale,
   navigation,
   state,
   tablet,
@@ -128,6 +138,7 @@ function DuelWordsTabBar({
   appearance: 'dark' | 'light' | 'system';
   colors: AppColors;
   copy: ReturnType<typeof experienceCopy>;
+  interfaceLocale: Parameters<typeof experienceCopy>[0];
   tablet: boolean;
 }) {
   const labels: Record<string, string> = {
@@ -147,6 +158,7 @@ function DuelWordsTabBar({
     return (
       <SharedAppleSurface
         appearance={appearance}
+        interfaceLocale={interfaceLocale}
         onAction={({ action, value }) => {
           if (action !== 'tab' || !value) return;
           const destination = state.routes.find((route) => route.name === value);

@@ -36,6 +36,7 @@ export type ExperienceCopy = {
   onboardingCreate: string;
   onboardingSignIn: string;
   onboardingGuest: string;
+  accountSignInFailed: string;
   onboardingPages: readonly { eyebrow: string; title: string; detail: string }[];
 };
 
@@ -53,6 +54,7 @@ const en: ExperienceCopy = {
   aviAccountTitle: 'Guest first, account when useful', aviAccountDetail: 'Play locally as a guest. Account AV adds durable continuity, rivals, and Pro access.',
   openPractice: 'Open practice', openSettings: 'Open settings', onboardingSkip: 'Skip', onboardingContinue: 'Continue',
   onboardingCreate: 'Create account', onboardingSignIn: 'Sign in', onboardingGuest: 'Continue as guest',
+  accountSignInFailed: 'Account AV could not complete sign-in. Please try again.',
   onboardingPages: [
     { eyebrow: 'DuelWords AV', title: 'Words, written head to head.', detail: 'A warm paper-and-ink word game built around fair live duels.' },
     { eyebrow: 'Meet Avi', title: 'Learn the rhythm with Avi.', detail: 'Avi explains every mark and can be your deterministic local opponent.' },
@@ -74,6 +76,7 @@ const es: ExperienceCopy = {
   aviAccountTitle: 'Primero invitado, cuenta cuando aporte', aviAccountDetail: 'Juega en local como invitado. Account AV añade continuidad, rivales y acceso Pro.',
   openPractice: 'Abrir práctica', openSettings: 'Abrir ajustes', onboardingSkip: 'Omitir', onboardingContinue: 'Continuar',
   onboardingCreate: 'Crear cuenta', onboardingSignIn: 'Iniciar sesión', onboardingGuest: 'Continuar como invitado',
+  accountSignInFailed: 'Account AV no ha podido completar el inicio de sesión. Inténtalo de nuevo.',
   onboardingPages: [
     { eyebrow: 'DuelWords AV', title: 'Palabras, frente a frente.', detail: 'Un juego cálido de papel y tinta centrado en duelos en directo justos.' },
     { eyebrow: 'Conoce a Avi', title: 'Aprende el ritmo con Avi.', detail: 'Avi explica cada marca y puede ser tu rival local determinista.' },
@@ -98,6 +101,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviAccountTitle: 'Primer convidat, compte quan aporti', aviAccountDetail: 'Juga en local com a convidat. Account AV afegeix continuïtat, rivals i accés Pro.',
     openPractice: 'Obrir pràctica', openSettings: 'Obrir ajustos', onboardingSkip: 'Ometre', onboardingContinue: 'Continuar',
     onboardingCreate: 'Crear compte', onboardingSignIn: 'Iniciar sessió', onboardingGuest: 'Continuar com a convidat',
+    accountSignInFailed: 'Account AV no ha pogut completar l’inici de sessió. Torna-ho a provar.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Paraules, cara a cara.', detail: 'Un joc càlid de paper i tinta centrat en duels en directe justos.' },
       { eyebrow: 'Coneix l’Avi', title: 'Aprèn el ritme amb l’Avi.', detail: 'L’Avi explica cada marca i pot ser el teu rival local determinista.' },
@@ -118,6 +122,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviAccountTitle: 'Invité d’abord, compte si utile', aviAccountDetail: 'Jouez hors ligne en invité. Account AV ajoute continuité, rivaux et accès Pro.',
     openPractice: 'Ouvrir l’entraînement', openSettings: 'Ouvrir les réglages', onboardingSkip: 'Passer', onboardingContinue: 'Continuer',
     onboardingCreate: 'Créer un compte', onboardingSignIn: 'Se connecter', onboardingGuest: 'Continuer comme invité',
+    accountSignInFailed: 'Account AV n’a pas pu terminer la connexion. Réessayez.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Les mots, face à face.', detail: 'Un jeu chaleureux de papier et d’encre, pensé pour des duels en direct équitables.' },
       { eyebrow: 'Voici Avi', title: 'Apprenez le rythme avec Avi.', detail: 'Avi explique chaque marque et peut devenir votre rival local déterministe.' },
@@ -138,6 +143,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviAccountTitle: 'Erst Gast, Konto wenn nützlich', aviAccountDetail: 'Spiele lokal als Gast. Account AV ergänzt dauerhaften Verlauf, Rivalen und Pro-Zugang.',
     openPractice: 'Training öffnen', openSettings: 'Einstellungen öffnen', onboardingSkip: 'Überspringen', onboardingContinue: 'Weiter',
     onboardingCreate: 'Konto erstellen', onboardingSignIn: 'Anmelden', onboardingGuest: 'Als Gast fortfahren',
+    accountSignInFailed: 'Account AV konnte die Anmeldung nicht abschließen. Versuche es erneut.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Wörter, Kopf an Kopf.', detail: 'Ein warmes Spiel aus Papier und Tinte für faire Live-Duelle.' },
       { eyebrow: 'Das ist Avi', title: 'Lerne den Rhythmus mit Avi.', detail: 'Avi erklärt jede Markierung und kann dein deterministischer lokaler Gegner sein.' },

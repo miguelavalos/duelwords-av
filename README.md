@@ -294,6 +294,11 @@ common surface uses the same shared components, canonical palette, layout
 grammar, Avi V2 assets, and footer behavior as Tune AV. Final owner visual
 sign-off on the exact pixels remains mandatory before build `2`.
 
+`pnpm run config:ios:check` pins the promoted icon, splash symbol, light/dark
+wordmark and lockup sources, splash/onboarding art, and the exact shared Tune AV
+Avi exports by SHA-256. Changing those pixels requires an intentional brand
+promotion; an unrelated build must fail instead of silently drifting.
+
 Validate the non-secret identity and assets before any native build:
 
 ```bash

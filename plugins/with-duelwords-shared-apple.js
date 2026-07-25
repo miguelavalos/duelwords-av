@@ -5,6 +5,7 @@ const { withDangerousMod, withPodfile, withPodfileProperties } = require('expo/c
 const APP_NAME = 'DuelWordsAV';
 const SWIFT_FILES = [
   'DuelWordsAppExperience.swift',
+  'DuelWordsNativeL10n.swift',
   'DuelWordsSharedAppleViewManager.swift',
   'DuelWordsSharedSurfaces.swift',
   'DuelWordsSharedAppleViewManager.m',
