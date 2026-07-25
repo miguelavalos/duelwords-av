@@ -299,9 +299,17 @@ pnpm run config:ios:runtime:dev
 ```
 
 Pass `ios/Config/Local.xcconfig` to direct `xcodebuild`/XcodeBuildMCP builds.
-The file is never committed or printed. Preview-candidate preparation uses
-`config:ios:generate:preview` and `config:ios:runtime:preview`; it remains
-subject to the private TestFlight runbook and exact-build approval.
+The file is never committed. Raw `xcodebuild` startup output echoes custom
+xcconfig values, so device/release commands must redirect that output to a
+protected local log and expose only a redacted result. Preview-candidate
+preparation uses `config:ios:generate:preview` and
+`config:ios:runtime:preview`; it remains subject to the private TestFlight
+runbook and exact-build approval.
+
+Production-device diagnostics use `config:ios:generate:prod` followed by
+`config:ios:runtime:prod`. That mode resolves the production Account AV
+identity and API, while connected Challenge and Convex remain deliberately
+fail-closed until their separate production activation gate is approved.
 
 After the approved preview values have been resolved read-only into the current
 shell, require the complete connected-runtime contract without printing its

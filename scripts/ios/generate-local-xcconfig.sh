@@ -13,7 +13,8 @@ Usage:
   scripts/ios/generate-local-xcconfig.sh --env dev|preview|prod
 
 Generates the ignored Xcode build environment used by Expo's JavaScript bundle
-phase. Infisical remains read-only; no value is printed or committed.
+phase. Infisical remains read-only; no value is printed or committed. Production
+keeps connected Challenge and Convex fail-closed while Account AV stays enabled.
 USAGE
 }
 
@@ -41,6 +42,8 @@ case "$env_name" in
     build_variant="development"
     bundle_identifier="com.avalsys.duelwordsav.dev"
     api_base_url="https://api-account-av-preview.avalsys.com"
+    api_disabled="false"
+    realtime_disabled="false"
     sentry_environment="debug"
     ;;
   preview)
@@ -48,6 +51,8 @@ case "$env_name" in
     build_variant="release"
     bundle_identifier="com.avalsys.duelwordsav"
     api_base_url="https://api-account-av-preview.avalsys.com"
+    api_disabled="false"
+    realtime_disabled="false"
     sentry_environment="preview"
     ;;
   prod)
@@ -55,6 +60,8 @@ case "$env_name" in
     build_variant="release"
     bundle_identifier="com.avalsys.duelwordsav"
     api_base_url="https://api-account-av.avalsys.com"
+    api_disabled="true"
+    realtime_disabled="true"
     sentry_environment="production"
     ;;
   *)
@@ -125,9 +132,9 @@ mkdir -p "$(dirname "$output_path")"
   printf '%s\n' 'ACCOUNTAV_KEYCHAIN_SERVICE = com.avalsys.duelwordsav.account'
   printf 'ACCOUNTAV_KEYCHAIN_ACCESS_GROUP = 935PM55U6R.%s\n' "$bundle_identifier"
   printf 'EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL = %s\n' "$(escape_xcconfig_url "$api_base_url")"
-  printf '%s\n' 'EXPO_PUBLIC_DUELWORDSAV_API_DISABLED = false'
+  printf 'EXPO_PUBLIC_DUELWORDSAV_API_DISABLED = %s\n' "$api_disabled"
   printf 'EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL = %s\n' "$(escape_xcconfig_url "$convex_url")"
-  printf '%s\n' 'EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED = false'
+  printf 'EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED = %s\n' "$realtime_disabled"
   printf 'EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT = %s\n' "$sentry_environment"
   if [ -n "$sentry_dsn" ]; then
     printf 'EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN = %s\n' "$(escape_xcconfig_url "$sentry_dsn")"

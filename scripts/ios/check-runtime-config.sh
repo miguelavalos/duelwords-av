@@ -18,18 +18,24 @@ case "$env_name" in
     expected_bundle="com.avalsys.duelwordsav.dev"
     expected_variant="development"
     expected_api="https://api-account-av-preview.avalsys.com"
+    expected_api_disabled="false"
+    expected_realtime_disabled="false"
     configuration="${configuration:-Debug}"
     ;;
   preview)
     expected_bundle="com.avalsys.duelwordsav"
     expected_variant="release"
     expected_api="https://api-account-av-preview.avalsys.com"
+    expected_api_disabled="false"
+    expected_realtime_disabled="false"
     configuration="${configuration:-Release}"
     ;;
   prod)
     expected_bundle="com.avalsys.duelwordsav"
     expected_variant="release"
     expected_api="https://api-account-av.avalsys.com"
+    expected_api_disabled="true"
+    expected_realtime_disabled="true"
     configuration="${configuration:-Release}"
     ;;
   *) echo "--env must be dev, preview, or prod." >&2; exit 2 ;;
@@ -85,8 +91,8 @@ convex_disabled="$(setting EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED)"
 [ "$keychain_service" = "com.avalsys.duelwordsav.account" ] || fail "keychain service mismatch"
 [ "$keychain_group" = "935PM55U6R.$expected_bundle" ] || fail "keychain access group mismatch"
 [ "$api_base_url" = "$expected_api" ] || fail "Account AV API target mismatch"
-[ "$api_disabled" = "false" ] || fail "Apps AV API must be enabled"
-[ "$convex_disabled" = "false" ] || fail "Convex realtime must be enabled"
+[ "$api_disabled" = "$expected_api_disabled" ] || fail "Apps AV API enablement mismatch"
+[ "$convex_disabled" = "$expected_realtime_disabled" ] || fail "Convex realtime enablement mismatch"
 case "$convex_url" in https://*.convex.cloud) ;; *) fail "Convex URL must use convex.cloud" ;; esac
 case "$publishable_key" in pk_test_*|pk_live_*) ;; *) fail "Account AV publishable key is missing or malformed" ;; esac
 if [ "$env_name" = "prod" ] && [[ "$publishable_key" != pk_live_* ]]; then
