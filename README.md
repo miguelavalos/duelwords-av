@@ -218,7 +218,11 @@ create, preview, join, refresh, Ready, share, and rematch completions no longer
 publish React state after the player has left the screen. This changes no room
 protocol or remote runtime. The focused Challenge/controller matrix, full
 56-file/307-test suite, TypeScript, Expo lint, React Doctor changed-scope scan,
-and diff hygiene pass locally.
+and diff hygiene pass locally. A fresh development-identity Release of the
+documented head then completed with `BUILD SUCCEEDED`, installed on the
+dedicated iPhone 17 simulator, and rendered Home plus the non-mutating
+Challenge setup screen. Its captured logs contained no matching error or
+repeated Account AV request; the task-owned 7.6 GB DerivedData was removed.
 
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500
