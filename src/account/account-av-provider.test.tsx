@@ -11,6 +11,10 @@ const clerkMocks = vi.hoisted(() => {
     sessionId: 'session-existing' as string | null,
     tokenCalls: 0,
   };
+  const authFlowState = {
+    isSignInLoaded: true,
+    isSignUpLoaded: true,
+  };
   const sessionGetToken = vi.fn(async () => 'activated-session-token');
   type TestSession = { getToken: typeof sessionGetToken; id: string };
   const clerk = {
@@ -32,6 +36,7 @@ const clerkMocks = vi.hoisted(() => {
   });
   return {
     authState,
+    authFlowState,
     clerk,
     sessionGetToken,
     setActive: clerk.setActive,
@@ -67,6 +72,11 @@ vi.mock('@clerk/expo', () => ({
 
 vi.mock('@clerk/expo/apple', () => ({
   useSignInWithApple: () => ({ startAppleAuthenticationFlow: clerkMocks.startAppleAuthenticationFlow }),
+}));
+
+vi.mock('@clerk/expo/legacy', () => ({
+  useSignIn: () => ({ isLoaded: clerkMocks.authFlowState.isSignInLoaded }),
+  useSignUp: () => ({ isLoaded: clerkMocks.authFlowState.isSignUpLoaded }),
 }));
 
 vi.mock('expo-secure-store', () => ({
@@ -112,6 +122,8 @@ describe('DuelWordsAccountAvProvider', () => {
     clerkMocks.authState.isSignedIn = true;
     clerkMocks.authState.sessionId = 'session-existing';
     clerkMocks.authState.tokenCalls = 0;
+    clerkMocks.authFlowState.isSignInLoaded = true;
+    clerkMocks.authFlowState.isSignUpLoaded = true;
     clerkMocks.sessionGetToken.mockReset().mockResolvedValue('activated-session-token');
     clerkMocks.setActive.mockReset().mockImplementation(async ({ session: sessionId }: { session: string }) => {
       const session = { getToken: clerkMocks.sessionGetToken, id: sessionId };
@@ -156,6 +168,19 @@ describe('DuelWordsAccountAvProvider', () => {
     await expect(accountValue?.refresh()).resolves.toBeUndefined();
     expect(fetchAccountAvIdentity).not.toHaveBeenCalled();
     expect(clerkMocks.authState.tokenCalls).toBe(0);
+  });
+
+  it('keeps provider sign-in unavailable until Clerk sign-in and sign-up resources are loaded', async () => {
+    clerkMocks.authFlowState.isSignInLoaded = false;
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+
+    expect(accountValue?.available).toBe(false);
+    await expect(accountValue?.signInWithApple()).rejects.toThrow('still loading');
+    expect(clerkMocks.startAppleAuthenticationFlow).not.toHaveBeenCalled();
   });
 
   afterEach(() => {
@@ -219,6 +244,44 @@ describe('DuelWordsAccountAvProvider', () => {
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('signed_in');
     expect(accountValue?.user?.id).toBe('user-apple');
+  });
+
+  it('refreshes Clerk after activation when the active session is not published synchronously', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+    clerkMocks.setActive.mockImplementationOnce(async ({ session: sessionId }: { session: string }) => {
+      clerkMocks.authState.isSignedIn = true;
+      clerkMocks.authState.sessionId = sessionId;
+    });
+    clerkMocks.clerk.client.reload.mockImplementationOnce(async () => {
+      const session = { getToken: clerkMocks.sessionGetToken, id: 'session-apple-delayed' };
+      clerkMocks.clerk.client.sessions = [session];
+      clerkMocks.clerk.session = session;
+      return clerkMocks.clerk.client;
+    });
+    clerkMocks.startAppleAuthenticationFlow.mockResolvedValue({
+      createdSessionId: 'session-apple-delayed',
+      setActive: clerkMocks.setActive,
+    });
+    fetchAccountAvIdentity.mockResolvedValue({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'Apple player', email: null, id: 'user-apple-delayed' },
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signInWithApple();
+    });
+
+    expect(clerkMocks.clerk.client.reload).toHaveBeenCalledTimes(1);
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('signed_in');
+    expect(accountValue?.user?.id).toBe('user-apple-delayed');
   });
 
   it('publishes the internal Account AV user before Google sign-in completes', async () => {

@@ -1,5 +1,6 @@
 import { ClerkProvider, useAuth, useClerk, useSSO } from '@clerk/expo';
 import { useSignInWithApple } from '@clerk/expo/apple';
+import { useSignIn as useLegacySignIn, useSignUp as useLegacySignUp } from '@clerk/expo/legacy';
 import * as SecureStore from 'expo-secure-store';
 import {
   createContext,
@@ -120,6 +121,8 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
 }) {
   const { getToken, isLoaded, isSignedIn, sessionId } = useAuth({ treatPendingAsSignedOut: false });
   const clerk = useClerk();
+  const { isLoaded: isSignInLoaded } = useLegacySignIn();
+  const { isLoaded: isSignUpLoaded } = useLegacySignUp();
   const { startAppleAuthenticationFlow } = useSignInWithApple();
   const { startSSOFlow } = useSSO();
   const [user, setUser] = useState<AccountAvInternalUser | null>(null);
@@ -128,6 +131,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
   const userRef = useRef<AccountAvInternalUser | null>(null);
   const clerkGetTokenRef = useRef(getToken);
   const automaticResolutionSessionRef = useRef<string | null>(null);
+  const providerFlowIsLoaded = isLoaded && isSignInLoaded && isSignUpLoaded;
 
   useEffect(() => {
     clerkGetTokenRef.current = getToken;
@@ -202,7 +206,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
   }, [clerk, identityCache]);
 
   const signInWithApple = useCallback(async () => {
-    if (!isLoaded) {
+    if (!providerFlowIsLoaded) {
       throw new Error('Account AV is still loading.');
     }
 
@@ -236,9 +240,13 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
       })) return;
       throw isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error;
     }
-  }, [clerk, isLoaded, publishIdentity, startAppleAuthenticationFlow]);
+  }, [clerk, providerFlowIsLoaded, publishIdentity, startAppleAuthenticationFlow]);
 
   const signInWithGoogle = useCallback(async () => {
+    if (!providerFlowIsLoaded) {
+      throw new Error('Account AV is still loading.');
+    }
+
     if (await restoreExistingSessionIfPossible({
       automaticResolutionSessionRef,
       clerk,
@@ -275,11 +283,11 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
       })) return;
       throw isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error;
     }
-  }, [clerk, iosSsoRedirectUrl, publishIdentity, startSSOFlow]);
+  }, [clerk, iosSsoRedirectUrl, providerFlowIsLoaded, publishIdentity, startSSOFlow]);
 
   const value = useMemo<AccountAvContextValue>(() => ({
     access,
-    available: isLoaded,
+    available: providerFlowIsLoaded,
     getToken: tokenProvider,
     refresh,
     signInWithApple,
@@ -287,7 +295,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
     signOut,
     status,
     user,
-  }), [access, isLoaded, refresh, signInWithApple, signInWithGoogle, signOut, status, tokenProvider, user]);
+  }), [access, providerFlowIsLoaded, refresh, signInWithApple, signInWithGoogle, signOut, status, tokenProvider, user]);
 
   return <AccountAvContext.Provider value={value}>{children}</AccountAvContext.Provider>;
 }
@@ -355,9 +363,14 @@ async function publishActivatedSessionIdentity(input: {
   setStatus: (status: AccountStatus) => void;
   userRef: { current: AccountAvInternalUser | null };
 }) {
-  const session = input.clerk.client?.sessions.find(({ id }) => id === input.activatedSessionId)
-    ?? (input.clerk.session?.id === input.activatedSessionId ? input.clerk.session : null);
   try {
+    let session = input.clerk.client?.sessions.find(({ id }) => id === input.activatedSessionId)
+      ?? (input.clerk.session?.id === input.activatedSessionId ? input.clerk.session : null);
+    if (!session) {
+      await input.clerk.client.reload();
+      session = input.clerk.client.sessions.find(({ id }) => id === input.activatedSessionId)
+        ?? (input.clerk.session?.id === input.activatedSessionId ? input.clerk.session : null);
+    }
     if (!session) {
       throw new Error('Account AV activated session is unavailable.');
     }
