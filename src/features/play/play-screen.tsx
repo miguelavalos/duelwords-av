@@ -52,7 +52,7 @@ export function PlayScreen() {
       </Pressable>
 
       <ModeCard
-        eyebrow="Live 1 vs 1"
+        eyebrow={copy.liveOneToOne}
         title={copy.challenge}
         detail={copy.challengeDetail}
         primary
@@ -65,7 +65,6 @@ export function PlayScreen() {
           title={copy.playAvi}
           detail={copy.playAviDetail}
           mark="AV"
-          avi
           compact={twoColumn}
           onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.playAvi, { gameLanguage, mode: 'bot_duel' }))}
         />
@@ -97,7 +96,7 @@ export function PlayScreen() {
   );
 }
 
-function ModeCard({ avi, compact, detail, eyebrow, mark, onPress, primary, title }: { avi?: boolean; compact?: boolean; detail: string; eyebrow?: string; mark: string; onPress: () => void; primary?: boolean; title: string }) {
+function ModeCard({ compact, detail, eyebrow, mark, onPress, primary, title }: { compact?: boolean; detail: string; eyebrow?: string; mark: string; onPress: () => void; primary?: boolean; title: string }) {
   const styles = useStyles();
   const { colors } = useAppTheme();
   return (
@@ -105,11 +104,9 @@ function ModeCard({ avi, compact, detail, eyebrow, mark, onPress, primary, title
       {({ pressed }) => (
         <PaperCard emphasized={primary} style={{ minHeight: compact ? 190 : 132, opacity: pressed ? 0.76 : 1 }}>
           <View style={styles.modeRow}>
-            {avi ? <AviArtwork size={72} /> : (
-              <View style={[styles.modeMark, { backgroundColor: primary ? colors.accent : colors.surfaceSoft, borderColor: primary ? colors.accent : colors.border }]}>
-                <Text style={[styles.modeMarkText, { color: primary ? colors.onAccent : colors.accent }]}>{mark}</Text>
-              </View>
-            )}
+            <View style={[styles.modeMark, { backgroundColor: primary ? colors.accent : colors.surfaceSoft, borderColor: primary ? colors.accent : colors.border }]}>
+              <Text style={[styles.modeMarkText, { color: primary ? colors.onAccent : colors.accent }]}>{mark}</Text>
+            </View>
             <View style={styles.modeCopy}>
               {eyebrow ? <InkEyebrow>{eyebrow}</InkEyebrow> : null}
               <Text style={styles.modeTitle}>{title}</Text>

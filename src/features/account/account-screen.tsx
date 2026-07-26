@@ -68,7 +68,7 @@ export function AccountScreen() {
       <View style={styles.headerCopy}>
         <InkEyebrow>Account AV</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
-        <Text style={styles.subtitle}>{signedIn ? 'Your identity, continuity, and DuelWords access.' : 'Play locally as a guest. Sign in only when account continuity adds value.'}</Text>
+        <Text style={styles.subtitle}>{signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.'}</Text>
       </View>
 
       <PaperCard emphasized>
@@ -94,10 +94,10 @@ export function AccountScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Continuity" detail={signedIn ? 'Account AV has verified this identity. DuelWords history sync remains disabled until its account-backed store ships.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
-        <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Cached · offline' : 'Connected') : 'Guest · local'} />
+        <SectionHeading title="Across your devices" detail={signedIn ? 'You are signed in with Account AV.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
+        <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Available offline' : 'Connected') : 'Guest · local'} />
         <InfoRow label="Game history" value={signedIn ? 'Stored on this device' : 'Local only'} />
-        <InfoRow label="Rivals" value={signedIn ? 'Account surface prepared' : 'Sign-in required'} />
+        <InfoRow label="Rivals" value={signedIn ? 'Coming later' : 'Sign-in required'} />
       </PaperCard>
 
       <PaperCard emphasized>

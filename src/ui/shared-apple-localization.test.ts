@@ -73,4 +73,21 @@ describe('shared Apple localization contract', () => {
     expect(splashSource).toContain('interfaceLocale={interfaceLocale}');
     expect(tabLayoutSource).toContain('interfaceLocale={interfaceLocale}');
   });
+
+  it('keeps obsolete implementation wording out of shared user-facing surfaces', () => {
+    const publicSwift = `${surfaceSource}\n${localizationSource}`;
+
+    for (const forbidden of [
+      'Server-selected only',
+      'secure HTTPS pages',
+      'Account surface prepared',
+      'Active Apps AV entitlement',
+      'Purchases are not offered in this build',
+      'entitlement authority',
+      'currently authenticated Account AV identity',
+      'Remote account data',
+    ]) {
+      expect(publicSwift).not.toContain(forbidden);
+    }
+  });
 });

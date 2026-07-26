@@ -58,22 +58,21 @@ export function ProScreen() {
         <View style={styles.heroCopy}>
           <InkEyebrow>DuelWords Pro</InkEyebrow>
           <Text accessibilityRole="header" aria-level={1} style={styles.title}>{isPro ? 'Pro is active.' : 'More of your story. None of the unfair stuff.'}</Text>
-          <Text style={styles.subtitle}>Pro can remove ads and expand private continuity. It never changes the word, timer, attempts, or feedback.</Text>
+          <Text style={styles.subtitle}>Pro keeps more private history. It never changes the word, timer, attempts, or feedback.</Text>
         </View>
       </View>
 
       <PaperCard emphasized>
         <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
         <Benefit title="No ads" detail="Keep Home and post-result surfaces quiet when Pro access is active." />
-        <Benefit title="Deeper private history" detail="Retain more finalized summaries without exposing full boards publicly." />
-        <Benefit title="Higher documented limits" detail="More challenge continuity while keeping one active live game at a time." />
-        <Benefit title="Account-backed access" detail="Apps AV remains the durable entitlement authority." />
+        <Benefit title="Deeper private history" detail="Keep more finished game summaries without exposing full boards publicly." />
+        <Benefit title="Account-backed access" detail="Your Apps AV account keeps Pro access with you." />
       </PaperCard>
 
       <PaperCard emphasized>
         <SectionHeading
           title={isPro ? 'Your access' : signedIn ? 'Subscriptions are coming later' : 'Account AV required'}
-          detail={isPro ? 'DuelWords AV received active Pro access from Apps AV.' : signedIn ? 'Subscriptions are not offered yet. Your account and local games remain unchanged.' : 'Sign in first so a future subscription can belong to your Apps AV identity.'}
+          detail={isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Subscriptions will be available later. Your account and local games remain unchanged.' : 'Sign in first so future Pro access can stay with your Apps AV account.'}
         />
         {isPro ? (
           <>
@@ -82,7 +81,7 @@ export function ProScreen() {
           </>
         ) : signedIn ? (
           <>
-            <AppButton disabled>Not offered in this build</AppButton>
+            <AppButton disabled>Not available yet</AppButton>
             <AppButton tone="quiet" onPress={() => void account.refresh()}>Refresh Apps AV access</AppButton>
           </>
         ) : (
@@ -95,7 +94,7 @@ export function ProScreen() {
         <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy</AppButton>
         <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>Support</AppButton>
       </View>
-      <Text style={styles.legal}>No App Store product is configured in build 0.1.0, so purchase and restore controls remain intentionally unavailable. Pro never changes the rules of a duel.</Text>
+      <Text style={styles.legal}>DuelWords Pro subscriptions will be available later. Pro never changes the rules of a duel.</Text>
     </AppScreen>
   );
 }

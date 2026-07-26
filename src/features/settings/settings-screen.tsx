@@ -120,7 +120,7 @@ export function SettingsScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Account & plan" detail="Account AV and DuelWords Pro remain separate from game-language preferences." />
+        <SectionHeading title="Account & plan" detail="Account AV and DuelWords Pro do not change your game language." />
         <View style={styles.buttonRow}>
           <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/(tabs)/account' as Href)}>{copy.account}</AppButton>
           <AppButton tone="quiet" style={styles.flexButton} onPress={() => router.push('/pro' as Href)}>DuelWords Pro</AppButton>
@@ -128,7 +128,7 @@ export function SettingsScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Privacy, help & legal" detail="Public product information opens through secure HTTPS pages." />
+        <SectionHeading title="Privacy, help & legal" detail="Public information and help open in your browser." />
         <ExternalRow label="Privacy policy" onPress={() => openLink(links.privacy)} />
         <ExternalRow label="Terms of use" onPress={() => openLink(links.terms)} />
         <ExternalRow label="Support" onPress={() => openLink(links.support)} />
@@ -141,7 +141,7 @@ export function SettingsScreen() {
         <SectionHeading title="About DuelWords AV" detail="Word duels with friends, or Avi." />
         <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Version</Text><Text selectable style={styles.aboutValue}>{version} ({build})</Text></View>
         <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Word lists</Text><Text style={styles.aboutValue}>Bundled EN / ES / CA / FR / DE</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Daily word</Text><Text style={styles.aboutValue}>Server-selected only</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Daily word</Text><Text style={styles.aboutValue}>One official word for everyone</Text></View>
       </PaperCard>
     </AppScreen>
   );

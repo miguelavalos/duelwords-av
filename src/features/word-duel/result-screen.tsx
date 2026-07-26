@@ -24,15 +24,20 @@ import {
 import {
   type WordDuelResultBoardRow,
   type WordDuelResultOutcome,
-  type WordDuelResultReason,
   type WordDuelResultViewModel,
 } from '@/game/word-duel-result/view-model';
 import { GAME_LANGUAGES, gameLanguageLabel as languageLabel } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard, type WordDuelBoardRow } from './components/word-duel-board';
+import {
+  buildLocalizedSafeShareText,
+  wordDuelResultCopy,
+  type WordDuelResultCopy,
+} from './result-copy';
 import {
   buildWordDuelHref,
   WORD_DUEL_ROUTE_PATHS,
@@ -47,6 +52,8 @@ type WordDuelResultScreenProps = {
 
 export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResultSource() }: WordDuelResultScreenProps) {
   const router = useRouter();
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = wordDuelResultCopy(interfaceLocale);
   const styles = useResultStyles();
   const { width } = useWindowDimensions();
   const sourceMode = resultSource.mode;
@@ -167,39 +174,40 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>Word Duel</Text>
-          <Text style={styles.title}>{outcomeTitle(result.outcome)}</Text>
+          <Text style={styles.kicker}>{copy.wordDuel}</Text>
+          <Text style={styles.title}>{copy.outcomeTitles[result.outcome]}</Text>
         </View>
         <AppButton tone="quiet" onPress={() => router.back()} style={styles.closeButton}>
-          Done
+          {copy.done}
         </AppButton>
       </View>
 
       <View style={[styles.resultBand, outcomeStyle(result.outcome, styles)]}>
         <View>
-          <Text style={styles.resultLabel}>{reasonLabel(result.resultReason)}</Text>
+          <Text style={styles.resultLabel}>{copy.reasonLabels[result.resultReason]}</Text>
           <Text style={styles.resultValue}>
             {showOpponentBoard
-              ? `${result.own.attemptsUsed}/${result.maxAttempts} vs ${result.opponent.attemptsUsed}/${result.maxAttempts}`
+              ? `${result.own.attemptsUsed}/${result.maxAttempts} ${copy.versus} ${result.opponent.attemptsUsed}/${result.maxAttempts}`
               : `${result.own.attemptsUsed}/${result.maxAttempts}`}
           </Text>
         </View>
         <View style={styles.targetBox}>
-          <Text style={styles.targetLabel}>Answer</Text>
-          <Text style={styles.targetValue}>{result.targetReveal.displayWord ?? 'Hidden'}</Text>
+          <Text style={styles.targetLabel}>{copy.answer}</Text>
+          <Text style={styles.targetValue}>{result.targetReveal.displayWord ?? copy.hidden}</Text>
         </View>
       </View>
 
       <View style={styles.summaryGrid}>
-        <SummaryPill label="Language" value={languageLabel(result.gameLanguage)} />
-        <SummaryPill label="Mode" value={modeLabel(sourceMode)} />
-        <SummaryPill label="Result" value={shortOutcomeLabel(result.outcome)} />
+        <SummaryPill label={copy.language} value={languageLabel(result.gameLanguage)} />
+        <SummaryPill label={copy.mode} value={copy.modeLabels[sourceMode]} />
+        <SummaryPill label={copy.result} value={copy.outcomeLabels[result.outcome]} />
       </View>
 
       <View style={styles.boardSection}>
         <CompletedBoard
           attemptsUsed={result.own.attemptsUsed}
-          boardLabel="Your path"
+          boardLabel={copy.yourPath}
+          copy={copy}
           rows={result.own.boardRows}
           solved={result.own.solved}
           tileSize={tileSize}
@@ -207,7 +215,8 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
         {showOpponentBoard ? (
           <CompletedBoard
             attemptsUsed={result.opponent.attemptsUsed}
-            boardLabel={`${result.opponent.safeDisplayName}'s path`}
+            boardLabel={copy.opponentPath(result.opponent.safeDisplayName)}
+            copy={copy}
             rows={result.opponent.boardRows}
             solved={result.opponent.solved}
             tileSize={tileSize}
@@ -215,10 +224,11 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
         ) : null}
       </View>
 
-      {shareVisible ? <SharePreview result={result} /> : null}
+      {shareVisible ? <SharePreview copy={copy} result={result} /> : null}
 
       {sourceMode === 'human_duel' ? (
         <RematchPanel
+          copy={copy}
           result={result}
           onAccept={acceptRematch}
           onCancel={cancelRematch}
@@ -240,13 +250,13 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
         <>
           <View style={styles.actionRow}>
             <AppButton disabled={pendingProposal} onPress={beginRematch} style={styles.actionButton}>
-              Rematch
+              {copy.rematch}
             </AppButton>
             <AppButton
               tone="secondary"
               onPress={() => setShareVisible((current) => !current)}
               style={styles.actionButton}>
-              Share result
+              {copy.shareResult}
             </AppButton>
           </View>
           <View style={styles.actionRow}>
@@ -258,10 +268,10 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
                 mode: 'human_duel',
               }))}
               style={styles.actionButton}>
-              Open accepted duel
+              {copy.openAcceptedDuel}
             </AppButton>
             <AppButton tone="quiet" onPress={() => router.push('/')} style={styles.actionButton}>
-              Home
+              {copy.home}
             </AppButton>
           </View>
         </>
@@ -270,16 +280,16 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
           <AppButton
             onPress={() => router.push(buildReplayHref(sourceMode, result.gameLanguage))}
             style={styles.actionButton}>
-            {replayLabel(sourceMode)}
+            {copy.replayLabels[sourceMode]}
           </AppButton>
           <AppButton
             tone="secondary"
             onPress={() => setShareVisible((current) => !current)}
             style={styles.actionButton}>
-            Share result
+            {copy.shareResult}
           </AppButton>
           <AppButton tone="quiet" onPress={() => router.push('/')} style={styles.actionButton}>
-            Home
+            {copy.home}
           </AppButton>
         </View>
       )}
@@ -300,12 +310,14 @@ function SummaryPill({ label, value }: { label: string; value: string }) {
 function CompletedBoard({
   attemptsUsed,
   boardLabel,
+  copy,
   rows,
   solved,
   tileSize,
 }: {
   attemptsUsed: number;
   boardLabel: string;
+  copy: WordDuelResultCopy;
   rows: WordDuelResultBoardRow[];
   solved: boolean;
   tileSize: number;
@@ -316,11 +328,11 @@ function CompletedBoard({
       <View style={styles.boardHeader}>
         <Text style={styles.boardTitle}>{boardLabel}</Text>
         <Text style={[styles.boardBadge, solved ? styles.boardBadgeSolved : styles.boardBadgeOpen]}>
-          {solved ? `${attemptsUsed} tries` : 'Not solved'}
+          {solved ? copy.tries(attemptsUsed) : copy.notSolved}
         </Text>
       </View>
       <WordDuelBoard
-        accessibilityLabel={`${boardLabel} completed board`}
+        accessibilityLabel={copy.completedBoard(boardLabel)}
         density="compact"
         rows={resultRowsToBoardRows(rows)}
         tileSize={tileSize}
@@ -336,20 +348,22 @@ function resultRowsToBoardRows(rows: readonly WordDuelResultBoardRow[]): WordDue
   }));
 }
 
-function SharePreview({ result }: { result: WordDuelResultViewModel }) {
+function SharePreview({ copy, result }: { copy: WordDuelResultCopy; result: WordDuelResultViewModel }) {
   const styles = useResultStyles();
+  const safeShareText = buildLocalizedSafeShareText(result, copy);
   return (
     <View style={styles.shareBox}>
-      <Text style={styles.shareTitle}>Share result</Text>
+      <Text style={styles.shareTitle}>{copy.shareResult}</Text>
       <Text selectable style={styles.shareText}>
-        {result.safeSharePreview.text}
+        {safeShareText}
       </Text>
-      <AppButton tone="secondary" onPress={() => void Share.share({ message: result.safeSharePreview.text })}>Open share sheet</AppButton>
+      <AppButton tone="secondary" onPress={() => void Share.share({ message: safeShareText })}>{copy.openShareSheet}</AppButton>
     </View>
   );
 }
 
 function RematchPanel({
+  copy,
   onAccept,
   onCancel,
   onDecline,
@@ -362,6 +376,7 @@ function RematchPanel({
   onViewAsRecipient,
   result,
 }: {
+  copy: WordDuelResultCopy;
   onAccept: () => void;
   onCancel: () => void;
   onDecline: () => void;
@@ -387,36 +402,36 @@ function RematchPanel({
     return (
       <View style={styles.rematchPanel}>
         <View>
-          <Text style={styles.rematchTitle}>{isOwner ? 'Waiting for rival' : 'Rematch request'}</Text>
+          <Text style={styles.rematchTitle}>{isOwner ? copy.waitingForRival : copy.rematchRequest}</Text>
           <Text style={styles.rematchText}>
-            {languageLabel(proposal.settings.gameLanguage)} · {proposal.remainingSeconds ?? 0}s left
+            {languageLabel(proposal.settings.gameLanguage)} · {copy.secondsLeft(proposal.remainingSeconds ?? 0)}
           </Text>
         </View>
         <View style={styles.panelButtonRow}>
           {isOwner ? (
             <>
               <AppButton tone="secondary" onPress={onViewAsRecipient} style={styles.panelButton}>
-                View rival
+                {copy.viewRival}
               </AppButton>
               <AppButton disabled={!proposal.canCancel} tone="quiet" onPress={onCancel} style={styles.panelButton}>
-                Cancel
+                {copy.cancel}
               </AppButton>
             </>
           ) : (
             <>
               <AppButton disabled={!proposal.canAccept} onPress={onAccept} style={styles.panelButton}>
-                Accept
+                {copy.accept}
               </AppButton>
               <AppButton disabled={!proposal.canDecline} tone="quiet" onPress={onDecline} style={styles.panelButton}>
-                Decline
+                {copy.decline}
               </AppButton>
               <AppButton tone="secondary" onPress={onViewAsOwner} style={styles.panelButton}>
-                View owner
+                {copy.viewOwner}
               </AppButton>
             </>
           )}
           <AppButton tone="quiet" onPress={onExpire} style={styles.panelButton}>
-            Expire
+            {copy.expire}
           </AppButton>
         </View>
       </View>
@@ -427,12 +442,12 @@ function RematchPanel({
     return (
       <View style={styles.rematchPanel}>
         <View>
-          <Text style={styles.rematchTitle}>Rematch accepted</Text>
+          <Text style={styles.rematchTitle}>{copy.rematchAccepted}</Text>
           <Text style={styles.rematchText}>
-            {languageLabel(proposal.settings.gameLanguage)} · next duel ready
+            {languageLabel(proposal.settings.gameLanguage)} · {copy.nextDuelReady}
           </Text>
         </View>
-        <AppButton onPress={onOpenAcceptedDuel}>Open duel</AppButton>
+        <AppButton onPress={onOpenAcceptedDuel}>{copy.openDuel}</AppButton>
       </View>
     );
   }
@@ -441,10 +456,10 @@ function RematchPanel({
     return (
       <View style={styles.rematchPanel}>
         <View>
-          <Text style={styles.rematchTitle}>{rematchTerminalTitle(proposal.status)}</Text>
-          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · no next duel opened</Text>
+          <Text style={styles.rematchTitle}>{copy.rematchTerminalTitles[proposal.status]}</Text>
+          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · {copy.noNextDuelOpened}</Text>
         </View>
-        <AppButton tone="secondary" onPress={onNewSetup}>New setup</AppButton>
+        <AppButton tone="secondary" onPress={onNewSetup}>{copy.newSetup}</AppButton>
       </View>
     );
   }
@@ -453,11 +468,11 @@ function RematchPanel({
     <View style={styles.rematchPanel}>
       <View style={styles.rematchHeader}>
         <View>
-          <Text style={styles.rematchTitle}>Rematch setup</Text>
-          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · five letters</Text>
+          <Text style={styles.rematchTitle}>{copy.rematchSetup}</Text>
+          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · {copy.fiveLetters}</Text>
         </View>
         <AppButton disabled={!proposal.canCancel} tone="quiet" onPress={onCancel} style={styles.panelButton}>
-          Cancel
+          {copy.cancel}
         </AppButton>
       </View>
       <View style={styles.segmented}>
@@ -477,55 +492,13 @@ function RematchPanel({
           );
         })}
       </View>
-      <AppButton disabled={!proposal.canSend} onPress={onSend}>Send rematch</AppButton>
+      <AppButton disabled={!proposal.canSend} onPress={onSend}>{copy.sendRematch}</AppButton>
     </View>
   );
 }
 
-function rematchTerminalTitle(status: WordDuelRematchProposal['status']): string {
-  if (status === 'declined') {
-    return 'Rematch declined';
-  }
-  if (status === 'expired') {
-    return 'Rematch expired';
-  }
-  if (status === 'cancelled') {
-    return 'Rematch cancelled';
-  }
-  return 'Rematch closed';
-}
-
-function modeLabel(mode: WordDuelResultMode): string {
-  if (mode === 'bot_duel') {
-    return 'Play Avi';
-  }
-  if (mode === 'daily_preview') {
-    return 'Daily';
-  }
-  if (mode === 'practice') {
-    return 'Practice';
-  }
-  if (mode === 'solo_practice') {
-    return 'Solo';
-  }
-  return '1v1';
-}
-
 function shouldShowOpponentBoard(mode: WordDuelResultMode, result: WordDuelResultViewModel): boolean {
   return mode === 'human_duel' || mode === 'bot_duel' || result.opponent.attemptsUsed > 0;
-}
-
-function replayLabel(mode: WordDuelResultMode): string {
-  if (mode === 'bot_duel') {
-    return 'Play Avi again';
-  }
-  if (mode === 'daily_preview') {
-    return 'Daily again';
-  }
-  if (mode === 'practice') {
-    return 'Practice again';
-  }
-  return 'Play again';
 }
 
 function buildReplayHref(mode: WordDuelResultMode, gameLanguage: GameLanguage) {
@@ -542,56 +515,6 @@ function buildReplayHref(mode: WordDuelResultMode, gameLanguage: GameLanguage) {
   return buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.active, { gameLanguage, mode: 'human_duel' });
 }
 
-function outcomeTitle(outcome: WordDuelResultOutcome): string {
-  if (outcome === 'win') {
-    return 'You won';
-  }
-  if (outcome === 'loss') {
-    return 'You lost';
-  }
-  if (outcome === 'draw') {
-    return 'Draw';
-  }
-  if (outcome === 'technical') {
-    return 'Result saved';
-  }
-  return 'No winner';
-}
-
-function shortOutcomeLabel(outcome: WordDuelResultOutcome): string {
-  if (outcome === 'win') {
-    return 'Win';
-  }
-  if (outcome === 'loss') {
-    return 'Loss';
-  }
-  if (outcome === 'draw') {
-    return 'Draw';
-  }
-  if (outcome === 'technical') {
-    return 'Technical';
-  }
-  return 'No winner';
-}
-
-function reasonLabel(reason: WordDuelResultReason): string {
-  if (reason === 'solved') {
-    return 'Solved faster';
-  }
-  if (reason === 'attempts_exhausted') {
-    return 'Attempts exhausted';
-  }
-  if (reason === 'round_timeout') {
-    return 'Timeout';
-  }
-  if (reason === 'technical_result') {
-    return 'Technical result';
-  }
-  if (reason === 'cancelled_before_first_round') {
-    return 'Cancelled';
-  }
-  return 'Final result';
-}
 
 function outcomeStyle(outcome: WordDuelResultOutcome, styles: ReturnType<typeof useResultStyles>) {
   if (outcome === 'win') {

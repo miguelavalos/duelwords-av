@@ -67,7 +67,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appName: 'DuelWords AV',
     play: 'Play',
     rivals: 'Rivals',
-    stats: 'Stats',
+    stats: 'Estadísticas',
     settings: 'Settings',
     wordDuel: 'Word Duel',
     practice: 'Practice',

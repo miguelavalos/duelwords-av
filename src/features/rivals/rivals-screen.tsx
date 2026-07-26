@@ -24,24 +24,24 @@ export function RivalsScreen() {
       {width < 760 ? <DuelWordsWordmark compact /> : null}
       <View style={styles.header}>
         <InkEyebrow>{copy.rivals}</InkEyebrow>
-        <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{signedIn ? 'Ready for a rematch.' : 'Rivals without a social network.'}</Text>
-        <Text style={[styles.subtitle, { color: colors.textMuted }]}>{signedIn ? 'Recent and favorite rivals will appear after account-owned summaries ship.' : 'Invite links stay guest-friendly. Account AV is only needed to remember people safely.'}</Text>
+        <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{signedIn ? copy.rivalsTitleSignedIn : copy.rivalsTitleGuest}</Text>
+        <Text style={[styles.subtitle, { color: colors.textMuted }]}>{signedIn ? copy.rivalsDetailSignedIn : copy.rivalsDetailGuest}</Text>
       </View>
 
       <PaperCard emphasized>
         <View style={styles.emptyHero}>
           <AviArtwork size={112} />
           <View style={styles.emptyCopy}>
-            <SectionHeading title={signedIn ? 'No saved rivals yet' : 'Play first, remember later'} detail={signedIn ? 'Finish a human duel to create an eligible recent-rival summary. No public profile or precise online status is exposed.' : 'Create a normal private invite now. Sign in only if you want recent rivals, favorites, blocks, or direct invites.'} />
+            <SectionHeading title={signedIn ? copy.rivalsEmptyTitleSignedIn : copy.rivalsEmptyTitleGuest} detail={signedIn ? copy.rivalsEmptyDetailSignedIn : copy.rivalsEmptyDetailGuest} />
           </View>
         </View>
         <AppButton onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}>{copy.challenge}</AppButton>
-        {!signedIn ? <AppButton disabled={!account.available} tone="secondary" onPress={() => router.push('/auth?mode=signIn' as Href)}>Sign in to remember rivals</AppButton> : null}
+        {!signedIn ? <AppButton disabled={!account.available} tone="secondary" onPress={() => router.push('/auth?mode=signIn' as Href)}>{copy.rivalsSignIn}</AppButton> : null}
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Privacy by design" detail="DuelWords does not import contacts or expose friend lists, handles, profile search, exact presence, or opponent relationship state." />
-        <View style={styles.pillRow}>{['Private invites', 'Favorites', 'Blocks', 'No public profiles'].map((label) => <View key={label} style={[styles.pill, { backgroundColor: colors.surfaceSoft }]}><Text style={[styles.pillText, { color: colors.text }]}>{label}</Text></View>)}</View>
+        <SectionHeading title={copy.rivalsPrivacyTitle} detail={copy.rivalsPrivacyDetail} />
+        <View style={styles.pillRow}>{copy.rivalsPrivacyPills.map((label) => <View key={label} style={[styles.pill, { backgroundColor: colors.surfaceSoft }]}><Text style={[styles.pillText, { color: colors.text }]}>{label}</Text></View>)}</View>
       </PaperCard>
     </AppScreen>
   );

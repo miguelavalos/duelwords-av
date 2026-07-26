@@ -39,4 +39,19 @@ describe('public duel copy', () => {
     expect(publicDuelT('es', 'couldNotSync')).not.toBe(publicDuelT('en', 'couldNotSync'));
     expect(publicDuelT('es', 'safeRealtimeUnavailable')).not.toBe(publicDuelT('en', 'safeRealtimeUnavailable'));
   });
+
+  it('keeps service names and implementation vocabulary out of availability messages', () => {
+    for (const locale of locales) {
+      const visible = [
+        publicDuelT(locale, 'apiDisabled'),
+        publicDuelT(locale, 'onlineUnavailable'),
+        publicDuelT(locale, 'realtimeDisabled'),
+        publicDuelT(locale, 'runtimeDescription'),
+        publicDuelT(locale, 'safeRealtimeRequired'),
+        publicDuelT(locale, 'safeRealtimeUnavailable'),
+      ].join(' ');
+
+      expect(visible).not.toMatch(/\b(API|server|backend|runtime|realtime|Convex|Clerk|entitlement|HTTPS|build)\b/i);
+    }
+  });
 });

@@ -314,7 +314,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       />
 
       <WordDuelBoard
-        accessibilityLabel="Play Avi local board"
+        accessibilityLabel={copy.playAviBoardLabel}
         density={compactViewport ? 'compact' : 'regular'}
         rows={boardRows}
         tileSize={tileSize}

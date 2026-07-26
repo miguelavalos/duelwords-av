@@ -134,7 +134,7 @@ export function AccountDeletionScreen() {
 
       {!signedIn ? (
         <PaperCard emphasized>
-          <SectionHeading title="Sign in first" detail="Account deletion is available for the currently authenticated Account AV identity." />
+          <SectionHeading title="Sign in first" detail="You can review and delete the Account AV account currently signed in." />
           <AppButton onPress={() => router.replace('/auth?mode=signIn' as Href)}>Sign in to Account AV</AppButton>
         </PaperCard>
       ) : null}
@@ -146,7 +146,7 @@ export function AccountDeletionScreen() {
               <AviArtwork size={92} source={aviAssets.warning} />
               <View style={styles.aviCopy}>
                 <Text style={styles.cardTitle}>Avi’s checklist</Text>
-                <Text style={styles.cardDetail}>Remote Account AV data and connected app links are removed. Practice and other local-only data on this device are separate.</Text>
+                <Text style={styles.cardDetail}>Your shared Account AV data and connected app links are removed. Practice data on this device remains separate.</Text>
               </View>
             </View>
           </PaperCard>
@@ -208,7 +208,7 @@ function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'b
     <PaperCard>
       <SectionHeading
         title={kind === 'blocker' ? 'Action needed before retrying' : 'Review these consequences'}
-        detail={kind === 'blocker' ? 'Account AV reports a recovery condition.' : 'These do not prevent deletion, but billing may continue until cancelled with its provider.'}
+        detail={kind === 'blocker' ? 'Some items need your attention before deletion can continue.' : 'These do not prevent deletion, but billing may continue until cancelled with its provider.'}
       />
       {items.map((item) => (
         <View key={`${item.type}-${item.appId ?? item.label}-${item.detail ?? ''}`} style={styles.item}>

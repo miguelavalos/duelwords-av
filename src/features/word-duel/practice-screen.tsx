@@ -37,6 +37,7 @@ import {
   finalizeWordDuelResult,
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
+import { publicDuelT } from './public-duel-copy';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
 
 type WordDuelPracticeScreenProps = {
@@ -169,7 +170,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
           mode: 'practice',
           routeGroup: 'play',
         });
-        setMessage('Could not open result');
+        setMessage(publicDuelT(interfaceLocale, 'couldNotOpenResult'));
       })
       .finally(() => {
         isOpeningResultRef.current = false;
@@ -219,7 +220,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       </View>
 
       <WordDuelBoard
-        accessibilityLabel="Local Word Duel board"
+        accessibilityLabel={copy.practiceBoardLabel}
         density={compactViewport ? 'compact' : 'regular'}
         rows={rows}
         tileSize={tileSize}

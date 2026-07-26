@@ -15,18 +15,18 @@ export function DailyScreen() {
   const { colors } = useAppTheme();
   return (
     <AppScreen>
-      <View style={styles.topBar}><DuelWordsWordmark compact /><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
+      <View style={styles.topBar}><DuelWordsWordmark compact /><AppButton tone="quiet" onPress={() => router.back()}>{copy.close}</AppButton></View>
       <View style={styles.hero}>
         <AviArtwork size={138} source={aviAssets.warning} />
         <View style={styles.heroCopy}>
           <InkEyebrow>{copy.daily}</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>Today&apos;s duel is taking a little longer.</Text>
-          <Text style={[styles.detail, { color: colors.textMuted }]}>Daily will open when the official word service is ready. In the meantime, Practice and Play Avi are available offline.</Text>
+          <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{copy.dailyUnavailableTitle}</Text>
+          <Text style={[styles.detail, { color: colors.textMuted }]}>{copy.dailyUnavailableDetail}</Text>
         </View>
       </View>
       <PaperCard emphasized>
-        <SectionHeading title="One word, fair for everyone" detail="Daily uses one server-selected word for every player in the chosen language. It never swaps in a different local target." />
-        <AppButton onPress={() => router.back()}>Back to Home</AppButton>
+        <SectionHeading title={copy.dailyFairTitle} detail={copy.dailyFairDetail} />
+        <AppButton onPress={() => router.back()}>{copy.backHome}</AppButton>
       </PaperCard>
     </AppScreen>
   );
