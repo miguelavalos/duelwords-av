@@ -21,6 +21,7 @@ export function ProductSplashScreen() {
     let active = true;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     void AccessibilityInfo.isReduceMotionEnabled().then((reduceMotion) => {
+      if (!active) return;
       timeout = setTimeout(() => { if (active) setReady(true); }, reduceMotion ? 220 : 1250);
     });
     return () => {
