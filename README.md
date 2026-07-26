@@ -198,6 +198,21 @@ TypeScript, Expo lint, both static iOS identities, Swift package tests, and diff
 hygiene. React Doctor reports no issues in the current changed scope; its remote
 score service was unavailable.
 
+A fresh current-head follow-up on public commit `8e5d75a` repeated the direct
+comparison using the installed DuelWords and Tune AV binaries on separate
+iPhone 17 simulators. Home retains the same shared header and transparent
+floating footer composition; the one contextual Home Avi is independent of the
+footer's cropped Avi navigation control. Settings and guest Account contain no
+additional Avi illustration, and the expanded Account AV sheet retains Tune's
+geometry, provider order, companion placement, guest escape, and legal
+hierarchy. The installed iPad build then revalidated Home, Settings, guest
+Account, the persistent sidebar, and the centered five-language game picker;
+Catalan `TAMBE` was accepted from the bundled local dictionary without a server
+request. The current gate passes 56 test files/307 tests, TypeScript, Expo lint,
+the development iOS identity check, and diff hygiene. React Doctor reports no
+errors; its 72 full-scan findings are warnings, including the deliberately
+stable Account AV callbacks that prevent identity request loops.
+
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500
 for valid guesses/targets. All five target decks are frequency-ranked from
