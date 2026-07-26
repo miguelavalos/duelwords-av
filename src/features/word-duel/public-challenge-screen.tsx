@@ -41,6 +41,8 @@ import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { ActiveDuelScreen } from './active-duel-screen';
 import { GameLanguagePicker } from './components/game-language-picker';
 import { WordDuelBoard } from './components/word-duel-board';
+import { createExclusiveActionGate } from './exclusive-action-gate';
+import { shouldRearmActiveDuelOpening, shouldShowLobbyRefresh } from './public-challenge-flow';
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
 import { publicDuelT } from './public-duel-copy';
 import { canRequestRematch } from './rematch-state';
@@ -86,6 +88,8 @@ export function PublicWordDuelChallengeScreen({
   const initialPreviewKeyRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
   const lobbyRealtimeRefreshInFlightRef = useRef(false);
+  const mountedRef = useRef(true);
+  const [actionGate] = useState(createExclusiveActionGate);
   const [busyAction, setBusyAction] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState(
     () => createWordDuelDefaultGuestDisplayName(randomUUID),
@@ -100,6 +104,13 @@ export function PublicWordDuelChallengeScreen({
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const isBusy = busyAction !== null;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     const realtime = lobbyState?.realtime;
@@ -259,6 +270,7 @@ export function PublicWordDuelChallengeScreen({
       lobbyState?.lobby.status !== 'active_round'
       || activeController !== null
       || activeOpeningStartedRef.current
+      || busyAction !== null
       || !runtime.ok
     ) {
       return;
@@ -289,21 +301,28 @@ export function PublicWordDuelChallengeScreen({
     };
     // runAction is component-local; the refs make this initialization idempotent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeController, lobbyState, runtime]);
+  }, [activeController, busyAction, lobbyState, runtime]);
 
   async function runAction(actionName: string, action: () => Promise<void>) {
-    if (busyAction !== null) {
+    if (!actionGate.tryStart(actionName)) {
       return;
     }
 
-    setBusyAction(actionName);
-    setStatusMessage(null);
+    if (mountedRef.current) {
+      setBusyAction(actionName);
+      setStatusMessage(null);
+    }
     try {
       await action();
     } catch (error) {
-      setStatusMessage(actionErrorMessage(error, copy));
+      if (mountedRef.current) {
+        setStatusMessage(actionErrorMessage(error, copy));
+      }
     } finally {
-      setBusyAction(null);
+      actionGate.finish(actionName);
+      if (mountedRef.current) {
+        setBusyAction(null);
+      }
     }
   }
 
@@ -416,6 +435,12 @@ export function PublicWordDuelChallengeScreen({
 
     void runAction('refresh', async () => {
       const nextState = await controller.refreshLobby({ nowMs: Date.now(), state: lobbyState });
+      if (shouldRearmActiveDuelOpening({
+        hasActiveController: activeController !== null,
+        lobbyStatus: nextState.lobby.status,
+      })) {
+        activeOpeningStartedRef.current = false;
+      }
       setLobbyState(nextState);
       setStatusMessage(copy('lobbyUpdated'));
     });
@@ -841,7 +866,7 @@ function PublicLobbyPanel({
             {copy('ready')}
           </AppButton>
         ) : null}
-        {lobby.status !== 'invite_review' && lobby.status !== 'active_round' ? (
+        {shouldShowLobbyRefresh(lobby.status) ? (
           <AppButton disabled={busy} tone="secondary" onPress={onRefresh} style={styles.actionButton}>
             {copy('refreshLobby')}
           </AppButton>
