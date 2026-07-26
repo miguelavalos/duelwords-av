@@ -213,6 +213,13 @@ the development iOS identity check, and diff hygiene. React Doctor reports no
 errors; its 72 full-scan findings are warnings, including the deliberately
 stable Account AV callbacks that prevent identity request loops.
 
+Public commit `e4f8881` adds a final Challenge lifecycle guard: countdown,
+create, preview, join, refresh, Ready, share, and rematch completions no longer
+publish React state after the player has left the screen. This changes no room
+protocol or remote runtime. The focused Challenge/controller matrix, full
+56-file/307-test suite, TypeScript, Expo lint, React Doctor changed-scope scan,
+and diff hygiene pass locally.
+
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500
 for valid guesses/targets. All five target decks are frequency-ranked from
