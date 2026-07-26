@@ -174,10 +174,17 @@ executable source contract locks this distinction. The same pass reviewed the
 complete English player-facing copy for implementation terminology, completed
 the equivalent ES/CA/FR/DE interface copy, and exercised Spanish Practice plus
 automatic Play Avi on iPhone and the adaptive Home/Play Avi layouts on iPad.
-The full local gate passes 53 test files/294 tests, TypeScript, Expo lint,
-development iOS config, and diff hygiene. React Doctor reports no errors and
-eight advisory warnings in the changed scope; they are existing memoization and
-state-grouping recommendations, not new runtime failures.
+The follow-up player-copy pass fixed the base Stats labels, passes the selected
+interface locale into the Practice keyboard, localizes its terminal actions,
+and removes placeholder share links and the duplicate in-game share preview.
+Fresh Release interaction proved Spanish `Enviar`, `Borrar`, and
+`Abrir resultado` on iPhone. Result actions now stack at full width on compact
+phones so translated labels never split awkwardly, while the same artifact
+keeps a balanced horizontal action row on iPad. The full local gate passes 55
+test files/300 tests, TypeScript, Expo lint, both static iOS identities, and
+diff hygiene. React Doctor reports no errors and three advisory warnings in the
+changed scope; they are existing memoization and state-grouping recommendations,
+not new runtime failures.
 
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500

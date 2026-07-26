@@ -183,5 +183,5 @@ export function buildLocalizedSafeShareText(
   const language = gameLanguageLabel(result.gameLanguage);
   const attempts = `${result.own.attemptsUsed}/${result.maxAttempts}`;
 
-  return `DuelWords AV · ${copy.wordDuel}\n${outcome} · ${language} · ${attempts}\n${copy.challengeMe}: <link>`;
+  return `DuelWords AV · ${copy.wordDuel}\n${outcome} · ${language} · ${attempts}`;
 }

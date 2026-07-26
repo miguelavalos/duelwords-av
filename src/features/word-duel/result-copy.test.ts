@@ -36,7 +36,8 @@ describe('word duel result copy', () => {
 
     expect(spanishShare).toContain('Duelo de palabras');
     expect(spanishShare).toContain('Victoria');
-    expect(spanishShare).toContain('Rétame: <link>');
+    expect(spanishShare).toContain('Victoria · Español · 4/6');
+    expect(spanishShare).not.toContain('<link>');
     expect(spanishShare).not.toMatch(/FIELD|CIVIC|ADORE|MERIT|CRANE|SLATE|BRIDE|PIECE/i);
   });
 

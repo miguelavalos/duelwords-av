@@ -244,7 +244,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
               void openResult();
             }}
             style={styles.actionButton}>
-            {isOpeningResult ? 'Opening...' : 'Open result'}
+            {isOpeningResult ? t(interfaceLocale, 'opening') : t(interfaceLocale, 'openResult')}
           </AppButton>
           <AppButton onPress={() => reset(advanceTargetSelection(targetSelection))} style={styles.actionButton}>
             {t(interfaceLocale, 'newGame')}
@@ -256,6 +256,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
         density={compactViewport ? 'compact' : 'regular'}
         disabled={gameState.status !== 'playing'}
         feedbackByKey={keyFeedback}
+        interfaceLocale={interfaceLocale}
         keyRows={WORD_DUEL_KEY_ROWS[gameState.language]}
         onKeyPress={handleKey}
       />
@@ -280,7 +281,7 @@ function rejectionMessage(rejection: GuessRejection, locale: Parameters<typeof t
     return t(locale, 'tooManyLetters');
   }
   if (rejection === 'game_over') {
-    return 'This local game is finished';
+    return t(locale, 'gameFinished');
   }
   return t(locale, 'invalidWord');
 }

@@ -56,6 +56,7 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
   const copy = wordDuelResultCopy(interfaceLocale);
   const styles = useResultStyles();
   const { width } = useWindowDimensions();
+  const compactActions = width < 480;
   const sourceMode = resultSource.mode;
   const [result, setResult] = useState(() => resultSource.viewModel);
   const [shareVisible, setShareVisible] = useState(false);
@@ -248,18 +249,18 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 
       {sourceMode === 'human_duel' ? (
         <>
-          <View style={styles.actionRow}>
-            <AppButton disabled={pendingProposal} onPress={beginRematch} style={styles.actionButton}>
+          <View style={[styles.actionRow, compactActions && styles.actionRowCompact]}>
+            <AppButton disabled={pendingProposal} onPress={beginRematch} style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
               {copy.rematch}
             </AppButton>
             <AppButton
               tone="secondary"
               onPress={() => setShareVisible((current) => !current)}
-              style={styles.actionButton}>
+              style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
               {copy.shareResult}
             </AppButton>
           </View>
-          <View style={styles.actionRow}>
+          <View style={[styles.actionRow, compactActions && styles.actionRowCompact]}>
             <AppButton
               disabled={!canOpenAcceptedDuel}
               tone="quiet"
@@ -267,28 +268,28 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
                 gameLanguage: result.rematch.settings.gameLanguage,
                 mode: 'human_duel',
               }))}
-              style={styles.actionButton}>
+              style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
               {copy.openAcceptedDuel}
             </AppButton>
-            <AppButton tone="quiet" onPress={() => router.push('/')} style={styles.actionButton}>
+            <AppButton tone="quiet" onPress={() => router.push('/')} style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
               {copy.home}
             </AppButton>
           </View>
         </>
       ) : (
-        <View style={styles.actionRow}>
+        <View style={[styles.actionRow, compactActions && styles.actionRowCompact]}>
           <AppButton
             onPress={() => router.push(buildReplayHref(sourceMode, result.gameLanguage))}
-            style={styles.actionButton}>
+            style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
             {copy.replayLabels[sourceMode]}
           </AppButton>
           <AppButton
             tone="secondary"
             onPress={() => setShareVisible((current) => !current)}
-            style={styles.actionButton}>
+            style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
             {copy.shareResult}
           </AppButton>
-          <AppButton tone="quiet" onPress={() => router.push('/')} style={styles.actionButton}>
+          <AppButton tone="quiet" onPress={() => router.push('/')} style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
             {copy.home}
           </AppButton>
         </View>
@@ -773,6 +774,13 @@ function useResultStyles() {
   actionButton: {
     flexBasis: 112,
     flexGrow: 1,
+  },
+  actionRowCompact: {
+    flexDirection: 'column',
+    flexWrap: 'nowrap',
+  },
+  actionButtonCompact: {
+    width: '100%',
   },
   }), [colors]);
 }

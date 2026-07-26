@@ -332,15 +332,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         </View>
       ) : null}
 
-      {viewModel.safeSharePreview ? (
-        <View style={styles.shareBox}>
-          <Text style={styles.shareTitle}>{viewModel.safeSharePreview.ctaLabel}</Text>
-          <Text selectable style={styles.shareText}>
-            {viewModel.safeSharePreview.text}
-          </Text>
-        </View>
-      ) : null}
-
       {viewModel.status !== 'active' ? (
         <View style={styles.actionRow}>
           <AppButton
@@ -834,44 +825,6 @@ function usePlayAviStyles() {
     color: colors.accent,
     fontWeight: '900',
     letterSpacing: 0,
-  },
-  shareBox: {
-    gap: spacing.xs,
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    padding: spacing.md,
-  },
-  shareTitle: {
-    color: colors.text,
-    fontWeight: '900',
-  },
-  shareText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    lineHeight: 19,
-  },
-  adSlot: {
-    minHeight: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceStrong,
-    gap: spacing.xs,
-  },
-  adLabel: {
-    color: colors.text,
-    fontSize: typeScale.small,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  adText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '700',
   },
   actionRow: {
     flexDirection: 'row',
