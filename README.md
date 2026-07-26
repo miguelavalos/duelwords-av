@@ -256,8 +256,9 @@ pnpm run test
 pnpm run verify
 pnpm run lint
 pnpm run web
-# From the AVALSYS workspace root, for focused React changes:
-npx -y react-doctor@latest public/duelwords-av --verbose --scope changed
+pnpm run doctor:react:diff
+# Use the full scan for a baseline or broad cleanup:
+pnpm run doctor:react
 ```
 
 Reproduce the checked-in Gaia-derived target ranking and CA/FR/DE allowlists:

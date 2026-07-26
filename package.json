@@ -31,6 +31,9 @@
     "test": "vitest run",
     "verify": "pnpm run config:ios:check && pnpm run typecheck && pnpm run test",
     "lint": "expo lint",
+    "doctor:react": "pnpm dlx react-doctor@latest . --verbose",
+    "doctor:react:diff": "pnpm dlx react-doctor@latest . --verbose --scope changed",
+    "doctor:react:score": "pnpm dlx react-doctor@latest . --score",
     "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
