@@ -131,9 +131,13 @@ Current implementation slice:
   must agree before it is called supported end to end.
 - Account AV/Clerk native integration and the already-uploaded internal build 1
   exist. DuelWords production API/Convex runtime was separately activated and
-  passed its controlled full-flow smoke on 2026-07-26; production native config
-  may therefore enable connected Challenge. Live ads, real Pro purchase, push,
-  a replacement TestFlight build, or any further production deploy still
+  passed its controlled full-flow smoke on 2026-07-26. The later five-language
+  rollout applied D1 migrations `0071` and `0072`, activated the pinned
+  CA/FR/DE dictionaries and matching validators, and passed one bounded
+  production lifecycle smoke per new language through rematch and next lobby.
+  Production native config may therefore enable all five Challenge languages.
+  Signed physical iPhone+iPad acceptance, live ads, real Pro purchase, push, a
+  replacement TestFlight build, or any further production deploy still
   requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google
