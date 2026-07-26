@@ -300,6 +300,28 @@ convenience `duelwordsav://` scheme: iOS may hand the URL to the older build.
 Use separate dedicated simulators, or the bundle-specific
 `com.avalsys.duelwordsav://` scheme when validating the production app.
 
+## Simulator-only signed-in surface review
+
+DuelWords follows Tune AV's explicit launch-environment pattern for reviewing
+signed-in common surfaces without creating an account or contacting Account AV.
+Set `DUELWORDSAV_UI_TESTS=1` when launching an iOS Simulator process, choose
+`DUELWORDSAV_UI_TESTS_ACCOUNT_MODE=free` or `pro`, and optionally select one of
+`eligible`, `blocked`, `inprogress`, `completed`, or `error` with
+`DUELWORDSAV_UI_TEST_ACCOUNT_DELETION`.
+
+This is visual and interaction evidence only. The runtime is compiled behind
+`targetEnvironment(simulator)`, exports a tokenless local Account AV identity,
+and suppresses provider sign-in, account refresh/sign-out, and every deletion
+mutation. A physical device or a build without the explicit opt-in cannot
+activate it. Never use the fixture as proof of Clerk persistence, real
+entitlement restoration, StoreKit purchase/restore, or account deletion.
+
+The reusable cross-app rule is the safety shape—not these DuelWords-prefixed
+variables: explicit opt-in, compile-time Simulator isolation, a tokenless local
+provider, blocked remote actions, and a final URL-only log check. Deterministic
+manual runs are allowed on Home; recurring execution or monitoring belongs
+exclusively on Office Openspace.
+
 ## iOS release-candidate configuration
 
 The checked-in Expo configuration still describes the already-uploaded first

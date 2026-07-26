@@ -16,6 +16,7 @@ import { fetchAccountAvIdentity, type AccountAvInternalUser, type DuelWordsAcces
 import { getDuelWordsAccountAvConfig } from './account-av-config';
 import { AccountAuthCancelledError, isAccountAuthCancellation } from './account-auth-errors';
 import { activateCreatedSession } from './account-session-activation';
+import { getSimulatorUITestAccountMode } from './simulator-ui-test-runtime';
 
 type AccountStatus = 'account_error' | 'guest' | 'loading' | 'signed_in' | 'signed_in_offline' | 'unavailable';
 
@@ -45,11 +46,23 @@ const NO_ACCOUNT: AccountAvContextValue = {
   user: null,
 };
 const AccountAvContext = createContext<AccountAvContextValue>(NO_ACCOUNT);
+const UI_TEST_ACCOUNT = {
+  free: createSimulatorUITestAccount('free'),
+  pro: createSimulatorUITestAccount('pro'),
+} as const;
 
 export function DuelWordsAccountAvProvider({ children }: { children: ReactNode }) {
   const config = useMemo(() => getDuelWordsAccountAvConfig(), []);
   const tokenCache = useMemo(() => createTokenCache(config), [config]);
   const identityCache = useMemo(() => createIdentityCache(config), [config]);
+  const simulatorUITestAccountMode = getSimulatorUITestAccountMode();
+  if (simulatorUITestAccountMode) {
+    return (
+      <AccountAvContext.Provider value={UI_TEST_ACCOUNT[simulatorUITestAccountMode]}>
+        {children}
+      </AccountAvContext.Provider>
+    );
+  }
   if (!config.publishableKey || !config.accountApiBaseUrl) {
     return <AccountAvContext.Provider value={NO_ACCOUNT}>{children}</AccountAvContext.Provider>;
   }
@@ -59,6 +72,27 @@ export function DuelWordsAccountAvProvider({ children }: { children: ReactNode }
       <AccountAvRuntime baseUrl={config.accountApiBaseUrl} identityCache={identityCache}>{children}</AccountAvRuntime>
     </ClerkProvider>
   );
+}
+
+function createSimulatorUITestAccount(mode: 'free' | 'pro'): AccountAvContextValue {
+  return {
+    access: {
+      accessMode: mode === 'pro' ? 'signedInPro' : 'signedInFree',
+      planTier: mode,
+    },
+    available: true,
+    getToken: async () => null,
+    refresh: async () => undefined,
+    signInWithApple: async () => undefined,
+    signInWithGoogle: async () => undefined,
+    signOut: async () => undefined,
+    status: 'signed_in',
+    user: {
+      displayName: 'UI Test User',
+      email: 'ui-test@example.test',
+      id: 'duelwords-simulator-ui-test-user',
+    },
+  };
 }
 
 type CachedIdentity = { access: DuelWordsAccess; user: AccountAvInternalUser };

@@ -1,5 +1,8 @@
 #import <React/RCTViewManager.h>
 
+@interface RCT_EXTERN_MODULE(DuelWordsSimulatorUITestRuntime, NSObject)
+@end
+
 @interface RCT_EXTERN_MODULE(DuelWordsSharedAppleViewManager, RCTViewManager)
 RCT_EXPORT_VIEW_PROPERTY(surface, NSString)
 RCT_EXPORT_VIEW_PROPERTY(selectedTab, NSString)

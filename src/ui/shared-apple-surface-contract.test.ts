@@ -17,6 +17,7 @@ function source(relativePath: string): string {
 const surfaceTypeSource = source('src/ui/shared-apple-surface.types.ts');
 const nativeSurfaceSource = source('native/shared-apple/DuelWordsSharedSurfaces.swift');
 const experienceSource = source('native/shared-apple/DuelWordsAppExperience.swift');
+const nativeViewManagerSource = source('native/shared-apple/DuelWordsSharedAppleViewManager.swift');
 
 const requiredRouteSurfaces = [
   ['src/features/launch/product-splash-screen.tsx', 'surface="splash"'],
@@ -86,5 +87,27 @@ describe('shared Apps AV native-surface contract', () => {
     expect(tabLayoutSource).toContain('backgroundColor: isSharedAppleSurfaceAvailable && !tablet ? \'transparent\'');
     expect(tabLayoutSource).toContain('<Tabs.Screen name="settings" options={{ href: null');
     expect(tabLayoutSource).toContain('<Tabs.Screen name="account" options={{ href: null');
+  });
+
+  it('keeps signed-in visual fixtures local to explicitly opted-in iOS simulators', () => {
+    expect(nativeViewManagerSource).toContain('#if targetEnvironment(simulator)');
+    expect(nativeViewManagerSource).toContain('environment["DUELWORDSAV_UI_TESTS"] == "1"');
+    expect(nativeViewManagerSource).toContain('DUELWORDSAV_UI_TESTS_ACCOUNT_MODE');
+    expect(nativeViewManagerSource).toContain('DUELWORDSAV_UI_TEST_ACCOUNT_DELETION');
+    expect(nativeViewManagerSource).toContain('#else\n        return self\n#endif');
+    for (const suppressedAction of [
+      'confirmDelete',
+      'finalizeDelete',
+      'refreshAccount',
+      'retry',
+      'signInApple',
+      'signInGoogle',
+    ]) {
+      expect(nativeViewManagerSource).toContain(`"${suppressedAction}"`);
+    }
+    expect(nativeViewManagerSource).not.toContain('fetch(');
+
+    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsSharedAppleViewManager.swift'))
+      .toBe(nativeViewManagerSource);
   });
 });
