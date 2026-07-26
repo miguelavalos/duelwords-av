@@ -31,7 +31,7 @@ import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { GAME_LANGUAGES, type InterfaceLocale } from '@/i18n/locales';
+import type { InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -41,6 +41,7 @@ import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { ActiveDuelScreen } from './active-duel-screen';
 import { accountRoomDisplayName } from './account-room-name';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
 import { shouldRearmActiveDuelOpening, shouldShowLobbyRefresh } from './public-challenge-flow';
@@ -56,14 +57,6 @@ type PublicWordDuelChallengeScreenProps = {
 };
 
 type GuestActor = Extract<DuelWordsApiActor, { actorType: 'guest_session' }>;
-
-const CONNECTED_GAME_LANGUAGES = GAME_LANGUAGES.filter(
-  (language) => language.code === 'en' || language.code === 'es',
-);
-
-function connectedGameLanguage(language: GameLanguage): GameLanguage {
-  return language === 'es' ? 'es' : 'en';
-}
 
 export function PublicWordDuelChallengeScreen({
   initialGameLanguage,

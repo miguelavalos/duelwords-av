@@ -17,8 +17,8 @@ Current implementation slice:
 
 - Expo Router SDK 57 shell.
 - Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
-  system/light/dark appearance. Word language is game-scoped: local modes use
-  EN/ES/CA/FR/DE and connected Challenge remains EN/ES. Web uses browser
+  system/light/dark appearance. Word language is game-scoped: local modes and
+  connected Challenge use EN/ES/CA/FR/DE. Web uses browser
   `localStorage`; native uses `expo-sqlite/localStorage/install`. Keep the
   platform-specific boundary so web never imports the SQLite WASM worker.
 - Public guest-first `/word-duel/challenge` entry linked from Play. It supports
@@ -124,9 +124,11 @@ Current implementation slice:
   not repeat a target before exhausting that deck. Keep target selection local;
   only a future official Daily may obtain its chosen word from the server.
 - Account AV/Clerk native integration and the already-uploaded internal build 1
-  exist. No enabled-by-default Convex/API runtime, live ads, real Pro purchase,
-  push, replacement TestFlight build, or production deploy is authorized by
-  this repository state.
+  exist. DuelWords production API/Convex runtime was separately activated and
+  passed its controlled full-flow smoke on 2026-07-26; production native config
+  may therefore enable connected Challenge. Live ads, real Pro purchase, push,
+  a replacement TestFlight build, or any further production deploy still
+  requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google
   returns a created session, activate that exact session and end the provider

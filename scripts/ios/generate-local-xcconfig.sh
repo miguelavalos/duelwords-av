@@ -15,7 +15,7 @@ Usage:
 
 Generates the ignored Xcode build environment used by Expo's JavaScript bundle
 phase. Infisical remains read-only; no value is printed or committed. Production
-keeps connected Challenge and Convex fail-closed while Account AV stays enabled.
+uses the separately activated Account AV API and DuelWords Convex runtime.
 USAGE
 }
 
@@ -61,8 +61,8 @@ case "$env_name" in
     build_variant="release"
     bundle_identifier="com.avalsys.duelwordsav"
     api_base_url="https://api-account-av.avalsys.com"
-    api_disabled="true"
-    realtime_disabled="true"
+    api_disabled="false"
+    realtime_disabled="false"
     sentry_environment="production"
     ;;
   *)

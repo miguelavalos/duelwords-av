@@ -34,8 +34,8 @@ case "$env_name" in
     expected_bundle="com.avalsys.duelwordsav"
     expected_variant="release"
     expected_api="https://api-account-av.avalsys.com"
-    expected_api_disabled="true"
-    expected_realtime_disabled="true"
+    expected_api_disabled="false"
+    expected_realtime_disabled="false"
     configuration="${configuration:-Release}"
     ;;
   *) echo "--env must be dev, preview, or prod." >&2; exit 2 ;;

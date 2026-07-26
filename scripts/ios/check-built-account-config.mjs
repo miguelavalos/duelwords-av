@@ -42,6 +42,12 @@ expect('Account AV API target', normalizeUrl(account?.apiBaseUrl) === expectedAp
 expect('Account AV keychain service', account?.keychainService === 'com.avalsys.duelwordsav.account');
 expect('Account AV keychain access group', account?.keychainAccessGroup === `935PM55U6R.${expectedBundle}`);
 expect('DuelWords iOS build variant', duelWords?.iosBuildVariant === expectedVariant);
+expect('DuelWords Apps AV API enabled', duelWords?.apiDisabled === false);
+expect('DuelWords Convex realtime enabled', duelWords?.convexRealtimeDisabled === false);
+expect(
+  'DuelWords Convex cloud target',
+  typeof duelWords?.convexUrl === 'string' && /^https:\/\/[^/]+\.convex\.cloud\/?$/.test(duelWords.convexUrl),
+);
 
 console.log(`DuelWords AV built Account AV config passed for ${environment}.`);
 

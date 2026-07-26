@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
+import { GAME_LANGUAGES } from '@/i18n/locales';
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import {
@@ -453,7 +454,7 @@ export function ConnectedRuntimeScreen() {
       </View>
 
       <View style={styles.segmented}>
-        {(['en', 'es'] as const).map((language) => {
+        {GAME_LANGUAGES.map(({ code: language }) => {
           const selected = language === gameLanguage;
           return (
             <Pressable
