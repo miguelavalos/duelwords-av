@@ -18,6 +18,7 @@ const surfaceTypeSource = source('src/ui/shared-apple-surface.types.ts');
 const nativeSurfaceSource = source('native/shared-apple/DuelWordsSharedSurfaces.swift');
 const experienceSource = source('native/shared-apple/DuelWordsAppExperience.swift');
 const nativeViewManagerSource = source('native/shared-apple/DuelWordsSharedAppleViewManager.swift');
+const nativeL10nSource = source('native/shared-apple/DuelWordsNativeL10n.swift');
 
 const requiredRouteSurfaces = [
   ['src/features/launch/product-splash-screen.tsx', 'surface="splash"'],
@@ -109,5 +110,29 @@ describe('shared Apps AV native-surface contract', () => {
 
     expect(source('ios/DuelWordsAV/SharedApple/DuelWordsSharedAppleViewManager.swift'))
       .toBe(nativeViewManagerSource);
+  });
+
+  it('localizes account-deletion service copy without exposing technical fixture language', () => {
+    expect(nativeSurfaceSource).toContain('detail: props.localized(props.deletionError)');
+    expect(nativeSurfaceSource).toContain('title: props.localized(item.label)');
+    expect(nativeSurfaceSource).toContain('detail: item.detail.map { props.localized($0) }');
+
+    for (const playerFacingCopy of [
+      'Account AV needs your review',
+      'Open Account AV and resolve the issue before trying again.',
+      'Deletion request received',
+      'You can now finish the final account deletion step.',
+      'Connected Apps AV',
+      'Review local game data separately on each device.',
+      'We could not check whether the account can be deleted. No account changes were made.',
+    ]) {
+      expect(nativeViewManagerSource, playerFacingCopy).toContain(playerFacingCopy);
+      expect(nativeL10nSource.split(`"${playerFacingCopy}":`).length - 1, playerFacingCopy).toBe(4);
+    }
+
+    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsSharedSurfaces.swift'))
+      .toBe(nativeSurfaceSource);
+    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsNativeL10n.swift'))
+      .toBe(nativeL10nSource);
   });
 });

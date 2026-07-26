@@ -645,7 +645,7 @@ private struct DuelWordsDeleteAccountSurface: View {
             AVSettingsStatusCard(
                 systemImage: "exclamationmark.triangle",
                 title: props.localized("Account AV could not continue"),
-                detail: props.deletionError
+                detail: props.localized(props.deletionError)
             )
             AVSettingsButton(title: props.localized("Retry safely"), style: .secondary, action: { action("retry", nil) })
         }
@@ -740,8 +740,8 @@ private struct DuelWordsDeleteAccountSurface: View {
         AVSettingsDetailList(items: items.enumerated().map { index, item in
             AVSettingsDetailListItem(
                 id: "\(prefix).\(item.type).\(index)",
-                title: item.label,
-                detail: item.detail,
+                title: props.localized(item.label),
+                detail: item.detail.map { props.localized($0) },
                 linkTitle: item.managementUrl == nil ? nil : props.localized("Manage"),
                 linkDestination: item.managementUrl.flatMap(URL.init(string:)),
                 accessibilityIdentifier: "accountDeletion.\(prefix).\(item.type)"

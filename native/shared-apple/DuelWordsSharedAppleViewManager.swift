@@ -240,7 +240,7 @@ private extension DuelWordsSharedSurfaceProps {
         switch scenario {
         case "blocked":
             return (
-                blockers: #"[{"type":"eligibilityUnavailable","label":"Account AV needs attention","detail":"Resolve the protected account condition before retrying.","managementUrl":null}]"#,
+                blockers: #"[{"type":"eligibilityUnavailable","label":"Account AV needs your review","detail":"Open Account AV and resolve the issue before trying again.","managementUrl":null}]"#,
                 canFinalize: false,
                 error: "",
                 status: "blocked",
@@ -249,14 +249,14 @@ private extension DuelWordsSharedSurfaceProps {
         case "completed":
             return ("[]", false, "", "completed", "[]")
         case "error":
-            return ("[]", false, "Account AV could not verify deletion eligibility. No account changes were made.", "", "[]")
+            return ("[]", false, "We could not check whether the account can be deleted. No account changes were made.", "", "[]")
         case "inprogress":
             return (
                 "[]",
                 true,
                 "",
                 "inProgress",
-                #"[{"type":"deletionInProgress","label":"Deletion request recorded","detail":"The protected identity step can now be finalized.","managementUrl":null}]"#
+                #"[{"type":"deletionInProgress","label":"Deletion request received","detail":"You can now finish the final account deletion step.","managementUrl":null}]"#
             )
         case "eligible":
             return (
@@ -264,7 +264,7 @@ private extension DuelWordsSharedSurfaceProps {
                 false,
                 "",
                 "eligible",
-                #"[{"type":"linkedApp","label":"Connected Apps AV products","detail":"Review local-only data on each device separately.","managementUrl":null}]"#
+                #"[{"type":"linkedApp","label":"Connected Apps AV","detail":"Review local game data separately on each device.","managementUrl":null}]"#
             )
         default:
             return ("[]", false, "", "", "[]")

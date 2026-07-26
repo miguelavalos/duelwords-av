@@ -180,11 +180,23 @@ and removes placeholder share links and the duplicate in-game share preview.
 Fresh Release interaction proved Spanish `Enviar`, `Borrar`, and
 `Abrir resultado` on iPhone. Result actions now stack at full width on compact
 phones so translated labels never split awkwardly, while the same artifact
-keeps a balanced horizontal action row on iPad. The full local gate passes 55
-test files/300 tests, TypeScript, Expo lint, both static iOS identities, and
-diff hygiene. React Doctor reports no errors and three advisory warnings in the
-changed scope; they are existing memoization and state-grouping recommendations,
-not new runtime failures.
+keeps a balanced horizontal action row on iPad.
+
+The current-head common-surface matrix also ran DuelWords and Tune AV in
+separate iPhone simulators. Both use one contextual Avi in Home plus the
+separate cropped Avi navigation control; the footer treatment is chrome and is
+not part of the per-screen content-artwork count. Settings contains no content
+Avi, and the iPad sidebar uses the same system navigation glyph rather than a
+second illustration. Account, paywall, and deletion were then exercised on
+iPhone and iPad with deterministic no-network fixtures. Shared Apps AV commit
+`d85fce7` lets long localized paywall titles wrap to two lines. DuelWords now
+localizes account-deletion service notices and errors in EN/ES/CA/FR/DE and
+uses player-facing fixture copy instead of protected-workflow terminology.
+Spanish runtime evidence confirms that the eligible-deletion notice no longer
+falls back to English. The full local gate passes 55 test files/301 tests,
+TypeScript, Expo lint, both static iOS identities, Swift package tests, and diff
+hygiene. React Doctor reports no issues in the current changed scope; its remote
+score service was unavailable.
 
 The same 2026-07-25 pass expands offline play to five languages. Bundled counts
 are EN 8,734/750, ES 7,571/750, CA 5,481/500, FR 5,654/500, and DE 6,299/500

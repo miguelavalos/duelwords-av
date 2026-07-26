@@ -180,6 +180,13 @@ struct DuelWordsNativeL10n {
         "No account changes were made. Retry or open the public support page.": "No se ha realizado ningún cambio en la cuenta. Reintenta o abre la página pública de soporte.",
         "Open deletion support": "Abrir soporte de eliminación",
         "Manage": "Gestionar",
+        "Account AV needs your review": "Account AV necesita que lo revises",
+        "Open Account AV and resolve the issue before trying again.": "Abre Account AV y resuelve el problema antes de volver a intentarlo.",
+        "Deletion request received": "Solicitud de eliminación recibida",
+        "You can now finish the final account deletion step.": "Ya puedes completar el último paso para eliminar la cuenta.",
+        "Connected Apps AV": "Apps AV conectadas",
+        "Review local game data separately on each device.": "Revisa por separado los datos locales de juego de cada dispositivo.",
+        "We could not check whether the account can be deleted. No account changes were made.": "No hemos podido comprobar si la cuenta se puede eliminar. No se ha realizado ningún cambio.",
     ]
 
     private static let catalan: [String: String] = [
@@ -328,6 +335,13 @@ struct DuelWordsNativeL10n {
         "No account changes were made. Retry or open the public support page.": "No s'ha fet cap canvi al compte. Torna-ho a provar o obre la pàgina pública de suport.",
         "Open deletion support": "Obre el suport d'eliminació",
         "Manage": "Gestiona",
+        "Account AV needs your review": "Account AV necessita que el revisis",
+        "Open Account AV and resolve the issue before trying again.": "Obre Account AV i resol el problema abans de tornar-ho a provar.",
+        "Deletion request received": "Sol·licitud d'eliminació rebuda",
+        "You can now finish the final account deletion step.": "Ja pots completar l'últim pas per eliminar el compte.",
+        "Connected Apps AV": "Apps AV connectades",
+        "Review local game data separately on each device.": "Revisa per separat les dades locals de joc de cada dispositiu.",
+        "We could not check whether the account can be deleted. No account changes were made.": "No hem pogut comprovar si el compte es pot eliminar. No s'hi ha fet cap canvi.",
     ]
 
     private static let french: [String: String] = [
@@ -476,6 +490,13 @@ struct DuelWordsNativeL10n {
         "No account changes were made. Retry or open the public support page.": "Aucune modification du compte n'a été effectuée. Réessayez ou ouvrez la page publique d'assistance.",
         "Open deletion support": "Ouvrir l'assistance de suppression",
         "Manage": "Gérer",
+        "Account AV needs your review": "Account AV nécessite votre attention",
+        "Open Account AV and resolve the issue before trying again.": "Ouvrez Account AV et résolvez le problème avant de réessayer.",
+        "Deletion request received": "Demande de suppression reçue",
+        "You can now finish the final account deletion step.": "Vous pouvez maintenant terminer la dernière étape de suppression du compte.",
+        "Connected Apps AV": "Apps AV connectées",
+        "Review local game data separately on each device.": "Vérifiez séparément les données de jeu locales sur chaque appareil.",
+        "We could not check whether the account can be deleted. No account changes were made.": "Nous n'avons pas pu vérifier si le compte peut être supprimé. Aucune modification n'a été effectuée.",
     ]
 
     private static let german: [String: String] = [
@@ -624,5 +645,12 @@ struct DuelWordsNativeL10n {
         "No account changes were made. Retry or open the public support page.": "Es wurden keine Kontoänderungen vorgenommen. Versuche es erneut oder öffne die öffentliche Supportseite.",
         "Open deletion support": "Löschsupport öffnen",
         "Manage": "Verwalten",
+        "Account AV needs your review": "Account AV benötigt deine Prüfung",
+        "Open Account AV and resolve the issue before trying again.": "Öffne Account AV und behebe das Problem, bevor du es erneut versuchst.",
+        "Deletion request received": "Löschanfrage erhalten",
+        "You can now finish the final account deletion step.": "Du kannst jetzt den letzten Schritt der Kontolöschung abschließen.",
+        "Connected Apps AV": "Verbundene Apps AV",
+        "Review local game data separately on each device.": "Prüfe lokale Spieldaten auf jedem Gerät separat.",
+        "We could not check whether the account can be deleted. No account changes were made.": "Wir konnten nicht prüfen, ob das Konto gelöscht werden kann. Es wurden keine Änderungen vorgenommen.",
     ]
 }
