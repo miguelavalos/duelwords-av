@@ -24,7 +24,7 @@ export function AccountDeletionScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
   const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
-  const config = useMemo(getDuelWordsAccountAvConfig, []);
+  const config = useMemo(() => getDuelWordsAccountAvConfig(), []);
   const [eligibility, setEligibility] = useState<AccountDeletionEligibility | null>(null);
   const [confirmation, setConfirmation] = useState('');
   const [state, setState] = useState<LoadState>('idle');
@@ -48,40 +48,44 @@ export function AccountDeletionScreen() {
 
   useEffect(() => { void refresh(); }, [refresh]);
 
-  async function submitDeletion(confirmationValue = confirmation) {
-    if (!config.accountApiBaseUrl || confirmationValue.trim().toUpperCase() !== 'DELETE') return;
-    setState('requesting');
-    setError(null);
-    try {
-      const next = await requestAccountDeletion({ baseUrl: config.accountApiBaseUrl, getToken: account.getToken });
-      setEligibility(next);
-      setConfirmation('');
-      if (next.status === 'completed') await finishCompletedDeletion();
-      else setState('idle');
-    } catch {
-      setError('The deletion request was not accepted. Your account remains unchanged; refresh and try again.');
-      setState('failed');
-    }
-  }
-
-  async function submitFinalization() {
-    if (!config.accountApiBaseUrl) return;
-    setState('finalizing');
-    setError(null);
-    try {
-      const next = await finalizeAccountDeletion({ baseUrl: config.accountApiBaseUrl, getToken: account.getToken });
-      setEligibility(next);
-      if (next.status === 'completed') await finishCompletedDeletion();
-      else setState('idle');
-    } catch {
-      setError('Account AV could not finish deletion. The existing request remains recorded; refresh to check its status.');
-      setState('failed');
-    }
-  }
-
   async function finishCompletedDeletion() {
     await account.signOut().catch(() => undefined);
     router.replace('/(tabs)/play' as Href);
+  }
+
+  function submitDeletion(confirmationValue = confirmation) {
+    if (!config.accountApiBaseUrl || confirmationValue.trim().toUpperCase() !== 'DELETE') return;
+    setState('requesting');
+    setError(null);
+    void requestAccountDeletion({ baseUrl: config.accountApiBaseUrl, getToken: account.getToken })
+      .then((next) => {
+        setEligibility(next);
+        setConfirmation('');
+        if (next.status === 'completed') return finishCompletedDeletion();
+        setState('idle');
+        return undefined;
+      })
+      .catch(() => {
+        setError('The deletion request was not accepted. Your account remains unchanged; refresh and try again.');
+        setState('failed');
+      });
+  }
+
+  function submitFinalization() {
+    if (!config.accountApiBaseUrl) return;
+    setState('finalizing');
+    setError(null);
+    void finalizeAccountDeletion({ baseUrl: config.accountApiBaseUrl, getToken: account.getToken })
+      .then((next) => {
+        setEligibility(next);
+        if (next.status === 'completed') return finishCompletedDeletion();
+        setState('idle');
+        return undefined;
+      })
+      .catch(() => {
+        setError('Account AV could not finish deletion. The existing request remains recorded; refresh to check its status.');
+        setState('failed');
+      });
   }
 
   const busy = state === 'loading' || state === 'requesting' || state === 'finalizing';
@@ -206,8 +210,8 @@ function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'b
         title={kind === 'blocker' ? 'Action needed before retrying' : 'Review these consequences'}
         detail={kind === 'blocker' ? 'Account AV reports a recovery condition.' : 'These do not prevent deletion, but billing may continue until cancelled with its provider.'}
       />
-      {items.map((item, index) => (
-        <View key={`${item.type}-${item.appId ?? index}`} style={styles.item}>
+      {items.map((item) => (
+        <View key={`${item.type}-${item.appId ?? item.label}-${item.detail ?? ''}`} style={styles.item}>
           <View style={[styles.itemMark, kind === 'blocker' ? styles.itemMarkDanger : styles.itemMarkWarning]} />
           <View style={styles.itemCopy}><Text style={styles.itemTitle}>{item.label}</Text>{item.detail ? <Text style={styles.itemDetail}>{item.detail}</Text> : null}</View>
           {item.managementUrl ? <AppButton tone="quiet" onPress={() => void Linking.openURL(item.managementUrl!)}>Manage</AppButton> : null}
@@ -219,7 +223,7 @@ function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'b
 
 function useStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
     sharedScreen: { flex: 1 },
     modalBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
@@ -244,5 +248,5 @@ function useStyles() {
     itemTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '800' },
     itemDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 18 },
     placeholder: { color: colors.textMuted },
-  }), [colors]);
+  });
 }

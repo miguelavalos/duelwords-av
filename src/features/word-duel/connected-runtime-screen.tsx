@@ -84,15 +84,15 @@ export function ConnectedRuntimeScreen() {
     };
   }, [activeController]);
 
-  async function runAction(actionName: string, action: () => Promise<void>) {
+  function runAction(actionName: string, action: () => Promise<void>) {
     setBusyAction(actionName);
-    try {
-      await action();
-    } catch (error) {
-      setStatusDetail(error instanceof Error ? error.message : 'Action unavailable');
-    } finally {
-      setBusyAction(null);
-    }
+    return action()
+      .catch((error: unknown) => {
+        setStatusDetail(error instanceof Error ? error.message : 'Action unavailable');
+      })
+      .finally(() => {
+        setBusyAction(null);
+      });
   }
 
   function createInvite() {
@@ -307,6 +307,24 @@ export function ConnectedRuntimeScreen() {
     });
   }
 
+  function continueAcceptedRematchProposal(proposal: DuelWordsApiRematchProposal, status: string): boolean {
+    if (!proposal.nextGame || !lobbyState?.session.actor) {
+      return false;
+    }
+
+    const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor: lobbyState.session.actor,
+      nowMs: Date.now(),
+      proposal,
+    });
+    setLobbyState(nextLobbyState);
+    setActiveController(null);
+    setActiveModel(null);
+    setGuess('');
+    setStatusDetail(status);
+    return true;
+  }
+
   function refreshRematchProposal() {
     if (!activeController) {
       return;
@@ -326,24 +344,6 @@ export function ConnectedRuntimeScreen() {
 
       setStatusDetail('Rematch found');
     });
-  }
-
-  function continueAcceptedRematchProposal(proposal: DuelWordsApiRematchProposal, status: string): boolean {
-    if (!proposal.nextGame || !lobbyState?.session.actor) {
-      return false;
-    }
-
-    const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
-      actor: lobbyState.session.actor,
-      nowMs: Date.now(),
-      proposal,
-    });
-    setLobbyState(nextLobbyState);
-    setActiveController(null);
-    setActiveModel(null);
-    setGuess('');
-    setStatusDetail(status);
-    return true;
   }
 
   function acceptRematchProposal() {
@@ -771,7 +771,7 @@ function reactionLabel(reaction: ActiveDuelReactionId): string {
 
 function useConnectedStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
   header: {
     minHeight: 50,
     flexDirection: 'row',
@@ -990,5 +990,5 @@ function useConnectedStyles() {
   disabled: {
     opacity: 0.45,
   },
-  }), [colors]);
+  });
 }

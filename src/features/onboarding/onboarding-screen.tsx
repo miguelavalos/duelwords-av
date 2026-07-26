@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { type Href, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -48,7 +48,7 @@ export function AccountOnboardingExperience({
   const tablet = width >= 820;
   const contentMinHeight = Math.max(0, height - insets.top - insets.bottom);
 
-  async function handleSharedAction(event: SharedAppleAction) {
+  function handleSharedAction(event: SharedAppleAction) {
     if (event.action === 'skip') {
       onFinish('/(tabs)/play' as Href);
       return;
@@ -59,17 +59,16 @@ export function AccountOnboardingExperience({
 
     setActiveProvider(provider);
     setAuthError('');
-    try {
-      if (provider === 'apple') await account.signInWithApple();
-      else await account.signInWithGoogle();
-      onFinish('/(tabs)/account' as Href);
-    } catch (error) {
-      if (!isAccountAuthCancellation(error)) {
-        setAuthError(copy.accountSignInFailed);
-      }
-    } finally {
-      setActiveProvider('');
-    }
+    const signIn = provider === 'apple' ? account.signInWithApple() : account.signInWithGoogle();
+
+    void signIn
+      .then(() => onFinish('/(tabs)/account' as Href))
+      .catch((error: unknown) => {
+        if (!isAccountAuthCancellation(error)) {
+          setAuthError(copy.accountSignInFailed);
+        }
+      })
+      .finally(() => setActiveProvider(''));
   }
 
   if (isSharedAppleSurfaceAvailable) {
@@ -156,7 +155,7 @@ export function AccountOnboardingExperience({
 
 function useStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
     root: { flex: 1, backgroundColor: colors.background, overflow: 'hidden' },
     safeArea: { flex: 1 },
     scrollContent: { flexGrow: 1 },
@@ -176,5 +175,5 @@ function useStyles() {
     ctaAvi: { position: 'absolute', top: -98, right: -2, width: 146, height: 150 },
     ctaPrimary: { overflow: 'hidden', width: '100%', paddingVertical: 16, borderRadius: 28, backgroundColor: colors.accent, color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: '700', textAlign: 'center' },
     ctaSecondary: { color: colors.text, opacity: 0.84, fontSize: 13, lineHeight: 18, fontWeight: '700', textAlign: 'center' },
-  }), [colors]);
+  });
 }

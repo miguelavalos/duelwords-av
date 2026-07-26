@@ -37,24 +37,23 @@ export function AccountAuthOptionsPanel({
     Animated.spring(translateY, { damping: 18, mass: 1, stiffness: 190, toValue: 0, useNativeDriver: true }).start();
   }, [translateY]);
 
-  async function startSignIn(provider: AuthProvider) {
+  function startSignIn(provider: AuthProvider) {
     if (activeProvider) return;
     setActiveProvider(provider);
-    try {
-      if (provider === 'apple') await account.signInWithApple();
-      else await account.signInWithGoogle();
-      onAuthenticated();
-    } catch (error) {
-      if (!isAccountAuthCancellation(error)) {
-        Alert.alert(
-          'Could not continue',
-          'Account AV could not complete sign-in. Please try again.',
-          [{ text: 'Close', style: 'cancel' }],
-        );
-      }
-    } finally {
-      setActiveProvider(null);
-    }
+    const signIn = provider === 'apple' ? account.signInWithApple() : account.signInWithGoogle();
+
+    void signIn
+      .then(onAuthenticated)
+      .catch((error: unknown) => {
+        if (!isAccountAuthCancellation(error)) {
+          Alert.alert(
+            'Could not continue',
+            'Account AV could not complete sign-in. Please try again.',
+            [{ text: 'Close', style: 'cancel' }],
+          );
+        }
+      })
+      .finally(() => setActiveProvider(null));
   }
 
   return (
@@ -158,7 +157,7 @@ const staticStyles = StyleSheet.create({
 
 function useStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
     panel: {
       position: 'relative',
       paddingHorizontal: 24,
@@ -189,5 +188,5 @@ function useStyles() {
     skipLabel: { color: colors.text, opacity: 0.82, fontSize: 15, lineHeight: 20, fontWeight: '700' },
     legal: { color: colors.text, opacity: 0.66, paddingTop: 12, fontSize: 13, lineHeight: 18, fontWeight: '500', textAlign: 'center' },
     link: { color: colors.text, fontWeight: '800', textDecorationLine: 'underline' },
-  }), [colors]);
+  });
 }

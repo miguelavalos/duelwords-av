@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection } from '@/game/word-duel-engine';
@@ -177,7 +177,7 @@ export function WordDuelSoloDailyScreen({
     setMessage('');
   }
 
-  async function openResult() {
+  function openResult() {
     if (isOpeningResultRef.current) {
       return;
     }
@@ -186,10 +186,9 @@ export function WordDuelSoloDailyScreen({
     setIsOpeningResult(true);
     setMessage('');
 
-    try {
-      const outcome = viewModel.status === 'won' ? 'win' : 'no_winner';
-      const reason = viewModel.status === 'won' ? 'solved' : 'attempts_exhausted';
-      const handoff = await finalizeWordDuelResult({
+    const outcome = viewModel.status === 'won' ? 'win' : 'no_winner';
+    const reason = viewModel.status === 'won' ? 'solved' : 'attempts_exhausted';
+    void finalizeWordDuelResult({
         gameLanguage: viewModel.gameLanguage,
         outcome,
         own: {
@@ -198,27 +197,29 @@ export function WordDuelSoloDailyScreen({
         },
         resultReason: reason,
         targetDisplayWord: session.target.displayWord,
-      }, { mode: viewModel.mode });
-
-      router.push(buildWordDuelResultHandoffHref({
+      }, { mode: viewModel.mode })
+      .then((handoff) => {
+        router.push(buildWordDuelResultHandoffHref({
         gameLanguage: viewModel.gameLanguage,
         mode: viewModel.mode,
         outcome,
         reason,
         ...handoff,
-      }));
-    } catch (error) {
-      reportWordDuelResultFinalizationError({
-        error,
-        gameLanguage: viewModel.gameLanguage,
-        mode: viewModel.mode,
-        routeGroup: 'play',
+        }));
+      })
+      .catch((error: unknown) => {
+        reportWordDuelResultFinalizationError({
+          error,
+          gameLanguage: viewModel.gameLanguage,
+          mode: viewModel.mode,
+          routeGroup: 'play',
+        });
+        setMessage('Could not open result');
+      })
+      .finally(() => {
+        isOpeningResultRef.current = false;
+        setIsOpeningResult(false);
       });
-      setMessage('Could not open result');
-    } finally {
-      isOpeningResultRef.current = false;
-      setIsOpeningResult(false);
-    }
   }
 
   return (
@@ -378,7 +379,7 @@ function ResultLine({ label, target }: { label: string; target: string }) {
 
 function useSoloDailyStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -523,5 +524,5 @@ function useSoloDailyStyles() {
     flexBasis: 112,
     flexGrow: 1,
   },
-  }), [colors]);
+  });
 }

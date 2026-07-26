@@ -156,23 +156,26 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     setStatus('guest');
   }, [clerk, identityCache]);
 
-  const signInWithApple = useCallback(async () => {
-    try {
-      if (!isLoaded) throw new Error('Account AV is still loading.');
-      const result = await startAppleAuthenticationFlow();
-      const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
-      automaticResolutionSessionRef.current = activatedSessionId;
-      await publishActivatedSessionIdentity({
-        activatedSessionId,
-        clerk,
-        publishIdentity,
-        userRef,
-        setStatus,
-      });
-    } catch (error) {
-      if (isAccountAuthCancellation(error)) throw new AccountAuthCancelledError();
-      throw error;
+  const signInWithApple = useCallback(() => {
+    if (!isLoaded) {
+      return Promise.reject(new Error('Account AV is still loading.'));
     }
+
+    return startAppleAuthenticationFlow()
+      .then(async (result) => {
+        const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
+        automaticResolutionSessionRef.current = activatedSessionId;
+        await publishActivatedSessionIdentity({
+          activatedSessionId,
+          clerk,
+          publishIdentity,
+          userRef,
+          setStatus,
+        });
+      })
+      .catch((error: unknown) => Promise.reject(
+        isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error,
+      ));
   }, [clerk, isLoaded, publishIdentity, startAppleAuthenticationFlow]);
 
   const signInWithGoogle = useCallback(async () => {
