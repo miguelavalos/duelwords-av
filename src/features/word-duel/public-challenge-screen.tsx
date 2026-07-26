@@ -255,6 +255,7 @@ export function PublicWordDuelChallengeScreen({
           nowMs: Date.now(),
           state: lobbyState,
         });
+        if (!mountedRef.current) return;
         setLobbyState(nextState);
         setStatusMessage(nextState.lobby.status === 'active_round' ? copy('roundReady') : copy('waitingRound'));
       });
@@ -367,6 +368,7 @@ export function PublicWordDuelChallengeScreen({
         host,
         nowMs: Date.now(),
       });
+      if (!mountedRef.current) return;
       setLobbyState(nextState);
       setStatusMessage(copy('challengeCreated'));
     });
@@ -386,6 +388,7 @@ export function PublicWordDuelChallengeScreen({
         inviteToken: parsed.value,
         nowMs: Date.now(),
       });
+      if (!mountedRef.current) return;
       setLobbyState(nextState);
       setStatusMessage(copy('reviewBeforeJoin'));
     });
@@ -403,6 +406,7 @@ export function PublicWordDuelChallengeScreen({
         nowMs: Date.now(),
         roomCode: normalized.value,
       });
+      if (!mountedRef.current) return;
       setLobbyState(nextState);
       setStatusMessage(copy('reviewBeforeJoin'));
     });
@@ -423,6 +427,7 @@ export function PublicWordDuelChallengeScreen({
         player,
         state: lobbyState,
       });
+      if (!mountedRef.current) return;
       setLobbyState(nextState);
       setStatusMessage(copy('joinedChallenge'));
     });
@@ -435,6 +440,7 @@ export function PublicWordDuelChallengeScreen({
 
     void runAction('refresh', async () => {
       const nextState = await controller.refreshLobby({ nowMs: Date.now(), state: lobbyState });
+      if (!mountedRef.current) return;
       if (shouldRearmActiveDuelOpening({
         hasActiveController: activeController !== null,
         lobbyStatus: nextState.lobby.status,
@@ -453,6 +459,7 @@ export function PublicWordDuelChallengeScreen({
 
     void runAction('ready', async () => {
       const nextState = await controller.markReady({ nowMs: Date.now(), state: lobbyState });
+      if (!mountedRef.current) return;
       setLobbyState(nextState);
       setStatusMessage(nextState.lobby.status === 'countdown' ? copy('bothReady') : copy('readyLocked'));
     });
@@ -469,6 +476,7 @@ export function PublicWordDuelChallengeScreen({
         message: lobby.sharePayload,
         url: lobby.invitePreview.inviteUrl,
       });
+      if (!mountedRef.current) return;
       setStatusMessage(copy('inviteShareOpened'));
     });
   }
@@ -507,6 +515,7 @@ export function PublicWordDuelChallengeScreen({
     if (!activeController || !finalResult) return;
     void runAction('rematch-create', async () => {
       const proposal = await activeController.createRematchProposal({ language: finalResult.game.language });
+      if (!mountedRef.current) return;
       setRematchProposal(proposal);
       setStatusMessage(copy('rematchSent'));
     });
@@ -516,6 +525,7 @@ export function PublicWordDuelChallengeScreen({
     if (!activeController) return;
     void runAction('rematch-refresh', async () => {
       const proposal = await activeController.getCurrentRematchProposal();
+      if (!mountedRef.current) return;
       setRematchProposal(proposal);
       if (proposal && continueAcceptedRematch(proposal)) return;
       setStatusMessage(proposal ? copy('rematchUpdated') : copy('noRematch'));
@@ -530,6 +540,7 @@ export function PublicWordDuelChallengeScreen({
         : action === 'decline'
           ? await activeController.declineRematchProposal({ proposalId: rematchProposal.proposalId })
           : await activeController.cancelRematchProposal({ proposalId: rematchProposal.proposalId });
+      if (!mountedRef.current) return;
       setRematchProposal(proposal);
       if (continueAcceptedRematch(proposal)) return;
       setStatusMessage(copy('rematchStatus', { status: proposal.status }));
