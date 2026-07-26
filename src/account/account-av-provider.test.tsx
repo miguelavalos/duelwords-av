@@ -214,7 +214,7 @@ describe('DuelWordsAccountAvProvider', () => {
     expect(clerkMocks.authState.tokenCalls).toBe(1);
   });
 
-  it('publishes the internal Account AV user before Apple sign-in completes', async () => {
+  it('completes Apple activation before resolving the internal Account AV user from observed auth state', async () => {
     clerkMocks.authState.isSignedIn = false;
     clerkMocks.authState.sessionId = null;
     clerkMocks.clerk.client.sessions = [];
@@ -224,7 +224,7 @@ describe('DuelWordsAccountAvProvider', () => {
       setActive: clerkMocks.setActive,
     });
     fetchAccountAvIdentity.mockImplementation(async (input: { getToken: () => Promise<string | null> }) => {
-      expect(await input.getToken()).toBe('activated-session-token');
+      expect(await input.getToken()).toBe('preview-token');
       return {
         access: { accessMode: 'signedInPro', planTier: 'pro' },
         user: { displayName: 'Apple player', email: null, id: 'user-apple' },
@@ -240,13 +240,13 @@ describe('DuelWordsAccountAvProvider', () => {
     });
 
     expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-apple' });
-    expect(clerkMocks.sessionGetToken).toHaveBeenCalledTimes(1);
+    expect(clerkMocks.authState.tokenCalls).toBe(1);
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('signed_in');
     expect(accountValue?.user?.id).toBe('user-apple');
   });
 
-  it('refreshes Clerk after activation when the active session is not published synchronously', async () => {
+  it('resolves identity from observed auth state without inspecting a stale session snapshot', async () => {
     clerkMocks.authState.isSignedIn = false;
     clerkMocks.authState.sessionId = null;
     clerkMocks.clerk.client.sessions = [];
@@ -278,13 +278,13 @@ describe('DuelWordsAccountAvProvider', () => {
       await accountValue?.signInWithApple();
     });
 
-    expect(clerkMocks.clerk.client.reload).toHaveBeenCalledTimes(1);
+    expect(clerkMocks.clerk.client.reload).not.toHaveBeenCalled();
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('signed_in');
     expect(accountValue?.user?.id).toBe('user-apple-delayed');
   });
 
-  it('publishes the internal Account AV user before Google sign-in completes', async () => {
+  it('completes Google activation before resolving the internal Account AV user from observed auth state', async () => {
     clerkMocks.authState.isSignedIn = false;
     clerkMocks.authState.sessionId = null;
     clerkMocks.clerk.client.sessions = [];
@@ -295,7 +295,7 @@ describe('DuelWordsAccountAvProvider', () => {
       setActive: clerkMocks.setActive,
     });
     fetchAccountAvIdentity.mockImplementation(async (input: { getToken: () => Promise<string | null> }) => {
-      expect(await input.getToken()).toBe('activated-session-token');
+      expect(await input.getToken()).toBe('preview-token');
       return {
         access: { accessMode: 'signedInFree', planTier: 'free' },
         user: { displayName: 'Google player', email: null, id: 'user-google' },
@@ -315,7 +315,7 @@ describe('DuelWordsAccountAvProvider', () => {
       strategy: 'oauth_google',
     });
     expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-google' });
-    expect(clerkMocks.sessionGetToken).toHaveBeenCalledTimes(1);
+    expect(clerkMocks.authState.tokenCalls).toBe(1);
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('signed_in');
     expect(accountValue?.user?.id).toBe('user-google');
@@ -383,7 +383,7 @@ describe('DuelWordsAccountAvProvider', () => {
     expect(accountValue?.user?.id).toBe('user-recovered');
   });
 
-  it('surfaces one bounded Account AV failure after session activation', async () => {
+  it('keeps provider activation successful when the bounded Account AV refresh fails', async () => {
     clerkMocks.authState.isSignedIn = false;
     clerkMocks.authState.sessionId = null;
     clerkMocks.clerk.client.sessions = [];
@@ -409,7 +409,7 @@ describe('DuelWordsAccountAvProvider', () => {
       await Promise.resolve();
     });
 
-    expect(signInError).toBeInstanceOf(Error);
+    expect(signInError).toBeUndefined();
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('account_error');
   });

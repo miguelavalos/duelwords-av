@@ -129,10 +129,12 @@ Current implementation slice:
   this repository state.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google
-  returns a created session, activate that exact session and, if the Clerk hook
-  snapshot does not expose it yet, reload the Clerk client once before asking
-  Account AV to resolve the internal user. Never inspect the pre-activation
-  snapshot and report success or failure from it.
+  returns a created session, activate that exact session and end the provider
+  action at the awaited `setActive` boundary. Resolve the internal Account AV
+  user from the subsequent observed auth-state transition through the stable
+  token adapter. Never inspect the pre-activation Clerk snapshot to resolve the
+  new session, and never report temporary Account AV API failure as an Apple or
+  Google provider failure.
 
 This machine is **Home**. Home may perform development, tests, signed runtime,
 environment-backed smokes, deploys, and other approved work under the normal

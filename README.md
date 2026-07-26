@@ -289,18 +289,18 @@ polling remain out of scope; each participant uses the public Refresh action.
 It does not enable Apps AV API or Convex network calls by default. Account AV
 is integrated through Clerk Expo and SecureStore. Native Apple and Google
 provider flows use Clerk's Expo adapters, activate the returned session, and
-then resolve the internal Apps AV identity through Account AV before the
-provider action reports success or the auth surface navigates away; provider
-ids are never published as product user ids. Provider actions remain disabled
-until Clerk's auth, sign-in, and sign-up resources are all ready. If Clerk has
-accepted activation but its current hook snapshot has not published the new
-session yet, the client refreshes Clerk once and resolves that exact session
-rather than failing from stale state. The provider token getter is held
-behind a stable adapter, so publishing the resolved account cannot retrigger `/v1/me`
-and `/v1/me/access` merely because Clerk returns a new function reference. A
-regression test preserves one bounded resolution per signed-in session-state
-transition, including an explicit error instead of a false successful login
-when Account AV cannot resolve the newly activated session. Account-only persistence,
+complete the provider action at Clerk's awaited `setActive` boundary. The
+subsequent observed auth-state transition resolves the internal Apps AV
+identity through Account AV; provider ids are never published as product user
+ids. Provider actions remain disabled until Clerk's auth, sign-in, and sign-up
+resources are all ready. The client never inspects the pre-activation Clerk
+snapshot to resolve the new session, and temporary Account AV unavailability
+does not turn successful Apple or Google activation into a provider error. The
+provider token getter is held behind a stable adapter, so publishing the
+resolved account cannot retrigger `/v1/me` and `/v1/me/access` merely because
+Clerk returns a new function reference. Regression tests preserve one bounded
+resolution per signed-in session-state transition and keep Account AV refresh
+failure separate from provider activation. Account-only persistence,
 real Pro purchases, ads, push, Sentry project/DSN verification, canonical
 associated links, and production runtime remain outside the current candidate. No provider
 key or backend deploy credential belongs in this repository.
