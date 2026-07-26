@@ -103,7 +103,7 @@ async function authorizedAccountRequest(
 }
 
 function parseUser(value: unknown): AccountAvInternalUser {
-  const record = requireRecord(value);
+  const record = requireRecord(requireRecord(value).user);
   if (typeof record.id !== 'string' || record.id.trim().length === 0) {
     throw new Error('invalid_account_user');
   }

@@ -1,8 +1,47 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { parseDeletionEligibility } from './account-api-client';
+import { fetchAccountAvIdentity, parseDeletionEligibility } from './account-api-client';
 
 vi.mock('expo-constants', () => ({ default: { expoConfig: null } }));
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
+
+describe('fetchAccountAvIdentity', () => {
+  it('reads the internal user from the canonical Account AV suite summary envelope', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          generatedAt: '2026-07-26T12:00:00.000Z',
+          user: {
+            displayName: 'DuelWords player',
+            email: null,
+            id: 'user-internal',
+          },
+        }),
+        ok: true,
+        status: 200,
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          apps: [{ appId: 'duelwordsav', accessMode: 'signedInFree', planTier: 'free' }],
+        }),
+        ok: true,
+        status: 200,
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchAccountAvIdentity({
+      baseUrl: 'https://api-account-av-preview.avalsys.com',
+      getToken: async () => 'test-token',
+    })).resolves.toEqual({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'DuelWords player', email: null, id: 'user-internal' },
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+});
 
 describe('parseDeletionEligibility', () => {
   it('keeps backend-owned blockers, warnings, and replay status', () => {

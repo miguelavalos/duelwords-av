@@ -1,11 +1,14 @@
 import Constants from 'expo-constants';
 
+import { duelWordsIosSsoRedirectUrl } from './account-native-auth-contract';
+
 export const DUELWORDS_ACCOUNT_AV_APP_ID = 'duelwordsav' as const;
 
 export type DuelWordsAccountAvConfig = {
   accountApiBaseUrl: string | null;
   keychainAccessGroup: string;
   keychainService: string;
+  iosSsoRedirectUrl: string;
   publishableKey: string | null;
 };
 
@@ -20,6 +23,7 @@ export function getDuelWordsAccountAvConfig(): DuelWordsAccountAvConfig {
       ?? '935PM55U6R.com.avalsys.duelwordsav',
     keychainService: stringValue(accountAv.keychainService)
       ?? 'com.avalsys.duelwordsav.account',
+    iosSsoRedirectUrl: duelWordsIosSsoRedirectUrl(Constants.expoConfig?.scheme),
     publishableKey: publishableKey(accountAv.publishableKey),
   };
 }

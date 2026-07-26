@@ -14,11 +14,16 @@ const clerkMocks = vi.hoisted(() => {
   const sessionGetToken = vi.fn(async () => 'activated-session-token');
   type TestSession = { getToken: typeof sessionGetToken; id: string };
   const clerk = {
-    client: { sessions: [] as TestSession[] },
+    client: {
+      reload: vi.fn(),
+      sessions: [] as TestSession[],
+    },
     session: null as TestSession | null,
+    setActive: vi.fn(),
     signOut: vi.fn(async () => undefined),
   };
-  const setActive = vi.fn(async ({ session: sessionId }: { session: string }) => {
+  clerk.client.reload.mockImplementation(async () => clerk.client);
+  clerk.setActive.mockImplementation(async ({ session: sessionId }: { session: string }) => {
     const session = { getToken: sessionGetToken, id: sessionId };
     authState.isSignedIn = true;
     authState.sessionId = sessionId;
@@ -29,7 +34,7 @@ const clerkMocks = vi.hoisted(() => {
     authState,
     clerk,
     sessionGetToken,
-    setActive,
+    setActive: clerk.setActive,
     startAppleAuthenticationFlow: vi.fn(),
     startSSOFlow: vi.fn(),
   };
@@ -74,6 +79,7 @@ vi.mock('expo-secure-store', () => ({
 vi.mock('./account-av-config', () => ({
   getDuelWordsAccountAvConfig: () => ({
     accountApiBaseUrl: 'https://api-account-av-preview.avalsys.com',
+    iosSsoRedirectUrl: 'com.avalsys.duelwordsav.dev://callback',
     keychainAccessGroup: 'test-access-group',
     keychainService: 'test-keychain-service',
     publishableKey: 'pk_test_preview',
@@ -114,6 +120,7 @@ describe('DuelWordsAccountAvProvider', () => {
       clerkMocks.clerk.client.sessions = [session];
       clerkMocks.clerk.session = session;
     });
+    clerkMocks.clerk.client.reload.mockReset().mockImplementation(async () => clerkMocks.clerk.client);
     clerkMocks.clerk.signOut.mockClear();
     clerkMocks.startAppleAuthenticationFlow.mockReset();
     clerkMocks.startSSOFlow.mockReset();
@@ -240,12 +247,77 @@ describe('DuelWordsAccountAvProvider', () => {
       await accountValue?.signInWithGoogle();
     });
 
-    expect(clerkMocks.startSSOFlow).toHaveBeenCalledWith({ strategy: 'oauth_google' });
+    expect(clerkMocks.startSSOFlow).toHaveBeenCalledWith({
+      redirectUrl: 'com.avalsys.duelwordsav.dev://callback',
+      strategy: 'oauth_google',
+    });
     expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-google' });
     expect(clerkMocks.sessionGetToken).toHaveBeenCalledTimes(1);
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(accountValue?.status).toBe('signed_in');
     expect(accountValue?.user?.id).toBe('user-google');
+  });
+
+  it('restores a persisted Clerk session before opening Google SSO', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    const persistedSession = { getToken: clerkMocks.sessionGetToken, id: 'session-persisted' };
+    clerkMocks.clerk.client.sessions = [persistedSession];
+    clerkMocks.clerk.session = null;
+    fetchAccountAvIdentity.mockResolvedValue({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'Returning player', email: null, id: 'user-returning' },
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signInWithGoogle();
+    });
+
+    expect(clerkMocks.startSSOFlow).not.toHaveBeenCalled();
+    expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-persisted' });
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('signed_in');
+    expect(accountValue?.user?.id).toBe('user-returning');
+  });
+
+  it('recovers Apple sign-in when Clerk reports that a session already exists', async () => {
+    clerkMocks.authState.isSignedIn = false;
+    clerkMocks.authState.sessionId = null;
+    clerkMocks.clerk.client.sessions = [];
+    clerkMocks.clerk.session = null;
+    clerkMocks.startAppleAuthenticationFlow.mockImplementation(async () => {
+      clerkMocks.clerk.client.sessions = [{
+        getToken: clerkMocks.sessionGetToken,
+        id: 'session-recovered',
+      }];
+      throw {
+        clerkError: true,
+        errors: [{ code: 'session_exists' }],
+        status: 400,
+      };
+    });
+    fetchAccountAvIdentity.mockResolvedValue({
+      access: { accessMode: 'signedInFree', planTier: 'free' },
+      user: { displayName: 'Recovered player', email: null, id: 'user-recovered' },
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      await accountValue?.signInWithApple();
+    });
+
+    expect(clerkMocks.clerk.client.reload).toHaveBeenCalledTimes(1);
+    expect(clerkMocks.setActive).toHaveBeenCalledWith({ session: 'session-recovered' });
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    expect(accountValue?.status).toBe('signed_in');
+    expect(accountValue?.user?.id).toBe('user-recovered');
   });
 
   it('surfaces one bounded Account AV failure after session activation', async () => {

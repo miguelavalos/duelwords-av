@@ -320,19 +320,17 @@ enabled, executed, and verified exclusively on **Office Openspace**.
 
 ## Native URL scheme and link boundary
 
-Expo declares the local native URL scheme `duelwordsav`. This prevents the
-framework `Linking` warning and gives native builds a stable custom-scheme
-boundary. Expo Router uses `https://app.duelwords-av.avalsys.com` as its native
-handoff origin; this removes the release-build fallback alert and matches the
-planned canonical public invite/result host. It does not configure or prove
-the `/i/c/:token` edge rewrite, Universal Links, or Android App Links, which
-remain separate release gates.
+Expo declares the bundle identity itself as the native URL scheme:
+`com.avalsys.duelwordsav.dev` for development and
+`com.avalsys.duelwordsav` for production. Account AV Google SSO must pass the
+exact matching `<bundle-id>://callback` redirect to Clerk; the generic
+`duelwordsav://sso-callback` form is invalid. The generated iOS plist registers
+`$(PRODUCT_BUNDLE_IDENTIFIER)`, so development and production cannot intercept
+each other's callback when both builds are installed.
 
-Do not keep development (`com.avalsys.duelwordsav.dev`) and production
-(`com.avalsys.duelwordsav`) installed on the same simulator when testing the
-convenience `duelwordsav://` scheme: iOS may hand the URL to the older build.
-Use separate dedicated simulators, or the bundle-specific
-`com.avalsys.duelwordsav://` scheme when validating the production app.
+Expo Router uses `https://app.duelwords-av.avalsys.com` as its native handoff
+origin. This does not configure or prove the `/i/c/:token` edge rewrite,
+Universal Links, or Android App Links, which remain separate release gates.
 
 ## Simulator-only signed-in surface review
 

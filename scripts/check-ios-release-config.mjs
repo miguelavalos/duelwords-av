@@ -62,7 +62,7 @@ expectEqual(
   expoConfig.ios?.config?.usesNonExemptEncryption,
   false,
 );
-expectEqual('expo.scheme', expoConfig.scheme, 'duelwordsav');
+expectEqual('expo.scheme', expoConfig.scheme, expectedBundleIdentifier);
 expectEqual(
   'expo.extra.duelWordsAv.iosBuildVariant',
   expoConfig.extra?.duelWordsAv?.iosBuildVariant,

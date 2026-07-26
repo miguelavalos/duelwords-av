@@ -24,6 +24,7 @@ function createExpoConfig() {
 
   return {
     ...appJson.expo,
+    scheme: iosBundleIdentifier,
     ios: {
       ...appJson.expo.ios,
       bundleIdentifier: iosBundleIdentifier,

@@ -14,7 +14,11 @@ import {
 
 import { fetchAccountAvIdentity, type AccountAvInternalUser, type DuelWordsAccess } from './account-api-client';
 import { getDuelWordsAccountAvConfig } from './account-av-config';
-import { AccountAuthCancelledError, isAccountAuthCancellation } from './account-auth-errors';
+import {
+  AccountAuthCancelledError,
+  isAccountAuthCancellation,
+  isClerkSessionExistsError,
+} from './account-auth-errors';
 import { activateCreatedSession } from './account-session-activation';
 import { getSimulatorUITestAccountMode } from './simulator-ui-test-runtime';
 
@@ -69,7 +73,13 @@ export function DuelWordsAccountAvProvider({ children }: { children: ReactNode }
 
   return (
     <ClerkProvider publishableKey={config.publishableKey} standardBrowser={false} tokenCache={tokenCache}>
-      <AccountAvRuntime baseUrl={config.accountApiBaseUrl} identityCache={identityCache}>{children}</AccountAvRuntime>
+      <AccountAvRuntime
+        baseUrl={config.accountApiBaseUrl}
+        identityCache={identityCache}
+        iosSsoRedirectUrl={config.iosSsoRedirectUrl}
+      >
+        {children}
+      </AccountAvRuntime>
     </ClerkProvider>
   );
 }
@@ -102,10 +112,11 @@ type IdentityCache = {
   save: (identity: CachedIdentity) => Promise<void>;
 };
 
-function AccountAvRuntime({ baseUrl, children, identityCache }: {
+function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl }: {
   baseUrl: string;
   children: ReactNode;
   identityCache: IdentityCache;
+  iosSsoRedirectUrl: string;
 }) {
   const { getToken, isLoaded, isSignedIn, sessionId } = useAuth({ treatPendingAsSignedOut: false });
   const clerk = useClerk();
@@ -190,43 +201,81 @@ function AccountAvRuntime({ baseUrl, children, identityCache }: {
     setStatus('guest');
   }, [clerk, identityCache]);
 
-  const signInWithApple = useCallback(() => {
+  const signInWithApple = useCallback(async () => {
     if (!isLoaded) {
-      return Promise.reject(new Error('Account AV is still loading.'));
+      throw new Error('Account AV is still loading.');
     }
 
-    return startAppleAuthenticationFlow()
-      .then(async (result) => {
-        const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
-        automaticResolutionSessionRef.current = activatedSessionId;
-        await publishActivatedSessionIdentity({
-          activatedSessionId,
-          clerk,
-          publishIdentity,
-          userRef,
-          setStatus,
-        });
-      })
-      .catch((error: unknown) => Promise.reject(
-        isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error,
-      ));
+    if (await restoreExistingSessionIfPossible({
+      automaticResolutionSessionRef,
+      clerk,
+      publishIdentity,
+      setStatus,
+      userRef,
+    })) return;
+
+    try {
+      const result = await startAppleAuthenticationFlow();
+      const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
+      automaticResolutionSessionRef.current = activatedSessionId;
+      await publishActivatedSessionIdentity({
+        activatedSessionId,
+        clerk,
+        publishIdentity,
+        userRef,
+        setStatus,
+      });
+    } catch (error: unknown) {
+      if (isClerkSessionExistsError(error) && await restoreExistingSessionIfPossible({
+        automaticResolutionSessionRef,
+        clerk,
+        publishIdentity,
+        refreshClient: true,
+        setStatus,
+        userRef,
+      })) return;
+      throw isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error;
+    }
   }, [clerk, isLoaded, publishIdentity, startAppleAuthenticationFlow]);
 
   const signInWithGoogle = useCallback(async () => {
-    const result = await startSSOFlow({ strategy: 'oauth_google' });
-    if (result.authSessionResult?.type === 'cancel' || result.authSessionResult?.type === 'dismiss') {
-      throw new AccountAuthCancelledError();
-    }
-    const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
-    automaticResolutionSessionRef.current = activatedSessionId;
-    await publishActivatedSessionIdentity({
-      activatedSessionId,
+    if (await restoreExistingSessionIfPossible({
+      automaticResolutionSessionRef,
       clerk,
       publishIdentity,
-      userRef,
       setStatus,
-    });
-  }, [clerk, publishIdentity, startSSOFlow]);
+      userRef,
+    })) return;
+
+    try {
+      const result = await startSSOFlow({
+        redirectUrl: iosSsoRedirectUrl,
+        strategy: 'oauth_google',
+      });
+      if (result.authSessionResult?.type === 'cancel' || result.authSessionResult?.type === 'dismiss') {
+        return Promise.reject(new AccountAuthCancelledError());
+      }
+      const activatedSessionId = await activateCreatedSession(result.createdSessionId, result.setActive);
+      automaticResolutionSessionRef.current = activatedSessionId;
+      await publishActivatedSessionIdentity({
+        activatedSessionId,
+        clerk,
+        publishIdentity,
+        userRef,
+        setStatus,
+      });
+    } catch (error: unknown) {
+      if (isClerkSessionExistsError(error) && await restoreExistingSessionIfPossible({
+        automaticResolutionSessionRef,
+        clerk,
+        publishIdentity,
+        refreshClient: true,
+        setStatus,
+        userRef,
+      })) return;
+      throw isAccountAuthCancellation(error) ? new AccountAuthCancelledError() : error;
+    }
+  }, [clerk, iosSsoRedirectUrl, publishIdentity, startSSOFlow]);
 
   const value = useMemo<AccountAvContextValue>(() => ({
     access,
@@ -317,4 +366,30 @@ async function publishActivatedSessionIdentity(input: {
     input.setStatus(input.userRef.current ? 'signed_in_offline' : 'account_error');
     throw error;
   }
+}
+
+async function restoreExistingSessionIfPossible(input: {
+  automaticResolutionSessionRef: { current: string | null };
+  clerk: ReturnType<typeof useClerk>;
+  publishIdentity: (getToken: () => Promise<string | null>) => Promise<void>;
+  refreshClient?: boolean;
+  setStatus: (status: AccountStatus) => void;
+  userRef: { current: AccountAvInternalUser | null };
+}): Promise<boolean> {
+  if (input.refreshClient) {
+    await input.clerk.client.reload();
+  }
+  const session = input.clerk.session ?? input.clerk.client.sessions[0] ?? null;
+  if (!session?.id) return false;
+
+  await input.clerk.setActive({ session: session.id });
+  input.automaticResolutionSessionRef.current = session.id;
+  await publishActivatedSessionIdentity({
+    activatedSessionId: session.id,
+    clerk: input.clerk,
+    publishIdentity: input.publishIdentity,
+    setStatus: input.setStatus,
+    userRef: input.userRef,
+  });
+  return true;
 }
