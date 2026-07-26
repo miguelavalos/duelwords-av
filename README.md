@@ -108,7 +108,11 @@ centered product wordmark, Account at the right, a three-destination phone
 footer pill with Avi in its own circular control, persistent shell navigation
 on Account and Settings, and sheet-style Pro/auth/deletion surfaces without
 repeating the product lockup inside their content. iPad adapts the same
-destinations to its persistent sidebar. Earlier deterministic checks covered all 18
+destinations to its persistent sidebar. The executable shared-surface contract
+now fails if splash, onboarding/auth, footer/sidebar, Settings, Account, Pro, or
+account deletion stops routing through the Apps AV native bridge; it also locks
+the common foundation imports, canonical palette, floating footer, Avi assets,
+and hidden duplicate Account/Settings tabs. Earlier deterministic checks covered all 18
 exported web routes at desktop and narrow mobile widths and the current
 public/game-preview surfaces in an Android Pixel 9 AVD.
 Light/dark appearance, status and navigation bars, keyboard/board fit, the
