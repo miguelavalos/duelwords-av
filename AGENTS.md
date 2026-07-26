@@ -123,6 +123,12 @@ Current implementation slice:
   Practice, Solo Practice, and Play Avi share a persistent shuffled deck per language and must
   not repeat a target before exhausting that deck. Keep target selection local;
   only a future official Daily may obtain its chosen word from the server.
+- Any future playable or interface language must follow
+  `docs/game-language-expansion.md` and the mandatory private
+  `docs/duelwords-av/game-language-expansion-runbook.md`. A picker option is
+  never sufficient: client/local data, API, every D1 language constraint,
+  isolated Convex schema, create-to-rematch smoke, observability, and rollback
+  must agree before it is called supported end to end.
 - Account AV/Clerk native integration and the already-uploaded internal build 1
   exist. DuelWords production API/Convex runtime was separately activated and
   passed its controlled full-flow smoke on 2026-07-26; production native config

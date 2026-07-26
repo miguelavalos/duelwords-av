@@ -2,6 +2,12 @@
 
 Mobile-first Expo client for DuelWords AV.
 
+Future game/interface language additions must follow the client-safe
+[language expansion guide](docs/game-language-expansion.md) together with the
+mandatory private cross-stack runbook. The checklist covers dictionary
+provenance, local modes, interface copy, API/D1/Convex parity, full rematch
+smokes, observability, and rollback.
+
 ## Current Status
 
 Current as of 2026-07-26: this repository has a public, guest-first Word Duel
