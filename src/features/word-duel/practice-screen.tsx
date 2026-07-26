@@ -194,7 +194,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
 
       <GameLanguagePicker
         dismissLabel={t(interfaceLocale, 'done')}
-        label={`${copy.gameSettings} · ${copy.gameLanguage}`}
+        label={copy.gameLanguage}
         onChange={(language) => reset(planTargetSelection({
           language,
           mode: 'practice',

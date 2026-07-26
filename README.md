@@ -57,6 +57,19 @@ Opening a new invite while the Challenge screen is already mounted replaces the
 previous invite instead of reusing stale room state, and guests receive a local
 editable room alias by default.
 
+The 2026-07-26 physical production login now completes and restores the
+internal Account AV identity. Its first Challenge capture exposed a separate
+presentation defect: an authenticated user without an Account AV display name
+was still shown with a random `Guest` alias, a guest-only eyebrow, and an
+English helper inside a Catalan screen. The current source derives an
+account-scoped, localized player label without exposing email/provider data,
+localizes the Challenge title and helper in all five interface languages, and
+uses the shorter in-game language label so it does not truncate on iPhone.
+Deterministic signed-in iPhone captures pass in both light and dark appearance.
+This does not change the documented production realtime gate: connected
+Challenge remains disabled there until its separate production rollout is
+explicitly approved and validated.
+
 Home, Settings, and Account now follow Tune AV's common-screen ordering as
 well as its shared shell. Home puts Avi's brief directly below the title.
 Settings begins with one compact App preferences card (app language,

@@ -135,6 +135,10 @@ Current implementation slice:
   token adapter. Never inspect the pre-activation Clerk snapshot to resolve the
   new session, and never report temporary Account AV API failure as an Apple or
   Google provider failure.
+- Treat `account.user`, not `account.user.displayName`, as the signed-in signal
+  on gameplay surfaces. An Account AV user may legitimately have no display
+  name; use a localized bounded player label and never fall back to a random
+  guest alias, provider subject, or email for an authenticated room actor.
 
 This machine is **Home**. Home may perform development, tests, signed runtime,
 environment-backed smokes, deploys, and other approved work under the normal

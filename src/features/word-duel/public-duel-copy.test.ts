@@ -14,6 +14,10 @@ describe('public duel copy', () => {
     expect(publicDuelT(locale, 'finalResult')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'requestRematch')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'runtimeDescription')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'accountChallenge')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'accountPlayerName')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'accountRoomNameHelp')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'wordDuel')).not.toHaveLength(0);
   });
 
   it('interpolates all public runtime values', () => {
@@ -30,6 +34,8 @@ describe('public duel copy', () => {
       expect(publicDuelT(locale, 'requestRematch')).not.toBe(publicDuelT('en', 'requestRematch'));
       expect(publicDuelT(locale, 'roomNameHelp')).not.toBe(publicDuelT('en', 'roomNameHelp'));
       expect(publicDuelT(locale, 'runtimeDescription')).not.toBe(publicDuelT('en', 'runtimeDescription'));
+      expect(publicDuelT(locale, 'accountRoomNameHelp')).not.toBe(publicDuelT('en', 'accountRoomNameHelp'));
+      expect(publicDuelT(locale, 'wordDuel')).not.toBe(publicDuelT('en', 'wordDuel'));
     }
     expect(publicDuelT('es', 'apiDisabled')).not.toBe(publicDuelT('en', 'apiDisabled'));
     expect(publicDuelT('es', 'couldNotCloseTimeout')).not.toBe(publicDuelT('en', 'couldNotCloseTimeout'));

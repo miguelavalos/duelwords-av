@@ -39,6 +39,7 @@ import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { ActiveDuelScreen } from './active-duel-screen';
+import { accountRoomDisplayName } from './account-room-name';
 import { GameLanguagePicker } from './components/game-language-picker';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
@@ -104,6 +105,9 @@ export function PublicWordDuelChallengeScreen({
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const isBusy = busyAction !== null;
+  const accountDisplayName = account.user
+    ? accountRoomDisplayName(account.user, copy('accountPlayerName'))
+    : null;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -163,12 +167,6 @@ export function PublicWordDuelChallengeScreen({
       unsubscribe();
     };
   }, [controller, lobbyState, runtime]);
-
-  useEffect(() => {
-    if (account.user?.displayName && lobbyState === null) {
-      setDisplayName(account.user.displayName);
-    }
-  }, [account.user?.displayName, lobbyState]);
 
   useEffect(() => {
     if (!runtime.ok) {
@@ -328,7 +326,7 @@ export function PublicWordDuelChallengeScreen({
   }
 
   function currentActor(): DuelWordsApiActor | null {
-    const normalized = normalizeWordDuelGuestDisplayName(displayName);
+    const normalized = normalizeWordDuelGuestDisplayName(accountDisplayName ?? displayName);
     if (!normalized.ok) {
       setStatusMessage(displayNameErrorLabel(interfaceLocale, normalized.reason));
       return null;
@@ -578,8 +576,8 @@ export function PublicWordDuelChallengeScreen({
     <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
       <View style={styles.header}>
         <View style={styles.headerText}>
-          <Text style={styles.kicker}>{copy('guestChallenge')}</Text>
-          <Text aria-level={1} accessibilityRole="header" style={styles.title}>Word Duel</Text>
+          <Text style={styles.kicker}>{copy(account.user ? 'accountChallenge' : 'guestChallenge')}</Text>
+          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{copy('wordDuel')}</Text>
           <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>
         </View>
         <AppButton
@@ -605,9 +603,9 @@ export function PublicWordDuelChallengeScreen({
           placeholder={copy('displayNamePlaceholder')}
           placeholderTextColor={colors.textMuted}
           style={styles.input}
-          value={displayName}
+          value={accountDisplayName ?? displayName}
         />
-        <Text style={styles.helper}>{account.user ? 'Using your Account AV display name for this room.' : copy('roomNameHelp')}</Text>
+        <Text style={styles.helper}>{copy(account.user ? 'accountRoomNameHelp' : 'roomNameHelp')}</Text>
       </View>
 
       {lobbyState === null ? (
@@ -617,7 +615,7 @@ export function PublicWordDuelChallengeScreen({
             <GameLanguagePicker
               disabled={isBusy}
               dismissLabel={copy('close')}
-              label={`${experience.gameSettings} · ${experience.gameLanguage}`}
+              label={experience.gameLanguage}
               onChange={setGameLanguage}
               options={CONNECTED_GAME_LANGUAGES}
               value={gameLanguage}

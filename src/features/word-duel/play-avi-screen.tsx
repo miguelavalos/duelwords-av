@@ -284,7 +284,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
 
       <GameLanguagePicker
         dismissLabel={t(interfaceLocale, 'done')}
-        label={`${copy.gameSettings} · ${copy.gameLanguage}`}
+        label={copy.gameLanguage}
         onChange={changeLanguage}
         value={gameLanguage}
       />

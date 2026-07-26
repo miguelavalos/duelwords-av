@@ -2,6 +2,9 @@ import type { InterfaceLocale } from '@/i18n/locales';
 
 const englishCopy = {
   accept: 'Accept',
+  accountChallenge: 'Challenge with Account AV',
+  accountPlayerName: 'Player',
+  accountRoomNameHelp: 'Your Account AV name is used for this challenge.',
   activeDuel: 'Active duel',
   almost: 'Almost',
   apiDisabled: 'Live play unavailable',
@@ -126,6 +129,7 @@ const englishCopy = {
   youWon: 'You won',
   yourFinalBoard: 'Your final board',
   yourTurn: 'Your turn',
+  wordDuel: 'Word Duel',
   actionUnavailable: 'That action is not available right now. Try again.',
   safeRealtimeRequired: 'A secure live connection is needed to play online.',
   rivalFinalBoard: 'Rival final board',
@@ -150,6 +154,9 @@ const germanCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
 };
 
 Object.assign(spanishCopyDraft, {
+  accountChallenge: 'Reto con Account AV',
+  accountPlayerName: 'Jugador',
+  accountRoomNameHelp: 'Tu nombre de Account AV se usa en este reto.',
   apiDisabled: 'Juego en directo no disponible',
   couldNotCloseTimeout: 'No se pudo cerrar la ronda agotada',
   couldNotOpenDuel: 'No se pudo abrir el duelo en directo de forma segura. Actualiza la sala e inténtalo de nuevo.',
@@ -160,33 +167,46 @@ Object.assign(spanishCopyDraft, {
   realtimeDisabled: 'Actualizaciones en directo no disponibles',
   runtimeDescription: 'Práctica y Jugar con Avi funcionan sin conexión. Las salas en directo se abrirán cuando una versión incluya la conexión segura de retos.',
   safeRealtimeUnavailable: 'Las actualizaciones en directo aún no están listas',
+  wordDuel: 'Duelo de palabras',
 });
 
 Object.assign(catalanCopyDraft, {
+  accountChallenge: 'Repte amb Account AV',
+  accountPlayerName: 'Jugador',
+  accountRoomNameHelp: 'El teu nom d’Account AV s’utilitza en aquest repte.',
   apiDisabled: 'Joc en directe no disponible',
   onlineUnavailable: 'Els reptes en directe triguen una mica més',
   realtimeDisabled: 'Actualitzacions en directe no disponibles',
   roomNameHelp: 'Només s’utilitza per a aquest repte. No cal cap compte.',
   runtimeDescription: 'Pràctica i Jugar amb l’Avi funcionen sense connexió. Les sales en directe s’obriran quan una versió inclogui la connexió segura de reptes.',
   safeRealtimeUnavailable: 'Les actualitzacions en directe encara no estan preparades',
+  wordDuel: 'Duel de paraules',
 });
 
 Object.assign(frenchCopyDraft, {
+  accountChallenge: 'Défi avec Account AV',
+  accountPlayerName: 'Joueur',
+  accountRoomNameHelp: 'Votre nom Account AV est utilisé pour ce défi.',
   apiDisabled: 'Jeu en direct indisponible',
   onlineUnavailable: 'Les défis en direct prennent un peu plus de temps',
   realtimeDisabled: 'Mises à jour en direct indisponibles',
   roomNameHelp: 'Utilisé uniquement pour ce défi. Aucun compte requis.',
   runtimeDescription: 'Entraînement et Jouer contre Avi fonctionnent hors ligne. Les salons en direct s’ouvriront lorsqu’une version inclura la connexion sécurisée.',
   safeRealtimeUnavailable: 'Les parties en direct ne sont pas encore prêtes',
+  wordDuel: 'Duel de mots',
 });
 
 Object.assign(germanCopyDraft, {
+  accountChallenge: 'Herausforderung mit Account AV',
+  accountPlayerName: 'Spieler',
+  accountRoomNameHelp: 'Dein Account-AV-Name wird für diese Herausforderung verwendet.',
   apiDisabled: 'Live-Spiel nicht verfügbar',
   onlineUnavailable: 'Live-Herausforderungen brauchen noch etwas Zeit',
   realtimeDisabled: 'Live-Aktualisierungen nicht verfügbar',
   roomNameHelp: 'Wird nur für diese Herausforderung verwendet. Kein Konto erforderlich.',
   runtimeDescription: 'Training und Gegen Avi funktionieren offline. Live-Räume öffnen, sobald eine Version die sichere Duellverbindung enthält.',
   safeRealtimeUnavailable: 'Live-Aktualisierungen sind noch nicht bereit',
+  wordDuel: 'Wortduell',
 });
 
 Object.assign(catalanCopyDraft, {
