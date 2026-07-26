@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { getLocalDictionary, getLocalTargetCount, getPracticeTarget } from '@/game/dictionaries/local-fixtures';
@@ -47,6 +47,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
+  const tabletViewport = width >= 760;
   const [{ interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const styles = usePracticeStyles();
@@ -63,13 +64,16 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
 
-  const dictionary = useMemo(() => getLocalDictionary(gameState.language), [gameState.language]);
+  const dictionary = getLocalDictionary(gameState.language);
   const targetEntry = getPracticeTarget(gameState.language, targetSelection.index);
   const summary = createLocalPracticeSummary(gameState);
   const rows = createRowsFromLocalWordDuelState(gameState, input);
   const keyFeedback = createKeyboardFeedbackFromGuesses(gameState.guesses);
-  const boardWidth = Math.min(width - spacing.lg * 2, 340);
-  const regularTileSize = Math.max(42, Math.min(56, Math.floor((boardWidth - spacing.sm * 4) / 5)));
+  const boardWidth = Math.min(width - spacing.lg * 2, tabletViewport ? 420 : 340);
+  const regularTileSize = Math.max(
+    42,
+    Math.min(tabletViewport ? 68 : 56, Math.floor((boardWidth - spacing.sm * 4) / 5)),
+  );
   const tileSize = compactViewport ? Math.min(46, regularTileSize) : regularTileSize;
 
   useEffect(() => {
@@ -127,7 +131,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     setMessage('');
   }
 
-  async function openResult() {
+  function openResult() {
     if (isOpeningResultRef.current) {
       return;
     }
@@ -136,39 +140,41 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     setIsOpeningResult(true);
     setMessage('');
 
-    try {
-      const outcome = gameState.status === 'won' ? 'win' : 'no_winner';
-      const reason = gameState.status === 'won' ? 'solved' : 'attempts_exhausted';
-      const handoff = await finalizeWordDuelResult({
-        gameLanguage: gameState.language,
-        outcome,
-        own: {
-          guesses: gameState.guesses,
-          solved: gameState.status === 'won',
-        },
-        resultReason: reason,
-        targetDisplayWord: targetEntry.displayWord,
-      }, { mode: 'practice' });
+    const outcome = gameState.status === 'won' ? 'win' : 'no_winner';
+    const reason = gameState.status === 'won' ? 'solved' : 'attempts_exhausted';
 
-      router.push(buildWordDuelResultHandoffHref({
-        gameLanguage: gameState.language,
-        mode: 'practice',
-        outcome,
-        reason,
-        ...handoff,
-      }));
-    } catch (error) {
-      reportWordDuelResultFinalizationError({
-        error,
-        gameLanguage: gameState.language,
-        mode: 'practice',
-        routeGroup: 'play',
+    void finalizeWordDuelResult({
+      gameLanguage: gameState.language,
+      outcome,
+      own: {
+        guesses: gameState.guesses,
+        solved: gameState.status === 'won',
+      },
+      resultReason: reason,
+      targetDisplayWord: targetEntry.displayWord,
+    }, { mode: 'practice' })
+      .then((handoff) => {
+        router.push(buildWordDuelResultHandoffHref({
+          gameLanguage: gameState.language,
+          mode: 'practice',
+          outcome,
+          reason,
+          ...handoff,
+        }));
+      })
+      .catch((error: unknown) => {
+        reportWordDuelResultFinalizationError({
+          error,
+          gameLanguage: gameState.language,
+          mode: 'practice',
+          routeGroup: 'play',
+        });
+        setMessage('Could not open result');
+      })
+      .finally(() => {
+        isOpeningResultRef.current = false;
+        setIsOpeningResult(false);
       });
-      setMessage('Could not open result');
-    } finally {
-      isOpeningResultRef.current = false;
-      setIsOpeningResult(false);
-    }
   }
 
   return (
@@ -290,7 +296,7 @@ function ResultLine({ label, target }: { label: string; target: string }) {
 
 function usePracticeStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -382,5 +388,5 @@ function usePracticeStyles() {
     flexBasis: 112,
     flexGrow: 1,
   },
-  }), [colors]);
+  });
 }

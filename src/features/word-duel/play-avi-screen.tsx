@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
@@ -88,6 +88,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
+  const tabletViewport = width >= 760;
   const [{ interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const duelCopy = AVI_DUEL_COPY[interfaceLocale];
@@ -113,8 +114,14 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   );
   const viewModel = createAviBotDuelViewModel(session);
   const boardRows = fillEditingRow(viewModel.ownBoardRows, input);
-  const boardWidth = Math.min(width - spacing.lg * 2, 338);
-  const regularTileSize = Math.max(34, Math.min(44, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
+  const boardWidth = Math.min(width - spacing.lg * 2, tabletViewport ? 420 : 338);
+  const regularTileSize = Math.max(
+    34,
+    Math.min(
+      tabletViewport ? 56 : 44,
+      Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength),
+    ),
+  );
   const tileSize = compactViewport ? Math.min(34, regularTileSize) : regularTileSize;
 
   useEffect(() => {
@@ -208,7 +215,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     setMessage(duelCopy.waitingForAvi);
   }
 
-  async function openResult() {
+  function openResult() {
     if (isOpeningResultRef.current) {
       return;
     }
@@ -217,46 +224,48 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     setIsOpeningResult(true);
     setMessage('');
 
-    try {
-      const outcome = botResultOutcome(viewModel.status);
-      const reason = botResultReason(viewModel.status);
-      const handoff = await finalizeWordDuelResult({
-        gameLanguage: viewModel.gameLanguage,
-        opponent: {
-          guesses: session.botState.guesses,
-          safeDisplayName: 'Avi',
-          side: 'b',
-          solved: didLocalStateSolve(session.botState),
-        },
-        outcome,
-        own: {
-          guesses: session.humanState.guesses,
-          side: 'a',
-          solved: didLocalStateSolve(session.humanState),
-        },
-        resultReason: reason,
-        targetDisplayWord: session.target.displayWord,
-      }, { mode: 'bot_duel' });
+    const outcome = botResultOutcome(viewModel.status);
+    const reason = botResultReason(viewModel.status);
 
-      router.push(buildWordDuelResultHandoffHref({
-        gameLanguage: viewModel.gameLanguage,
-        mode: 'bot_duel',
-        outcome,
-        reason,
-        ...handoff,
-      }));
-    } catch (error) {
-      reportWordDuelResultFinalizationError({
-        error,
-        gameLanguage: viewModel.gameLanguage,
-        mode: 'bot_duel',
-        routeGroup: 'play',
+    void finalizeWordDuelResult({
+      gameLanguage: viewModel.gameLanguage,
+      opponent: {
+        guesses: session.botState.guesses,
+        safeDisplayName: 'Avi',
+        side: 'b',
+        solved: didLocalStateSolve(session.botState),
+      },
+      outcome,
+      own: {
+        guesses: session.humanState.guesses,
+        side: 'a',
+        solved: didLocalStateSolve(session.humanState),
+      },
+      resultReason: reason,
+      targetDisplayWord: session.target.displayWord,
+    }, { mode: 'bot_duel' })
+      .then((handoff) => {
+        router.push(buildWordDuelResultHandoffHref({
+          gameLanguage: viewModel.gameLanguage,
+          mode: 'bot_duel',
+          outcome,
+          reason,
+          ...handoff,
+        }));
+      })
+      .catch((error: unknown) => {
+        reportWordDuelResultFinalizationError({
+          error,
+          gameLanguage: viewModel.gameLanguage,
+          mode: 'bot_duel',
+          routeGroup: 'play',
+        });
+        setMessage(duelCopy.couldNotOpenResult);
+      })
+      .finally(() => {
+        isOpeningResultRef.current = false;
+        setIsOpeningResult(false);
       });
-      setMessage(duelCopy.couldNotOpenResult);
-    } finally {
-      isOpeningResultRef.current = false;
-      setIsOpeningResult(false);
-    }
   }
 
   return (
@@ -600,7 +609,7 @@ function didLocalStateSolve(state: LocalWordDuelState): boolean {
 
 function usePlayAviStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -911,5 +920,5 @@ function usePlayAviStyles() {
   reactionTextSelected: {
     color: colors.pressure,
   },
-  }), [colors]);
+  });
 }
