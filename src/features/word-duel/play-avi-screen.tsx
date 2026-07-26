@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
-import { WORD_DUEL_WORD_LENGTH } from '@/game/word-duel-engine';
 import { getLocalTargetCount } from '@/game/dictionaries/local-fixtures';
 import {
   advanceTargetSelection,
@@ -32,6 +31,7 @@ import { AviArtwork } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { useWordDuelInputBuffer } from './components/use-word-duel-input-buffer';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import { fillEditingRow } from './components/word-duel-ui-model';
 import {
@@ -101,7 +101,8 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       targetCount: getLocalTargetCount(initialGameLanguage),
     }));
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
-  const [input, setInput] = useState('');
+  const inputBuffer = useWordDuelInputBuffer();
+  const { input } = inputBuffer;
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
   const [activeReaction, setActiveReaction] = useState<AviBotReactionId | null>(null);
@@ -152,7 +153,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       }),
     );
     setActiveReaction(null);
-    setInput('');
+    inputBuffer.clear();
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
     setMessage('');
@@ -176,7 +177,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     }
 
     if (key === 'DEL') {
-      setInput((current) => Array.from(current).slice(0, -1).join(''));
+      inputBuffer.deleteLast();
       setMessage('');
       return;
     }
@@ -191,16 +192,13 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       return;
     }
 
-    setInput((current) => {
-      if (Array.from(current).length >= WORD_DUEL_WORD_LENGTH) return current;
-      return `${current}${normalizedKey}`;
-    });
+    inputBuffer.append(normalizedKey);
     setMessage('');
   }
 
   function submit() {
     const result = submitAviBotDuelGuess({
-      input,
+      input: inputBuffer.read(),
       nowMs: Date.now(),
       session,
     });
@@ -211,7 +209,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     }
 
     setSession(result.session);
-    setInput('');
+    inputBuffer.clear();
     setMessage(duelCopy.waitingForAvi);
   }
 

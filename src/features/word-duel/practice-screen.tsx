@@ -17,7 +17,6 @@ import {
   type GameLanguage,
   type GuessRejection,
   type LocalWordDuelState,
-  WORD_DUEL_WORD_LENGTH,
 } from '@/game/word-duel-engine';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { t } from '@/i18n/locales';
@@ -28,6 +27,7 @@ import { AviArtwork, InkEyebrow } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { useWordDuelInputBuffer } from './components/use-word-duel-input-buffer';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import {
   createKeyboardFeedbackFromGuesses,
@@ -61,7 +61,8 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     }));
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [gameState, setGameState] = useState(() => buildGame(initialGameLanguage, targetSelection.index));
-  const [input, setInput] = useState('');
+  const inputBuffer = useWordDuelInputBuffer();
+  const { input } = inputBuffer;
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -85,7 +86,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     setGameLanguage(selection.language);
     setTargetSelection(selection);
     setGameState(buildGame(selection.language, selection.index));
-    setInput('');
+    inputBuffer.clear();
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
     setMessage('');
@@ -97,7 +98,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     }
 
     if (key === 'DEL') {
-      setInput((current) => Array.from(current).slice(0, -1).join(''));
+      inputBuffer.deleteLast();
       setMessage('');
       return;
     }
@@ -112,15 +113,12 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
       return;
     }
 
-    setInput((current) => {
-      if (Array.from(current).length >= WORD_DUEL_WORD_LENGTH) return current;
-      return `${current}${normalizedKey}`;
-    });
+    inputBuffer.append(normalizedKey);
     setMessage('');
   }
 
   function submit() {
-    const result = applyGuess(gameState, input, dictionary);
+    const result = applyGuess(gameState, inputBuffer.read(), dictionary);
 
     if (!result.accepted) {
       setMessage(rejectionMessage(result.rejection, interfaceLocale));
@@ -128,7 +126,7 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     }
 
     setGameState(result.state);
-    setInput('');
+    inputBuffer.clear();
     setMessage('');
   }
 

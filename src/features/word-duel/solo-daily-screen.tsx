@@ -11,9 +11,6 @@ import {
   type TargetRotationSelection,
 } from '@/game/dictionaries/target-rotation';
 import {
-  WORD_DUEL_WORD_LENGTH,
-} from '@/game/word-duel-engine';
-import {
   applySoloDailyGuess,
   createSoloDailySession,
   createSoloDailyViewModel,
@@ -27,6 +24,7 @@ import { AppButton } from '@/ui/buttons';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { useWordDuelInputBuffer } from './components/use-word-duel-input-buffer';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import {
   createKeyboardFeedbackFromGuesses,
@@ -69,7 +67,8 @@ export function WordDuelSoloDailyScreen({
       seed: initialMode === 'solo_practice' ? targetSelection.index : 0,
     }),
   );
-  const [input, setInput] = useState('');
+  const inputBuffer = useWordDuelInputBuffer();
+  const { input } = inputBuffer;
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -100,7 +99,7 @@ export function WordDuelSoloDailyScreen({
         seed: nextMode === 'solo_practice' ? selection.index : 0,
       }),
     );
-    setInput('');
+    inputBuffer.clear();
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
     setMessage('');
@@ -138,7 +137,7 @@ export function WordDuelSoloDailyScreen({
     }
 
     if (key === 'DEL') {
-      setInput((current) => Array.from(current).slice(0, -1).join(''));
+      inputBuffer.deleteLast();
       setMessage('');
       return;
     }
@@ -153,16 +152,13 @@ export function WordDuelSoloDailyScreen({
       return;
     }
 
-    setInput((current) => {
-      if (Array.from(current).length >= WORD_DUEL_WORD_LENGTH) return current;
-      return `${current}${normalizedKey}`;
-    });
+    inputBuffer.append(normalizedKey);
     setMessage('');
   }
 
   function submit() {
     const result = applySoloDailyGuess({
-      input,
+      input: inputBuffer.read(),
       nowMs: Date.now(),
       session,
     });
@@ -173,7 +169,7 @@ export function WordDuelSoloDailyScreen({
     }
 
     setSession(result.session);
-    setInput('');
+    inputBuffer.clear();
     setMessage('');
   }
 

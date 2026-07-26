@@ -68,7 +68,7 @@ export function WordDuelKeyboard({
                 accessibilityRole="button"
                 disabled={disabled}
                 hitSlop={{ bottom: 2, left: 2, right: 2, top: 2 }}
-                onPress={() => onKeyPress(key)}
+                onPressIn={() => onKeyPress(key)}
                 style={({ pressed }) => [
                   styles.key,
                   compact && styles.keyCompact,
