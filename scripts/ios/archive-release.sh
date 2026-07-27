@@ -35,12 +35,15 @@ derived_data="$repo_root/.DerivedData-duelwords-testflight"
 [ -d "$workspace" ] || { echo "Generated iOS workspace is missing." >&2; exit 1; }
 [ -s "$local_config" ] || { echo "Generated production Local.xcconfig is missing." >&2; exit 1; }
 
+timestamp="$(date '+%Y-%m-%d-%H%M%S')"
 if [ -z "$archive_path" ]; then
-  timestamp="$(date '+%Y-%m-%d-%H%M%S')"
   archive_path="$derived_data/Archives/DuelWordsAV-0.1.0-2-$timestamp.xcarchive"
 fi
 case "$archive_path" in *.xcarchive) ;; *) echo "--archive must end in .xcarchive" >&2; exit 2 ;; esac
-mkdir -p "$(dirname "$archive_path")" "$derived_data"
+build_log="$derived_data/Logs/archive-$timestamp.log"
+mkdir -p "$(dirname "$archive_path")" "$(dirname "$build_log")"
+: > "$build_log"
+chmod 600 "$build_log"
 
 if [ "$enable_sentry_upload" -eq 1 ]; then
   case "${SENTRY_AUTH_TOKEN:-}" in
@@ -53,7 +56,7 @@ fi
 
 (cd "$repo_root" && pnpm run config:ios:runtime:prod)
 
-xcodebuild archive \
+if ! xcodebuild archive \
   -workspace "$workspace" \
   -scheme DuelWordsAV \
   -configuration Release \
@@ -61,7 +64,11 @@ xcodebuild archive \
   -archivePath "$archive_path" \
   -derivedDataPath "$derived_data" \
   -xcconfig "$local_config" \
-  -allowProvisioningUpdates
+  -allowProvisioningUpdates \
+  > "$build_log" 2>&1; then
+  echo "xcodebuild archive failed. Protected log: $build_log" >&2
+  exit 1
+fi
 
 "$repo_root/scripts/ios/repair-release-archive-sentry-dsym.sh" \
   --archive "$archive_path"
@@ -75,5 +82,6 @@ cat <<REPORT
 
 Verified archive is ready; App Store upload was not attempted.
   archive: $archive_path
+  protected build log: $build_log
   Sentry upload: $([ "$enable_sentry_upload" -eq 1 ] && echo enabled || echo disabled)
 REPORT

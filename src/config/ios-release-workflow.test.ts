@@ -43,6 +43,9 @@ describe('iOS release and Sentry workflow', () => {
 
   it('creates and validates an archive without containing an App Store upload path', () => {
     expect(archiveScript).toContain('xcodebuild archive');
+    expect(archiveScript).toContain('chmod 600 "$build_log"');
+    expect(archiveScript).toContain('> "$build_log" 2>&1');
+    expect(archiveScript).toContain('Protected log: $build_log');
     expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);
