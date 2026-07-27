@@ -475,13 +475,13 @@ exclusively on Office Openspace.
 
 ## iOS release-candidate configuration
 
-The checked-in Expo configuration still describes the already-uploaded first
-internal iOS candidate as version `0.1.0`, build `1`, bundle identifier
-`com.avalsys.duelwordsav`, and iPhone/iPad device families. RC0 is portrait and
+The checked-in Expo configuration reserves version `0.1.0`, build `2`, bundle
+identifier `com.avalsys.duelwordsav`, and iPhone/iPad device families for the
+replacement internal candidate. The already-uploaded build `1` is immutable
+historical evidence and must never be uploaded again. Build `2` is portrait and
 full-screen on both device types; iPad landscape and multitasking are not part
-of this candidate's acceptance contract. Build `1` must not be uploaded again;
-the next approved TestFlight candidate must increment to build `2` after its
-exact source and runtime configuration are frozen.
+of this candidate's acceptance contract. The next upload still requires the
+exact source, production runtime and owner acceptance to be frozen together.
 
 Development and simulator-native builds use the separate identifier
 `com.avalsys.duelwordsav.dev`. `pnpm run ios` selects that variant explicitly,
@@ -497,6 +497,16 @@ app cannot use the configured keychain access group and may render Account AV
 as unavailable even when its embedded client configuration is correct. A
 runtime auth check must use Xcode's local ad-hoc signature (`Sign to Run
 Locally`) or a development-signed physical build.
+
+On 2026-07-27, the privacy-complete production Release built from public app
+source `0f3a1b9` passed a signed-local simulator matrix on the dedicated iPhone
+17 and iPad Pro 13, iOS 26.5. The same `.app` reported `0.1.0 (2)`, production
+bundle `com.avalsys.duelwordsav`, device families `1,2`, and a valid embedded
+production Account AV configuration. Account AV became available on both
+devices, the provider sheet opened without starting a provider session, and
+the bundled English dictionary accepted `SLATE` in Practice on both layouts.
+Public follow-up `ad4a1c8` additionally verifies the Apple privacy manifest in
+the signed device archive; it does not change the app runtime.
 
 ## Brand assets
 
