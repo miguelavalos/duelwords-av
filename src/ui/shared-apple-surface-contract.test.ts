@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('node:fs') as {
+  existsSync(path: string): boolean;
   readFileSync(path: string, encoding: 'utf8'): string;
 };
 const path = require('node:path') as {
@@ -12,6 +13,13 @@ const projectRoot = process.cwd();
 
 function source(relativePath: string): string {
   return fs.readFileSync(path.resolve(projectRoot, relativePath), 'utf8');
+}
+
+function expectGeneratedSourceToMatch(relativePath: string, canonicalSource: string) {
+  const generatedPath = path.resolve(projectRoot, relativePath);
+  if (fs.existsSync(generatedPath)) {
+    expect(fs.readFileSync(generatedPath, 'utf8')).toBe(canonicalSource);
+  }
 }
 
 const surfaceTypeSource = source('src/ui/shared-apple-surface.types.ts');
@@ -108,8 +116,10 @@ describe('shared Apps AV native-surface contract', () => {
     }
     expect(nativeViewManagerSource).not.toContain('fetch(');
 
-    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsSharedAppleViewManager.swift'))
-      .toBe(nativeViewManagerSource);
+    expectGeneratedSourceToMatch(
+      'ios/DuelWordsAV/SharedApple/DuelWordsSharedAppleViewManager.swift',
+      nativeViewManagerSource,
+    );
   });
 
   it('localizes account-deletion service copy without exposing technical fixture language', () => {
@@ -130,9 +140,13 @@ describe('shared Apps AV native-surface contract', () => {
       expect(nativeL10nSource.split(`"${playerFacingCopy}":`).length - 1, playerFacingCopy).toBe(4);
     }
 
-    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsSharedSurfaces.swift'))
-      .toBe(nativeSurfaceSource);
-    expect(source('ios/DuelWordsAV/SharedApple/DuelWordsNativeL10n.swift'))
-      .toBe(nativeL10nSource);
+    expectGeneratedSourceToMatch(
+      'ios/DuelWordsAV/SharedApple/DuelWordsSharedSurfaces.swift',
+      nativeSurfaceSource,
+    );
+    expectGeneratedSourceToMatch(
+      'ios/DuelWordsAV/SharedApple/DuelWordsNativeL10n.swift',
+      nativeL10nSource,
+    );
   });
 });

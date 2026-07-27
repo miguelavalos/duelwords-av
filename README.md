@@ -195,6 +195,17 @@ access with OSStatus `-34018`; it is not valid auth evidence. Account AV became
 available and the provider sheet opened normally after the exact same app was
 signed to run locally, with no source patch or configuration change.
 
+On 2026-07-27 the interior-navigation contract was rebuilt and exercised again
+on the dedicated iPhone 17 and iPad Pro 13. Home is the only shell destination
+that carries the product wordmark; splash and onboarding retain it as deliberate
+launch identity. Every product interior uses the same icon-only, 44-point Back
+control. Account and Settings keep that control on iPad alongside the persistent
+sidebar instead of silently changing navigation by device class. Daily uses the
+same header and exposes secondary explanation behind its information button so
+the board and keyboard remain primary. The React and shared-Apple surfaces expose
+the same `header.back` identifier, and the navigation contract is tested even
+when the ignored generated `ios/` tree is absent from a clean checkout.
+
 The same local candidate now resolves Avi's deterministic response
 automatically after the scheduled thinking delay; the former manual
 `Avi submits` development control is not part of the player experience. Avi's

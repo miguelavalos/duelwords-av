@@ -17,6 +17,7 @@ export function ScreenBackButton({ accessibilityLabel, onPress }: ScreenBackButt
       accessibilityRole="button"
       hitSlop={8}
       onPress={onPress}
+      testID="header.back"
       style={({ pressed }) => [
         styles.iconButton,
         { backgroundColor: colors.surface, borderColor: colors.border },
@@ -43,6 +44,7 @@ export function ScreenInfoButton({ accessibilityLabel, expanded = false, onPress
       accessibilityState={{ expanded }}
       hitSlop={8}
       onPress={onPress}
+      testID="header.info"
       style={({ pressed }) => [
         styles.iconButton,
         { backgroundColor: expanded ? colors.surfaceSoft : colors.surface, borderColor: expanded ? colors.accent : colors.border },

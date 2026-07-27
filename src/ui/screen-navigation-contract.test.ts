@@ -46,8 +46,36 @@ describe('interior screen navigation contract', () => {
     expect(navigation).toContain('accessibilityRole="button"');
     expect(navigation).toContain('width: 44');
     expect(navigation).toContain('height: 44');
+    expect(navigation).toContain('testID="header.back"');
+    expect(navigation).toContain('testID="header.info"');
     expect(navigation).not.toContain('Done');
     expect(navigation).not.toContain('Close');
+  });
+
+  it('keeps native and React navigation on the same icon-only contract', () => {
+    const nativeSurfaces = source('native/shared-apple/DuelWordsSharedSurfaces.swift');
+
+    expect(nativeSurfaces.match(/AVAppShellTab\(id: "play"/g)).toHaveLength(1);
+    expect(nativeSurfaces.match(/AVAppShellTab\(id: "rivals"/g)).toHaveLength(1);
+    expect(nativeSurfaces.match(/AVAppShellTab\(id: "stats"/g)).toHaveLength(1);
+    expect(nativeSurfaces).toContain('assistantID: "avi"');
+    expect(nativeSurfaces).toContain('private struct DuelWordsBackHeader');
+    expect(nativeSurfaces).toContain('.frame(width: 44, height: 44)');
+    expect(nativeSurfaces).toContain('.accessibilityIdentifier("header.back")');
+    expect(nativeSurfaces).toContain('closeSystemImage: "chevron.left"');
+    expect(nativeSurfaces.match(/showsChrome: true/g)).toHaveLength(2);
+    expect(nativeSurfaces).not.toContain('showsChrome: UIDevice.current.userInterfaceIdiom != .pad');
+  });
+
+  it('shows the product wordmark only in launch, onboarding, and Home chrome', () => {
+    const tabLayout = source('src/app/(tabs)/_layout.tsx');
+    const nativeSurfaces = source('native/shared-apple/DuelWordsSharedSurfaces.swift');
+
+    expect(tabLayout).toContain("selectedRoute === 'play'");
+    expect(nativeSurfaces).toContain('if props.selectedTab == "play"');
+    expect(source('src/features/play/play-screen.tsx')).toContain('AppChromeHeader');
+    expect(source('src/features/launch/product-splash-screen.tsx')).toContain('DuelWordsWordmark');
+    expect(source('src/features/onboarding/onboarding-screen.tsx')).toContain('DuelWordsWordmark');
   });
 
   it('keeps the active Daily header compact and reveals secondary information on demand', () => {

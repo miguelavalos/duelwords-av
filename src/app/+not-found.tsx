@@ -1,5 +1,4 @@
 import { Stack, useRouter } from 'expo-router';
-import { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AppScreen } from '@/ui/app-screen';
@@ -29,7 +28,7 @@ export default function NotFoundRoute() {
 
 function useNotFoundStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
@@ -41,5 +40,5 @@ function useNotFoundStyles() {
     fontSize: typeScale.body,
     lineHeight: 22,
   },
-  }), [colors]);
+  });
 }

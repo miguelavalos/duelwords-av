@@ -285,7 +285,7 @@ private struct DuelWordsSettingsSurface: View {
             subtitle: props.localized("Preferences on this device, help, and legal information."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
-            showsChrome: UIDevice.current.userInterfaceIdiom != .pad
+            showsChrome: true
         ) {
             DuelWordsBackHeader(props: props, action: action)
         } content: {
@@ -463,7 +463,7 @@ private struct DuelWordsAccountSurface: View {
             subtitle: props.signedIn ? props.localized("Your account and DuelWords access in one place.") : props.localized("Play locally as a guest. Sign in when you want access across devices."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
-            showsChrome: UIDevice.current.userInterfaceIdiom != .pad
+            showsChrome: true
         ) {
             DuelWordsBackHeader(props: props, action: action)
         } content: {
