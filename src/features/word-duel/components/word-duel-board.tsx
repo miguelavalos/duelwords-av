@@ -60,6 +60,7 @@ export function WordDuelBoard({
                 cell.feedback === 'absent' && styles.tileAbsent,
               ]}>
               <Text
+                key={`tile-letter-${rowIndex}-${columnIndex}-${cell.letter ?? 'empty'}`}
                 style={[
                   styles.tileLetter,
                   compact && styles.tileLetterCompact,
@@ -148,6 +149,8 @@ function useWordDuelBoardStyles() {
     fontSize: 24,
     fontWeight: '900',
     letterSpacing: 0.4,
+    minWidth: 24,
+    textAlign: 'center',
   },
   tileLetterCompact: {
     fontSize: typeScale.lead,

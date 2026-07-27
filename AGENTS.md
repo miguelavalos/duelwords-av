@@ -202,8 +202,12 @@ Read the exact versioned Expo docs at
 https://docs.expo.dev/versions/v57.0.0/ before framework-level changes.
 
 Recurrent native keyboard issue: rapid alternating fingers could leave a
-five-letter row incomplete even after the input buffer became atomic. The
-remaining cause was Pressable responder negotiation dropping an overlapping
-second touch. Keep native Word Duel keys on `onTouchStart`, retain a separate
-native accessibility activation and web `onPress`, and keep the component
-regression that enters five touch starts in one render batch.
+five-letter row visually incomplete even though the atomic input buffer held
+all five letters. There were two native causes: independent Pressable responders
+competed during overlapping touches, and Fabric could collapse the intrinsic
+width of the narrow `I` board glyph. Keep the keyboard inside the root
+`GestureHandlerRootView`, route keys through its single manual gesture surface,
+retain the short per-touch replay guard and native accessibility activation,
+and preserve explicit width/centering on board letters. The keyboard regression
+must continue to cover replayed native events and legitimate repeated letters;
+native acceptance must cover rapid `RAISE` and repeated-letter `APPLE` entry.

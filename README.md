@@ -233,10 +233,13 @@ attempt strip never reveals its word or letters. Each completed attempt exposes
 only two aggregate counts: letters that belong to the target (including exact
 matches) and the subset already in the correct position. The compact iPhone
 keyboard also fills the dead space between keys, clamps rapid input inside the
-atomic five-letter state update, and handles native keys at touch start so
-overlapping fast taps cannot be dropped by Pressable responder negotiation.
-Web retains normal press activation and native accessibility activation remains
-explicit.
+atomic five-letter state update, and treats the native keyboard as one gesture
+surface so overlapping fast taps cannot compete across independent responders.
+A 75 ms guard removes only iOS's replay of the same touch/key identity while
+distinct repeated letters remain valid. Board glyphs have explicit centered
+width so Fabric cannot visually collapse a narrow `I`; native accessibility
+activation remains explicit. Simulator acceptance covers rapid `RAISE` and
+repeated-letter `APPLE` sequences.
 
 The 2026-07-26 content audit follows Tune AV's Avi composition rule precisely:
 the cropped Avi navigation treatment in the shared phone footer is separate
