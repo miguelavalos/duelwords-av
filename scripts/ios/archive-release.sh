@@ -63,6 +63,9 @@ xcodebuild archive \
   -xcconfig "$local_config" \
   -allowProvisioningUpdates
 
+"$repo_root/scripts/ios/repair-release-archive-sentry-dsym.sh" \
+  --archive "$archive_path"
+
 "$repo_root/scripts/ios/check-release-archive.sh" \
   --archive "$archive_path" \
   --expected-build 2 \

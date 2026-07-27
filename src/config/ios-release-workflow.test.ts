@@ -10,6 +10,10 @@ const appJson = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8'))
 };
 const archiveScript = fs.readFileSync(path.join(root, 'scripts/ios/archive-release.sh'), 'utf8');
 const archiveCheck = fs.readFileSync(path.join(root, 'scripts/ios/check-release-archive.sh'), 'utf8');
+const sentryDsymRepair = fs.readFileSync(
+  path.join(root, 'scripts/ios/repair-release-archive-sentry-dsym.sh'),
+  'utf8',
+);
 const builtConfigCheck = fs.readFileSync(path.join(root, 'scripts/ios/check-built-account-config.mjs'), 'utf8');
 const configGenerator = fs.readFileSync(path.join(root, 'scripts/ios/generate-local-xcconfig.sh'), 'utf8');
 
@@ -39,6 +43,7 @@ describe('iOS release and Sentry workflow', () => {
 
   it('creates and validates an archive without containing an App Store upload path', () => {
     expect(archiveScript).toContain('xcodebuild archive');
+    expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);
   });
@@ -47,6 +52,8 @@ describe('iOS release and Sentry workflow', () => {
     expect(archiveCheck).toContain('expected_build="2"');
     expect(archiveCheck).toContain('expected_bundle_id="com.avalsys.duelwordsav"');
     expect(archiveCheck).toContain('app dSYM UUID does not match app binary');
+    expect(sentryDsymRepair).toContain('xcrun dsymutil');
+    expect(sentryDsymRepair).toContain('Sentry.framework.dSYM');
     expect(archiveCheck).toContain('check-built-account-config.mjs');
     expect(builtConfigCheck).toContain("'DuelWords Sentry environment'");
     expect(builtConfigCheck).toContain("'DuelWords Sentry DSN'");
