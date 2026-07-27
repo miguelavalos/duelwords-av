@@ -4,7 +4,9 @@ import {
   ACTIVE_DUEL_KEY_ROWS,
   ACTIVE_DUEL_MOBILE_LAYOUT_ORDER,
   createDemoActiveDuelViewModel,
+  createRuntimeActiveDuelViewModel,
   markActiveDuelGuessSubmitted,
+  shouldReportActiveDuelTimeoutFailure,
   updateActiveDuelEditingLetters,
 } from './view-model';
 
@@ -78,5 +80,23 @@ describe('active duel safe view model', () => {
     expect(JSON.stringify(submitted.opponent)).not.toContain('ADORE');
     expect(JSON.stringify(submitted.opponent)).not.toContain('letters');
     expect(JSON.stringify(submitted.opponent)).not.toContain('feedback');
+  });
+
+  it('does not surface a stale timeout failure after a round resolves or advances', () => {
+    const editing = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'en',
+      ownSide: 'a',
+      roundNumber: 1,
+    });
+    const submitted = markActiveDuelGuessSubmitted(editing, ['R', 'A', 'I', 'S', 'E']);
+    const nextRound = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'en',
+      ownSide: 'a',
+      roundNumber: 2,
+    });
+
+    expect(shouldReportActiveDuelTimeoutFailure(editing, 1)).toBe(true);
+    expect(shouldReportActiveDuelTimeoutFailure(submitted, 1)).toBe(false);
+    expect(shouldReportActiveDuelTimeoutFailure(nextRound, 1)).toBe(false);
   });
 });

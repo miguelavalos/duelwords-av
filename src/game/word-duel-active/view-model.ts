@@ -193,6 +193,14 @@ export function isActiveDuelInputOpen(roundState: ActiveDuelOwnRoundState): bool
   return roundState === 'editing' || roundState === 'rival_submitted';
 }
 
+export function shouldReportActiveDuelTimeoutFailure(
+  viewModel: ActiveDuelViewModel,
+  attemptedRoundNumber: number,
+): boolean {
+  return viewModel.roundNumber === attemptedRoundNumber
+    && isActiveDuelInputOpen(viewModel.ownRoundState);
+}
+
 export function updateActiveDuelEditingLetters(
   viewModel: ActiveDuelViewModel,
   letters: readonly string[],

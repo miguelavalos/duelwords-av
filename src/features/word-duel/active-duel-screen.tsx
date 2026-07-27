@@ -19,6 +19,7 @@ import {
 } from '@/game/word-duel-active/realtime-projection';
 import {
   isActiveDuelInputOpen,
+  shouldReportActiveDuelTimeoutFailure,
   updateActiveDuelEditingLetters,
   type ActiveDuelOpponentMarkerState,
   type ActiveDuelReactionId,
@@ -97,10 +98,15 @@ export function ActiveDuelScreen({
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [statusDetail, setStatusDetail] = useState(() => copy('rivalReady'));
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
+  const viewModelRef = useRef(viewModel);
   const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
   const boardWidth = Math.min(width - spacing.lg * 2, 418);
   const regularTileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
   const tileSize = compactViewport ? Math.min(40, regularTileSize) : regularTileSize;
+
+  useEffect(() => {
+    viewModelRef.current = viewModel;
+  }, [viewModel]);
 
   useEffect(() => {
     clearDraft();
@@ -119,15 +125,22 @@ export function ActiveDuelScreen({
       return undefined;
     }
 
+    const attemptedRoundNumber = viewModel.roundNumber;
     const timeout = setTimeout(() => {
-      timedOutRoundRef.current = viewModel.roundNumber;
-      void activeDuelController.timeoutRound({ roundNumber: viewModel.roundNumber })
+      timedOutRoundRef.current = attemptedRoundNumber;
+      void activeDuelController.timeoutRound({ roundNumber: attemptedRoundNumber })
         .then((result) => {
+          if (viewModelRef.current.roundNumber !== attemptedRoundNumber) {
+            return;
+          }
           setViewModel(result.viewModel);
           clearDraft();
           setStatusDetail(copy('roundTimedOut'));
         })
         .catch(() => {
+          if (!shouldReportActiveDuelTimeoutFailure(viewModelRef.current, attemptedRoundNumber)) {
+            return;
+          }
           timedOutRoundRef.current = null;
           setStatusDetail(copy('couldNotCloseTimeout'));
         });
