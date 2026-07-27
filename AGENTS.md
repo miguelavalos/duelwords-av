@@ -200,3 +200,10 @@ the cumulative current state.
 
 Read the exact versioned Expo docs at
 https://docs.expo.dev/versions/v57.0.0/ before framework-level changes.
+
+Recurrent native keyboard issue: rapid alternating fingers could leave a
+five-letter row incomplete even after the input buffer became atomic. The
+remaining cause was Pressable responder negotiation dropping an overlapping
+second touch. Keep native Word Duel keys on `onTouchStart`, retain a separate
+native accessibility activation and web `onPress`, and keep the component
+regression that enters five touch starts in one render batch.

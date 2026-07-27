@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage, LetterFeedback } from '@/game/word-duel-engine';
 import { t, type InterfaceLocale } from '@/i18n/locales';
@@ -68,7 +68,9 @@ export function WordDuelKeyboard({
                 accessibilityRole="button"
                 disabled={disabled}
                 hitSlop={{ bottom: 2, left: 2, right: 2, top: 2 }}
-                onPressIn={() => onKeyPress(key)}
+                onAccessibilityTap={Platform.OS === 'web' || disabled ? undefined : () => onKeyPress(key)}
+                onPress={Platform.OS === 'web' ? () => onKeyPress(key) : undefined}
+                onTouchStart={Platform.OS === 'web' || disabled ? undefined : () => onKeyPress(key)}
                 style={({ pressed }) => [
                   styles.key,
                   compact && styles.keyCompact,
