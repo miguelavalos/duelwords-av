@@ -102,7 +102,7 @@ export function AccountScreen() {
           <View style={styles.aviPlanCopy}>
             <InkEyebrow>DuelWords Pro</InkEyebrow>
             <Text style={styles.cardTitle}>{account.access.planTier === 'pro' ? 'Pro is active' : 'More history. Same fair game.'}</Text>
-            <Text style={styles.cardDetail}>No ads and deeper private limits. Never hints, extra time, or extra attempts.</Text>
+            <Text style={styles.cardDetail}>Deeper private limits and history. Never hints, extra time, or extra attempts.</Text>
           </View>
         </View>
         <AppButton onPress={() => router.push('/pro' as Href)}>{account.access.planTier === 'pro' ? 'View Pro access' : 'Explore DuelWords Pro'}</AppButton>

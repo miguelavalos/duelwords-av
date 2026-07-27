@@ -37,11 +37,6 @@ export type WordDuelResultSharePreview = {
   text: string;
 };
 
-export type WordDuelResultAdSlot = {
-  reserved: boolean;
-  visible: boolean;
-};
-
 export type WordDuelResultLocalRowPayload = {
   feedback: string;
   word: string;
@@ -69,7 +64,6 @@ export type WordDuelResultLocalPayload = {
 };
 
 export type WordDuelResultViewModel = {
-  adSlot: WordDuelResultAdSlot;
   gameLabel: 'Word Duel';
   gameLanguage: GameLanguage;
   isFinalized: boolean;
@@ -149,10 +143,6 @@ export function createWordDuelResultViewModelFromLocalPayload(
     viewerSide: payload.own.side,
   });
   const viewModelWithoutShare: Omit<WordDuelResultViewModel, 'safeSharePreview'> = {
-    adSlot: {
-      reserved: true,
-      visible: true,
-    },
     gameLabel: 'Word Duel',
     gameLanguage: payload.gameLanguage,
     isFinalized,
@@ -213,7 +203,6 @@ export function serializeWordDuelResultLocalPayload(payload: WordDuelResultLocal
 
 export function createDemoWordDuelResultViewModel(input: {
   gameLanguage?: GameLanguage;
-  includeAdSlot?: boolean;
   isFinalized?: boolean;
   matchStarted?: boolean;
   outcome?: WordDuelResultOutcome;
@@ -256,10 +245,6 @@ export function createDemoWordDuelResultViewModel(input: {
     timedOut: false,
   };
   const viewModelWithoutShare: Omit<WordDuelResultViewModel, 'safeSharePreview'> = {
-    adSlot: {
-      reserved: input.includeAdSlot ?? true,
-      visible: input.includeAdSlot ?? true,
-    },
     gameLabel: 'Word Duel',
     gameLanguage,
     isFinalized,

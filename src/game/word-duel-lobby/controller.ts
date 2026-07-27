@@ -514,10 +514,6 @@ function stateFromApiInvitePreview(
   return {
     lobby: deriveWordDuelLobbyViewModel({
       activeRound: null,
-      adSlot: {
-        reserved: true,
-        visible: true,
-      },
       countdown: null,
       invitePreview: invitePreviewFromApi(invite, 'invite_review', nowMs),
       players: [
@@ -621,10 +617,6 @@ function stateFromApiLobby(
   return {
     lobby: deriveWordDuelLobbyViewModel({
       activeRound,
-      adSlot: {
-        reserved: true,
-        visible: true,
-      },
       countdown,
       invitePreview: invitePreviewFromApi(lobby.invite, status, nowMs),
       players,

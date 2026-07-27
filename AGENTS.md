@@ -150,7 +150,7 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Signed physical iPhone+iPad acceptance, live ads, real Pro purchase, push, a
+  Signed physical iPhone+iPad acceptance, post-V1 advertising, real Pro purchase, push, a
   replacement TestFlight build, or any further production deploy still
   requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy

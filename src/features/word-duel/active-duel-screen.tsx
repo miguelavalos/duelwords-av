@@ -406,7 +406,6 @@ export function ActiveDuelScreen({
         reactions={viewModel.availableReactions}
       />
 
-      {viewModel.adSlot.visible ? <CompactAdSlot /> : null}
     </AppScreen>
   );
 }
@@ -510,15 +509,6 @@ function ReactionTray({
       <Pressable accessibilityRole="button" onPress={onMuteToggle} style={styles.muteButton}>
         <Text style={styles.muteText}>{publicDuelT(interfaceLocale, muted ? 'muted' : 'mute')}</Text>
       </Pressable>
-    </View>
-  );
-}
-
-function CompactAdSlot() {
-  const styles = useActiveDuelStyles();
-  return (
-    <View style={styles.adSlot}>
-      <Text style={styles.adText}>Ad</Text>
     </View>
   );
 }
@@ -864,20 +854,6 @@ function useActiveDuelStyles() {
     paddingHorizontal: spacing.sm,
   },
   muteText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '900',
-  },
-  adSlot: {
-    minHeight: 42,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceStrong,
-  },
-  adText: {
     color: colors.textMuted,
     fontSize: typeScale.small,
     fontWeight: '900',

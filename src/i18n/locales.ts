@@ -23,7 +23,6 @@ export function gameLanguageLabel(language: GameLanguage): string {
 }
 
 type CopyKey =
-  | 'adsPrivacyChoices'
   | 'appName'
   | 'play'
   | 'rivals'
@@ -69,7 +68,6 @@ type CopyKey =
 
 export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
   en: {
-    adsPrivacyChoices: 'Ad privacy choices',
     appName: 'DuelWords AV',
     play: 'Play',
     rivals: 'Rivals',
@@ -114,7 +112,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     system: 'System',
   },
   es: {
-    adsPrivacyChoices: 'Opciones de privacidad publicitaria',
     appName: 'DuelWords AV',
     play: 'Jugar',
     rivals: 'Rivales',
@@ -159,7 +156,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     system: 'Sistema',
   },
   ca: {
-    adsPrivacyChoices: 'Opcions de privacitat publicitària',
     appName: 'DuelWords AV',
     play: 'Jugar',
     rivals: 'Rivals',
@@ -204,7 +200,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     system: 'Sistema',
   },
   fr: {
-    adsPrivacyChoices: 'Choix de confidentialité publicitaire',
     appName: 'DuelWords AV',
     play: 'Jouer',
     rivals: 'Rivaux',
@@ -249,7 +244,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     system: 'Système',
   },
   de: {
-    adsPrivacyChoices: 'Datenschutzoptionen für Werbung',
     appName: 'DuelWords AV',
     play: 'Spielen',
     rivals: 'Rivalen',

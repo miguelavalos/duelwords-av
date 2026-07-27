@@ -688,20 +688,6 @@ function useResultStyles() {
     fontSize: typeScale.small,
     lineHeight: 19,
   },
-  adSlot: {
-    minHeight: 48,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceStrong,
-  },
-  adText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '900',
-  },
   rematchPanel: {
     gap: spacing.md,
     borderRadius: radii.md,

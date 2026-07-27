@@ -69,7 +69,6 @@ export function createWordDuelResultSource(input: {
     resultReason: input.resultReason,
     viewModel: createDemoWordDuelResultViewModel({
       gameLanguage: input.gameLanguage,
-      includeAdSlot: true,
       outcome: input.outcome,
       resultReason: input.resultReason,
     }),

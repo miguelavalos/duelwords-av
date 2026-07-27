@@ -76,7 +76,7 @@ describe('word duel lobby view model', () => {
     expect(countdown.readyBySide).toEqual({ a: true, b: true });
     expect(countdown.countdown?.remainingSeconds).toBe(3);
     expect(countdown.canOpenActiveDuel).toBe(false);
-    expect(countdown.adSlot.visible).toBe(false);
+    expect(countdown).not.toHaveProperty('adSlot');
   });
 
   it('does not open round 1 until the authoritative countdown deadline has elapsed', () => {

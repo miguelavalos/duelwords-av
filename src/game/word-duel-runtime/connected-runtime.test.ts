@@ -158,10 +158,6 @@ function activeRuntimeLobbyState(input: {
         roundNumber: 1,
         roundOpenedAtMs: NOW_MS,
       },
-      adSlot: {
-        reserved: true,
-        visible: true,
-      },
       countdown: null,
       invitePreview: invitePreview(),
       players: [

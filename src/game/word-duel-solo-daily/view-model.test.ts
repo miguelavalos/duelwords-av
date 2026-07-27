@@ -166,7 +166,7 @@ describe('word duel solo and daily local preview', () => {
     expect(serialized).not.toContain('⬜');
   });
 
-  it('reserves ads but keeps them hidden during active play', () => {
+  it('keeps active and completed Daily state free of advertising fields', () => {
     const session = createSoloDailySession({
       gameLanguage: 'en',
       mode: 'daily_preview',
@@ -180,10 +180,10 @@ describe('word duel solo and daily local preview', () => {
       session,
     });
 
-    expect(playingView.adSlot).toEqual({ reserved: true, visible: false });
+    expect(playingView).not.toHaveProperty('adSlot');
     if (!solved.accepted) {
       throw new Error('Expected target guess to solve the local game.');
     }
-    expect(createSoloDailyViewModel(solved.session).adSlot).toEqual({ reserved: true, visible: true });
+    expect(createSoloDailyViewModel(solved.session)).not.toHaveProperty('adSlot');
   });
 });

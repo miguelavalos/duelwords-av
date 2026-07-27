@@ -25,13 +25,10 @@ The public Play catalog contains Challenge a Friend, Play Avi, offline
 Practice, and official Daily.
 Home presents them in product order: official Daily first, Challenge a Friend
 second, Play Avi and Practice as secondary modes, and compact Avi help last.
-The native client now has a test-safe AdMob/UMP boundary for one adaptive Home
-banner after every game mode and before Avi help. It is disabled by default:
-app code does not call UMP, explicitly initialize the SDK, or request inventory
-unless a build selects `test` or `live` and Home mounts the placement. Pro and unresolved/error account
-states fail closed with no request or placeholder. Active games and results
-remain entirely ad-free, and V1 requests non-personalized inventory only. See
-[Advertising and consent](docs/advertising-and-consent.md).
+Advertising is excluded from V1. The native and web clients contain no Google
+Mobile Ads SDK, UMP consent runtime, ad configuration, ad placement, reserved
+ad layout, or Pro no-ads promise. See the executable
+[V1 advertising exclusion](docs/advertising-and-consent.md).
 Practice, Solo Practice, and deterministic Play Avi use bundled
 EN/ES/CA/FR/DE dictionaries and make no word-list request. Native word
 acceptance and non-Daily local target selection stay on-device; the app must
@@ -367,7 +364,7 @@ resolved account cannot retrigger `/v1/me` and `/v1/me/access` merely because
 Clerk returns a new function reference. Regression tests preserve one bounded
 resolution per signed-in session-state transition and keep Account AV refresh
 failure separate from provider activation. Account-only persistence,
-real Pro purchases, live AdMob activation, push, Sentry project/DSN verification, canonical
+real Pro purchases, post-V1 advertising, push, Sentry project/DSN verification, canonical
 associated links, and production runtime remain outside the current candidate. No provider
 key or backend deploy credential belongs in this repository.
 
@@ -803,13 +800,11 @@ game id; it only creates a start request after recipient acceptance.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
 - Keep the public Play order fixed as official Daily, Challenge a Friend,
-  Play Avi, Practice, optional Home banner, then Avi help. All four modes and
+  Play Avi, Practice, then Avi help. All four modes and
   their public journeys are localized in EN/ES/CA/FR/DE.
-- Complete the private AdMob/UMP activation gate: owner-created provider apps,
-  consent message and `app-ads.txt`, privacy/store disclosure approval, exact
-  live identifiers, Guest/Free/Pro physical-device matrix, and explicit
-  authorization for the exact signed candidate. Until then ads remain
-  `disabled`; development may use only Google's official test inventory.
+- Keep advertising outside V1. Any later monetization experiment requires a
+  new product decision, provider/privacy review, implementation, and signed
+  acceptance gate; the V1 client must remain SDK- and placement-free.
 - Complete final launch curation for all five target decks. Their bundled
   allowlists and 500/750-word target pools are reproducible from pinned,
   license-reviewed sources, but the current frequency ranking and auditable

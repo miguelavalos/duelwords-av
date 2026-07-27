@@ -150,11 +150,4 @@ describe('shared Apps AV native-surface contract', () => {
     );
   });
 
-  it('exposes ad privacy choices only when the consent SDK requires them', () => {
-    expect(surfaceTypeSource).toContain('adsPrivacyOptionsRequired?: boolean');
-    expect(nativeViewManagerSource).toContain('adsPrivacyOptionsRequired: Bool');
-    expect(nativeSurfaceSource).toContain('if props.adsPrivacyOptionsRequired');
-    expect(nativeSurfaceSource).toContain('action("openAdsPrivacyOptions", nil)');
-    expect(nativeL10nSource.split('"Ad privacy choices":').length - 1).toBe(4);
-  });
 });

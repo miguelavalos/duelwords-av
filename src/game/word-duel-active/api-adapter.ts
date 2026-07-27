@@ -129,7 +129,6 @@ export function buildRoundScopedDuelWordsPath(input: {
 export function createMockActiveDuelClient(input: {
   gameId?: string;
   gameLanguage?: GameLanguage;
-  includeAdSlot?: boolean;
   initialViewModel?: ActiveDuelViewModel;
   now?: () => Date;
   playerId?: string;
@@ -143,7 +142,6 @@ export function createMockActiveDuelClient(input: {
     input.initialViewModel ??
     createDemoActiveDuelViewModel({
       gameLanguage: input.gameLanguage ?? 'en',
-      includeAdSlot: input.includeAdSlot ?? true,
       remainingSeconds: input.remainingSeconds ?? 37,
       scenario: 'editing',
     });

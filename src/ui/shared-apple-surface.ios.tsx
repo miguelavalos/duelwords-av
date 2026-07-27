@@ -16,7 +16,6 @@ const NativeSharedAppleSurface = isSharedAppleSurfaceAvailable
 
 export function SharedAppleSurface({
   accountAvailable = false,
-  adsPrivacyOptionsRequired = false,
   activeProvider = '',
   appearance = 'system',
   authError = '',
@@ -43,7 +42,6 @@ export function SharedAppleSurface({
     <NativeSharedAppleSurface
       {...props}
       accountAvailable={accountAvailable}
-      adsPrivacyOptionsRequired={adsPrivacyOptionsRequired}
       activeProvider={activeProvider}
       appearance={appearance}
       authError={authError}

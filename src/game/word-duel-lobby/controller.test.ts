@@ -82,7 +82,7 @@ describe('Word Duel lobby controller', () => {
       state: 'joined',
     });
     expect(countdown.lobby.status).toBe('countdown');
-    expect(countdown.lobby.adSlot.visible).toBe(false);
+    expect(countdown.lobby).not.toHaveProperty('adSlot');
     expect(active.lobby.status).toBe('active_round');
     expect(active.lobby.canOpenActiveDuel).toBe(true);
   });

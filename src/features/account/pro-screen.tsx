@@ -62,7 +62,6 @@ export function ProScreen() {
 
       <PaperCard emphasized>
         <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
-        <Benefit title="No ads" detail="Keep Home and post-result surfaces quiet when Pro access is active." />
         <Benefit title="Deeper private history" detail="Keep more finished game summaries without exposing full boards publicly." />
         <Benefit title="Account-backed access" detail="Your Apps AV account keeps Pro access with you." />
       </PaperCard>

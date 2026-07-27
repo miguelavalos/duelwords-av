@@ -18,7 +18,6 @@ export type SharedAppleAction = {
 
 export type SharedAppleSurfaceProps = {
   accountAvailable?: boolean;
-  adsPrivacyOptionsRequired?: boolean;
   activeProvider?: '' | 'apple' | 'google';
   appearance?: 'dark' | 'light' | 'system';
   authError?: string;

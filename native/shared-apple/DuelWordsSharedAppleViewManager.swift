@@ -37,7 +37,6 @@ final class DuelWordsSharedAppleHostView: UIView {
         }
     }
     var accountAvailable = false { didSet { render() } }
-    var adsPrivacyOptionsRequired = false { didSet { render() } }
     var signedIn = false { didSet { render() } }
     var displayName: NSString = "" { didSet { render() } }
     var deletionBlockersJSON: NSString = "[]" { didSet { render() } }
@@ -94,7 +93,6 @@ final class DuelWordsSharedAppleHostView: UIView {
             interfaceLocale: interfaceLocale as String,
             appearance: appearance as String,
             accountAvailable: accountAvailable,
-            adsPrivacyOptionsRequired: adsPrivacyOptionsRequired,
             signedIn: signedIn,
             displayName: displayName as String,
             deletionBlockersJSON: deletionBlockersJSON as String,
@@ -178,7 +176,6 @@ struct DuelWordsSharedSurfaceProps {
     let interfaceLocale: String
     let appearance: String
     let accountAvailable: Bool
-    let adsPrivacyOptionsRequired: Bool
     let signedIn: Bool
     let displayName: String
     let deletionBlockersJSON: String
@@ -213,7 +210,6 @@ private extension DuelWordsSharedSurfaceProps {
             interfaceLocale: interfaceLocale,
             appearance: appearance,
             accountAvailable: true,
-            adsPrivacyOptionsRequired: adsPrivacyOptionsRequired,
             signedIn: true,
             displayName: "UI Test User",
             deletionBlockersJSON: deletion.blockers,

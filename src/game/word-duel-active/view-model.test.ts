@@ -12,7 +12,6 @@ describe('active duel safe view model', () => {
   it('does not include target, opponent guesses, private ids, or raw feedback payload names', () => {
     const viewModel = createDemoActiveDuelViewModel({
       gameLanguage: 'en',
-      includeAdSlot: true,
     });
     const serialized = JSON.stringify(viewModel).toLowerCase();
 
@@ -62,8 +61,7 @@ describe('active duel safe view model', () => {
 
     expect(order.indexOf('opponentSummary')).toBeLessThan(order.indexOf('ownBoard'));
     expect(order.indexOf('ownBoard')).toBeLessThan(order.indexOf('keyboard'));
-    expect(order.indexOf('keyboard')).toBeLessThan(order.indexOf('adSlot'));
-    expect(order.indexOf('adSlot')).toBeGreaterThan(order.indexOf('ownBoard'));
+    expect(order.at(-1)).toBe('keyboard');
   });
 
   it('supports a local editing state without adding opponent letters', () => {

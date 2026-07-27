@@ -37,14 +37,8 @@ export type ActiveDuelOpponentSummary = {
   safeDisplayName: string;
 };
 
-export type ActiveDuelAdSlot = {
-  reserved: boolean;
-  visible: boolean;
-};
-
 export type ActiveDuelViewModel = {
   activeReaction: ActiveDuelReactionId | null;
-  adSlot: ActiveDuelAdSlot;
   availableReactions: ActiveDuelReactionId[];
   gameLanguage: GameLanguage;
   maxAttempts: number;
@@ -78,7 +72,6 @@ export const ACTIVE_DUEL_MOBILE_LAYOUT_ORDER = [
   'ownStatus',
   'reactions',
   'keyboard',
-  'adSlot',
 ] as const;
 
 export const ACTIVE_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
@@ -111,7 +104,6 @@ export const ACTIVE_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
 
 export function createDemoActiveDuelViewModel(input: {
   gameLanguage: GameLanguage;
-  includeAdSlot?: boolean;
   initialLetters?: readonly string[];
   ownSide?: 'a' | 'b';
   remainingSeconds?: number;
@@ -143,10 +135,6 @@ export function createDemoActiveDuelViewModel(input: {
 
   return {
     activeReaction: null,
-    adSlot: {
-      reserved: input.includeAdSlot ?? true,
-      visible: input.includeAdSlot ?? true,
-    },
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
     maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
@@ -169,7 +157,6 @@ export function createDemoActiveDuelViewModel(input: {
 
 export function createRuntimeActiveDuelViewModel(input: {
   gameLanguage: GameLanguage;
-  includeAdSlot?: boolean;
   ownSide: 'a' | 'b';
   remainingSeconds?: number;
   roundNumber: number;
@@ -182,10 +169,6 @@ export function createRuntimeActiveDuelViewModel(input: {
 
   return {
     activeReaction: null,
-    adSlot: {
-      reserved: input.includeAdSlot ?? true,
-      visible: input.includeAdSlot ?? true,
-    },
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
     maxAttempts: WORD_DUEL_MAX_ATTEMPTS,

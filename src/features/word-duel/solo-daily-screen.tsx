@@ -291,13 +291,6 @@ export function WordDuelSoloDailyScreen({
         </View>
       ) : null}
 
-      {viewModel.adSlot.visible ? (
-        <View style={styles.adSlot}>
-          <Text style={styles.adLabel}>Ad preview</Text>
-          <Text style={styles.adText}>Post-result slot</Text>
-        </View>
-      ) : null}
-
       {viewModel.status !== 'playing' ? (
         <View style={styles.actionRow}>
           <AppButton
@@ -487,27 +480,6 @@ function useSoloDailyStyles() {
     color: colors.textMuted,
     fontSize: typeScale.small,
     lineHeight: 19,
-  },
-  adSlot: {
-    minHeight: 72,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceStrong,
-    gap: spacing.xs,
-  },
-  adLabel: {
-    color: colors.text,
-    fontSize: typeScale.small,
-    fontWeight: '900',
-    textTransform: 'uppercase',
-  },
-  adText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '700',
   },
   actionRow: {
     flexDirection: 'row',

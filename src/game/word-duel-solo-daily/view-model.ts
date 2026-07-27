@@ -29,10 +29,6 @@ export type WordDuelSoloDailySession = {
 };
 
 export type WordDuelSoloDailyViewModel = {
-  adSlot: {
-    reserved: true;
-    visible: boolean;
-  };
   attemptsUsed: number;
   canRecordOfficialResult: false;
   dailyDate: string | null;
@@ -152,10 +148,6 @@ export function createSoloDailyViewModel(
   const isFinal = session.state.status !== 'playing';
 
   return {
-    adSlot: {
-      reserved: true,
-      visible: isFinal,
-    },
     attemptsUsed: session.state.guesses.length,
     canRecordOfficialResult: false,
     dailyDate: session.dailyDate,

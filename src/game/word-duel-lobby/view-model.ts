@@ -43,11 +43,6 @@ export type WordDuelInvitePreview = {
   wordLength: number;
 };
 
-export type WordDuelLobbyAdSlot = {
-  reserved: boolean;
-  visible: boolean;
-};
-
 export type WordDuelLobbyCountdown = {
   endsAtMs: number;
   remainingSeconds: number;
@@ -61,7 +56,6 @@ export type WordDuelLobbyActiveRound = {
 
 export type WordDuelLobbyViewModel = {
   activeRound: WordDuelLobbyActiveRound;
-  adSlot: WordDuelLobbyAdSlot;
   canCancel: boolean;
   canExpire: boolean;
   canJoin: boolean;
@@ -122,10 +116,6 @@ export function createLocalInviteLobbyViewModel(input: {
 }): WordDuelLobbyViewModel {
   return withDerivedControls({
     activeRound: null,
-    adSlot: {
-      reserved: true,
-      visible: true,
-    },
     countdown: null,
     invitePreview: {
       expiresAtMs: input.nowMs + INVITE_TTL_MS,
@@ -378,10 +368,6 @@ function withDerivedControls(
 
   return {
     ...lobby,
-    adSlot: {
-      reserved: lobby.adSlot.reserved,
-      visible: lobby.adSlot.reserved && status !== 'countdown' && status !== 'active_round',
-    },
     canCancel: lobby.viewerRole === 'host' && !anyReady && (status === 'waiting_for_player' || status === 'lobby'),
     canExpire: status === 'waiting_for_player' || status === 'invite_review' || status === 'lobby',
     canJoin: status === 'invite_review' && joinAvailability === 'joinable',

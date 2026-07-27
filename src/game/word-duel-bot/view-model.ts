@@ -126,10 +126,6 @@ export type AviBotDuelSharePreview = {
 };
 
 export type AviBotDuelViewModel = {
-  adSlot: {
-    reserved: true;
-    visible: boolean;
-  };
   availableReactions: readonly AviBotReactionId[];
   gameLanguage: GameLanguage;
   isInputOpen: boolean;
@@ -324,10 +320,6 @@ export function createAviBotDuelViewModel(session: AviBotDuelSession): AviBotDue
   const isFinal = session.status !== 'active';
 
   return {
-    adSlot: {
-      reserved: true,
-      visible: isFinal,
-    },
     availableReactions: session.reactions,
     gameLanguage: session.gameLanguage,
     isInputOpen: session.status === 'active' && session.phase === 'editing',

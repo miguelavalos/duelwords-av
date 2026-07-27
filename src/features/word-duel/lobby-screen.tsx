@@ -115,8 +115,6 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
 
       {isTerminalStatus(lobby.status) ? <TerminalPanel status={lobby.status} /> : null}
 
-      {lobby.adSlot.visible ? <LobbyAdSlot /> : null}
-
       {errorMessage ? (
         <View style={styles.errorBox}>
           <Text selectable style={styles.errorText}>
@@ -395,15 +393,6 @@ function TerminalPanel({ status }: { status: WordDuelLobbyStatus }) {
     <View style={styles.panel}>
       <Text style={styles.panelTitle}>{status === 'expired' ? 'Invite expired' : 'Invite cancelled'}</Text>
       <Text style={styles.panelText}>No round, stats, result, or target reveal is created.</Text>
-    </View>
-  );
-}
-
-function LobbyAdSlot() {
-  const styles = useLobbyStyles();
-  return (
-    <View style={styles.adSlot}>
-      <Text style={styles.adText}>Ad</Text>
     </View>
   );
 }
@@ -687,20 +676,6 @@ function useLobbyStyles() {
     fontSize: typeScale.small,
     fontWeight: '800',
     textAlign: 'center',
-  },
-  adSlot: {
-    minHeight: 56,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surfaceStrong,
-  },
-  adText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '900',
   },
   errorBox: {
     borderRadius: radii.md,

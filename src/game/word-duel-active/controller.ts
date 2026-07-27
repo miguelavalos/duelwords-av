@@ -166,7 +166,6 @@ function createLocalMockWordDuelActiveController(input: {
   const activeClient = createMockActiveDuelClient({
     gameId: LOCAL_ACTIVE_DEMO_GAME_ID,
     gameLanguage: input.handoff.gameLanguage,
-    includeAdSlot: true,
     now: input.now,
     playerId: LOCAL_ACTIVE_DEMO_PLAYER_ID,
     remainingSeconds: 37,
@@ -336,7 +335,6 @@ function createAppsApiWordDuelActiveController(input: {
     input.runtime.initialViewModel ??
     createDemoActiveDuelViewModel({
       gameLanguage: input.handoff.gameLanguage,
-      includeAdSlot: true,
       ownSide: session.realtime.side,
       remainingSeconds: 37,
       scenario: 'editing',
@@ -550,7 +548,6 @@ function createDisabledRuntimeWordDuelActiveController(
 ): WordDuelActiveController {
   const viewModel = createDemoActiveDuelViewModel({
     gameLanguage: handoff.gameLanguage,
-    includeAdSlot: true,
     remainingSeconds: 37,
     scenario: 'editing',
   });

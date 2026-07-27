@@ -143,7 +143,6 @@ export function createWordDuelActiveRuntimeController(
         apiClient: runtimeApiClient.client,
         initialViewModel: createRuntimeActiveDuelViewModel({
           gameLanguage: handoff.value.gameLanguage,
-          includeAdSlot: true,
           ownSide: session.value.realtime.side,
           roundNumber: input.lobbyState.lobby.activeRound?.roundNumber ?? 1,
         }),
