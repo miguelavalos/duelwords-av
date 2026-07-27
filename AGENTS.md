@@ -27,6 +27,12 @@ Current implementation slice:
   no-spoiler sharing, and explicit refresh/rematch. It fails closed with no
   network calls while runtime config is disabled.
 - Local Word Duel practice.
+- Official five-language Daily at `/word-duel/daily`. It obtains only the
+  selected target once per uncached local date, time zone, and game language;
+  validates that target against the bundled allowlist; and keeps guesses,
+  feedback, resume state, completion, participation streak, and safe sharing
+  on the device. Keep Daily free of Convex, polling, heartbeat, per-guess API
+  calls, account identifiers, and automatic fetches on render.
 - Local invite/lobby/Ready/countdown preview wired through the lobby
   controller's `local_mock` source, with no real links, share sheet, API, or
   Convex runtime.
@@ -114,15 +120,16 @@ Current implementation slice:
   result and current rematch discovery remain explicit Apps AV API/D1 reads;
   accepted `nextGame` can continue into the next connected lobby. This flow is
   still hidden and is not public result-screen navigation.
-- Local Solo/Daily preview and deterministic Play Avi bot-duel preview. These
-  are local product-shape slices only; they do not implement the authoritative
-  API/D1 modes planned by `DW-013` and `DW-014`.
+- Local Solo/Daily demo and deterministic Play Avi bot-duel preview. The demo
+  remains a non-production fixture route; the public Daily route is the
+  official `DW-013` implementation, while Play Avi remains device-local.
 - Sentry diagnostics facade backed by `@sentry/react-native`, disabled in debug
   builds or without a DSN and scrubbed against game/account secrets.
 - Bundled offline EN/ES/CA/FR/DE allowlists and frequency-ranked target decks.
   Practice, Solo Practice, and Play Avi share a persistent shuffled deck per language and must
   not repeat a target before exhausting that deck. Keep target selection local;
-  only a future official Daily may obtain its chosen word from the server.
+  only official Daily may obtain its chosen word from the server, and only
+  once before device-local play begins.
 - Any future playable or interface language must follow
   `docs/game-language-expansion.md` and the mandatory private
   `docs/duelwords-av/game-language-expansion-runbook.md`. A picker option is

@@ -605,6 +605,7 @@ function createApiClientStub(overrides: Partial<DuelWordsApiClient>): DuelWordsA
     declineRematchProposal: unexpectedCall,
     getFinalResult: unexpectedCall,
     getCurrentRematchProposal: unexpectedCall,
+    getDailyTarget: unexpectedCall,
     getInvitePreview: unexpectedCall,
     getLobby: unexpectedCall,
     getOwnRoundSnapshot: unexpectedCall,

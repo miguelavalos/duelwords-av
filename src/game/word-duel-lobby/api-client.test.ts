@@ -17,6 +17,49 @@ const GUEST_IDENTITY = {
 } as const;
 
 describe('DuelWords Apps AV API client', () => {
+  it('fetches one official Daily target with only date, language, and rule metadata', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        dailyDate: '2026-07-28',
+        timeZone: 'Europe/Madrid',
+        language: 'ca',
+        wordLength: 5,
+        targetWord: 'diari',
+        dictionaryVersion: 'five-language-release',
+        policyVersion: 'duelwords-daily-v1',
+        ruleVersion: 'duelwords-feedback-v1',
+        targetWordId: 'must-be-ignored',
+      }),
+    ]);
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: recorder.fetch,
+      platform: 'ios',
+    });
+
+    const target = await client.getDailyTarget({
+      language: 'ca',
+      timeZone: 'Europe/Madrid',
+    });
+
+    expect(recorder.calls).toEqual([expect.objectContaining({
+      body: { language: 'ca', timeZone: 'Europe/Madrid' },
+      method: 'POST',
+      url: 'https://api.test/v1/apps/duelwords/daily/target',
+    })]);
+    expect(target).toEqual({
+      dailyDate: '2026-07-28',
+      timeZone: 'Europe/Madrid',
+      language: 'ca',
+      wordLength: 5,
+      targetWord: 'diari',
+      dictionaryVersion: 'five-language-release',
+      policyVersion: 'duelwords-daily-v1',
+      ruleVersion: 'duelwords-feedback-v1',
+    });
+    expect(target).not.toHaveProperty('targetWordId');
+  });
+
   it('creates invites through the approved Apps AV route with canonical headers', async () => {
     const recorder = createFetchRecorder([
       jsonResponse({

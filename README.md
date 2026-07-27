@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-26: this repository has a public, guest-first Word Duel
+Current as of 2026-07-27: this repository has a public, guest-first Word Duel
 V1 branding and hardening candidate, but is not yet ready for another
 TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
@@ -21,18 +21,24 @@ a participant-scoped rematch. Room-code lookup and canonical invite-token
 parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
 
-The public Play catalog contains Challenge a Friend and offline Practice.
+The public Play catalog contains Challenge a Friend, Play Avi, offline
+Practice, and official Daily.
 Practice, Solo Practice, and deterministic Play Avi use bundled
 EN/ES/CA/FR/DE dictionaries and make no word-list request. Native word
 acceptance and non-Daily local target selection stay on-device; the app must
-never download an allowed-word list per round. Daily is the only planned mode
-allowed to fetch its selected word before play. Challenge remains
+never download an allowed-word list per round. Daily is the only mode allowed
+to fetch its selected word before play: it does so at most once per uncached
+local date, time zone, and game language, then keeps the board, guesses,
+result, resume state, and participation streak on the device. It has no
+Convex state, polling, heartbeat, per-guess request, account identifier, or
+automatic fetch on render. A saved Daily resumes offline; without a saved
+target it fails closed instead of substituting a local word. Challenge remains
 server-arbitrated for fairness. The release candidate and live production
 API/D1/Convex backend now support EN/ES/CA/FR/DE end to end after one bounded
 production lifecycle smoke passed for each newly enabled language. The client
 does not fetch its target during gameplay; it receives only the authorized
 reveal in the finalized result. Lobby, active-duel, result,
-Solo/Daily, Play Avi, and connected-runtime engineering previews remain
+Solo/Daily demo, Play Avi demo, and connected-runtime engineering previews remain
 available by direct internal route when they are not linked from Play.
 
 Interface language (EN/ES/CA/FR/DE) and appearance (system/light/dark) are
@@ -709,6 +715,10 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
 - `/word-duel/practice`: offline practice engine with the bundled five-language
   dictionaries and persistent no-repeat target rotation shared with other
   non-Daily local modes.
+- `/word-duel/daily`: official EN/ES/CA/FR/DE Daily with a game-scoped language
+  picker, one explicit target retrieval, versioned device resume, fully local
+  validation and scoring, final target reveal, participation streak, and
+  no-spoiler share text.
 - `/word-duel/lobby-demo`: local invite, join review, lobby, one-way Ready,
   countdown, and active-duel handoff preview through the lobby controller's
   `local_mock` source. It uses a safe demo invite link and room code only.

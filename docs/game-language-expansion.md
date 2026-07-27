@@ -36,8 +36,9 @@ Before code or generated assets, record:
 
 Local native modes bundle their word lists. Practice, Solo Practice, and Play
 Avi must not request a server word list during play. Connected Challenge is
-server-authoritative. Daily is the only planned mode allowed to obtain its one
-selected word from the server.
+server-authoritative. Daily is the only mode allowed to obtain its one selected
+word from the server, once per uncached local date/time-zone/language scope;
+every guess and result remains device-local.
 
 Current generators are:
 
@@ -69,6 +70,7 @@ The main implementation surfaces are:
 | Persistent shuffled targets | `src/game/dictionaries/target-rotation.ts` |
 | Picker/accessibility/adaptive layout | `src/features/word-duel/components/game-language-picker.tsx` |
 | Local modes | `src/features/word-duel/` and `src/game/word-duel-*` |
+| Official Daily target/cache/streak | `src/game/word-duel-daily/` |
 | Connected API parsing | `src/game/word-duel-lobby/`, `word-duel-active/`, `word-duel-result/`, `word-duel-runtime/` |
 | Route parameters | `src/features/word-duel/word-duel-route-params.ts` |
 | Source/release docs | `README.md`, `THIRD_PARTY_NOTICES.md`, this guide |

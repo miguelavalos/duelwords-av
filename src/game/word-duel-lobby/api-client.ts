@@ -260,6 +260,17 @@ export type DuelWordsApiPresenceReconciliation = {
   status: 'already_finalized' | 'finalized' | 'pending';
 };
 
+export type DuelWordsApiDailyTarget = {
+  dailyDate: string;
+  timeZone: string;
+  language: GameLanguage;
+  wordLength: 5;
+  targetWord: string;
+  dictionaryVersion: string;
+  policyVersion: 'duelwords-daily-v1';
+  ruleVersion: 'duelwords-feedback-v1';
+};
+
 export type DuelWordsApiClient = {
   cancelInvite(input: { actor: DuelWordsActorIdentity; inviteToken: string }): Promise<DuelWordsApiLobbyResponse>;
   createInvite(input: {
@@ -268,6 +279,11 @@ export type DuelWordsApiClient = {
     language: GameLanguage;
     maxAttempts?: number;
   }): Promise<DuelWordsApiLobbyResponse>;
+  getDailyTarget(input: {
+    language: GameLanguage;
+    signal?: AbortSignal;
+    timeZone: string;
+  }): Promise<DuelWordsApiDailyTarget>;
   createRealtimeSession(input: {
     actor: DuelWordsActorIdentity;
     gameId: string;
@@ -378,6 +394,7 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
   async function requestJson(path: string, init: {
     body?: unknown;
     method?: 'GET' | 'POST';
+    signal?: AbortSignal;
   } = {}): Promise<unknown> {
     const token = await maybeAuthToken(config.getAuthToken);
     const response = await fetchImpl(`${baseUrl}${path}`, {
@@ -390,6 +407,7 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
         ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
       },
       method: init.method ?? 'GET',
+      signal: init.signal,
     });
 
     if (!response.ok) {
@@ -423,6 +441,19 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
       });
 
       return readLobbyPayload(payload);
+    },
+
+    async getDailyTarget(input) {
+      const payload = await requestJson('/v1/apps/duelwords/daily/target', {
+        body: {
+          language: input.language,
+          timeZone: input.timeZone,
+        },
+        method: 'POST',
+        signal: input.signal,
+      });
+
+      return readDailyTarget(payload);
     },
 
     async createRealtimeSession(input) {
@@ -664,6 +695,25 @@ function readLobbyPayload(payload: unknown): DuelWordsApiLobbyResponse {
     invite: readInvitePreview(readRequiredProperty(payload, 'invite')),
     lobby: readLobbyView(readRequiredProperty(payload, 'lobby')),
     realtime: readOptionalRealtime(payload),
+  };
+}
+
+function readDailyTarget(value: unknown): DuelWordsApiDailyTarget {
+  const input = requireRecord(value);
+  const dailyDate = requireString(input.dailyDate);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dailyDate)) {
+    throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords Daily date is invalid.');
+  }
+
+  return {
+    dailyDate,
+    timeZone: requireString(input.timeZone),
+    language: readLanguage(input.language),
+    wordLength: requireLiteral(input.wordLength, 5),
+    targetWord: requireString(input.targetWord),
+    dictionaryVersion: requireString(input.dictionaryVersion),
+    policyVersion: requireLiteral(input.policyVersion, 'duelwords-daily-v1'),
+    ruleVersion: requireLiteral(input.ruleVersion, 'duelwords-feedback-v1'),
   };
 }
 
