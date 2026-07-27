@@ -13,6 +13,7 @@ import type {
   DuelWordsApiClient,
   DuelWordsApiDailyTarget,
 } from '../word-duel-lobby/api-client';
+import { recordDuelWordsActivity } from '../activity/device-activity-store';
 
 const STORAGE_KEY = 'duelwords-av:official-daily:v1';
 const dateFormatters = new Map<string, Intl.DateTimeFormat>();
@@ -370,6 +371,13 @@ function persistOfficialDailyProgress(
       store.stats[next.language] ?? emptyStats(),
       next,
     );
+    recordDuelWordsActivity({
+      attemptsUsed: next.state.guesses.length,
+      completedAt: next.finishedAt ?? undefined,
+      language: next.language,
+      mode: 'daily',
+      outcome: next.state.status === 'won' ? 'win' : 'no_winner',
+    }, storage);
   }
 
   storage.setItem(STORAGE_KEY, JSON.stringify(store));

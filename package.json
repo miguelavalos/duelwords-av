@@ -34,6 +34,7 @@
     "doctor:react": "pnpm dlx react-doctor@latest . --verbose",
     "doctor:react:diff": "pnpm dlx react-doctor@latest . --verbose --scope changed",
     "doctor:react:score": "pnpm dlx react-doctor@latest . --score",
+    "web:edge:check": "wrangler deploy --dry-run --config web-edge/wrangler.production.jsonc",
     "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
@@ -79,6 +80,7 @@
     "eslint-config-expo": "~57.0.0",
     "react-test-renderer": "19.2.3",
     "typescript": "~6.0.3",
-    "vitest": "^4.0.0"
+    "vitest": "^4.0.0",
+    "wrangler": "4.106.0"
   }
 }

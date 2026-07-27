@@ -46,7 +46,10 @@ import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-lan
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
 import { shouldRearmActiveDuelOpening, shouldShowLobbyRefresh } from './public-challenge-flow';
-import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
+import {
+  createWordDuelResultLocalPayloadFromApiFinalResult,
+  finalizeApiWordDuelResult,
+} from './result-finalization';
 import { publicDuelT } from './public-duel-copy';
 import { canRequestRematch } from './rematch-state';
 
@@ -81,6 +84,7 @@ export function PublicWordDuelChallengeScreen({
   );
   const guestActorRef = useRef<GuestActor | null>(null);
   const initialPreviewKeyRef = useRef<string | null>(null);
+  const recordedFinalGameIdRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
   const lobbyRealtimeRefreshInFlightRef = useRef(false);
   const mountedRef = useRef(true);
@@ -109,6 +113,15 @@ export function PublicWordDuelChallengeScreen({
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!finalResult || recordedFinalGameIdRef.current === finalResult.game.gameId) return;
+
+    // The backend id is used only as a volatile deduplication key. It is never
+    // passed to or persisted by the device activity store.
+    recordedFinalGameIdRef.current = finalResult.game.gameId;
+    void finalizeApiWordDuelResult(finalResult).catch(() => undefined);
+  }, [finalResult]);
 
   useEffect(() => {
     const realtime = lobbyState?.realtime;

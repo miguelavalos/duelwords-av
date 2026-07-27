@@ -4,8 +4,10 @@ allowBuilds:
   bufferutil: false
   core-js: false
   esbuild: true
+  sharp: false
   unrs-resolver: false
   utf-8-validate: false
+  workerd: false
 minimumReleaseAgeExclude:
   - '@clerk/clerk-js@6.25.8'
   - '@clerk/expo@4.0.3'

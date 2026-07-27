@@ -98,6 +98,14 @@ expectEqual(
   JSON.stringify(['Default']),
 );
 expectEqual(
+  'expo.ios.associatedDomains',
+  JSON.stringify(expoConfig.ios?.associatedDomains),
+  JSON.stringify([
+    'applinks:app.duelwords-av-preview.avalsys.com',
+    'applinks:app.duelwords-av.avalsys.com',
+  ]),
+);
+expectEqual(
   'expo.ios.entitlements keychain-access-groups template',
   JSON.stringify(expoConfig.ios?.entitlements?.['keychain-access-groups']),
   JSON.stringify(['$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)']),

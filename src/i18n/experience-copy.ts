@@ -46,24 +46,7 @@ export type ExperienceCopy = {
   onboardingSignIn: string;
   onboardingGuest: string;
   accountSignInFailed: string;
-  rivalsTitleSignedIn: string;
-  rivalsTitleGuest: string;
-  rivalsDetailSignedIn: string;
-  rivalsDetailGuest: string;
-  rivalsEmptyTitleSignedIn: string;
-  rivalsEmptyTitleGuest: string;
-  rivalsEmptyDetailSignedIn: string;
-  rivalsEmptyDetailGuest: string;
-  rivalsSignIn: string;
-  rivalsPrivacyTitle: string;
-  rivalsPrivacyDetail: string;
   rivalsPrivacyPills: readonly string[];
-  statsTitle: string;
-  statsDetail: string;
-  statsPracticeTitle: string;
-  statsPracticeDetail: string;
-  statsPrivacyTitle: string;
-  statsPrivacyDetail: string;
   onboardingPages: readonly { eyebrow: string; title: string; detail: string }[];
 };
 
@@ -88,16 +71,7 @@ const en: ExperienceCopy = {
   openPractice: 'Open practice', openSettings: 'Open settings', onboardingSkip: 'Skip', onboardingContinue: 'Continue',
   onboardingCreate: 'Create account', onboardingSignIn: 'Sign in', onboardingGuest: 'Continue as guest',
   accountSignInFailed: 'Account AV could not complete sign-in. Please try again.',
-  rivalsTitleSignedIn: 'Ready for another duel.', rivalsTitleGuest: 'Play privately with people you choose.',
-  rivalsDetailSignedIn: 'Recent rivals will appear here when saved rival history is available.', rivalsDetailGuest: 'Private invites work without an account. Sign in later if you want to keep rivals and rematches.',
-  rivalsEmptyTitleSignedIn: 'No saved rivals yet', rivalsEmptyTitleGuest: 'Challenge someone you know',
-  rivalsEmptyDetailSignedIn: 'Start a private challenge now. Rival history will appear here when it becomes available.', rivalsEmptyDetailGuest: 'Share a private invite. DuelWords does not search contacts or publish profiles.',
-  rivalsSignIn: 'Sign in to keep rivals', rivalsPrivacyTitle: 'Private by design',
-  rivalsPrivacyDetail: 'DuelWords does not import contacts, publish profiles, offer profile search, or reveal exact online status.',
   rivalsPrivacyPills: ['Private invites', 'No contact imports', 'No public profiles', 'No exact status'],
-  statsTitle: 'Stats are coming later.', statsDetail: 'Practice, Play Avi, Daily, and friend duels will stay clearly separated.',
-  statsPracticeTitle: 'Keep playing now', statsPracticeDetail: 'Practice and Play Avi are ready offline. Your current games are not added to a hidden score.',
-  statsPrivacyTitle: 'Built for privacy', statsPrivacyDetail: 'Only finished summaries will count. Full boards and private words will not become a public profile.',
   onboardingPages: [
     { eyebrow: 'DuelWords AV', title: 'Words, written head to head.', detail: 'A warm paper-and-ink word game built around fair live duels.' },
     { eyebrow: 'Meet Avi', title: 'Learn the rhythm with Avi.', detail: 'Avi explains every mark and can be your consistent local opponent.' },
@@ -126,16 +100,7 @@ const es: ExperienceCopy = {
   openPractice: 'Abrir práctica', openSettings: 'Abrir ajustes', onboardingSkip: 'Omitir', onboardingContinue: 'Continuar',
   onboardingCreate: 'Crear cuenta', onboardingSignIn: 'Iniciar sesión', onboardingGuest: 'Continuar como invitado',
     accountSignInFailed: 'Account AV no ha podido completar el inicio de sesión. Inténtalo de nuevo.',
-  rivalsTitleSignedIn: 'Todo listo para otro duelo.', rivalsTitleGuest: 'Juega en privado con quien tú elijas.',
-  rivalsDetailSignedIn: 'Tus rivales recientes aparecerán aquí cuando esté disponible el historial guardado.', rivalsDetailGuest: 'Las invitaciones privadas funcionan sin cuenta. Inicia sesión más adelante si quieres conservar rivales y revanchas.',
-  rivalsEmptyTitleSignedIn: 'Todavía no hay rivales guardados', rivalsEmptyTitleGuest: 'Reta a alguien que conoces',
-  rivalsEmptyDetailSignedIn: 'Empieza ahora un reto privado. El historial de rivales aparecerá aquí cuando esté disponible.', rivalsEmptyDetailGuest: 'Comparte una invitación privada. DuelWords no busca contactos ni publica perfiles.',
-  rivalsSignIn: 'Iniciar sesión para conservar rivales', rivalsPrivacyTitle: 'Privado por diseño',
-  rivalsPrivacyDetail: 'DuelWords no importa contactos, publica perfiles, permite buscar personas ni muestra el estado exacto de conexión.',
   rivalsPrivacyPills: ['Invitaciones privadas', 'Sin importar contactos', 'Sin perfiles públicos', 'Sin estado exacto'],
-  statsTitle: 'Las estadísticas llegarán más adelante.', statsDetail: 'Práctica, Jugar con Avi, Diario y los duelos con amigos se mantendrán claramente separados.',
-  statsPracticeTitle: 'Sigue jugando ahora', statsPracticeDetail: 'Práctica y Jugar con Avi funcionan sin conexión. Tus partidas actuales no se añaden a una puntuación oculta.',
-    statsPrivacyTitle: 'Pensado para tu privacidad', statsPrivacyDetail: 'Solo contarán resúmenes terminados. Los tableros completos y las palabras privadas no formarán un perfil público.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Palabras, frente a frente.', detail: 'Un juego cálido de papel y tinta centrado en duelos en directo justos.' },
       { eyebrow: 'Conoce a Avi', title: 'Aprende el ritmo con Avi.', detail: 'Avi explica cada marca y puede ser tu rival local constante.' },
@@ -167,16 +132,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     openPractice: 'Obrir pràctica', openSettings: 'Obrir ajustos', onboardingSkip: 'Ometre', onboardingContinue: 'Continuar',
     onboardingCreate: 'Crear compte', onboardingSignIn: 'Iniciar sessió', onboardingGuest: 'Continuar com a convidat',
     accountSignInFailed: 'Account AV no ha pogut completar l’inici de sessió. Torna-ho a provar.',
-    rivalsTitleSignedIn: 'Tot a punt per a un altre duel.', rivalsTitleGuest: 'Juga en privat amb qui tu triïs.',
-    rivalsDetailSignedIn: 'Els rivals recents apareixeran aquí quan estigui disponible l’historial desat.', rivalsDetailGuest: 'Les invitacions privades funcionen sense compte. Inicia sessió més endavant si vols conservar rivals i revenges.',
-    rivalsEmptyTitleSignedIn: 'Encara no hi ha rivals desats', rivalsEmptyTitleGuest: 'Repta algú que coneixes',
-    rivalsEmptyDetailSignedIn: 'Comença ara un repte privat. L’historial de rivals apareixerà aquí quan estigui disponible.', rivalsEmptyDetailGuest: 'Comparteix una invitació privada. DuelWords no cerca contactes ni publica perfils.',
-    rivalsSignIn: 'Iniciar sessió per conservar rivals', rivalsPrivacyTitle: 'Privat per disseny',
-    rivalsPrivacyDetail: 'DuelWords no importa contactes, publica perfils, permet cercar persones ni mostra l’estat exacte de connexió.',
     rivalsPrivacyPills: ['Invitacions privades', 'Sense importar contactes', 'Sense perfils públics', 'Sense estat exacte'],
-    statsTitle: 'Les estadístiques arribaran més endavant.', statsDetail: 'Pràctica, Jugar amb l’Avi, Diari i els duels amb amics es mantindran clarament separats.',
-    statsPracticeTitle: 'Continua jugant ara', statsPracticeDetail: 'Pràctica i Jugar amb l’Avi funcionen sense connexió. Les partides actuals no s’afegeixen a una puntuació oculta.',
-    statsPrivacyTitle: 'Pensat per a la privacitat', statsPrivacyDetail: 'Només comptaran resums acabats. Els taulers complets i les paraules privades no formaran cap perfil públic.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Paraules, cara a cara.', detail: 'Un joc càlid de paper i tinta centrat en duels en directe justos.' },
       { eyebrow: 'Coneix l’Avi', title: 'Aprèn el ritme amb l’Avi.', detail: 'L’Avi explica cada marca i pot ser el teu rival local constant.' },
@@ -204,16 +160,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     openPractice: 'Ouvrir l’entraînement', openSettings: 'Ouvrir les réglages', onboardingSkip: 'Passer', onboardingContinue: 'Continuer',
     onboardingCreate: 'Créer un compte', onboardingSignIn: 'Se connecter', onboardingGuest: 'Continuer comme invité',
     accountSignInFailed: 'Account AV n’a pas pu terminer la connexion. Réessayez.',
-    rivalsTitleSignedIn: 'Prêt pour un nouveau duel.', rivalsTitleGuest: 'Jouez en privé avec les personnes de votre choix.',
-    rivalsDetailSignedIn: 'Vos rivaux récents apparaîtront ici lorsque l’historique enregistré sera disponible.', rivalsDetailGuest: 'Les invitations privées fonctionnent sans compte. Connectez-vous plus tard pour conserver rivaux et revanches.',
-    rivalsEmptyTitleSignedIn: 'Aucun rival enregistré', rivalsEmptyTitleGuest: 'Défiez une personne que vous connaissez',
-    rivalsEmptyDetailSignedIn: 'Lancez maintenant un défi privé. L’historique des rivaux apparaîtra ici lorsqu’il sera disponible.', rivalsEmptyDetailGuest: 'Partagez une invitation privée. DuelWords ne recherche pas vos contacts et ne publie aucun profil.',
-    rivalsSignIn: 'Se connecter pour conserver ses rivaux', rivalsPrivacyTitle: 'Privé par conception',
-    rivalsPrivacyDetail: 'DuelWords n’importe pas vos contacts, ne publie pas de profils, ne permet pas la recherche de personnes et ne révèle pas leur statut exact.',
     rivalsPrivacyPills: ['Invitations privées', 'Aucun contact importé', 'Aucun profil public', 'Aucun statut exact'],
-    statsTitle: 'Les statistiques arriveront plus tard.', statsDetail: 'Entraînement, Jouer contre Avi, Quotidien et les duels entre amis resteront clairement séparés.',
-    statsPracticeTitle: 'Continuez à jouer maintenant', statsPracticeDetail: 'Entraînement et Jouer contre Avi fonctionnent hors ligne. Vos parties actuelles ne sont ajoutées à aucun score caché.',
-    statsPrivacyTitle: 'Pensé pour la confidentialité', statsPrivacyDetail: 'Seuls les résumés terminés compteront. Les grilles complètes et les mots privés ne formeront pas un profil public.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Les mots, face à face.', detail: 'Un jeu chaleureux de papier et d’encre, pensé pour des duels en direct équitables.' },
       { eyebrow: 'Voici Avi', title: 'Apprenez le rythme avec Avi.', detail: 'Avi explique chaque marque et peut devenir votre rival local régulier.' },
@@ -241,16 +188,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     openPractice: 'Training öffnen', openSettings: 'Einstellungen öffnen', onboardingSkip: 'Überspringen', onboardingContinue: 'Weiter',
     onboardingCreate: 'Konto erstellen', onboardingSignIn: 'Anmelden', onboardingGuest: 'Als Gast fortfahren',
     accountSignInFailed: 'Account AV konnte die Anmeldung nicht abschließen. Versuche es erneut.',
-    rivalsTitleSignedIn: 'Bereit für das nächste Duell.', rivalsTitleGuest: 'Spiele privat mit Menschen deiner Wahl.',
-    rivalsDetailSignedIn: 'Deine letzten Rivalen erscheinen hier, sobald der gespeicherte Verlauf verfügbar ist.', rivalsDetailGuest: 'Private Einladungen funktionieren ohne Konto. Melde dich später an, um Rivalen und Revanches zu behalten.',
-    rivalsEmptyTitleSignedIn: 'Noch keine Rivalen gespeichert', rivalsEmptyTitleGuest: 'Fordere jemanden heraus, den du kennst',
-    rivalsEmptyDetailSignedIn: 'Starte jetzt eine private Herausforderung. Der Rivalenverlauf erscheint hier, sobald er verfügbar ist.', rivalsEmptyDetailGuest: 'Teile eine private Einladung. DuelWords durchsucht keine Kontakte und veröffentlicht keine Profile.',
-    rivalsSignIn: 'Anmelden, um Rivalen zu behalten', rivalsPrivacyTitle: 'Von Grund auf privat',
-    rivalsPrivacyDetail: 'DuelWords importiert keine Kontakte, veröffentlicht keine Profile, bietet keine Personensuche und zeigt keinen genauen Onlinestatus.',
     rivalsPrivacyPills: ['Private Einladungen', 'Keine Kontaktimporte', 'Keine öffentlichen Profile', 'Kein genauer Status'],
-    statsTitle: 'Statistiken kommen später.', statsDetail: 'Training, Gegen Avi, Täglich und Duelle mit Freunden bleiben klar voneinander getrennt.',
-    statsPracticeTitle: 'Jetzt weiterspielen', statsPracticeDetail: 'Training und Gegen Avi funktionieren offline. Deine aktuellen Spiele fließen nicht in eine versteckte Wertung ein.',
-    statsPrivacyTitle: 'Für Privatsphäre gemacht', statsPrivacyDetail: 'Nur abgeschlossene Zusammenfassungen werden zählen. Vollständige Bretter und private Wörter werden kein öffentliches Profil bilden.',
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Wörter, Kopf an Kopf.', detail: 'Ein warmes Spiel aus Papier und Tinte für faire Live-Duelle.' },
       { eyebrow: 'Das ist Avi', title: 'Lerne den Rhythmus mit Avi.', detail: 'Avi erklärt jede Markierung und kann dein verlässlicher lokaler Gegner sein.' },

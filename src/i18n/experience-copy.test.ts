@@ -11,8 +11,6 @@ const USER_COPY_KEYS = [
   'practiceDetail',
   'dailyUnavailableDetail',
   'aviDetail',
-  'rivalsPrivacyDetail',
-  'statsPrivacyDetail',
 ] as const;
 
 function flattenCopy(value: unknown): string[] {
@@ -27,7 +25,7 @@ describe('DuelWords experience copy', () => {
     for (const locale of LOCALES) {
       const values = flattenCopy(experienceCopy(locale));
 
-      expect(values.length).toBeGreaterThan(70);
+      expect(values.length).toBeGreaterThan(50);
       expect(values.every((value) => value.trim().length > 0)).toBe(true);
       expect(experienceCopy(locale).onboardingPages).toHaveLength(3);
       expect(experienceCopy(locale).rivalsPrivacyPills).toHaveLength(4);

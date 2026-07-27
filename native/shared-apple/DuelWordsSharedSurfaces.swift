@@ -499,7 +499,7 @@ private struct DuelWordsAccountSurface: View {
     private var continuityCard: some View {
         AVSettingsSectionCard(title: props.localized("Across your devices"), subtitle: props.signedIn ? props.localized("You are signed in with Account AV.") : props.localized("Practice, Daily, and Play Avi stay on this device while you are a guest.")) {
             AVSettingsInfoRow(systemImage: "gamecontroller", title: props.localized("Game history"), detail: props.localized("Stored on this device"))
-            AVSettingsInfoRow(systemImage: "person.2", title: props.localized("Rivals"), detail: props.signedIn ? props.localized("Coming later") : props.localized("Sign-in required"))
+            AVSettingsInfoRow(systemImage: "person.2", title: props.localized("Rivals"), detail: props.localized("Stored on this device"))
         }
     }
 

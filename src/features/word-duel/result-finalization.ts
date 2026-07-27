@@ -1,8 +1,5 @@
-import {
-  normalizeGuess,
-  type GuessRow,
-  type LetterFeedback,
-} from '../../game/word-duel-engine';
+import type { GuessRow, LetterFeedback } from '../../game/word-duel-engine/types';
+import { normalizeGuess } from '../../game/word-duel-engine/normalize';
 import {
   createWordDuelResultLocalPayload,
   type WordDuelResultLocalPayload,
@@ -81,6 +78,19 @@ export function createWordDuelResultLocalPayloadFromApiFinalResult(
   });
 }
 
+export function finalizeApiWordDuelResult(
+  finalResult: DuelWordsApiFinalResult,
+  options: {
+    finalizationRepository?: WordDuelResultFinalizationRepository;
+  } = {},
+): Promise<WordDuelResultFinalizationHandoff> {
+  const finalizationRepository = options.finalizationRepository ?? wordDuelResultRepositories.finalizationRepository;
+  return Promise.resolve(finalizationRepository.finalizeResult({
+    localPayload: createWordDuelResultLocalPayloadFromApiFinalResult(finalResult),
+    mode: 'human_duel',
+  }));
+}
+
 export function reportWordDuelResultFinalizationError(input: {
   error: unknown;
   gameLanguage: string;
@@ -111,18 +121,21 @@ function participantInputFromApiFinalResult(
   participant: DuelWordsApiFinalResultParticipant,
   finalResult: DuelWordsApiFinalResult,
 ) {
+  const guesses: GuessRow[] = [];
+  for (const guess of participant.guesses) {
+    if (guess.status !== 'accepted') continue;
+
+    const normalizedWord = normalizeGuess(guess.displayWord, finalResult.game.language);
+    guesses.push({
+      feedback: guess.feedback.states.map(feedbackFromApi),
+      input: guess.displayWord,
+      letters: Array.from(normalizedWord),
+      normalizedWord,
+    });
+  }
+
   return {
-    guesses: participant.guesses
-      .filter((guess) => guess.status === 'accepted')
-      .map((guess): GuessRow => {
-        const normalizedWord = normalizeGuess(guess.displayWord, finalResult.game.language);
-        return {
-          feedback: guess.feedback.states.map(feedbackFromApi),
-          input: guess.displayWord,
-          letters: Array.from(normalizedWord),
-          normalizedWord,
-        };
-      }),
+    guesses,
     safeDisplayName: participant.safeDisplayName,
     side: participant.side,
     solved: participant.solved,

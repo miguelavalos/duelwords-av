@@ -2,11 +2,13 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createWordDuelResultLocalPayloadFromApiFinalResult,
+  finalizeApiWordDuelResult,
   finalizeActiveWordDuelResult,
   finalizeWordDuelResult,
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
 import { createDemoActiveDuelViewModel } from '../../game/word-duel-active/view-model';
+import type { DuelWordsApiFinalResult } from '../../game/word-duel-lobby/api-client';
 
 describe('word duel result finalization adapter', () => {
   it('creates a local result handoff while persistence is unavailable', async () => {
@@ -106,7 +108,7 @@ describe('word duel result finalization adapter', () => {
   });
 
   it('converts API final results into the existing local result route payload', () => {
-    const payload = createWordDuelResultLocalPayloadFromApiFinalResult({
+    const finalResult: DuelWordsApiFinalResult = {
       game: {
         countdownEndsAt: null,
         currentRound: 1,
@@ -175,7 +177,8 @@ describe('word duel result finalization adapter', () => {
         playerId: 'player-a',
         side: 'a',
       },
-    });
+    };
+    const payload = createWordDuelResultLocalPayloadFromApiFinalResult(finalResult);
 
     expect(payload).toMatchObject({
       gameLanguage: 'en',
@@ -197,5 +200,17 @@ describe('word duel result finalization adapter', () => {
         word: 'AROSE',
       },
     ]);
+
+    return expect(finalizeApiWordDuelResult(finalResult, {
+      finalizationRepository: {
+        finalizeResult: (input) => ({
+          resultId: `${input.mode}-${input.localPayload.gameLanguage}`,
+          storage: 'convex',
+        }),
+      },
+    })).resolves.toEqual({
+      resultId: 'human_duel-en',
+      storage: 'convex',
+    });
   });
 });

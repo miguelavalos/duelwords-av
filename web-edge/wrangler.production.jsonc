@@ -1,0 +1,24 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "duelwordsav-web-production",
+  "main": "./src/index.ts",
+  "compatibility_date": "2026-07-27",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": false,
+  "preview_urls": false,
+  "observability": {
+    "enabled": true,
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 0.01,
+      "invocation_logs": false
+    },
+    "traces": { "enabled": false }
+  },
+  "routes": [
+    {
+      "pattern": "app.duelwords-av.avalsys.com",
+      "custom_domain": true
+    }
+  ]
+}

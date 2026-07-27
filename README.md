@@ -67,6 +67,15 @@ English, Spanish, Catalan, French, and German each
 cover the complete public challenge/lobby/game/result/rematch journey; module
 initialization fails in tests if a locale omits a public-journey key.
 
+Stats and Rivals are functional, private device features. A bounded store keeps
+at most 100 completed summaries with mode, language, outcome, attempts, date,
+and an optional safe opponent display name for human duels. It never stores a
+target, guess, feedback row, raw game/player identifier, invite token, email,
+or provider subject. Stats combines those summaries with the existing local
+Official Daily record; Rivals derives at most 20 recent human opponents. Both
+work for guests, remain on this device, and do not claim account sync, public
+profiles, contact search, or presence.
+
 The native shell now includes the canonical-candidate DuelWords icon, separate
 light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding
 with guest skip, the canonical Tune AV Account AV provider sheet, Account,
@@ -137,8 +146,10 @@ lobby polling loop, preserved backend-issued realtime sessions across explicit
 lobby refreshes, allowed the safe Convex pre-round projection (`roundNumber: 0`),
 and began presence heartbeats while participants are still in the lobby. The
 repository-owned preview flow smoke also passed timeout/open-next, rematch, and
-both passive-abandonment paths. Canonical web `/i/c/:token` edge routing,
-Universal Links, physical replacement-build validation on iPhone/iPad, and a
+both passive-abandonment paths. Canonical web `/i/c/:token` edge handling,
+the matching native route, AASA, and Associated Domains are implemented and
+locally verified. The dedicated edge Worker is not deployed yet, so TLS/AASA
+production proof, physical replacement-build validation on iPhone/iPad, and a
 replacement TestFlight build remain open; local Simulator signing is already
 covered separately below.
 
@@ -363,10 +374,11 @@ provider token getter is held behind a stable adapter, so publishing the
 resolved account cannot retrigger `/v1/me` and `/v1/me/access` merely because
 Clerk returns a new function reference. Regression tests preserve one bounded
 resolution per signed-in session-state transition and keep Account AV refresh
-failure separate from provider activation. Account-only persistence,
-real Pro purchases, post-V1 advertising, push, Sentry project/DSN verification, canonical
-associated links, and production runtime remain outside the current candidate. No provider
-key or backend deploy credential belongs in this repository.
+failure separate from provider activation. Cross-device game-history sync,
+real Pro purchases, post-V1 advertising, push, Sentry project/DSN verification,
+canonical associated links, and any further production deploy remain outside
+the current candidate. No provider key or backend deploy credential belongs in
+this repository.
 
 ## Run Locally
 
@@ -422,8 +434,12 @@ exact matching `<bundle-id>://callback` redirect to Clerk; the generic
 each other's callback when both builds are installed.
 
 Expo Router uses `https://app.duelwords-av.avalsys.com` as its native handoff
-origin. This does not configure or prove the `/i/c/:token` edge rewrite,
-Universal Links, or Android App Links, which remain separate release gates.
+origin. `web-edge` serves only the bounded AASA file and a neutral invitation
+fallback; it has no bindings and never contacts Apps AV API, D1, Convex, or
+Account AV. The app owns `/i/c/[token]` and opens the existing review-before-join
+Challenge surface. Production TLS, Worker deployment, AASA retrieval, and a
+fresh signed-device reinstall remain release gates. Android App Links remain
+outside this iOS candidate.
 
 ## Simulator-only signed-in surface review
 
@@ -795,16 +811,23 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Run the two-device signed iOS/Android happy path and recovery matrix on an
-  available workstation against an explicitly approved preview runtime.
-- Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
-  to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
+- Run the signed physical iPhone/iPad Challenge happy path and recovery matrix
+  against the already active production runtime, without repeating backend
+  migrations, imports, deploys, or rollout smokes.
+- Deploy the isolated `web-edge` Worker through the approved platform workflow,
+  verify production TLS and AASA, then reinstall a fresh signed candidate and
+  prove `/i/c/:token` Universal Links on iPhone and iPad. The local edge, native
+  route, AASA, and Associated Domains are already implemented. Android App Links
+  remain separate from the iOS TestFlight candidate.
 - Keep the public Play order fixed as official Daily, Challenge a Friend,
   Play Avi, Practice, then Avi help. All four modes and
   their public journeys are localized in EN/ES/CA/FR/DE.
 - Keep advertising outside V1. Any later monetization experiment requires a
   new product decision, provider/privacy review, implementation, and signed
   acceptance gate; the V1 client must remain SDK- and placement-free.
+- Keep DuelWords Pro explicitly non-purchasing until StoreKit products,
+  Account AV entitlement reconciliation, store/legal metadata, purchase,
+  restore, and physical-device gates receive separate approval and pass.
 - Complete final launch curation for all five target decks. Their bundled
   allowlists and 500/750-word target pools are reproducible from pinned,
   license-reviewed sources, but the current frequency ranking and auditable

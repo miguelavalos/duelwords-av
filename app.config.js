@@ -27,6 +27,10 @@ function createExpoConfig() {
     scheme: iosBundleIdentifier,
     ios: {
       ...appJson.expo.ios,
+      associatedDomains: [
+        'applinks:app.duelwords-av-preview.avalsys.com',
+        'applinks:app.duelwords-av.avalsys.com',
+      ],
       bundleIdentifier: iosBundleIdentifier,
       entitlements: {
         ...(appJson.expo.ios?.entitlements ?? {}),

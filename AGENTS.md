@@ -123,6 +123,13 @@ Current implementation slice:
 - Local finalized result preview with post-finalization target reveal,
   completed-board review, safe share preview, and local rematch proposal state
   machine.
+- Stats and Rivals use a bounded device-only activity store. Keep at most 100
+  completed summaries and derive at most 20 recent human opponents. Persist
+  only mode, game language, outcome, attempts, completion time, and an optional
+  safe opponent display name; never add targets, guesses, feedback, boards,
+  raw game/player ids, invite tokens, email, provider subjects, public profiles,
+  contact search, or presence. Account sign-in must not be required or imply
+  cross-device sync for these V1 summaries.
 - Hidden connected final-result recovery and rematch API panel. Participant
   result and current rematch discovery remain explicit Apps AV API/D1 reads;
   accepted `nextGame` can continue into the next connected lobby. This flow is
@@ -165,6 +172,12 @@ Current implementation slice:
   on gameplay surfaces. An Account AV user may legitimately have no display
   name; use a localized bounded player label and never fall back to a random
   guest alias, provider subject, or email for an authenticated room actor.
+- The dedicated `web-edge` Worker is an invitation handoff boundary, not an API
+  or app backend. It may serve only AASA, a neutral `/i/c/<token>` fallback,
+  and method/not-found responses. It must not bind or call Apps AV API, D1,
+  Convex, Account AV, analytics, ads, or any other service; must not log invite
+  tokens; and must keep invocation logs off. A production deploy still requires
+  its own preflight and exact approval.
 
 This machine is **Home**. Home may perform development, tests, signed runtime,
 environment-backed smokes, deploys, and other approved work under the normal

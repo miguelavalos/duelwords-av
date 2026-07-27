@@ -33,7 +33,6 @@ type CopyKey =
   | 'challengeFriend'
   | 'playAvi'
   | 'daily'
-  | 'comingLater'
   | 'startPractice'
   | 'gameLanguage'
   | 'interfaceLanguage'
@@ -78,7 +77,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     challengeFriend: 'Challenge a Friend',
     playAvi: 'Play Avi',
     daily: 'Daily',
-    comingLater: 'Coming later',
     startPractice: 'Start practice',
     gameLanguage: 'Game language',
     interfaceLanguage: 'Interface language',
@@ -122,7 +120,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     challengeFriend: 'Retar a alguien',
     playAvi: 'Jugar con Avi',
     daily: 'Diario',
-    comingLater: 'Más adelante',
     startPractice: 'Empezar práctica',
     gameLanguage: 'Idioma de juego',
     interfaceLanguage: 'Idioma de interfaz',
@@ -166,7 +163,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     challengeFriend: 'Reptar algú',
     playAvi: 'Jugar amb Avi',
     daily: 'Diari',
-    comingLater: 'Més endavant',
     startPractice: 'Començar pràctica',
     gameLanguage: 'Idioma de joc',
     interfaceLanguage: 'Idioma de la interfície',
@@ -210,7 +206,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     challengeFriend: 'Défier un ami',
     playAvi: 'Jouer avec Avi',
     daily: 'Quotidien',
-    comingLater: 'Plus tard',
     startPractice: "Lancer l'entraînement",
     gameLanguage: 'Langue du jeu',
     interfaceLanguage: "Langue de l'interface",
@@ -254,7 +249,6 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     challengeFriend: 'Freund fordern',
     playAvi: 'Mit Avi spielen',
     daily: 'Täglich',
-    comingLater: 'Später',
     startPractice: 'Training starten',
     gameLanguage: 'Spiel-Sprache',
     interfaceLanguage: 'App-Sprache',

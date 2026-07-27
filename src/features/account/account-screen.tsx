@@ -1,5 +1,5 @@
 import { type Href, useRouter } from 'expo-router';
-import { useEffect, useMemo } from 'react';
+import { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
@@ -93,7 +93,7 @@ export function AccountScreen() {
         <SectionHeading title="Across your devices" detail={signedIn ? 'You are signed in with Account AV.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
         <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Available offline' : 'Connected') : 'Guest · local'} />
         <InfoRow label="Game history" value={signedIn ? 'Stored on this device' : 'Local only'} />
-        <InfoRow label="Rivals" value={signedIn ? 'Coming later' : 'Sign-in required'} />
+        <InfoRow label="Rivals" value="Stored on this device" />
       </PaperCard>
 
       <PaperCard emphasized>
@@ -138,7 +138,7 @@ function initials(name: string | null | undefined) {
 
 function useStyles() {
   const { colors } = useAppTheme();
-  return useMemo(() => StyleSheet.create({
+  return StyleSheet.create({
     sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
@@ -159,5 +159,5 @@ function useStyles() {
     aviPlanCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     cardTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: typeScale.subtitle, fontWeight: '700' },
     cardDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
-  }), [colors]);
+  });
 }

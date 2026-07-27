@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { getLocalDictionary } from '../dictionaries/local-fixtures';
+import { readDuelWordsActivity } from '../activity/device-activity-store';
 import type { DuelWordsApiDailyTarget } from '../word-duel-lobby/api-client';
 import {
   applyOfficialDailyGuess,
@@ -175,6 +176,10 @@ describe('official Daily local-first runtime', () => {
       lastCompletedDate: '2026-07-28',
       solved: 1,
     });
+    expect(readDuelWordsActivity(storage)).toMatchObject([
+      { language: 'de', mode: 'daily', outcome: 'no_winner' },
+      { language: 'de', mode: 'daily', outcome: 'win' },
+    ]);
     const share = createSafeOfficialDailyShare(solved);
     expect(share).toContain('1/6');
     expect(share.toLowerCase()).not.toContain(target.toLowerCase());
