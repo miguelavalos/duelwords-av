@@ -50,6 +50,8 @@ describe('iOS release and Sentry workflow', () => {
     expect(archiveScript).toContain('chmod 600 "$build_log"');
     expect(archiveScript).toContain('> "$build_log" 2>&1');
     expect(archiveScript).toContain('Protected log: $build_log');
+    expect(archiveScript).toContain('DEVELOPMENT_TEAM="$development_team"');
+    expect(archiveScript).toContain('CODE_SIGN_STYLE=Automatic');
     expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);

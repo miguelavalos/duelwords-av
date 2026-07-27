@@ -211,3 +211,8 @@ retain the short per-touch replay guard and native accessibility activation,
 and preserve explicit width/centering on board letters. The keyboard regression
 must continue to cover replayed native events and legitimate repeated letters;
 native acceptance must cover rapid `RAISE` and repeated-letter `APPLE` entry.
+
+The generated Expo Xcode project does not persist a development team. Keep the
+canonical `scripts/ios/archive-release.sh` command explicit about the expected
+Avalsys team and automatic signing; the release-workflow regression must fail
+if either setting disappears. Do not fall back to an ad hoc archive command.

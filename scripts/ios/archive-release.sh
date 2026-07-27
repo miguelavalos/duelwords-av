@@ -32,6 +32,7 @@ done
 workspace="$repo_root/ios/DuelWordsAV.xcworkspace"
 local_config="$repo_root/ios/Config/Local.xcconfig"
 derived_data="$repo_root/.DerivedData-duelwords-testflight"
+development_team="935PM55U6R"
 [ -d "$workspace" ] || { echo "Generated iOS workspace is missing." >&2; exit 1; }
 [ -s "$local_config" ] || { echo "Generated production Local.xcconfig is missing." >&2; exit 1; }
 
@@ -65,6 +66,8 @@ if ! xcodebuild archive \
   -derivedDataPath "$derived_data" \
   -xcconfig "$local_config" \
   -allowProvisioningUpdates \
+  DEVELOPMENT_TEAM="$development_team" \
+  CODE_SIGN_STYLE=Automatic \
   > "$build_log" 2>&1; then
   echo "xcodebuild archive failed. Protected log: $build_log" >&2
   exit 1
