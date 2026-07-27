@@ -431,6 +431,14 @@ private struct DuelWordsSettingsSurface: View {
             title: props.localized("Privacy, help & legal"),
             subtitle: props.localized("Find support, privacy, terms, and notices below.")
         ) {
+            if props.adsPrivacyOptionsRequired {
+                AVSettingsActionRow(
+                    systemImage: "hand.raised.square",
+                    title: props.localized("Ad privacy choices"),
+                    detail: props.localized("Review or change how advertising data may be used."),
+                    action: { action("openAdsPrivacyOptions", nil) }
+                )
+            }
             AVSettingsActionRow(systemImage: "shippingbox", title: props.localized("Open-source notices"), detail: props.localized("Licenses for bundled dictionaries and software."), action: { action("openNotices", nil) })
             AVSettingsActionRow(systemImage: "chevron.left.forwardslash.chevron.right", title: props.localized("Source code"), detail: props.localized("Open the public DuelWords AV repository."), action: { action("openSource", nil) })
             AVSettingsActionRow(systemImage: "questionmark.circle", title: props.localized("Support"), detail: props.localized("Open DuelWords AV support."), action: { action("openSupport", nil) })

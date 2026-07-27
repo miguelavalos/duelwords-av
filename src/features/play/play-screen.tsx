@@ -2,6 +2,7 @@ import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import { HomeBannerAd } from '@/ads/home-banner-ad';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
@@ -69,6 +70,8 @@ export function PlayScreen() {
           onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, { gameLanguage, mode: 'practice' }))}
         />
       </View>
+
+      <HomeBannerAd />
 
       <Pressable accessibilityRole="button" onPress={() => router.push('/avi' as Href)}>
         {({ pressed }) => (

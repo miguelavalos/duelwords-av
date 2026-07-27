@@ -6,6 +6,7 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { useDuelWordsAds } from '@/ads/ads-context';
 import { resetTargetRotation } from '@/game/dictionaries/target-rotation';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { INTERFACE_LOCALES, t } from '@/i18n/locales';
@@ -29,6 +30,7 @@ const links = {
 export function SettingsScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
+  const ads = useDuelWordsAds();
   const styles = useStyles();
   const [preferences, setPreferences] = useAppPreferences();
   const { appearance, hapticsEnabled, interfaceLocale } = preferences;
@@ -51,6 +53,7 @@ export function SettingsScreen() {
     else if (action === 'openSupport') openLink(links.support);
     else if (action === 'openNotices') openLink(links.notices);
     else if (action === 'openSource') openLink(links.source);
+    else if (action === 'openAdsPrivacyOptions') void ads.showPrivacyOptions();
     else if (action === 'resetLocalData') resetTargetRotation();
     else if (action === 'setInterfaceLocale' && INTERFACE_LOCALES.some((locale) => locale.code === value)) {
       setPreferences((current) => ({ ...current, interfaceLocale: value as typeof current.interfaceLocale }));
@@ -65,6 +68,7 @@ export function SettingsScreen() {
     return (
       <SharedAppleSurface
         accountAvailable={account.available}
+        adsPrivacyOptionsRequired={ads.privacyOptionsRequired}
         appearance={appearance}
         displayName={account.user?.displayName ?? ''}
         email={account.user?.email ?? ''}
@@ -124,6 +128,9 @@ export function SettingsScreen() {
 
       <PaperCard>
         <SectionHeading title="Privacy, help & legal" detail="Public information and help open in your browser." />
+        {ads.privacyOptionsRequired ? (
+          <InternalRow label={t(interfaceLocale, 'adsPrivacyChoices')} onPress={() => { void ads.showPrivacyOptions(); }} />
+        ) : null}
         <ExternalRow label="Privacy policy" onPress={() => openLink(links.privacy)} />
         <ExternalRow label="Terms of use" onPress={() => openLink(links.terms)} />
         <ExternalRow label="Support" onPress={() => openLink(links.support)} />

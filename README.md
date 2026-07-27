@@ -25,8 +25,13 @@ The public Play catalog contains Challenge a Friend, Play Avi, offline
 Practice, and official Daily.
 Home presents them in product order: official Daily first, Challenge a Friend
 second, Play Avi and Practice as secondary modes, and compact Avi help last.
-Advertising is not implemented in this client candidate; no ad SDK initializes
-and no ad request or placeholder appears on Home or during gameplay.
+The native client now has a test-safe AdMob/UMP boundary for one adaptive Home
+banner after every game mode and before Avi help. It is disabled by default:
+app code does not call UMP, explicitly initialize the SDK, or request inventory
+unless a build selects `test` or `live` and Home mounts the placement. Pro and unresolved/error account
+states fail closed with no request or placeholder. Active games and results
+remain entirely ad-free, and V1 requests non-personalized inventory only. See
+[Advertising and consent](docs/advertising-and-consent.md).
 Practice, Solo Practice, and deterministic Play Avi use bundled
 EN/ES/CA/FR/DE dictionaries and make no word-list request. Native word
 acceptance and non-Daily local target selection stay on-device; the app must
@@ -362,7 +367,7 @@ resolved account cannot retrigger `/v1/me` and `/v1/me/access` merely because
 Clerk returns a new function reference. Regression tests preserve one bounded
 resolution per signed-in session-state transition and keep Account AV refresh
 failure separate from provider activation. Account-only persistence,
-real Pro purchases, ads, push, Sentry project/DSN verification, canonical
+real Pro purchases, live AdMob activation, push, Sentry project/DSN verification, canonical
 associated links, and production runtime remain outside the current candidate. No provider
 key or backend deploy credential belongs in this repository.
 
@@ -754,13 +759,13 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
   countdown, and active-duel handoff preview through the lobby controller's
   `local_mock` source. It uses a safe demo invite link and room code only.
 - `/word-duel/active-demo`: local active-duel UI preview with safe opponent
-  summary, own board/keyboard, reactions, a compact reserved ad slot, local
+  summary, own board/keyboard, reactions, local
   mock submit handling through the typed active-duel adapter, and local
   mock realtime projection handling for timer, presence, opponent state, and
   reactions. It can open directly or through the local lobby-active handoff.
 - `/word-duel/result-demo`: local finalized result preview with in-app target
-  reveal, own/opponent completed-board review, safe share preview, reserved
-  result ad slot, and local rematch proposal states for draft, sent, accepted,
+  reveal, own/opponent completed-board review, safe share preview, and local
+  rematch proposal states for draft, sent, accepted,
   declined, expired, and cancelled flows.
 - `/word-duel/play-avi-demo`: deterministic local bot-duel preview that reuses
   synchronized-round UI and safe opponent summaries without API/D1 authority.
@@ -797,10 +802,14 @@ game id; it only creates a start request after recipient acceptance.
   available workstation against an explicitly approved preview runtime.
 - Configure and verify the canonical `/i/c/:token` web edge/deep-link rewrite
   to `/word-duel/challenge?invite=:token`, Universal Links, and Android App Links.
-- Keep the public Play catalog limited to Challenge a Friend and offline
-  Practice until a secondary mode has authoritative V1 runtime and acceptance
-  evidence. The public journey and both catalog entries are localized in
-  EN/ES/CA/FR/DE.
+- Keep the public Play order fixed as official Daily, Challenge a Friend,
+  Play Avi, Practice, optional Home banner, then Avi help. All four modes and
+  their public journeys are localized in EN/ES/CA/FR/DE.
+- Complete the private AdMob/UMP activation gate: owner-created provider apps,
+  consent message and `app-ads.txt`, privacy/store disclosure approval, exact
+  live identifiers, Guest/Free/Pro physical-device matrix, and explicit
+  authorization for the exact signed candidate. Until then ads remain
+  `disabled`; development may use only Google's official test inventory.
 - Complete final launch curation for all five target decks. Their bundled
   allowlists and 500/750-word target pools are reproducible from pinned,
   license-reviewed sources, but the current frequency ranking and auditable
