@@ -1,9 +1,14 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
 import { WordDuelResultScreen } from '@/features/word-duel/result-screen';
 import { parseWordDuelResultSourceParams } from '@/features/word-duel/word-duel-route-params';
 
 export default function WordDuelResultRoute() {
+  if (!__DEV__) return <Redirect href="/" />;
+  return <WordDuelResultDevelopmentRoute />;
+}
+
+function WordDuelResultDevelopmentRoute() {
   const { lang, mode, outcome, reason, result, resultId } = useLocalSearchParams<{
     lang?: string | string[];
     mode?: string | string[];

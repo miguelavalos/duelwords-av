@@ -21,6 +21,17 @@ describe('player-facing local-game copy contract', () => {
     path.join(process.cwd(), 'src/features/word-duel/result-screen.tsx'),
     'utf8',
   );
+  const developmentRouteSources = [
+    'active-demo.tsx',
+    'connected-runtime.tsx',
+    'lobby-demo.tsx',
+    'play-avi-demo.tsx',
+    'result-demo.tsx',
+    'solo-daily-demo.tsx',
+  ].map((fileName) => fs.readFileSync(
+    path.join(process.cwd(), 'src/app/word-duel', fileName),
+    'utf8',
+  ));
 
   it('passes the selected interface locale to the Practice keyboard', () => {
     expect(practiceSource).toContain('interfaceLocale={interfaceLocale}');
@@ -41,5 +52,11 @@ describe('player-facing local-game copy contract', () => {
     expect(resultScreenSource).toContain('const compactActions = width < 480');
     expect(resultScreenSource).toContain('styles.actionRowCompact');
     expect(resultScreenSource).toContain("width: '100%'");
+  });
+
+  it('keeps engineering preview routes out of non-development builds', () => {
+    for (const source of developmentRouteSources) {
+      expect(source).toContain('if (!__DEV__) return <Redirect href="/" />;');
+    }
   });
 });

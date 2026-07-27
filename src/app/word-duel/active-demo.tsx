@@ -1,10 +1,15 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 import { useMemo } from 'react';
 
 import { ActiveDuelScreen } from '@/features/word-duel/active-duel-screen';
 import { parseWordDuelActiveHandoffParams } from '@/features/word-duel/word-duel-route-params';
 
 export default function ActiveDuelRoute() {
+  if (!__DEV__) return <Redirect href="/" />;
+  return <ActiveDuelDevelopmentRoute />;
+}
+
+function ActiveDuelDevelopmentRoute() {
   const {
     lang,
     maxAttempts,

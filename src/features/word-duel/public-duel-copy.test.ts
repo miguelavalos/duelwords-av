@@ -57,7 +57,19 @@ describe('public duel copy', () => {
         publicDuelT(locale, 'safeRealtimeUnavailable'),
       ].join(' ');
 
-      expect(visible).not.toMatch(/\b(API|server|backend|runtime|realtime|Convex|Clerk|entitlement|HTTPS|build)\b/i);
+      expect(visible).not.toMatch(/\b(API|server|backend|runtime|realtime|Convex|Clerk|entitlement|HTTPS|build|release|deployment|version)\b|versi[oó]n|versió/i);
+    }
+  });
+
+  it('asks players for an invitation link without exposing token terminology', () => {
+    for (const locale of locales) {
+      const visible = [
+        publicDuelT(locale, 'inviteLabel'),
+        publicDuelT(locale, 'invitePlaceholder'),
+        publicDuelT(locale, 'validInviteRequired'),
+      ].join(' ');
+
+      expect(visible).not.toMatch(/token|jeton/i);
     }
   });
 });
