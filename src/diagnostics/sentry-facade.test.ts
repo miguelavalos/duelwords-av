@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   createDuelWordsDiagnosticsConfig,
+  createDuelWordsDiagnosticsReleaseName,
   createDuelWordsDiagnosticsSmokeEvent,
   createDuelWordsResultFinalizationErrorEvent,
   createSafeDuelWordsBreadcrumb,
@@ -12,6 +13,26 @@ import {
 } from './sentry-facade';
 
 describe('duelwords sentry diagnostics facade', () => {
+  it('uses the native bundle identifier for the Sentry release name', () => {
+    expect(createDuelWordsDiagnosticsReleaseName({
+      buildNumber: '2',
+      bundleIdentifier: 'com.avalsys.duelwordsav',
+      version: '0.1.0',
+    })).toBe('com.avalsys.duelwordsav@0.1.0+2');
+
+    expect(createDuelWordsDiagnosticsReleaseName({
+      buildNumber: '2',
+      bundleIdentifier: 'com.avalsys.duelwordsav.dev',
+      version: '0.1.0',
+    })).toBe('com.avalsys.duelwordsav.dev@0.1.0+2');
+
+    expect(createDuelWordsDiagnosticsReleaseName({
+      buildNumber: '2',
+      bundleIdentifier: null,
+      version: '0.1.0',
+    })).toBeNull();
+  });
+
   it('keeps diagnostics disabled without a DSN and in local debug by default', () => {
     const missingDsn = createDuelWordsDiagnosticsConfig({
       dsn: '',
@@ -82,7 +103,7 @@ describe('duelwords sentry diagnostics facade', () => {
       buildNumber: '7',
       environment: 'preview',
       platform: 'ios',
-      release: 'duelwordsav@0.1.0+7',
+      release: 'com.avalsys.duelwordsav@0.1.0+7',
       smokeId: 'smoke-safe-001',
     });
 
@@ -92,7 +113,7 @@ describe('duelwords sentry diagnostics facade', () => {
       build_number: '7',
       environment: 'preview',
       platform: 'ios',
-      release: 'duelwordsav@0.1.0+7',
+      release: 'com.avalsys.duelwordsav@0.1.0+7',
       smoke_id: 'smoke-safe-001',
     });
     expect('user' in smoke).toBe(false);

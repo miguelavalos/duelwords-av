@@ -106,6 +106,19 @@ const SAFE_TAG_KEYS = new Set([
   'smoke_id',
 ]);
 
+export function createDuelWordsDiagnosticsReleaseName(input: {
+  buildNumber?: string | null;
+  bundleIdentifier?: string | null;
+  version?: string | null;
+}): string | null {
+  const bundleIdentifier = input.bundleIdentifier?.trim();
+  const version = input.version?.trim();
+  const buildNumber = input.buildNumber?.trim();
+
+  if (!bundleIdentifier || !version || !buildNumber) return null;
+  return `${bundleIdentifier}@${version}+${buildNumber}`;
+}
+
 export function createDuelWordsDiagnosticsConfig(input: {
   allowDebugEvents?: boolean;
   buildNumber?: string | null;

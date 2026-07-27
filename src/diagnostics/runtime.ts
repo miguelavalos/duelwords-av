@@ -2,6 +2,7 @@ import type { Breadcrumb, ErrorEvent } from '@sentry/react-native';
 
 import {
   createDuelWordsDiagnosticsConfig,
+  createDuelWordsDiagnosticsReleaseName,
   createDuelWordsResultFinalizationErrorEvent,
   initializeDuelWordsDiagnostics,
   sanitizeDiagnosticsEvent,
@@ -37,7 +38,11 @@ export function ensureDuelWordsDiagnosticsReady(): DuelWordsDiagnosticsConfig {
   const extra = runtime.extra;
   const version = runtime.version;
   const buildNumber = runtime.buildNumber;
-  const release = version && buildNumber ? `duelwordsav@${version}+${buildNumber}` : null;
+  const release = createDuelWordsDiagnosticsReleaseName({
+    buildNumber,
+    bundleIdentifier: runtime.bundleIdentifier,
+    version,
+  });
   const platform = runtime.platform;
   const isDebug = typeof __DEV__ === 'undefined' ? true : __DEV__;
   const environment = extra?.sentry?.environment ?? (isDebug ? 'debug' : 'preview');
@@ -72,12 +77,13 @@ export function ensureDuelWordsDiagnosticsReady(): DuelWordsDiagnosticsConfig {
 
 function readRuntimeInfo(): {
   buildNumber: string | null;
+  bundleIdentifier: string | null;
   extra?: { sentry?: { dsn?: string | null; environment?: 'debug' | 'preview' | 'production' } };
   platform: 'ios' | 'android' | 'web_fallback';
   version: string | null;
 } {
   if (process.env.VITEST) {
-    return { buildNumber: null, platform: 'web_fallback', version: null };
+    return { buildNumber: null, bundleIdentifier: null, platform: 'web_fallback', version: null };
   }
 
   // Synchronous lazy imports keep Node-only unit tests away from React Native's Flow entrypoint.
@@ -91,9 +97,15 @@ function readRuntimeInfo(): {
     : platform === 'android'
       ? Constants.expoConfig?.android?.versionCode?.toString() ?? null
       : null;
+  const bundleIdentifier = platform === 'ios'
+    ? Constants.expoConfig?.ios?.bundleIdentifier ?? null
+    : platform === 'android'
+      ? Constants.expoConfig?.android?.package ?? null
+      : null;
 
   return {
     buildNumber,
+    bundleIdentifier,
     extra: Constants.expoConfig?.extra?.duelWordsAv,
     platform,
     version: Constants.expoConfig?.version ?? null,
