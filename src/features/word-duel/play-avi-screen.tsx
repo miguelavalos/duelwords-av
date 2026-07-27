@@ -28,6 +28,7 @@ import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
@@ -270,15 +271,12 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     <AppScreen
       bottomInset={compactViewport ? spacing.sm : spacing.xxl}
       contentGap={compactViewport ? spacing.sm : spacing.md}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.kicker}>{duelCopy.offlineDuel}</Text>
-          <Text style={styles.title}>{duelCopy.playAvi}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>
-          {duelCopy.close}
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail={duelCopy.offlineDuel}
+        onBack={() => router.back()}
+        title={duelCopy.playAvi}
+      />
 
       <GameLanguagePicker
         dismissLabel={t(interfaceLocale, 'done')}

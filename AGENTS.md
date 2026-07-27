@@ -33,6 +33,13 @@ Current implementation slice:
   feedback, resume state, completion, participation streak, and safe sharing
   on the device. Keep Daily free of Convex, polling, heartbeat, per-guess API
   calls, account identifiers, and automatic fetches on render.
+- Navigation contract: the full product wordmark belongs only to Home chrome,
+  splash, and onboarding. Every product-facing interior route must use
+  `InteriorScreenHeader` with the icon-only 44-point Back control; never add a
+  visible top `Done`/`Close` label. Active games hide shell navigation and give
+  the board plus complete keyboard priority. Secondary Daily metadata belongs
+  behind its information disclosure. Keep
+  `src/ui/screen-navigation-contract.test.ts` green when adding routes.
 - Local invite/lobby/Ready/countdown preview wired through the lobby
   controller's `local_mock` source, with no real links, share sheet, API, or
   Convex runtime.

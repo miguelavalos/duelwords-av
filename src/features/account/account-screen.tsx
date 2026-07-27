@@ -1,13 +1,15 @@
 import { type Href, useRouter } from 'expo-router';
 import { useEffect, useMemo } from 'react';
-import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
+import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
@@ -19,15 +21,14 @@ export function AccountScreen() {
   const copy = experienceCopy(interfaceLocale);
   const styles = useStyles();
   const signedIn = account.user !== null;
-  const { width } = useWindowDimensions();
-  const tablet = width >= 760;
 
   useEffect(() => {
     void refreshAccount();
   }, [refreshAccount]);
 
   function handleSharedAction({ action }: SharedAppleAction) {
-    if (action === 'settings') router.replace('/(tabs)/settings' as Href);
+    if (action === 'close') router.replace('/(tabs)/play' as Href);
+    else if (action === 'settings') router.replace('/(tabs)/settings' as Href);
     else if (action === 'paywall') router.push('/pro' as Href);
     else if (action === 'deleteAccount') router.push('/delete-account' as Href);
     else if (action === 'signIn') router.push('/auth?mode=signIn' as Href);
@@ -56,18 +57,13 @@ export function AccountScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      {!tablet ? (
-        <AppChromeHeader
-          accountLabel={copy.account}
-          onAccountPress={() => undefined}
-          onSettingsPress={() => router.replace('/(tabs)/settings' as Href)}
-          selected="account"
-          settingsLabel={copy.settings}
-        />
-      ) : null}
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail="Account AV"
+        onBack={() => router.replace('/(tabs)/play' as Href)}
+        title={copy.account}
+      />
       <View style={styles.headerCopy}>
-        <InkEyebrow>Account AV</InkEyebrow>
-        <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.account}</Text>
         <Text style={styles.subtitle}>{signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.'}</Text>
       </View>
 
@@ -145,7 +141,6 @@ function useStyles() {
   return useMemo(() => StyleSheet.create({
     sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
-    title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
     identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     avatar: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent, transform: [{ rotate: '-2deg' }] },

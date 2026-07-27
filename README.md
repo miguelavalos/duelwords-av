@@ -86,6 +86,17 @@ The separate production realtime gate was subsequently approved and validated
 with a complete controlled human-duel smoke, so current production native
 config enables connected Challenge.
 
+Interior navigation now follows one explicit cross-platform rule. The product
+wordmark appears in Home chrome only (in addition to splash/onboarding brand
+moments); Account, Settings, Pro, deletion, Avi, Rivals, Stats, every game mode,
+live results, engineering previews, and the not-found route use the same
+icon-only 44-point Back control. The label remains available to assistive
+technology but is never rendered as `Done`, `Close`, or a translated text
+button. iPhone active-game screens hide the footer and keep the board and full
+keyboard ahead of secondary information. Official Daily reduces its active
+header to Back, mode/language/attempts, and an information toggle; date,
+language detail, and local-privacy copy expand only on request.
+
 Home, Settings, and Account now follow Tune AV's common-screen ordering as
 well as its shared shell. Home puts Avi's brief directly below the title.
 Settings begins with one compact App preferences card (app language,
@@ -718,7 +729,9 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
 - `/word-duel/daily`: official EN/ES/CA/FR/DE Daily with a game-scoped language
   picker, one explicit target retrieval, versioned device resume, fully local
   validation and scoring, final target reveal, participation streak, and
-  no-spoiler share text.
+  no-spoiler share text. After start, the compact common Back header and
+  disclosure control leave the complete board and keyboard visible without
+  repeating the product logo.
 - `/word-duel/lobby-demo`: local invite, join review, lobby, one-way Ready,
   countdown, and active-duel handoff preview through the lobby controller's
   `local_mock` source. It uses a safe demo invite link and room code only.

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
-import { GAME_LANGUAGES } from '@/i18n/locales';
+import { GAME_LANGUAGES, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import {
@@ -18,6 +19,7 @@ import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presen
 import type { ActiveDuelReactionId, ActiveDuelViewModel } from '@/game/word-duel-active/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { createWordDuelResultLocalPayloadFromApiFinalResult } from './result-finalization';
@@ -27,6 +29,7 @@ const REACTIONS: ActiveDuelReactionId[] = ['nice', 'tick_tock', 'almost', 'gg'];
 
 export function ConnectedRuntimeScreen() {
   const router = useRouter();
+  const [{ interfaceLocale }] = useAppPreferences();
   const { colors } = useAppTheme();
   const styles = useConnectedStyles();
   const runtime = useDuelWordsRuntimeClients();
@@ -435,15 +438,7 @@ export function ConnectedRuntimeScreen() {
 
   return (
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>Internal</Text>
-          <Text style={styles.title}>Connected runtime</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()} style={styles.doneButton}>
-          Done
-        </AppButton>
-      </View>
+      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} detail="Internal" onBack={() => router.back()} title="Connected runtime" />
 
       <View style={[styles.statusBand, runtime.ok ? styles.statusReady : styles.statusDisabled]}>
         <View>

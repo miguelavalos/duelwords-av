@@ -3,7 +3,8 @@ import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
-import { gameLanguageLabel as languageLabel } from '@/i18n/locales';
+import { gameLanguageLabel as languageLabel, t } from '@/i18n/locales';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { createWordDuelActiveHandoffFromLobby } from '@/game/word-duel-active/handoff';
 import {
   createLocalMockWordDuelLobbyControllerState,
@@ -19,6 +20,7 @@ import {
 } from '@/game/word-duel-lobby/view-model';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import {
@@ -33,6 +35,7 @@ type WordDuelLobbyScreenProps = {
 
 export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobbyScreenProps) {
   const router = useRouter();
+  const [{ interfaceLocale }] = useAppPreferences();
   const styles = useLobbyStyles();
   const controller = useMemo(() => createWordDuelLobbyController({ mode: 'local_mock' }), []);
   const [controllerState, setControllerState] = useState(() =>
@@ -81,15 +84,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
 
   return (
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>Word Duel</Text>
-          <Text style={styles.title}>Invite lobby</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()} style={styles.doneButton}>
-          Done
-        </AppButton>
-      </View>
+      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} detail="Word Duel" onBack={() => router.back()} title="Invite lobby" />
 
       <View style={[styles.statusBand, statusBandStyle(lobby.status, styles)]}>
         <View>

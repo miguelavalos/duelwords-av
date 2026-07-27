@@ -220,7 +220,7 @@ function DuelWordsTabBar({
           paddingBottom: tablet ? Math.max(insets.bottom, 18) : Math.max(insets.bottom, 8),
         },
       ]}>
-      {tablet ? (
+      {tablet && selectedRoute === 'play' ? (
         <View style={styles.sidebarBrand}>
           <DuelWordsWordmark compact withIcon />
         </View>

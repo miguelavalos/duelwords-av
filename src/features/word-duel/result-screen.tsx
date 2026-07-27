@@ -26,10 +26,11 @@ import {
   type WordDuelResultOutcome,
   type WordDuelResultViewModel,
 } from '@/game/word-duel-result/view-model';
-import { GAME_LANGUAGES, gameLanguageLabel as languageLabel } from '@/i18n/locales';
+import { GAME_LANGUAGES, gameLanguageLabel as languageLabel, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard, type WordDuelBoardRow } from './components/word-duel-board';
@@ -173,15 +174,12 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 
   return (
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>{copy.wordDuel}</Text>
-          <Text style={styles.title}>{copy.outcomeTitles[result.outcome]}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()} style={styles.closeButton}>
-          {copy.done}
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail={copy.wordDuel}
+        onBack={() => router.back()}
+        title={copy.outcomeTitles[result.outcome]}
+      />
 
       <View style={[styles.resultBand, outcomeStyle(result.outcome, styles)]}>
         <View>

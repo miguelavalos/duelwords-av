@@ -19,11 +19,12 @@ import {
 } from '@/game/word-duel-engine';
 import { createDuelWordsRuntimeApiClient } from '@/game/word-duel-lobby/runtime-api-client';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { t, type InterfaceLocale } from '@/i18n/locales';
+import { gameLanguageLabel, t, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard } from '@/ui/brand';
+import { AviArtwork, InkEyebrow, PaperCard } from '@/ui/brand';
+import { InteriorScreenHeader, ScreenInfoButton } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { createKeyboardFeedbackFromGuesses, createRowsFromLocalWordDuelState } from './components/word-duel-ui-model';
 import { GameLanguagePicker } from './components/game-language-picker';
@@ -68,6 +69,7 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const [session, setSession] = useState<OfficialDailySession | null>(() => cachedSession(initialGameLanguage, timeZone));
   const [isLoading, setIsLoading] = useState(false);
+  const [showGameInfo, setShowGameInfo] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => () => {
@@ -159,30 +161,63 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
 
   const playing = session?.state.status === 'playing';
   const finished = session && !playing;
+  const sessionDetail = session
+    ? `${gameLanguageLabel(session.language)} · ${session.state.guesses.length}/${session.state.maxAttempts}`
+    : undefined;
 
   return (
-    <AppScreen bottomInset={compact ? spacing.md : spacing.xxl} contentGap={compact ? spacing.md : spacing.lg}>
-      <View style={styles.topBar}>
-        <DuelWordsWordmark compact />
-        <AppButton tone="quiet" onPress={() => router.back()}>{copy.done}</AppButton>
-      </View>
-
-      <View style={styles.hero}>
-        <AviArtwork size={session ? 58 : 94} />
-        <View style={styles.heroCopy}>
-          <InkEyebrow>{copy.eyebrow}</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.title}</Text>
-          {!session ? <Text style={styles.detail}>{copy.detail}</Text> : null}
-        </View>
-      </View>
-
-      <GameLanguagePicker
-        disabled={session?.state.status === 'playing'}
-        dismissLabel={t(interfaceLocale, 'done')}
-        label={commonCopy.gameLanguage}
-        onChange={changeLanguage}
-        value={gameLanguage}
+    <AppScreen
+      bottomInset={session ? spacing.sm : compact ? spacing.md : spacing.xxl}
+      contentGap={session ? spacing.sm : compact ? spacing.md : spacing.lg}>
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail={sessionDetail}
+        onBack={() => router.back()}
+        title={session ? copy.eyebrow : undefined}
+        trailing={session ? (
+          <ScreenInfoButton
+            accessibilityLabel={showGameInfo ? copy.hideInformation : copy.information}
+            expanded={showGameInfo}
+            onPress={() => setShowGameInfo((visible) => !visible)}
+          />
+        ) : undefined}
       />
+
+      {!session ? (
+        <>
+          <View style={styles.hero}>
+            <AviArtwork size={94} />
+            <View style={styles.heroCopy}>
+              <InkEyebrow>{copy.eyebrow}</InkEyebrow>
+              <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.title}</Text>
+              <Text style={styles.detail}>{copy.detail}</Text>
+            </View>
+          </View>
+
+          <GameLanguagePicker
+            dismissLabel={t(interfaceLocale, 'done')}
+            label={commonCopy.gameLanguage}
+            onChange={changeLanguage}
+            value={gameLanguage}
+          />
+        </>
+      ) : null}
+
+      {session && showGameInfo ? (
+        <PaperCard>
+          <View style={styles.infoRow}>
+            <View style={styles.flexCopy}>
+              <Text style={styles.statusLabel}>{copy.today}</Text>
+              <Text style={styles.statusValue}>{dateFormatter.format(new Date(`${session.dailyDate}T12:00:00.000Z`))}</Text>
+            </View>
+            <View style={styles.infoLanguage}>
+              <Text style={styles.statusLabel}>{commonCopy.gameLanguage}</Text>
+              <Text style={styles.statusValue}>{gameLanguageLabel(session.language)}</Text>
+            </View>
+          </View>
+          <Text style={styles.privacy}>{copy.privacy}</Text>
+        </PaperCard>
+      ) : null}
 
       {!session ? (
         <>
@@ -210,17 +245,6 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
         </>
       ) : (
         <>
-          <View style={styles.statusRow}>
-            <View>
-              <Text style={styles.statusLabel}>{copy.today}</Text>
-              <Text style={styles.statusValue}>{dateFormatter.format(new Date(`${session.dailyDate}T12:00:00.000Z`))}</Text>
-            </View>
-            <View style={styles.statusRight}>
-              <Text style={styles.statusLabel}>{t(interfaceLocale, 'attempts')}</Text>
-              <Text style={styles.statusValue}>{session.state.guesses.length}/{session.state.maxAttempts}</Text>
-            </View>
-          </View>
-
           <WordDuelBoard
             accessibilityLabel={copy.boardLabel}
             density={compact ? 'compact' : 'regular'}
@@ -228,9 +252,7 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
             tileSize={tileSize}
           />
 
-          <View style={[styles.messageArea, compact && styles.messageAreaCompact]}>
-            {message ? <Text style={styles.errorText}>{message}</Text> : null}
-          </View>
+          {message ? <View style={styles.messageArea}><Text style={styles.errorText}>{message}</Text></View> : null}
 
           {finished ? (
             <PaperCard emphasized>
@@ -252,14 +274,16 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
 
           {finished ? <StatsCard copy={copy} stats={readOfficialDailyStats(session.language)} /> : null}
 
-          <WordDuelKeyboard
-            density={compact ? 'compact' : 'regular'}
-            disabled={!playing}
-            feedbackByKey={feedback}
-            interfaceLocale={interfaceLocale}
-            keyRows={WORD_DUEL_KEY_ROWS[session.language]}
-            onKeyPress={handleKey}
-          />
+          {playing ? (
+            <WordDuelKeyboard
+              density={compact ? 'compact' : 'regular'}
+              disabled={false}
+              feedbackByKey={feedback}
+              interfaceLocale={interfaceLocale}
+              keyRows={WORD_DUEL_KEY_ROWS[session.language]}
+              onKeyPress={handleKey}
+            />
+          ) : null}
         </>
       )}
     </AppScreen>
@@ -309,7 +333,6 @@ function rejectionMessage(rejection: GuessRejection, locale: Parameters<typeof t
 function useStyles() {
   const { colors } = useAppTheme();
   return StyleSheet.create({
-    topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
     hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
     heroCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 35, lineHeight: 39, fontWeight: '700', letterSpacing: -1 },
@@ -321,12 +344,11 @@ function useStyles() {
     cardTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: typeScale.lead, fontWeight: '700' },
     cardDetail: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
     privacy: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
-    statusRow: { minHeight: 62, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderRadius: radii.md, backgroundColor: colors.surface, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: spacing.md },
-    statusRight: { alignItems: 'flex-end' },
+    infoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+    infoLanguage: { flex: 1, alignItems: 'flex-end' },
     statusLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
-    statusValue: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
-    messageArea: { minHeight: 42, justifyContent: 'center' },
-    messageAreaCompact: { minHeight: 20 },
+    statusValue: { color: colors.text, fontSize: typeScale.body, fontWeight: '900', fontVariant: ['tabular-nums'] },
+    messageArea: { minHeight: 24, justifyContent: 'center' },
     errorText: { color: colors.danger, fontSize: typeScale.body, fontWeight: '800', textAlign: 'center' },
     resultDetail: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
     targetLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },

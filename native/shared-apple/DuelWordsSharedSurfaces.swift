@@ -163,6 +163,34 @@ private struct DuelWordsHeaderSurface: View {
     }
 }
 
+private struct DuelWordsBackHeader: View {
+    let props: DuelWordsSharedSurfaceProps
+    let action: DuelWordsSharedAction
+
+    var body: some View {
+        HStack {
+            Button {
+                action("close", nil)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundStyle(AVBrandColor.textPrimary)
+                    .frame(width: 44, height: 44)
+                    .background(AVBrandColor.cardSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .stroke(AVBrandColor.borderSubtle, lineWidth: 0.5)
+                    }
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(props.localized("Back"))
+            .accessibilityIdentifier("header.back")
+            Spacer()
+        }
+        .padding(.horizontal, 18)
+    }
+}
+
 private struct DuelWordsFooterSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
@@ -201,14 +229,16 @@ private struct DuelWordsSidebarSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            AVAppShellTabletSidebarBrandHeader(
-                logoAssetName: "DuelWordsHeaderLogo",
-                accessibilityLabel: "DuelWords AV",
-                logoWidth: 138,
-                logoHeight: 44,
-                logoLeadingCorrection: -16
-            )
-            .padding(.bottom, 12)
+            if props.selectedTab == "play" {
+                AVAppShellTabletSidebarBrandHeader(
+                    logoAssetName: "DuelWordsHeaderLogo",
+                    accessibilityLabel: "DuelWords AV",
+                    logoWidth: 138,
+                    logoHeight: 44,
+                    logoLeadingCorrection: -16
+                )
+                .padding(.bottom, 12)
+            }
 
             sidebarButton(props.localized("Home"), systemImage: "house.fill", route: "play")
             sidebarButton(props.localized("Rivals"), systemImage: "person.2.fill", route: "rivals")
@@ -257,30 +287,7 @@ private struct DuelWordsSettingsSurface: View {
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
         ) {
-            DuelWordsHeaderSurface(
-                props: DuelWordsSharedSurfaceProps(
-                    surface: "header",
-                    selectedTab: "settings",
-                    interfaceLocale: props.interfaceLocale,
-                    appearance: props.appearance,
-                    accountAvailable: props.accountAvailable,
-                    signedIn: props.signedIn,
-                    displayName: props.displayName,
-                    deletionBlockersJSON: props.deletionBlockersJSON,
-                    deletionBusy: props.deletionBusy,
-                    deletionCanFinalize: props.deletionCanFinalize,
-                    deletionError: props.deletionError,
-                    deletionStatus: props.deletionStatus,
-                    deletionWarningsJSON: props.deletionWarningsJSON,
-                    email: props.email,
-                    planTier: props.planTier,
-                    activeProvider: props.activeProvider,
-                    authError: props.authError,
-                    authInitiallyPresented: props.authInitiallyPresented,
-                    hapticsEnabled: props.hapticsEnabled
-                ),
-                action: action
-            )
+            DuelWordsBackHeader(props: props, action: action)
         } content: {
             appPreferencesCard
             onDeviceCard
@@ -458,7 +465,7 @@ private struct DuelWordsAccountSurface: View {
             showsTopSafeAreaShield: true,
             showsChrome: UIDevice.current.userInterfaceIdiom != .pad
         ) {
-            DuelWordsHeaderSurface(props: headerProps, action: action)
+            DuelWordsBackHeader(props: props, action: action)
         } content: {
             identityCard
             proCard
@@ -467,19 +474,6 @@ private struct DuelWordsAccountSurface: View {
                 safetyCard
             }
         }
-    }
-
-    private var headerProps: DuelWordsSharedSurfaceProps {
-        DuelWordsSharedSurfaceProps(
-            surface: "header", selectedTab: "account", interfaceLocale: props.interfaceLocale,
-            appearance: props.appearance, accountAvailable: props.accountAvailable, signedIn: props.signedIn,
-            displayName: props.displayName, deletionBlockersJSON: props.deletionBlockersJSON,
-            deletionBusy: props.deletionBusy, deletionCanFinalize: props.deletionCanFinalize,
-            deletionError: props.deletionError, deletionStatus: props.deletionStatus,
-            deletionWarningsJSON: props.deletionWarningsJSON, email: props.email, planTier: props.planTier,
-            activeProvider: props.activeProvider, authError: props.authError,
-            authInitiallyPresented: props.authInitiallyPresented, hapticsEnabled: props.hapticsEnabled
-        )
     }
 
     private var identityCard: some View {
@@ -559,7 +553,8 @@ private struct DuelWordsPaywallSurface: View {
     var body: some View {
         AVPaywallSheetScaffold(
             navigationTitle: "DuelWords Pro",
-            closeTitle: props.localized("Close"),
+            closeTitle: props.localized("Back"),
+            closeSystemImage: "chevron.left",
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             onClose: { action("close", nil) }
         ) {
@@ -608,8 +603,9 @@ private struct DuelWordsDeleteAccountSurface: View {
             topPadding: 24,
             bottomPadding: 24,
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
-            closeTitle: props.localized("Done"),
-            closeAccessibilityIdentifier: "accountDeletion.done",
+            closeTitle: props.localized("Back"),
+            closeSystemImage: "chevron.left",
+            closeAccessibilityIdentifier: "accountDeletion.back",
             onClose: { action("close", nil) }
         ) {
             AVSettingsScreenHeader(

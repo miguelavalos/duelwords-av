@@ -21,6 +21,7 @@ import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
@@ -222,15 +223,12 @@ export function WordDuelSoloDailyScreen({
     <AppScreen
       bottomInset={compactViewport ? spacing.md : spacing.xxl}
       contentGap={compactViewport ? spacing.md : spacing.lg}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.kicker}>{viewModel.isLocalPreviewOnly ? 'Local preview' : ''}</Text>
-          <Text style={styles.title}>Solo / Daily</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>
-          Close
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail={viewModel.isLocalPreviewOnly ? 'Local preview' : undefined}
+        onBack={() => router.back()}
+        title="Solo / Daily"
+      />
 
       <View style={styles.modeRow}>
         <SegmentButton

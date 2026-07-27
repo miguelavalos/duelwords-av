@@ -35,6 +35,7 @@ import type { InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
@@ -567,19 +568,13 @@ export function PublicWordDuelChallengeScreen({
 
   return (
     <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>{copy(account.user ? 'accountChallenge' : 'guestChallenge')}</Text>
-          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{copy('wordDuel')}</Text>
-          <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>
-        </View>
-        <AppButton
-          tone="quiet"
-          onPress={() => router.replace('/play')}
-          style={styles.closeButton}>
-          {copy('close')}
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={copy('back')}
+        detail={copy(account.user ? 'accountChallenge' : 'guestChallenge')}
+        onBack={() => router.replace('/play')}
+        title={copy('wordDuel')}
+      />
+      <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>
 
       {!runtime.ok ? <RuntimeUnavailable interfaceLocale={interfaceLocale} reason={runtime.reason} /> : null}
 
@@ -742,14 +737,12 @@ function ConnectedResultPanel({
 
   return (
     <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>{copy('finalResult')}</Text>
-          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{resultOutcomeLabel(interfaceLocale, result.outcome)}</Text>
-          <Text style={styles.subtitle}>{copy('target', { word: result.targetReveal.displayWord ?? '—' })}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={onClose} style={styles.closeButton}>{copy('close')}</AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={copy('back')}
+        detail={copy('target', { word: result.targetReveal.displayWord ?? '—' })}
+        onBack={onClose}
+        title={resultOutcomeLabel(interfaceLocale, result.outcome)}
+      />
 
       <View style={styles.panel}>
         <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.own.safeDisplayName}</Text>
@@ -972,12 +965,8 @@ function lobbyStatusLabel(locale: InterfaceLocale, status: string): string {
 function usePublicChallengeStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md },
-  headerText: { flex: 1, gap: spacing.xs },
   kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
-  title: { color: colors.text, fontSize: typeScale.title, fontWeight: '900' },
   subtitle: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 21 },
-  closeButton: { minWidth: 76 },
   panel: { gap: spacing.md, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.lg },
   panelTitle: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
   helper: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },

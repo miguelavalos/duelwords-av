@@ -56,6 +56,7 @@ type CopyKey =
   | 'appearance'
   | 'challengeDescription'
   | 'dark'
+  | 'back'
   | 'done'
   | 'light'
   | 'playSubtitle'
@@ -100,6 +101,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appearance: 'Appearance',
     challengeDescription: 'Create or join a live guest challenge. A secure live connection is required for online play.',
     dark: 'Dark',
+    back: 'Back',
     done: 'Done',
     light: 'Light',
     playSubtitle: 'Synchronized word challenges start here.',
@@ -143,6 +145,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appearance: 'Apariencia',
     challengeDescription: 'Crea o únete a un reto en directo como invitado. El juego online necesita una conexión segura.',
     dark: 'Oscuro',
+    back: 'Volver',
     done: 'Listo',
     light: 'Claro',
     playSubtitle: 'Aquí empiezan los retos de palabras sincronizados.',
@@ -186,6 +189,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appearance: 'Aparença',
     challengeDescription: 'Crea o uneix-te a un repte en directe com a convidat. El joc en línia necessita una connexió segura.',
     dark: 'Fosc',
+    back: 'Tornar',
     done: 'Fet',
     light: 'Clar',
     playSubtitle: 'Aquí comencen els reptes de paraules sincronitzats.',
@@ -229,6 +233,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appearance: 'Apparence',
     challengeDescription: "Créez ou rejoignez un défi en direct en tant qu’invité. Le jeu en ligne nécessite une connexion sécurisée.",
     dark: 'Sombre',
+    back: 'Retour',
     done: 'Terminé',
     light: 'Clair',
     playSubtitle: 'Les défis de mots synchronisés commencent ici.',
@@ -272,6 +277,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     appearance: 'Darstellung',
     challengeDescription: 'Erstelle eine Live-Herausforderung als Gast oder tritt einer bei. Online-Spiel benötigt eine sichere Verbindung.',
     dark: 'Dunkel',
+    back: 'Zurück',
     done: 'Fertig',
     light: 'Hell',
     playSubtitle: 'Hier beginnen synchronisierte Wortduelle.',

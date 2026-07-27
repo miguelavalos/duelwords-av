@@ -13,6 +13,8 @@ export type DailyCopy = {
   failedDetail: string;
   failedTitle: string;
   loading: string;
+  hideInformation: string;
+  information: string;
   practice: string;
   privacy: string;
   resume: string;
@@ -46,6 +48,8 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     failedDetail: 'That was today’s word. Completing the challenge still keeps your streak going.',
     failedTitle: 'Today is complete',
     loading: 'Preparing today’s word…',
+    hideInformation: 'Hide Daily information',
+    information: 'About today’s Daily',
     practice: 'Keep playing in Practice',
     privacy: 'Your guesses, result, and streak stay on this device.',
     resume: 'Resume today’s Daily',
@@ -77,6 +81,8 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     failedDetail: 'Esa era la palabra de hoy. Completar el reto también mantiene tu racha.',
     failedTitle: 'El reto de hoy está completo',
     loading: 'Preparando la palabra de hoy…',
+    hideInformation: 'Ocultar la información del Diario',
+    information: 'Información sobre el Diario de hoy',
     practice: 'Seguir jugando en Práctica',
     privacy: 'Tus intentos, resultado y racha se guardan en este dispositivo.',
     resume: 'Continuar el Diario de hoy',
@@ -108,6 +114,8 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     failedDetail: 'Aquesta era la paraula d’avui. Completar el repte també manté la ratxa.',
     failedTitle: 'El repte d’avui està complet',
     loading: 'Preparant la paraula d’avui…',
+    hideInformation: 'Amaga la informació del Diari',
+    information: 'Informació sobre el Diari d’avui',
     practice: 'Continuar jugant a Pràctica',
     privacy: 'Els teus intents, resultat i ratxa es desen en aquest dispositiu.',
     resume: 'Continuar el Diari d’avui',
@@ -139,6 +147,8 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     failedDetail: 'C’était le mot du jour. Terminer le défi maintient aussi votre série.',
     failedTitle: 'Le défi du jour est terminé',
     loading: 'Préparation du mot du jour…',
+    hideInformation: 'Masquer les informations du Défi quotidien',
+    information: 'À propos du Défi quotidien',
     practice: 'Continuer en Entraînement',
     privacy: 'Vos essais, votre résultat et votre série restent sur cet appareil.',
     resume: 'Reprendre le Quotidien',
@@ -170,6 +180,8 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     failedDetail: 'Das war das heutige Wort. Ein abgeschlossener Versuch erhält trotzdem deine Serie.',
     failedTitle: 'Heute ist abgeschlossen',
     loading: 'Das heutige Wort wird vorbereitet…',
+    hideInformation: 'Informationen zum Tageswort ausblenden',
+    information: 'Über das heutige Tageswort',
     practice: 'Im Training weiterspielen',
     privacy: 'Deine Versuche, dein Ergebnis und deine Serie bleiben auf diesem Gerät.',
     resume: 'Heutiges Tageswort fortsetzen',

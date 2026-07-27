@@ -4,10 +4,12 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
+import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, DuelWordsWordmark, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { layout, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function RivalsScreen() {
@@ -21,7 +23,7 @@ export function RivalsScreen() {
 
   return (
     <AppScreen bottomInset={width < 760 ? layout.phoneShellBottomInset : spacing.xxl}>
-      {width < 760 ? <DuelWordsWordmark compact /> : null}
+      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} onBack={() => router.replace('/(tabs)/play')} />
       <View style={styles.header}>
         <InkEyebrow>{copy.rivals}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{signedIn ? copy.rivalsTitleSignedIn : copy.rivalsTitleGuest}</Text>

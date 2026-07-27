@@ -23,7 +23,8 @@ import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, InkEyebrow } from '@/ui/brand';
+import { AviArtwork } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
 import { GameLanguagePicker } from './components/game-language-picker';
@@ -180,15 +181,12 @@ export function WordDuelPracticeScreen({ initialGameLanguage = 'en' }: WordDuelP
     <AppScreen
       bottomInset={compactViewport ? spacing.md : spacing.xxl}
       contentGap={compactViewport ? spacing.md : spacing.lg}>
-      <View style={styles.header}>
-        <View>
-          <InkEyebrow>{t(interfaceLocale, 'localOnly')}</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.practice}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={() => router.back()}>
-          {t(interfaceLocale, 'done')}
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        detail={t(interfaceLocale, 'localOnly')}
+        onBack={() => router.back()}
+        title={copy.practice}
+      />
 
       <GameLanguagePicker
         dismissLabel={t(interfaceLocale, 'done')}
@@ -297,17 +295,6 @@ function ResultLine({ label, target }: { label: string; target: string }) {
 function usePracticeStyles() {
   const { colors } = useAppTheme();
   return StyleSheet.create({
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
-  title: {
-    color: colors.text,
-    fontSize: typeScale.title,
-    fontWeight: '900',
-  },
   statusRow: {
     minHeight: 58,
     flexDirection: 'row',

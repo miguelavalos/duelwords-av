@@ -12,7 +12,8 @@ import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
+import { PaperCard, SectionHeading } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
@@ -34,8 +35,6 @@ export function SettingsScreen() {
   const copy = experienceCopy(interfaceLocale);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
-  const { width } = useWindowDimensions();
-  const tablet = width >= 760;
 
   async function setHaptics(enabled: boolean) {
     setPreferences((current) => ({ ...current, hapticsEnabled: enabled }));
@@ -43,7 +42,8 @@ export function SettingsScreen() {
   }
 
   function handleSharedAction({ action, value }: SharedAppleAction) {
-    if (action === 'account') router.replace('/(tabs)/account' as Href);
+    if (action === 'close') router.replace('/(tabs)/play' as Href);
+    else if (action === 'account') router.replace('/(tabs)/account' as Href);
     else if (action === 'paywall') router.push('/pro' as Href);
     else if (action === 'deleteAccount') router.push('/delete-account' as Href);
     else if (action === 'openPrivacy') openLink(links.privacy);
@@ -81,17 +81,12 @@ export function SettingsScreen() {
 
   return (
     <AppScreen key={appearance} bottomInset={spacing.xxl}>
-      {!tablet ? (
-        <AppChromeHeader
-          accountLabel={copy.account}
-          onAccountPress={() => router.replace('/(tabs)/account' as Href)}
-          onSettingsPress={() => undefined}
-          selected="settings"
-          settingsLabel={copy.settings}
-        />
-      ) : null}
+      <InteriorScreenHeader
+        backLabel={t(interfaceLocale, 'back')}
+        onBack={() => router.replace('/(tabs)/play' as Href)}
+        title={t(interfaceLocale, 'settings')}
+      />
       <View style={styles.headerCopy}>
-        <Text aria-level={1} accessibilityRole="header" style={styles.title}>{t(interfaceLocale, 'settings')}</Text>
         <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
       </View>
 
@@ -196,7 +191,6 @@ function useStyles() {
   return useMemo(() => StyleSheet.create({
     sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
-    title: { color: colors.text, fontFamily: 'Georgia', fontSize: 35, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
     optionList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     option: { minHeight: 48, flexGrow: 1, flexBasis: 140, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, paddingHorizontal: spacing.md },

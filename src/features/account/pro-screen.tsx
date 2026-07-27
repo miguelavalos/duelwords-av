@@ -3,10 +3,12 @@ import { useMemo } from 'react';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
@@ -47,11 +49,7 @@ export function ProScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <View style={styles.topBar}>
-        <View style={styles.topBarSide}><AppButton tone="quiet" onPress={() => router.back()}>Close</AppButton></View>
-        <Text style={styles.topBarTitle}>Pro</Text>
-        <View style={styles.topBarSide} />
-      </View>
+      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} onBack={() => router.back()} title="DuelWords Pro" />
 
       <View style={styles.hero}>
         <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
@@ -113,9 +111,6 @@ function useStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
     sharedScreen: { flex: 1 },
-    topBar: { minHeight: 52, flexDirection: 'row', alignItems: 'center' },
-    topBarSide: { flex: 1, alignItems: 'flex-start' },
-    topBarTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900', textAlign: 'center' },
     hero: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', gap: spacing.xl },
     heroCopy: { flex: 1, minWidth: 250, maxWidth: 560, gap: spacing.sm },
     title: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },

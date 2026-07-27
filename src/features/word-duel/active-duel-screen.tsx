@@ -28,6 +28,7 @@ import type { DuelWordsApiFinalResult } from '@/game/word-duel-lobby/api-client'
 import type { InterfaceLocale } from '@/i18n/locales';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard } from './components/word-duel-board';
@@ -318,15 +319,12 @@ export function ActiveDuelScreen({
     <AppScreen
       bottomInset={compactViewport ? spacing.sm : spacing.md}
       contentGap={compactViewport ? spacing.sm : spacing.md}>
-      <View style={styles.header}>
-        <View style={styles.headerText}>
-          <Text style={styles.kicker}>{copy('duel')}</Text>
-          <Text aria-level={1} accessibilityRole="header" style={styles.title}>{copy('wordDuel')}</Text>
-        </View>
-        <AppButton tone="quiet" onPress={onLeave ?? (() => router.replace('/play'))} style={styles.leaveButton}>
-          {copy('back')}
-        </AppButton>
-      </View>
+      <InteriorScreenHeader
+        backLabel={copy('back')}
+        detail={copy('duel')}
+        onBack={onLeave ?? (() => router.replace('/play'))}
+        title={copy('wordDuel')}
+      />
 
       <View style={styles.timerRow}>
         <View>
