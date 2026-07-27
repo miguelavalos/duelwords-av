@@ -78,6 +78,21 @@ describe('interior screen navigation contract', () => {
     expect(source('src/features/onboarding/onboarding-screen.tsx')).toContain('DuelWordsWordmark');
   });
 
+  it('orders Home by product priority before secondary modes and Avi help', () => {
+    const home = source('src/features/play/play-screen.tsx');
+    const daily = home.indexOf('title={copy.daily}');
+    const challenge = home.indexOf('title={copy.challenge}');
+    const playAvi = home.indexOf('title={copy.playAvi}');
+    const practice = home.indexOf('title={copy.practice}');
+    const aviHelp = home.indexOf("router.push('/avi' as Href)");
+
+    expect(daily).toBeGreaterThan(-1);
+    expect(daily).toBeLessThan(challenge);
+    expect(challenge).toBeLessThan(playAvi);
+    expect(playAvi).toBeLessThan(aviHelp);
+    expect(practice).toBeLessThan(aviHelp);
+  });
+
   it('keeps the active Daily header compact and reveals secondary information on demand', () => {
     const daily = source('src/features/word-duel/daily-screen.tsx');
     expect(daily).toContain('sessionDetail');

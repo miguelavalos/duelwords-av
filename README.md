@@ -23,6 +23,10 @@ surface fails closed and performs no network calls.
 
 The public Play catalog contains Challenge a Friend, Play Avi, offline
 Practice, and official Daily.
+Home presents them in product order: official Daily first, Challenge a Friend
+second, Play Avi and Practice as secondary modes, and compact Avi help last.
+Advertising is not implemented in this client candidate; no ad SDK initializes
+and no ad request or placeholder appears on Home or during gameplay.
 Practice, Solo Practice, and deterministic Play Avi use bundled
 EN/ES/CA/FR/DE dictionaries and make no word-list request. Native word
 acceptance and non-Daily local target selection stay on-device; the app must
