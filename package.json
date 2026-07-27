@@ -35,6 +35,9 @@
     "doctor:react:diff": "pnpm dlx react-doctor@latest . --verbose --scope changed",
     "doctor:react:score": "pnpm dlx react-doctor@latest . --score",
     "web:edge:check": "wrangler deploy --dry-run --config web-edge/wrangler.production.jsonc",
+    "web:edge:check:preview": "wrangler deploy --dry-run --config web-edge/wrangler.preview.jsonc",
+    "legal:edge:check": "wrangler deploy --dry-run --config legal-edge/wrangler.production.jsonc",
+    "legal:edge:check:preview": "wrangler deploy --dry-run --config legal-edge/wrangler.preview.jsonc",
     "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },

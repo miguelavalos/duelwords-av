@@ -441,6 +441,16 @@ Challenge surface. Production TLS, Worker deployment, AASA retrieval, and a
 fresh signed-device reinstall remain release gates. Android App Links remain
 outside this iOS candidate.
 
+The separate `legal-edge` Worker owns the public product pages at
+`duelwords-av.avalsys.com`: Privacy, Terms, Support, Delete account, and
+dictionary/open-source Notices. It is a static, no-binding Worker with no
+forms, cookies, analytics, advertising, or runtime API calls. Keeping it
+separate means publishing or rolling back legal pages cannot change the AASA or
+invitation Worker. Both preview and production configurations must be deployed
+only through the private Avalsys runbook and explicit remote authorization.
+The combined App Store privacy inventory is documented in
+[`docs/app-store-privacy.md`](docs/app-store-privacy.md).
+
 ## Simulator-only signed-in surface review
 
 DuelWords follows Tune AV's explicit launch-environment pattern for reviewing

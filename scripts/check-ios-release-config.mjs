@@ -63,6 +63,33 @@ expectEqual(
   expoConfig.ios?.config?.usesNonExemptEncryption,
   false,
 );
+expectEqual('expo.ios.privacyManifests.NSPrivacyTracking', expoConfig.ios?.privacyManifests?.NSPrivacyTracking, false);
+expectEqual(
+  'expo.ios.privacyManifests.NSPrivacyTrackingDomains',
+  JSON.stringify(expoConfig.ios?.privacyManifests?.NSPrivacyTrackingDomains),
+  JSON.stringify([]),
+);
+const collectedDataTypes = expoConfig.ios?.privacyManifests?.NSPrivacyCollectedDataTypes ?? [];
+const expectedCollectedDataTypes = [
+  ['NSPrivacyCollectedDataTypeName', true],
+  ['NSPrivacyCollectedDataTypeEmailAddress', true],
+  ['NSPrivacyCollectedDataTypeUserID', true],
+  ['NSPrivacyCollectedDataTypeGameplayContent', true],
+  ['NSPrivacyCollectedDataTypeCoarseLocation', false],
+];
+for (const [dataType, linked] of expectedCollectedDataTypes) {
+  const declaration = collectedDataTypes.find(
+    (entry) => entry.NSPrivacyCollectedDataType === dataType,
+  );
+  expectEqual(`privacy manifest ${dataType} exists`, Boolean(declaration), true);
+  expectEqual(`privacy manifest ${dataType} linked`, declaration?.NSPrivacyCollectedDataTypeLinked, linked);
+  expectEqual(`privacy manifest ${dataType} tracking`, declaration?.NSPrivacyCollectedDataTypeTracking, false);
+  expectEqual(
+    `privacy manifest ${dataType} purpose`,
+    JSON.stringify(declaration?.NSPrivacyCollectedDataTypePurposes),
+    JSON.stringify(['NSPrivacyCollectedDataTypePurposeAppFunctionality']),
+  );
+}
 expectEqual('expo.scheme', expoConfig.scheme, expectedBundleIdentifier);
 expectEqual(
   'expo.extra.duelWordsAv.iosBuildVariant',

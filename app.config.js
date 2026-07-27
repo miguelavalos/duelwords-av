@@ -43,6 +43,17 @@ function createExpoConfig() {
         ACCOUNTAV_KEYCHAIN_SERVICE: '$(ACCOUNTAV_KEYCHAIN_SERVICE)',
         ACCOUNTAV_PUBLISHABLE_KEY: '$(ACCOUNTAV_PUBLISHABLE_KEY)',
       },
+      privacyManifests: {
+        NSPrivacyCollectedDataTypes: [
+          collectedDataType('NSPrivacyCollectedDataTypeName', true),
+          collectedDataType('NSPrivacyCollectedDataTypeEmailAddress', true),
+          collectedDataType('NSPrivacyCollectedDataTypeUserID', true),
+          collectedDataType('NSPrivacyCollectedDataTypeGameplayContent', true),
+          collectedDataType('NSPrivacyCollectedDataTypeCoarseLocation', false),
+        ],
+        NSPrivacyTracking: false,
+        NSPrivacyTrackingDomains: [],
+      },
     },
     extra: {
       ...(appJson.expo.extra ?? {}),
@@ -65,6 +76,17 @@ function createExpoConfig() {
         },
       },
     },
+  };
+}
+
+function collectedDataType(type, linked) {
+  return {
+    NSPrivacyCollectedDataType: type,
+    NSPrivacyCollectedDataTypeLinked: linked,
+    NSPrivacyCollectedDataTypePurposes: [
+      'NSPrivacyCollectedDataTypePurposeAppFunctionality',
+    ],
+    NSPrivacyCollectedDataTypeTracking: false,
   };
 }
 
