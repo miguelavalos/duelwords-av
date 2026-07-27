@@ -8,6 +8,9 @@ const root = process.cwd();
 const appJson = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')) as {
   expo: { plugins: (string | [string, Record<string, unknown>])[] };
 };
+const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')) as {
+  devDependencies?: Record<string, string>;
+};
 const archiveScript = fs.readFileSync(path.join(root, 'scripts/ios/archive-release.sh'), 'utf8');
 const archiveCheck = fs.readFileSync(path.join(root, 'scripts/ios/check-release-archive.sh'), 'utf8');
 const sentryDsymRepair = fs.readFileSync(
@@ -29,6 +32,7 @@ describe('iOS release and Sentry workflow', () => {
       url: 'https://sentry.io/',
     });
     expect(entry?.[1]).not.toHaveProperty('authToken');
+    expect(packageJson.devDependencies?.['@sentry/cli']).toBe('2.58.4');
   });
 
   it('keeps routine local builds provider-silent and makes Sentry upload explicit', () => {
