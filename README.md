@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-27: this repository has a public, guest-first Word Duel
+Current as of 2026-07-28: this repository has a public, guest-first Word Duel
 V1 branding and hardening candidate, but is not yet ready for another
 TestFlight upload. **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
@@ -240,6 +240,34 @@ distinct repeated letters remain valid. Board glyphs have explicit centered
 width so Fabric cannot visually collapse a narrow `I`; native accessibility
 activation remains explicit. Simulator acceptance covers rapid `RAISE` and
 repeated-letter `APPLE` sequences.
+
+On 2026-07-28 Office Openspace rebuilt public source `f9fc5ff` as a clean,
+production-configured universal Release simulator artifact with Xcode 26.6 and
+iOS 26.5. Dedicated iPhone and iPad simulators passed onboarding/guest skip,
+the adaptive Home shell, Settings, guest Account, Official Daily, Practice,
+Play Avi, and a live production guest Challenge. iPhone Practice accepted rapid
+`RAISE`, then preserved both `P` inputs in `APPLE`; Delete, re-entry, and Enter
+advanced the board. iPad repeated the `APPLE` acceptance through its persistent
+sidebar layout. Official Daily made one explicit target request, accepted a
+local guess, and restored its `1/6` board after process termination and relaunch.
+Play Avi moved from submitted/thinking to clues-ready round `2/6`. The two
+simulators created and joined one guest room, locked both Ready actions,
+submitted `RAISE` and `APPLE`, revealed feedback, and opened round `2/6`.
+
+That connected pass reproduced one client-only race: a late timeout rejection
+could replace the correct next-round status with `Could not close timed-out
+round` after gameplay had already advanced. `f9fc5ff` now ignores timeout
+results that belong to a resolved or superseded round and includes a permanent
+view-model regression. The full gate passes 71 test files / 365 tests,
+TypeScript, Expo lint, SDK dependency alignment, and diff hygiene. React Doctor
+0.9.1 reports zero errors; the full scan retains 73 structural warnings (score
+65), while the changed scope has six warnings and no errors (score 82).
+No backend deploy, Cloudflare/Convex/Account AV/Sentry mutation, Infisical
+write, TestFlight upload, or purchase ran. The physical iPhone was unavailable
+and no physical iPad exists, so the post-fix device install was not claimed.
+The canonical signed archive attempt stopped before compilation because Office
+Openspace has neither an Xcode account nor a local provisioning profile for
+`com.avalsys.duelwordsav`; no archive or upload was produced.
 
 The 2026-07-26 content audit follows Tune AV's Avi composition rule precisely:
 the cropped Avi navigation treatment in the shared phone footer is separate
@@ -837,14 +865,19 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Run the signed physical iPhone/iPad Challenge happy path and recovery matrix
-  against the already active production runtime, without repeating backend
-  migrations, imports, deploys, or rollout smokes.
-- Deploy the isolated `web-edge` Worker through the approved platform workflow,
-  verify production TLS and AASA, then reinstall a fresh signed candidate and
-  prove `/i/c/:token` Universal Links on iPhone and iPad. The local edge, native
-  route, AASA, and Associated Domains are already implemented. Android App Links
-  remain separate from the iOS TestFlight candidate.
+- Restore signing capability on Office Openspace by signing in to the existing
+  Apple developer team and downloading the already-owned DuelWords provisioning
+  profile, then rebuild and validate the canonical `0.1.0 (2)` archive from
+  public source `f9fc5ff`. Do not create a TestFlight upload from that archive
+  without a new exact authorization.
+- Install the post-fix signed candidate over the existing physical iPhone app
+  without uninstalling or clearing data when that phone is connected. No
+  physical iPad exists; this candidate's iPad acceptance is the dedicated
+  Release simulator matrix above, and that limitation must remain explicit.
+- The standalone invitation edge is already deployed and its bounded origin
+  verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
+  signed-device `/i/c/:token` Universal Link acceptance remains open; Android
+  App Links remain separate from the iOS TestFlight candidate.
 - Keep the public Play order fixed as official Daily, Challenge a Friend,
   Play Avi, Practice, then Avi help. All four modes and
   their public journeys are localized in EN/ES/CA/FR/DE.
