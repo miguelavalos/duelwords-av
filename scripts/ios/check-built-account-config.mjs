@@ -32,6 +32,11 @@ const expectedVariant = environment === 'dev' ? 'development' : 'release';
 const expectedBundle = environment === 'dev'
   ? 'com.avalsys.duelwordsav.dev'
   : 'com.avalsys.duelwordsav';
+const expectedSentryEnvironment = environment === 'prod'
+  ? 'production'
+  : environment === 'preview'
+    ? 'preview'
+    : 'debug';
 
 expect('Account AV config object', account && typeof account === 'object');
 expect(
@@ -48,11 +53,28 @@ expect(
   'DuelWords Convex cloud target',
   typeof duelWords?.convexUrl === 'string' && /^https:\/\/[^/]+\.convex\.cloud\/?$/.test(duelWords.convexUrl),
 );
+expect('DuelWords Sentry environment', duelWords?.sentry?.environment === expectedSentryEnvironment);
+if (environment !== 'dev') {
+  expect('DuelWords Sentry DSN', isSentryDsn(duelWords?.sentry?.dsn));
+}
 
 console.log(`DuelWords AV built Account AV config passed for ${environment}.`);
 
 function normalizeUrl(value) {
   return typeof value === 'string' ? value.replace(/\/$/, '') : '';
+}
+
+function isSentryDsn(value) {
+  if (typeof value !== 'string') return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:'
+      && /(^|\.)sentry\.io$/i.test(parsed.hostname)
+      && parsed.username.length > 0
+      && parsed.pathname.length > 1;
+  } catch {
+    return false;
+  }
 }
 
 function expect(label, condition) {

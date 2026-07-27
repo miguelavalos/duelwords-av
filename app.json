@@ -41,6 +41,14 @@
       "expo-secure-store",
       "expo-web-browser",
       [
+        "@sentry/react-native/expo",
+        {
+          "organization": "avalsys",
+          "project": "duelwordsav-ios",
+          "url": "https://sentry.io/"
+        }
+      ],
+      [
         "expo-router",
         {
           "origin": "https://app.duelwords-av.avalsys.com"

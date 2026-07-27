@@ -9,6 +9,7 @@ const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const appJson = JSON.parse(readFileSync(resolve(repoRoot, 'app.json'), 'utf8'));
 const easJson = JSON.parse(readFileSync(resolve(repoRoot, 'eas.json'), 'utf8'));
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
+const iosConfigGenerator = readFileSync(resolve(repoRoot, 'scripts/ios/generate-local-xcconfig.sh'), 'utf8');
 const development = process.argv.includes('--development');
 const expoConfig = require(resolve(repoRoot, 'app.config.js'))();
 const failures = [];
@@ -77,6 +78,22 @@ expectEqual(
 expectEqual('expo.plugins expo-apple-authentication', hasExpoPlugin('expo-apple-authentication'), true);
 expectEqual('expo.plugins expo-secure-store', hasExpoPlugin('expo-secure-store'), true);
 expectEqual('expo.plugins expo-web-browser', hasExpoPlugin('expo-web-browser'), true);
+expectEqual('expo.plugins @sentry/react-native/expo', hasExpoPlugin('@sentry/react-native/expo'), true);
+expectEqual(
+  'expo.plugins @sentry/react-native/expo organization',
+  expoPluginOptions('@sentry/react-native/expo')?.organization,
+  'avalsys',
+);
+expectEqual(
+  'expo.plugins @sentry/react-native/expo project',
+  expoPluginOptions('@sentry/react-native/expo')?.project,
+  'duelwordsav-ios',
+);
+expectEqual(
+  'expo.plugins @sentry/react-native/expo URL',
+  expoPluginOptions('@sentry/react-native/expo')?.url,
+  'https://sentry.io/',
+);
 expectEqual(
   'expo-splash-screen backgroundColor',
   expoPluginOptions('expo-splash-screen')?.backgroundColor,
@@ -149,6 +166,12 @@ expectEqual(
 );
 expectEqual('eas.build.testflight.ios.autoIncrement', easJson.build?.testflight?.ios?.autoIncrement, false);
 expectEqual('package @clerk/expo', packageJson.dependencies?.['@clerk/expo'], '4.0.3');
+expectEqual('package @sentry/react-native', packageJson.dependencies?.['@sentry/react-native'], '~7.11.0');
+expectEqual(
+  'local Xcode Sentry upload is explicit opt-in',
+  iosConfigGenerator.includes('if [ -z "${SENTRY_DISABLE_AUTO_UPLOAD:-}" ]; then'),
+  true,
+);
 
 for (const assetPath of [expoConfig.icon, expoConfig.ios?.icon]) {
   if (typeof assetPath !== 'string' || !existsSync(resolve(repoRoot, assetPath))) {

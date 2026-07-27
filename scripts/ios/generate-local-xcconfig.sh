@@ -115,6 +115,14 @@ case "$convex_url" in
   https://*.convex.cloud) ;;
   *) echo "DUELWORDSAV_CONVEX_URL must resolve to a Convex cloud URL for $env_name." >&2; exit 1 ;;
 esac
+if [ "$env_name" = "prod" ] && [ -z "$sentry_dsn" ]; then
+  echo "DUELWORDSAV_IOS_SENTRY_DSN is missing for prod." >&2
+  exit 1
+fi
+if [ -n "$sentry_dsn" ] && [[ ! "$sentry_dsn" =~ ^https://[^/@]+@([A-Za-z0-9-]+\.)+sentry\.io/[^/?#]+$ ]]; then
+  echo "DUELWORDSAV_IOS_SENTRY_DSN is malformed for $env_name." >&2
+  exit 1
+fi
 
 escape_xcconfig_url() {
   printf '%s' "$1" | sed 's#/#$(XCCONFIG_SLASH)#g'
@@ -174,6 +182,9 @@ shell_export() {
   shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL "$convex_url"
   shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED "$realtime_disabled"
   shell_export EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT "$sentry_environment"
+  printf '%s\n' 'if [ -z "${SENTRY_DISABLE_AUTO_UPLOAD:-}" ]; then'
+  shell_export SENTRY_DISABLE_AUTO_UPLOAD 'true'
+  printf '%s\n' 'fi'
   if [ -n "$sentry_dsn" ]; then
     shell_export EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN "$sentry_dsn"
   fi
