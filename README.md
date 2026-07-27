@@ -36,7 +36,10 @@ local date, time zone, and game language, then keeps the board, guesses,
 result, resume state, and participation streak on the device. It has no
 Convex state, polling, heartbeat, per-guess request, account identifier, or
 automatic fetch on render. A saved Daily resumes offline; without a saved
-target it fails closed instead of substituting a local word. Challenge remains
+target it fails closed instead of substituting a local word. The production
+Daily endpoint and audited D1 assignment store are active for EN/ES/CA/FR/DE;
+one bounded rollout check per language passed, and routine health checks must
+not request another target matrix. Challenge remains
 server-arbitrated for fairness. The release candidate and live production
 API/D1/Convex backend now support EN/ES/CA/FR/DE end to end after one bounded
 production lifecycle smoke passed for each newly enabled language. The client
