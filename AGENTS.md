@@ -178,13 +178,14 @@ Current implementation slice:
   Convex, Account AV, analytics, ads, or any other service; must not log invite
   tokens; and must keep invocation logs off. A production deploy still requires
   its own preflight and exact approval.
-- The separate `legal-edge` Worker may serve only the public DuelWords legal
-  home, Privacy, Terms, Support, Delete account, Notices, and bounded
-  method/not-found responses. It must remain static and binding-free, with no
-  browser JavaScript, forms, cookies, analytics, ads, or runtime API calls. It
-  owns `duelwords-av*.avalsys.com`; never add that domain or legal content to
-  the invitation/AASA Worker. Preview and production deployment each require
-  the private legal-edge runbook and exact approval.
+- The separate `legal-edge` Worker may serve only the public DuelWords
+  commercial home in EN/ES/CA/FR/DE, Privacy, Terms, Support, Delete account,
+  Notices, and bounded method/not-found responses. It must remain static and
+  binding-free, with no browser JavaScript, forms, cookies, analytics, ads, or
+  runtime API calls. It owns `duelwords-av*.avalsys.com`; never add that domain,
+  commercial content, or legal content to the invitation/AASA Worker. Preview
+  and production deployment each require the private legal-edge runbook and
+  exact approval.
 
 This machine is **Home**. Home may perform development, tests, signed runtime,
 environment-backed smokes, deploys, and other approved work under the normal

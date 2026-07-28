@@ -1,3 +1,8 @@
+import {
+  commercialLocaleForPath,
+  commercialPage,
+  type SiteEnvironment,
+} from './commercial-page';
 import { legalPage, legalPageKey } from './legal-page';
 
 const legalHosts = new Set([
@@ -6,7 +11,7 @@ const legalHosts = new Set([
 ]);
 
 const securityHeaders = {
-  'content-security-policy': "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+  'content-security-policy': "default-src 'none'; img-src https://cdn.avalsys.com; style-src 'unsafe-inline'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   'permissions-policy': 'camera=(), microphone=(), geolocation=()',
   'referrer-policy': 'no-referrer',
   'x-content-type-options': 'nosniff',
@@ -24,21 +29,34 @@ export default {
       });
     }
 
-    const pageKey = legalPageKey(url.pathname);
     const isLocal = url.hostname === '127.0.0.1' || url.hostname === 'localhost';
-    if (pageKey !== null && (legalHosts.has(url.hostname) || isLocal)) {
-      return htmlResponse(legalPage(pageKey), isHead);
+    if (!legalHosts.has(url.hostname) && !isLocal) {
+      return textResponse('Not found.', 404, isHead, { 'cache-control': 'no-store' });
+    }
+
+    const environment: SiteEnvironment = url.hostname.includes('preview') || isLocal
+      ? 'preview'
+      : 'production';
+    const commercialLocale = commercialLocaleForPath(url.pathname);
+    if (commercialLocale !== null) {
+      return htmlResponse(commercialPage(commercialLocale, environment), isHead, environment);
+    }
+
+    const pageKey = legalPageKey(url.pathname);
+    if (pageKey !== null) {
+      return htmlResponse(legalPage(pageKey), isHead, environment);
     }
 
     return textResponse('Not found.', 404, isHead, { 'cache-control': 'no-store' });
   },
 };
 
-function htmlResponse(body: string, head: boolean): Response {
+function htmlResponse(body: string, head: boolean, environment: SiteEnvironment): Response {
   return new Response(head ? null : body, {
     headers: {
       'cache-control': 'public, max-age=300, must-revalidate',
       'content-type': 'text/html; charset=utf-8',
+      ...(environment === 'preview' ? { 'x-robots-tag': 'noindex, nofollow' } : {}),
       ...securityHeaders,
     },
   });
