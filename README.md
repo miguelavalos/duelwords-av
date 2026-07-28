@@ -612,6 +612,15 @@ wires the approved light/dark wordmark, lockup, and splash hero into the shared
 Apple asset catalogs; signed iPhone/iPad crop review remains mandatory before a
 replacement upload.
 
+The 2026-07-28 implementation check regenerated the ignored iOS workspace and
+confirmed byte-identical native-catalog copies for every wordmark, lockup, and
+splash hero role. The generated launch screen visibly uses the approved full
+lockup, and a minified development-identity iOS Metro bundle includes all five
+approved React Native brand images among its 35 assets. The release gate now
+pins both the asset hashes and their shared-Apple catalog mapping. Full
+`xcodebuild` validation did not run on that workstation because it has Apple
+Command Line Tools but not Xcode; no replacement TestFlight upload occurred.
+
 `pnpm run config:ios:check` pins the promoted icon, product symbol, light/dark
 wordmark and lockup sources, splash/onboarding art, and the exact shared Tune AV
 Avi exports by SHA-256. It also requires the native launch screen to use the
