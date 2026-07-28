@@ -86,6 +86,8 @@ describe('shared Apps AV native-surface contract', () => {
 
     expect(nativeSurfaceSource).toContain('.avCommonAppExperience(experience)');
     expect(nativeSurfaceSource).toContain('footerConfiguration: .floating');
+    expect(nativeSurfaceSource.match(/showsChrome: !isTabletLayout/g)).toHaveLength(2);
+    expect(nativeSurfaceSource).not.toContain('DuelWordsBackHeader');
     expect(experienceSource).toContain('brandPalette: .standard');
     expect(experienceSource).toContain('onboardingAuthPanelCompanionName: "AviV2LoginSheetPeek"');
     expect(experienceSource).toContain('onboardingCTACompanionName: "AviV2OnboardingCTA"');

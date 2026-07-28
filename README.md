@@ -104,15 +104,17 @@ The separate production realtime gate was subsequently approved and validated
 with a complete controlled human-duel smoke, so current production native
 config enables connected Challenge.
 
-Interior navigation now follows one explicit cross-platform rule. The product
-wordmark appears in Home chrome only (in addition to splash/onboarding brand
-moments); Account, Settings, Pro, deletion, Avi, Rivals, Stats, every game mode,
-live results, engineering previews, and the not-found route use the same
-icon-only 44-point Back control. The label remains available to assistive
-technology but is never rendered as `Done`, `Close`, or a translated text
-button. iPhone active-game screens hide the footer and keep the board and full
-keyboard ahead of secondary information. Official Daily reduces its active
-header to Back, mode/language/attempts, and an information toggle; date,
+Navigation now follows the same common-versus-product boundary as Tune AV.
+Home, Account, Settings, Avi, Rivals, and Stats are shell destinations: they
+retain the shared phone header/footer or adaptive iPad sidebar and never render
+a top-left Back control. Account and Settings replace one another inside that
+common shell instead of building an interior navigation stack. DuelWords-only
+flows such as Daily, Practice, Play Avi, Challenge, results, Pro, deletion, and
+engineering previews keep the icon-only 44-point Back control. Every game route
+opened from Home explicitly enters from right to left and exits with the inverse
+transition. iPhone active-game screens hide the footer and keep the board and
+full keyboard ahead of secondary information. Official Daily reduces its
+active header to Back, mode/language/attempts, and an information toggle; date,
 language detail, and local-privacy copy expand only on request.
 
 Home, Settings, and Account now follow Tune AV's common-screen ordering as
@@ -215,16 +217,16 @@ access with OSStatus `-34018`; it is not valid auth evidence. Account AV became
 available and the provider sheet opened normally after the exact same app was
 signed to run locally, with no source patch or configuration change.
 
-On 2026-07-27 the interior-navigation contract was rebuilt and exercised again
-on the dedicated iPhone 17 and iPad Pro 13. Home is the only shell destination
-that carries the product wordmark; splash and onboarding retain it as deliberate
-launch identity. Every product interior uses the same icon-only, 44-point Back
-control. Account and Settings keep that control on iPad alongside the persistent
-sidebar instead of silently changing navigation by device class. Daily uses the
-same header and exposes secondary explanation behind its information button so
-the board and keyboard remain primary. The React and shared-Apple surfaces expose
-the same `header.back` identifier, and the navigation contract is tested even
-when the ignored generated `ios/` tree is absent from a clean checkout.
+On 2026-07-27 the first interior-navigation contract was rebuilt and exercised
+on the dedicated iPhone 17 and iPad Pro 13. That dated pass put the icon-only,
+44-point Back control on Account and Settings as well as product screens. The
+owner's 2026-07-28 side-by-side Tune AV review supersedes that common-screen
+decision: Account, Settings, and footer destinations now remain in the shared
+shell without Back, while DuelWords-specific routes retain `header.back`. Daily
+still exposes secondary explanation behind its information button so the board
+and keyboard remain primary. React and shared-Apple contract tests cover the
+current boundary even when the ignored generated `ios/` tree is absent from a
+clean checkout.
 
 The same local candidate now resolves Avi's deterministic response
 automatically after the scheduled thinking delay; the former manual
@@ -293,6 +295,29 @@ Sentry uploads remained disabled. No external group, App Review submission,
 production deploy, purchase, or Infisical write occurred. The registered
 physical iPhone remained unavailable, so no install or data mutation was
 attempted.
+
+The 2026-07-28 owner video review then compared the current DuelWords behavior
+directly with Tune AV and corrected the navigation boundary described above.
+On iPhone, Account and Settings now use the common Tune-style header and all
+footer destinations retain the footer without Back. On regular-width iPad the
+same destinations use only the persistent sidebar. Practice, Daily, Play Avi,
+Challenge, and every other DuelWords game route keep Back and use an explicit
+right-to-left entry with the inverse exit transition. A clean production-
+configured Release artifact passed direct interaction on independent iPhone
+and iPad simulators. Account, Settings, Avi, Rivals, Stats, Home, Practice,
+Daily, Play Avi, and Challenge matched the intended chrome; Practice accepted
+`RAISE` and repeated-letter `APPLE`, including Delete and Enter behavior. The
+full gate passes 71 test files / 367 tests, TypeScript, Expo lint, static iOS
+release configuration, archive-ready runtime checks, and diff hygiene. React
+Doctor 0.9.2 reports no errors and eight existing structural advisories in the
+changed scope (80/100); the focused navigation changes introduce no new class
+of diagnostic. A production-identity Release then passed its built Account AV
+configuration and deep signature checks and installed over the existing
+`com.avalsys.duelwordsav` app on the connected iPhone 14 without uninstalling
+or clearing data. The first automatic launch attempt was deferred because the
+phone was locked. No backend deploy, Cloudflare/Convex/Account AV/Sentry
+mutation, TestFlight upload, App Review action, purchase, or Infisical write
+ran.
 
 The 2026-07-26 content audit follows Tune AV's Avi composition rule precisely:
 the cropped Avi navigation treatment in the shared phone footer is separate

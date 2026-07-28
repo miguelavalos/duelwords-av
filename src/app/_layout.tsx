@@ -11,6 +11,11 @@ import { AppThemeProvider, useResolvedAppTheme } from '@/ui/theme';
 
 const diagnosticsConfig = ensureDuelWordsDiagnosticsReady();
 
+const duelWordsFlowScreenOptions = {
+  animation: 'slide_from_right' as const,
+  gestureDirection: 'horizontal' as const,
+};
+
 function RootLayout() {
   const appTheme = useResolvedAppTheme();
 
@@ -32,16 +37,16 @@ function RootLayout() {
               <Stack.Screen name="delete-account" options={{ presentation: 'modal' }} />
               <Stack.Screen name="onboarding" />
               <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="word-duel/active-demo" />
-              <Stack.Screen name="word-duel/challenge" options={{ title: 'Word Duel — DuelWords AV' }} />
-              <Stack.Screen name="word-duel/connected-runtime" />
-              <Stack.Screen name="word-duel/lobby-demo" />
-              <Stack.Screen name="word-duel/play-avi" />
-              <Stack.Screen name="word-duel/play-avi-demo" />
-              <Stack.Screen name="word-duel/practice" />
-              <Stack.Screen name="word-duel/daily" />
-              <Stack.Screen name="word-duel/result-demo" />
-              <Stack.Screen name="word-duel/solo-daily-demo" />
+              <Stack.Screen name="word-duel/active-demo" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/challenge" options={{ ...duelWordsFlowScreenOptions, title: 'Word Duel — DuelWords AV' }} />
+              <Stack.Screen name="word-duel/connected-runtime" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/lobby-demo" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/play-avi" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/play-avi-demo" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/practice" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/daily" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/result-demo" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/solo-daily-demo" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="+not-found" />
             </Stack>
             <StatusBar style={appTheme.isDark ? 'light' : 'dark'} />

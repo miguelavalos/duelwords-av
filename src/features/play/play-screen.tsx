@@ -24,8 +24,8 @@ export function PlayScreen() {
       {!tablet ? (
         <AppChromeHeader
           accountLabel={copy.account}
-          onAccountPress={() => router.push('/(tabs)/account' as Href)}
-          onSettingsPress={() => router.push('/(tabs)/settings' as Href)}
+          onAccountPress={() => router.replace('/(tabs)/account' as Href)}
+          onSettingsPress={() => router.replace('/(tabs)/settings' as Href)}
           settingsLabel={copy.settings}
         />
       ) : null}

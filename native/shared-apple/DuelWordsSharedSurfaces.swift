@@ -163,34 +163,6 @@ private struct DuelWordsHeaderSurface: View {
     }
 }
 
-private struct DuelWordsBackHeader: View {
-    let props: DuelWordsSharedSurfaceProps
-    let action: DuelWordsSharedAction
-
-    var body: some View {
-        HStack {
-            Button {
-                action("close", nil)
-            } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 17, weight: .bold))
-                    .foregroundStyle(AVBrandColor.textPrimary)
-                    .frame(width: 44, height: 44)
-                    .background(AVBrandColor.cardSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 16, style: .continuous)
-                            .stroke(AVBrandColor.borderSubtle, lineWidth: 0.5)
-                    }
-            }
-            .buttonStyle(.plain)
-            .accessibilityLabel(props.localized("Back"))
-            .accessibilityIdentifier("header.back")
-            Spacer()
-        }
-        .padding(.horizontal, 18)
-    }
-}
-
 private struct DuelWordsFooterSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
@@ -275,6 +247,7 @@ private struct DuelWordsSidebarSurface: View {
 private struct DuelWordsSettingsSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.avBrandPalette) private var brandPalette
     @State private var didResetLocalData = false
     @State private var resetConfirmationIsPresented = false
@@ -285,9 +258,9 @@ private struct DuelWordsSettingsSurface: View {
             subtitle: props.localized("Preferences on this device, help, and legal information."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
-            showsChrome: true
+            showsChrome: !isTabletLayout
         ) {
-            DuelWordsBackHeader(props: props, action: action)
+            DuelWordsHeaderSurface(props: props, action: action)
         } content: {
             appPreferencesCard
             onDeviceCard
@@ -306,6 +279,10 @@ private struct DuelWordsSettingsSurface: View {
         } message: {
             Text(props.localized("This starts fresh local target decks. Your interface preferences and Account AV identity are not changed."))
         }
+    }
+
+    private var isTabletLayout: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
     }
 
     private var appPreferencesCard: some View {
@@ -456,6 +433,7 @@ private struct DuelWordsSettingsSurface: View {
 private struct DuelWordsAccountSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
     var body: some View {
         AVSettingsProfileScreenScaffold(
@@ -463,9 +441,9 @@ private struct DuelWordsAccountSurface: View {
             subtitle: props.signedIn ? props.localized("Your account and DuelWords access in one place.") : props.localized("Play locally as a guest. Sign in when you want access across devices."),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             showsTopSafeAreaShield: true,
-            showsChrome: true
+            showsChrome: !isTabletLayout
         ) {
-            DuelWordsBackHeader(props: props, action: action)
+            DuelWordsHeaderSurface(props: props, action: action)
         } content: {
             identityCard
             proCard
@@ -474,6 +452,10 @@ private struct DuelWordsAccountSurface: View {
                 safetyCard
             }
         }
+    }
+
+    private var isTabletLayout: Bool {
+        UIDevice.current.userInterfaceIdiom == .pad && horizontalSizeClass == .regular
     }
 
     private var identityCard: some View {

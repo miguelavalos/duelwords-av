@@ -1,20 +1,19 @@
 import { type Href, useRouter } from 'expo-router';
 import { useEffect } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
-import { InteriorScreenHeader } from '@/ui/screen-navigation';
+import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AccountScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const account = useDuelWordsAccount();
   const refreshAccount = account.refresh;
   const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
@@ -27,8 +26,7 @@ export function AccountScreen() {
   }, [refreshAccount]);
 
   function handleSharedAction({ action }: SharedAppleAction) {
-    if (action === 'close') router.replace('/(tabs)/play' as Href);
-    else if (action === 'settings') router.replace('/(tabs)/settings' as Href);
+    if (action === 'settings') router.replace('/(tabs)/settings' as Href);
     else if (action === 'paywall') router.push('/pro' as Href);
     else if (action === 'deleteAccount') router.push('/delete-account' as Href);
     else if (action === 'signIn') router.push('/auth?mode=signIn' as Href);
@@ -48,6 +46,7 @@ export function AccountScreen() {
         interfaceLocale={interfaceLocale}
         onAction={handleSharedAction}
         planTier={account.access.planTier}
+        selectedTab="account"
         signedIn={signedIn}
         style={styles.sharedScreen}
         surface="account"
@@ -57,13 +56,17 @@ export function AccountScreen() {
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <InteriorScreenHeader
-        backLabel={t(interfaceLocale, 'back')}
-        detail="Account AV"
-        onBack={() => router.replace('/(tabs)/play' as Href)}
-        title={copy.account}
-      />
+      {width < 760 ? (
+        <AppChromeHeader
+          accountLabel={copy.account}
+          onAccountPress={() => undefined}
+          onSettingsPress={() => router.replace('/(tabs)/settings' as Href)}
+          selected="account"
+          settingsLabel={copy.settings}
+        />
+      ) : null}
       <View style={styles.headerCopy}>
+        <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{copy.account}</Text>
         <Text style={styles.subtitle}>{signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.'}</Text>
       </View>
 
@@ -111,7 +114,7 @@ export function AccountScreen() {
       <PaperCard>
         <SectionHeading title="Preferences & account safety" detail="Settings stay device-local. Account deletion follows the secure Account AV workflow." />
         <View style={styles.buttonRow}>
-          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/(tabs)/settings' as Href)}>{copy.settings}</AppButton>
+          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.replace('/(tabs)/settings' as Href)}>{copy.settings}</AppButton>
           {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>Delete Apps AV account</AppButton> : null}
         </View>
       </PaperCard>
@@ -141,6 +144,7 @@ function useStyles() {
   return StyleSheet.create({
     sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    screenTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
     identityRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
     avatar: { width: 56, height: 56, borderRadius: 18, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.accent, transform: [{ rotate: '-2deg' }] },

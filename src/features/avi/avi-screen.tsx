@@ -3,12 +3,10 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
-import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { layout, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 export function AviScreen() {
@@ -20,7 +18,6 @@ export function AviScreen() {
 
   return (
     <AppScreen bottomInset={width < 760 ? layout.phoneShellBottomInset : spacing.xxl}>
-      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} onBack={() => router.replace('/(tabs)/play')} />
       <View style={styles.hero}>
         <AviArtwork size={142} source={aviAssets.onboarding} />
         <View style={styles.heroCopy}>
@@ -49,8 +46,8 @@ export function AviScreen() {
       <PaperCard>
         <SectionHeading title={copy.aviAccountTitle} detail={copy.aviAccountDetail} />
         <View style={styles.actions}>
-          <AppButton tone="secondary" style={styles.action} onPress={() => router.push('/(tabs)/account' as Href)}>{copy.account}</AppButton>
-          <AppButton tone="quiet" style={styles.action} onPress={() => router.push('/(tabs)/settings' as Href)}>{copy.openSettings}</AppButton>
+          <AppButton tone="secondary" style={styles.action} onPress={() => router.replace('/(tabs)/account' as Href)}>{copy.account}</AppButton>
+          <AppButton tone="quiet" style={styles.action} onPress={() => router.replace('/(tabs)/settings' as Href)}>{copy.openSettings}</AppButton>
         </View>
       </PaperCard>
     </AppScreen>

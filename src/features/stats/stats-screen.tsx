@@ -7,12 +7,11 @@ import { summarizeDuelWordsStats } from '@/features/activity/activity-summary';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { readOfficialDailyStats } from '@/game/word-duel-daily/official-daily';
 import { experienceCopy } from '@/i18n/experience-copy';
-import { gameLanguageLabel, t, type InterfaceLocale } from '@/i18n/locales';
+import { gameLanguageLabel, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { InkEyebrow, PaperCard, SectionHeading } from '@/ui/brand';
-import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { layout, radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 const DATE_FORMATTERS: Record<InterfaceLocale, Intl.DateTimeFormat> = {
@@ -47,7 +46,6 @@ export function StatsScreen() {
 
   return (
     <AppScreen bottomInset={width < 760 ? layout.phoneShellBottomInset : spacing.xxl}>
-      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} onBack={() => router.replace('/(tabs)/play')} />
       <View style={styles.header}>
         <InkEyebrow>{copy.stats}</InkEyebrow>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>{activity.statsTitle}</Text>

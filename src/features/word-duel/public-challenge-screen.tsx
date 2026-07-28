@@ -584,7 +584,10 @@ export function PublicWordDuelChallengeScreen({
       <InteriorScreenHeader
         backLabel={copy('back')}
         detail={copy(account.user ? 'accountChallenge' : 'guestChallenge')}
-        onBack={() => router.replace('/play')}
+        onBack={() => {
+          if (router.canGoBack()) router.back();
+          else router.replace('/(tabs)/play');
+        }}
         title={copy('wordDuel')}
       />
       <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>

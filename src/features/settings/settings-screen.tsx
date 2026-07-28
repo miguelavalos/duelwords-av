@@ -12,8 +12,7 @@ import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
-import { PaperCard, SectionHeading } from '@/ui/brand';
-import { InteriorScreenHeader } from '@/ui/screen-navigation';
+import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
@@ -28,6 +27,7 @@ const links = {
 
 export function SettingsScreen() {
   const router = useRouter();
+  const { width } = useWindowDimensions();
   const account = useDuelWordsAccount();
   const styles = useStyles();
   const [preferences, setPreferences] = useAppPreferences();
@@ -42,8 +42,7 @@ export function SettingsScreen() {
   }
 
   function handleSharedAction({ action, value }: SharedAppleAction) {
-    if (action === 'close') router.replace('/(tabs)/play' as Href);
-    else if (action === 'account') router.replace('/(tabs)/account' as Href);
+    if (action === 'account') router.replace('/(tabs)/account' as Href);
     else if (action === 'paywall') router.push('/pro' as Href);
     else if (action === 'deleteAccount') router.push('/delete-account' as Href);
     else if (action === 'openPrivacy') openLink(links.privacy);
@@ -72,6 +71,7 @@ export function SettingsScreen() {
         interfaceLocale={interfaceLocale}
         onAction={handleSharedAction}
         planTier={account.access.planTier}
+        selectedTab="settings"
         signedIn={account.user !== null}
         style={styles.sharedScreen}
         surface="settings"
@@ -81,12 +81,17 @@ export function SettingsScreen() {
 
   return (
     <AppScreen key={appearance} bottomInset={spacing.xxl}>
-      <InteriorScreenHeader
-        backLabel={t(interfaceLocale, 'back')}
-        onBack={() => router.replace('/(tabs)/play' as Href)}
-        title={t(interfaceLocale, 'settings')}
-      />
+      {width < 760 ? (
+        <AppChromeHeader
+          accountLabel={copy.account}
+          onAccountPress={() => router.replace('/(tabs)/account' as Href)}
+          onSettingsPress={() => undefined}
+          selected="settings"
+          settingsLabel={copy.settings}
+        />
+      ) : null}
       <View style={styles.headerCopy}>
+        <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{t(interfaceLocale, 'settings')}</Text>
         <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
       </View>
 
@@ -117,7 +122,7 @@ export function SettingsScreen() {
       <PaperCard>
         <SectionHeading title="Account & plan" detail="Account AV and DuelWords Pro do not change your game language." />
         <View style={styles.buttonRow}>
-          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.push('/(tabs)/account' as Href)}>{copy.account}</AppButton>
+          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.replace('/(tabs)/account' as Href)}>{copy.account}</AppButton>
           <AppButton tone="quiet" style={styles.flexButton} onPress={() => router.push('/pro' as Href)}>DuelWords Pro</AppButton>
         </View>
       </PaperCard>
@@ -191,6 +196,7 @@ function useStyles() {
   return useMemo(() => StyleSheet.create({
     sharedScreen: { flex: 1 },
     headerCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
+    screenTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: 36, lineHeight: 40, fontWeight: '700', letterSpacing: -1 },
     subtitle: { maxWidth: 560, color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
     optionList: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     option: { minHeight: 48, flexGrow: 1, flexBasis: 140, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, paddingHorizontal: spacing.md },
