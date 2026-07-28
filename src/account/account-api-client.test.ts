@@ -1,6 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchAccountAvIdentity, parseDeletionEligibility } from './account-api-client';
+import {
+  fetchAccountAvIdentity,
+  parseDeletionEligibility,
+  redeemDuelWordsPromotionCode,
+} from './account-api-client';
 
 vi.mock('expo-constants', () => ({ default: { expoConfig: null } }));
 
@@ -83,5 +87,70 @@ describe('parseDeletionEligibility', () => {
       currentJob: null,
     });
     expect(result.warnings[0]?.managementUrl).toBeNull();
+  });
+});
+
+describe('redeemDuelWordsPromotionCode', () => {
+  it('redeems app-scoped Pro access through the authenticated Apps AV route', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({
+        appId: 'duelwordsav',
+        code: 'DUEL-PRO',
+        redemptionId: 'redemption-1',
+        entitlement: {
+          accessMode: 'signedInPro',
+          appId: 'duelwordsav',
+          planTier: 'pro',
+        },
+      }),
+      ok: true,
+      status: 200,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(redeemDuelWordsPromotionCode({
+      baseUrl: 'https://api-account-av-preview.avalsys.com',
+      code: 'DUEL-PRO',
+      getToken: async () => 'test-token',
+    })).resolves.toEqual({
+      appId: 'duelwordsav',
+      code: 'DUEL-PRO',
+      entitlement: { accessMode: 'signedInPro', planTier: 'pro' },
+      redemptionId: 'redemption-1',
+    });
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api-account-av-preview.avalsys.com/v1/apps/duelwordsav/promotions/redeem',
+      expect.objectContaining({
+        body: JSON.stringify({ code: 'DUEL-PRO' }),
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-token',
+          'x-appsav-app-id': 'duelwordsav',
+        }),
+      }),
+    );
+  });
+
+  it('preserves the backend error code for localized paywall feedback', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      json: async () => ({
+        error: {
+          code: 'promo_code_already_redeemed',
+          message: 'This promo code was already used on this account.',
+        },
+      }),
+      ok: false,
+      status: 409,
+    }));
+
+    const redemption = redeemDuelWordsPromotionCode({
+      baseUrl: 'https://api-account-av-preview.avalsys.com',
+      code: 'USED-CODE',
+      getToken: async () => 'test-token',
+    });
+    await expect(redemption).rejects.toMatchObject({
+      code: 'promo_code_already_redeemed',
+      status: 409,
+    });
   });
 });

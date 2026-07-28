@@ -11,6 +11,25 @@ export type DuelWordsAccess = {
   planTier: 'free' | 'pro';
 };
 
+export type DuelWordsPromotionCodeRedemption = {
+  appId: 'duelwordsav';
+  code: string;
+  entitlement: DuelWordsAccess;
+  redemptionId: string;
+};
+
+export class DuelWordsPromotionCodeError extends Error {
+  readonly code: string;
+  readonly status: number;
+
+  constructor(code: string, message: string, status: number) {
+    super(message);
+    this.name = 'DuelWordsPromotionCodeError';
+    this.code = code;
+    this.status = status;
+  }
+}
+
 export type AccountDeletionItem = {
   type: 'linkedApp' | 'activeAiCredits' | 'activeProAccess' | 'activeBillingSubscription' | 'identityProvider' | 'deletionInProgress' | 'eligibilityUnavailable';
   appId: string | null;
@@ -81,6 +100,57 @@ export async function finalizeAccountDeletion(input: {
 }): Promise<AccountDeletionEligibility> {
   const payload = await authorizedAccountRequest(input, '/v1/me/delete-account-finalize', 'POST');
   return parseDeletionEligibility(requireRecord(payload).deleteAccountEligibility);
+}
+
+export async function redeemDuelWordsPromotionCode(input: {
+  baseUrl: string;
+  code: string;
+  getToken: () => Promise<string | null>;
+}): Promise<DuelWordsPromotionCodeRedemption> {
+  const token = await input.getToken();
+  if (!token) throw new Error('account_token_unavailable');
+
+  const response = await fetch(
+    `${input.baseUrl}/v1/apps/${DUELWORDS_ACCOUNT_AV_APP_ID}/promotions/redeem`,
+    {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'x-appsav-app-id': DUELWORDS_ACCOUNT_AV_APP_ID,
+      },
+      body: JSON.stringify({ code: input.code }),
+    },
+  );
+  if (!response.ok) {
+    const errorPayload: unknown = await response.json().catch(() => null);
+    const error = optionalRecord(optionalRecord(errorPayload)?.error);
+    throw new DuelWordsPromotionCodeError(
+      optionalString(error?.code) ?? 'promo_code_redeem_failed',
+      optionalString(error?.message) ?? 'The promo code could not be redeemed.',
+      response.status,
+    );
+  }
+
+  const payload: unknown = await response.json();
+  const record = requireRecord(payload);
+  const entitlement = requireRecord(record.entitlement);
+  if (
+    record.appId !== DUELWORDS_ACCOUNT_AV_APP_ID
+    || typeof record.code !== 'string'
+    || typeof record.redemptionId !== 'string'
+    || entitlement.accessMode !== 'signedInPro'
+    || entitlement.planTier !== 'pro'
+  ) {
+    throw new Error('invalid_promotion_code_redemption');
+  }
+  return {
+    appId: DUELWORDS_ACCOUNT_AV_APP_ID,
+    code: record.code,
+    entitlement: { accessMode: 'signedInPro', planTier: 'pro' },
+    redemptionId: record.redemptionId,
+  };
 }
 
 async function authorizedAccountRequest(
@@ -197,4 +267,10 @@ function requireRecord(value: unknown): Record<string, unknown> {
     throw new Error('invalid_account_payload');
   }
   return value as Record<string, unknown>;
+}
+
+function optionalRecord(value: unknown): Record<string, unknown> | null {
+  return typeof value === 'object' && value !== null && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
 }

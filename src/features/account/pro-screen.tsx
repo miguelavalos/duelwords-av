@@ -21,17 +21,20 @@ export function ProScreen() {
   const isPro = account.access.planTier === 'pro';
   const signedIn = account.user !== null;
   const subscription = useDuelWordsProPurchase({
+    getToken: account.getToken,
     isPro,
     refreshAccount: account.refresh,
     userId: account.user?.id ?? null,
   });
 
-  function handleSharedAction({ action }: SharedAppleAction) {
+  function handleSharedAction({ action, value }: SharedAppleAction) {
     if (action === 'close') router.back();
     else if (action === 'signIn') router.replace('/auth?mode=signIn' as Href);
     else if (action === 'refreshAccount') void account.refresh();
     else if (action === 'purchasePro') void subscription.purchase();
     else if (action === 'restorePurchases') void subscription.restore();
+    else if (action === 'prepareRedeemCode') subscription.prepareRedeemCode();
+    else if (action === 'redeemCode' && value) void subscription.redeemCode(value);
     else if (action === 'manageSubscriptions') void Linking.openURL('https://apps.apple.com/account/subscriptions');
     else if (action === 'openTerms') void Linking.openURL('https://duelwords-av.avalsys.com/terms/');
     else if (action === 'openPrivacy') void Linking.openURL('https://duelwords-av.avalsys.com/privacy/');

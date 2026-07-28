@@ -199,6 +199,19 @@ struct DuelWordsNativeL10n {
         "Please wait…": "Espera…",
         "Subscribe": "Suscribirse",
         "Subscription unavailable": "Suscripción no disponible",
+        "More Daily games, more history, and more challenges with the same fair rules.": "Más Daily, más historial y más retos con las mismas reglas justas.",
+        "DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.": "DuelWords Pro es una suscripción mensual con renovación automática. Se te cobrará %@ por cada periodo de 1 mes hasta que canceles en los ajustes del App Store.",
+        "Redeem code": "Canjear código",
+        "Redeem a code?": "¿Canjear un código?",
+        "Enter a DuelWords AV promo code if one was provided to you.": "Introduce un código promocional de DuelWords AV si te han dado uno.",
+        "Code": "Código",
+        "Claim code": "Canjear código",
+        "Codes are optional and are not required to subscribe to Pro.": "Los códigos son opcionales y no son necesarios para suscribirte a Pro.",
+        "This promo code was already used on this account.": "Este código promocional ya se ha usado en esta cuenta.",
+        "This promo code is no longer available.": "Este código promocional ya no está disponible.",
+        "This promo code has already been fully claimed.": "Este código promocional ya se ha canjeado por completo.",
+        "This promo code is not available.": "Este código promocional no está disponible.",
+        "The promo code could not be redeemed. No purchase was made.": "No se ha podido canjear el código promocional. No se ha realizado ninguna compra.",
     ]
 
     private static let catalan: [String: String] = [
@@ -366,6 +379,19 @@ struct DuelWordsNativeL10n {
         "Please wait…": "Espera…",
         "Subscribe": "Subscriure-s’hi",
         "Subscription unavailable": "Subscripció no disponible",
+        "More Daily games, more history, and more challenges with the same fair rules.": "Més Daily, més historial i més reptes amb les mateixes regles justes.",
+        "DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.": "DuelWords Pro és una subscripció mensual amb renovació automàtica. Se't cobrarà %@ per cada període d'1 mes fins que cancel·lis als ajustos de l'App Store.",
+        "Redeem code": "Bescanviar codi",
+        "Redeem a code?": "Vols bescanviar un codi?",
+        "Enter a DuelWords AV promo code if one was provided to you.": "Introdueix un codi promocional de DuelWords AV si te n'han donat un.",
+        "Code": "Codi",
+        "Claim code": "Bescanvia el codi",
+        "Codes are optional and are not required to subscribe to Pro.": "Els codis són opcionals i no calen per subscriure't a Pro.",
+        "This promo code was already used on this account.": "Aquest codi promocional ja s'ha utilitzat en aquest compte.",
+        "This promo code is no longer available.": "Aquest codi promocional ja no està disponible.",
+        "This promo code has already been fully claimed.": "Aquest codi promocional ja s'ha bescanviat completament.",
+        "This promo code is not available.": "Aquest codi promocional no està disponible.",
+        "The promo code could not be redeemed. No purchase was made.": "No s'ha pogut bescanviar el codi promocional. No s'ha fet cap compra.",
     ]
 
     private static let french: [String: String] = [
@@ -533,6 +559,19 @@ struct DuelWordsNativeL10n {
         "Please wait…": "Veuillez patienter…",
         "Subscribe": "S’abonner",
         "Subscription unavailable": "Abonnement indisponible",
+        "More Daily games, more history, and more challenges with the same fair rules.": "Plus de Daily, plus d'historique et plus de défis avec les mêmes règles équitables.",
+        "DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.": "DuelWords Pro est un abonnement mensuel auto-renouvelable. Vous serez facturé %@ pour chaque période d'un mois jusqu'à annulation dans les réglages de l'App Store.",
+        "Redeem code": "Utiliser un code",
+        "Redeem a code?": "Utiliser un code ?",
+        "Enter a DuelWords AV promo code if one was provided to you.": "Saisissez un code promotionnel DuelWords AV si vous en avez reçu un.",
+        "Code": "Code",
+        "Claim code": "Utiliser le code",
+        "Codes are optional and are not required to subscribe to Pro.": "Les codes sont facultatifs et ne sont pas nécessaires pour s'abonner à Pro.",
+        "This promo code was already used on this account.": "Ce code promotionnel a déjà été utilisé sur ce compte.",
+        "This promo code is no longer available.": "Ce code promotionnel n'est plus disponible.",
+        "This promo code has already been fully claimed.": "Ce code promotionnel a déjà été entièrement utilisé.",
+        "This promo code is not available.": "Ce code promotionnel n'est pas disponible.",
+        "The promo code could not be redeemed. No purchase was made.": "Le code promotionnel n'a pas pu être utilisé. Aucun achat n'a été effectué.",
     ]
 
     private static let german: [String: String] = [
@@ -700,5 +739,18 @@ struct DuelWordsNativeL10n {
         "Please wait…": "Bitte warten…",
         "Subscribe": "Abonnieren",
         "Subscription unavailable": "Abonnement nicht verfügbar",
+        "More Daily games, more history, and more challenges with the same fair rules.": "Mehr Daily-Spiele, mehr Verlauf und mehr Herausforderungen mit denselben fairen Regeln.",
+        "DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.": "DuelWords Pro ist ein monatliches, automatisch verlängerbares Abonnement. Dir werden %@ für jeden 1-Monats-Zeitraum berechnet, bis du in den App Store Einstellungen kündigst.",
+        "Redeem code": "Code einlösen",
+        "Redeem a code?": "Code einlösen?",
+        "Enter a DuelWords AV promo code if one was provided to you.": "Gib einen DuelWords AV Promo-Code ein, falls du einen erhalten hast.",
+        "Code": "Code",
+        "Claim code": "Code einlösen",
+        "Codes are optional and are not required to subscribe to Pro.": "Codes sind optional und nicht erforderlich, um Pro zu abonnieren.",
+        "This promo code was already used on this account.": "Dieser Promo-Code wurde bereits für dieses Konto verwendet.",
+        "This promo code is no longer available.": "Dieser Promo-Code ist nicht mehr verfügbar.",
+        "This promo code has already been fully claimed.": "Dieser Promo-Code wurde bereits vollständig eingelöst.",
+        "This promo code is not available.": "Dieser Promo-Code ist nicht verfügbar.",
+        "The promo code could not be redeemed. No purchase was made.": "Der Promo-Code konnte nicht eingelöst werden. Es wurde kein Kauf durchgeführt.",
     ]
 }

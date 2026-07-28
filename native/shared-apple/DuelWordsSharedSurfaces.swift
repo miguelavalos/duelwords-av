@@ -532,11 +532,14 @@ private struct DuelWordsPaywallSurface: View {
     let props: DuelWordsSharedSurfaceProps
     let action: DuelWordsSharedAction
 
+    @State private var isShowingRedeemCodeSheet = false
+    @State private var redeemCode = ""
+    @State private var isRedeemingCode = false
+
     var body: some View {
         AVPaywallSheetScaffold(
-            navigationTitle: "DuelWords Pro",
-            closeTitle: props.localized("Back"),
-            closeSystemImage: "chevron.left",
+            navigationTitle: "Pro",
+            closeTitle: props.localized("Close"),
             backgroundStyle: AnyShapeStyle(AVBrandSurface.shellBackground),
             onClose: { action("close", nil) }
         ) {
@@ -546,14 +549,26 @@ private struct DuelWordsPaywallSurface: View {
                 subtitle: props.localized("Pro keeps more private history without changing the rules of a duel.")
             )
             AVPaywallOfferCard(
-                title: props.planTier == "pro" ? props.localized("Your access") : props.localized("Monthly subscription"),
-                detail: props.planTier == "pro" ? props.localized("DuelWords Pro is active on this account.") : props.localized("Cancel anytime in your Apple subscription settings."),
+                title: "DuelWords Pro",
+                detail: props.planTier == "pro"
+                    ? props.localized("DuelWords Pro is active on this account.")
+                    : props.localized("More Daily games, more history, and more challenges with the same fair rules."),
                 primaryButtonTitle: primaryButtonTitle,
                 primaryButtonIsDisabled: primaryButtonIsDisabled,
                 primaryAccessibilityIdentifier: "paywall.purchase",
                 primaryAction: primaryAction,
                 avatar: {
-                    Image("AviV2OnboardingCTA").resizable().scaledToFit()
+                    AVAviAvatarBadge(
+                        imageSize: 54,
+                        badgeSize: 68,
+                        padding: 7,
+                        backgroundStyle: .accentSoft,
+                        strokeStyle: .accentSoft
+                    ) {
+                        Image("AviV2OnboardingCTA")
+                            .resizable()
+                            .scaledToFit()
+                    }
                 },
                 restoreButton: {
                     if props.signedIn && props.planTier != "pro" {
@@ -570,26 +585,197 @@ private struct DuelWordsPaywallSurface: View {
                     }
                 }
             )
+
+            subscriptionTermsRow
+
             if props.subscriptionState == "pending_reconciliation" {
                 AVPaywallStatusRow(systemImage: "clock.arrow.circlepath", message: props.localized("Purchase received. Confirming Pro access with Apps AV…"))
             } else if !props.subscriptionError.isEmpty {
                 AVPaywallStatusRow(systemImage: "exclamationmark.triangle", message: props.localized(props.subscriptionError))
-            } else if props.signedIn && props.planTier != "pro" && !props.subscriptionPrice.isEmpty {
-                AVPaywallStatusRow(systemImage: "calendar.badge.clock", message: "\(props.subscriptionPrice) · \(props.localized("per month"))")
             }
+
             AVPaywallBenefitList(items: [
                 AVPaywallBenefitItem(id: "daily", systemImage: "calendar", title: props.localized("Daily in every language"), detail: props.localized("Play once per language each day.")),
                 AVPaywallBenefitItem(id: "history", systemImage: "clock.arrow.circlepath", title: props.localized("1,000 history records"), detail: props.localized("Keep a 365-day private statistics window on this device.")),
                 AVPaywallBenefitItem(id: "challenges", systemImage: "person.2", title: props.localized("100 challenges per day"), detail: props.localized("Create more human challenges without changing duel rules.")),
-                AVPaywallBenefitItem(id: "fair", systemImage: "checkmark.shield", title: props.localized("Same fair rules"), detail: props.localized("No hints, extra time, attempts, or feedback.")),
-                AVPaywallBenefitItem(id: "account", systemImage: "person.crop.circle.badge.checkmark", title: props.localized("Account-backed access"), detail: props.localized("Your Apps AV account keeps Pro access with you."))
+                AVPaywallBenefitItem(id: "fair", systemImage: "checkmark.shield", title: props.localized("Same fair rules"), detail: props.localized("No hints, extra time, attempts, or feedback."))
             ])
             AVPaywallFooterActions(actions: [
+                AVPaywallFooterAction(title: props.localized("Redeem code"), accessibilityIdentifier: "paywall.redeemCode", action: showRedeemCodeSheet),
                 AVPaywallFooterAction(title: props.localized("Terms"), accessibilityIdentifier: "paywall.terms", action: { action("openTerms", nil) }),
-                AVPaywallFooterAction(title: props.localized("Privacy"), accessibilityIdentifier: "paywall.privacy", action: { action("openPrivacy", nil) }),
-                AVPaywallFooterAction(title: props.localized("Support"), accessibilityIdentifier: "paywall.support", action: { action("openSupport", nil) })
+                AVPaywallFooterAction(title: props.localized("Privacy"), accessibilityIdentifier: "paywall.privacy", action: { action("openPrivacy", nil) })
             ])
         }
+        .sheet(isPresented: $isShowingRedeemCodeSheet) {
+            redeemCodeSheet
+        }
+        .onChange(of: props.subscriptionBusy) { _, isBusy in
+            if !isBusy { isRedeemingCode = false }
+        }
+        .onChange(of: props.subscriptionState) { _, state in
+            if state == "pending_reconciliation" {
+                redeemCode = ""
+                isShowingRedeemCodeSheet = false
+                isRedeemingCode = false
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var subscriptionTermsRow: some View {
+        if props.signedIn, props.planTier != "pro", !props.subscriptionPrice.isEmpty {
+            AVPaywallStatusRow(
+                systemImage: "calendar.badge.clock",
+                message: props.localized("DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.")
+                    .replacingOccurrences(of: "%@", with: props.subscriptionPrice)
+            )
+            .accessibilityIdentifier("paywall.subscriptionTerms")
+        }
+    }
+
+    private var redeemCodeSheet: some View {
+        NavigationStack {
+            ScrollView {
+                redeemCodeContent
+                    .padding(20)
+            }
+            .background(AVBrandSurface.shellBackground.ignoresSafeArea())
+            .navigationTitle(props.localized("Redeem a code?"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(props.localized("Done")) {
+                        isShowingRedeemCodeSheet = false
+                    }
+                    .accessibilityIdentifier("paywall.redeemCode.done")
+                }
+            }
+        }
+        .presentationDetents([.medium])
+        .accessibilityIdentifier("paywall.redeemCode.sheet")
+    }
+
+    private var redeemCodeContent: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(props.localized("Redeem a code?"))
+                    .font(.headline)
+                    .foregroundStyle(AVBrandColor.textPrimary)
+                Text(props.localized("Enter a DuelWords AV promo code if one was provided to you."))
+                    .font(.subheadline)
+                    .foregroundStyle(AVBrandColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            HStack(spacing: 10) {
+                Image(systemName: "gift.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(AVBrandColor.accent)
+
+                TextField(props.localized("Code"), text: $redeemCode)
+                    .keyboardType(.asciiCapable)
+                    .textContentType(.oneTimeCode)
+                    .textInputAutocapitalization(.characters)
+                    .autocorrectionDisabled()
+                    .onChange(of: redeemCode) { _, newValue in
+                        let sanitized = sanitizedRedeemCodeInput(newValue)
+                        if sanitized != newValue { redeemCode = sanitized }
+                    }
+                    .font(.body.weight(.semibold))
+                    .padding(.horizontal, 12)
+                    .frame(height: 46)
+                    .background(AVBrandColor.cardSurface, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    .accessibilityIdentifier("paywall.redeemCode.field")
+
+                Button(action: claimRedeemCode) {
+                    ZStack {
+                        if isRedeemingCode || props.subscriptionBusy {
+                            ProgressView().tint(AVBrandColor.textInverse)
+                        } else {
+                            Image(systemName: "arrow.right")
+                                .font(.system(size: 17, weight: .black))
+                                .foregroundStyle(AVBrandColor.textInverse)
+                        }
+                    }
+                    .frame(width: 46, height: 46)
+                    .background(
+                        redeemButtonIsDisabled ? AVBrandColor.neutral300 : AVBrandColor.accent,
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+                }
+                .disabled(redeemButtonIsDisabled)
+                .accessibilityLabel(props.localized("Claim code"))
+                .accessibilityIdentifier("paywall.redeemCode.claim")
+            }
+
+            Text(props.localized("Codes are optional and are not required to subscribe to Pro."))
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(AVBrandColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if !props.subscriptionError.isEmpty {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "info.circle.fill")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundStyle(AVBrandColor.textSecondary)
+                    Text(props.localized(props.subscriptionError))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(AVBrandColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityIdentifier("paywall.redeemCode.status")
+            }
+        }
+        .padding(16)
+        .background(AVBrandColor.mutedSurface, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private var normalizedRedeemCode: String {
+        redeemCode.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var redeemButtonIsDisabled: Bool {
+        normalizedRedeemCode.isEmpty || isRedeemingCode || props.subscriptionBusy
+    }
+
+    private func showRedeemCodeSheet() {
+        guard !props.subscriptionBusy else { return }
+        if props.signedIn {
+            action("prepareRedeemCode", nil)
+            isShowingRedeemCodeSheet = true
+        } else {
+            action("signIn", nil)
+        }
+    }
+
+    private func claimRedeemCode() {
+        let code = normalizedRedeemCode
+        guard !code.isEmpty, !redeemButtonIsDisabled else { return }
+        isRedeemingCode = true
+        action("redeemCode", code)
+    }
+
+    private func sanitizedRedeemCodeInput(_ code: String) -> String {
+        var sanitized = ""
+        for character in code {
+            switch character {
+            case " ", "\n", "\t":
+                continue
+            case "\u{2010}", "\u{2011}", "\u{2012}", "\u{2013}", "\u{2014}", "\u{2015}", "\u{2212}", "\u{2018}", "\u{2019}":
+                sanitized.append("-")
+            case _ where isASCIIAlphanumeric(character) || character == "-" || character == "_":
+                sanitized.append(character)
+            default:
+                continue
+            }
+        }
+        return sanitized.uppercased()
+    }
+
+    private func isASCIIAlphanumeric(_ character: Character) -> Bool {
+        guard character.unicodeScalars.count == 1,
+              let value = character.unicodeScalars.first?.value else { return false }
+        return (48...57).contains(value) || (65...90).contains(value) || (97...122).contains(value)
     }
 
     private var primaryButtonTitle: String {
@@ -603,7 +789,8 @@ private struct DuelWordsPaywallSurface: View {
     }
 
     private var primaryButtonIsDisabled: Bool {
-        props.signedIn && props.planTier != "pro" && (props.subscriptionState != "ready" || props.subscriptionBusy)
+        if !props.signedIn { return !props.accountAvailable }
+        return props.planTier != "pro" && (props.subscriptionState != "ready" || props.subscriptionBusy)
     }
 
     private func primaryAction() {

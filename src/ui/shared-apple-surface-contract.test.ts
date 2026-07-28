@@ -152,4 +152,28 @@ describe('shared Apps AV native-surface contract', () => {
     );
   });
 
+  it('keeps the DuelWords paywall structurally aligned with Tune AV and exposes real code redemption', () => {
+    const paywallSource = nativeSurfaceSource.slice(
+      nativeSurfaceSource.indexOf('private struct DuelWordsPaywallSurface'),
+      nativeSurfaceSource.indexOf('private struct DuelWordsDeleteAccountSurface'),
+    );
+
+    expect(paywallSource).toContain('navigationTitle: "Pro"');
+    expect(paywallSource).toContain('closeTitle: props.localized("Close")');
+    expect(paywallSource).not.toContain('closeSystemImage:');
+    expect(paywallSource).toContain('AVAviAvatarBadge(');
+    expect(paywallSource.indexOf('subscriptionTermsRow')).toBeLessThan(
+      paywallSource.indexOf('if props.subscriptionState == "pending_reconciliation"'),
+    );
+    expect(paywallSource.match(/AVPaywallBenefitItem\(/g)).toHaveLength(4);
+    expect(paywallSource).toContain('accessibilityIdentifier: "paywall.redeemCode"');
+    expect(paywallSource).toContain('action("redeemCode", code)');
+    expect(paywallSource).toContain('accessibilityIdentifier("paywall.redeemCode.sheet")');
+    expect(paywallSource).not.toContain('accessibilityIdentifier: "paywall.support"');
+
+    const proScreenSource = source('src/features/account/pro-screen.tsx');
+    expect(proScreenSource).toContain("action === 'redeemCode' && value");
+    expect(proScreenSource).toContain('subscription.redeemCode(value)');
+  });
+
 });
