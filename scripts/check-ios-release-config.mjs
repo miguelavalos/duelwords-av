@@ -207,22 +207,26 @@ for (const assetPath of [expoConfig.icon, expoConfig.ios?.icon]) {
 }
 
 // These fingerprints pin the owner-directed DuelWords identity and the exact
-// Tune AV Avi exports consumed by the shared Apple surfaces. Updating one is a
-// brand promotion, not an incidental app-code change.
+// Tune AV Avi exports consumed by the shared Apple surfaces. The engraved
+// logo/mark family and corrected splash were intentionally promoted on
+// 2026-07-28. Updating one is a brand promotion, not an incidental app-code
+// change.
 const canonicalBrandAssets = {
   'assets/images/icon.png': '8f57e3c14b7877c161e1f9f6a9ab383b152d10c2b7e5b7dc56b1ad8a15b60187',
-  'assets/images/splash-icon.png': '3fc4edae7c47cb85401df08d4ebf410f3fe824804cb7504f6baf61a529b340fd',
-  'assets/brand-source/duelwords-symbol.svg': '66f9d462d5a4b6006095e7fc522584cb3d14a91f1f2b61d0d12fd5c8b3d2df01',
-  'assets/brand-source/duelwords-symbol-monochrome.svg': '782a3c8c8e2ff331b7d172095ab6ddadedc706a763a09579e1c5aeb842a4bbac',
-  'assets/brand-source/duelwords-logo-lockup.svg': '1d86ece81ff59f45fbfb9b6766d4fbe707c268e81a39e86cbc8fdf7fbe012b2c',
-  'assets/brand-source/duelwords-logo-lockup-dark.svg': 'a1d0a7c5b8a14009e4fe540081bbabed32e1ca52b13101eef433e1e8253d4e44',
-  'assets/brand-source/duelwords-wordmark.svg': '3c5a8af497429ae680f0698ecc27a6900c0d7ce3ba5837ebdcee5a0412b5f7dd',
-  'assets/brand-source/duelwords-wordmark-dark.svg': 'b602739deeccbc86b2cf05972e063d746038b43fff76117bf6a343f4466c9715',
-  'assets/images/brand/duelwords-logo-lockup.png': 'bf91993466a7c98046729cfc9dee0182e6ea18dee7a794b0e0a190c938d7823e',
-  'assets/images/brand/duelwords-logo-lockup-dark.png': 'd651e5a5338805e69a7a97a37d48cf3b2a8ad97660fcfb7cadb124423cf7a014',
-  'assets/images/brand/duelwords-wordmark.png': '90fa187064b3cf68df3163bc467400a89dcd38c7bfae6bc44d6fe505621c0c3e',
-  'assets/images/brand/duelwords-wordmark-dark.png': '930adf98330a3af0f0987fc3e1efba685540b7141716fc432c7fae52e0e2cd57',
-  'assets/images/brand/duelwords-splash-hero.png': 'd1d8b09431125b975abb7df9f1d13ba53d9321c8a96e0d0990eb25d0e34727a1',
+  'assets/images/splash-icon.png': '000ee15c6091ba2bb3441effeef7afaaff15d1ddfe07f510fa6b6d1358571f6c',
+  'assets/images/android-icon-foreground.png': '000ee15c6091ba2bb3441effeef7afaaff15d1ddfe07f510fa6b6d1358571f6c',
+  'assets/images/android-icon-monochrome.png': '2b5fce6362c6514f3466174bf43c7cdd5b1ea92e5f5e9b1184e21a618125187e',
+  'assets/brand-source/duelwords-symbol.png': '000ee15c6091ba2bb3441effeef7afaaff15d1ddfe07f510fa6b6d1358571f6c',
+  'assets/brand-source/duelwords-symbol-monochrome.png': '2b5fce6362c6514f3466174bf43c7cdd5b1ea92e5f5e9b1184e21a618125187e',
+  'assets/brand-source/duelwords-logo-lockup.png': '3363c591f905bfd8be380af7f7a7df76caec363a2429d19b81f751b2f62df9aa',
+  'assets/brand-source/duelwords-logo-lockup-dark.png': '2e5d8c9a32e0f689e48fe0ba13cf16a24862b4a49486a330ddf0fc4884f7953c',
+  'assets/brand-source/duelwords-wordmark.png': 'a8ad3d1fd8581caed349149f888200a6240b0fda06c1bc30d31a27688da3e8e8',
+  'assets/brand-source/duelwords-wordmark-dark.png': '0395c16f11e0ef65f7d31dad3264c34335a3a849d7a8ae07313aa0219d4de245',
+  'assets/images/brand/duelwords-logo-lockup.png': '3363c591f905bfd8be380af7f7a7df76caec363a2429d19b81f751b2f62df9aa',
+  'assets/images/brand/duelwords-logo-lockup-dark.png': '2e5d8c9a32e0f689e48fe0ba13cf16a24862b4a49486a330ddf0fc4884f7953c',
+  'assets/images/brand/duelwords-wordmark.png': 'a8ad3d1fd8581caed349149f888200a6240b0fda06c1bc30d31a27688da3e8e8',
+  'assets/images/brand/duelwords-wordmark-dark.png': '0395c16f11e0ef65f7d31dad3264c34335a3a849d7a8ae07313aa0219d4de245',
+  'assets/images/brand/duelwords-splash-hero.png': 'de31b11eeeb62119f215e3cebdbad8aa495d283e39b9f8780f6d6e2496296542',
   'assets/images/brand/duelwords-onboarding-hero.png': '9c309e9fd5baf66ed636efffa61007a0e65717597c41c4c00c36cb94b66a6975',
   'assets/images/brand/avi-footer.png': 'f7628081859d0208ce8ee5bbeee46e30d3a79c0b8872fd715b751f1eca84d114',
   'assets/images/brand/avi-onboarding.png': '95f7e3c33e2069362a5266ca072344da103609eb33c0efe45d21e04a75704279',

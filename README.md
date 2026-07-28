@@ -76,8 +76,9 @@ Official Daily record; Rivals derives at most 20 recent human opponents. Both
 work for guests, remain on this device, and do not claim account sync, public
 profiles, contact search, or presence.
 
-The native shell now includes the canonical-candidate DuelWords icon, separate
-light/dark logo and wordmark exports, a paper-and-ink branded splash, onboarding
+The native shell now includes the canonical DuelWords icon, the promoted
+engraved light/dark logo and wordmark family, a paper-and-ink branded splash
+without Tune-specific music cues, onboarding
 with guest skip, the canonical Tune AV Account AV provider sheet, Account,
 Settings, an adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords
 Pro preview with no purchase call. The identity boundary is strict: game boards,
@@ -597,14 +598,17 @@ the signed device archive; it does not change the app runtime.
 
 ## Brand assets
 
-Deterministic SVG masters live in `assets/brand-source/`. Runtime PNG exports
-and generated splash/onboarding illustrations live in `assets/images/brand/`.
+Reviewed transparent PNG masters live in `assets/brand-source/`; the superseded
+flat SVG family is retained under `assets/brand-source/legacy-flat/` for
+provenance only. Runtime copies and generated splash/onboarding illustrations
+live in `assets/images/brand/`.
 Their private canonical promotion and review status are documented under
 `private/avalsys-suite/docs/brand-system/duelwords-av/`. The product family
 keeps a DuelWords-specific icon, mark, lockup, and editorial imagery. Every
 common surface uses the same shared components, canonical palette, layout
-grammar, Avi V2 assets, and footer behavior as Tune AV. Final owner visual
-sign-off on the exact pixels remains mandatory before build `2`.
+grammar, Avi V2 assets, and footer behavior as Tune AV. The 2026-07-28 logo,
+wordmark, symbol, and corrected splash promotion is owner-directed; signed
+iPhone/iPad crop review remains mandatory before build `2`.
 
 `pnpm run config:ios:check` pins the promoted icon, product symbol, light/dark
 wordmark and lockup sources, splash/onboarding art, and the exact shared Tune AV
