@@ -36,5 +36,9 @@ remain local to the device.
 RevenueCat is configured only after Apps AV resolves an internal signed-in
 user. Guest use never initializes the purchase SDK. Purchase and restore
 results trigger an Apps AV refresh; only the Apps AV entitlement can unlock
-Pro. The paywall includes Restore purchases, Manage Apple subscription, Terms,
-Privacy and Support.
+Pro. The native iPhone/iPad paywall follows the Tune AV visual hierarchy with
+DuelWords copy and benefits. Its footer is exactly `Redeem code · Terms ·
+Privacy`; Manage Apple subscriptions remains available to active Pro users.
+Guest redemption routes to sign-in. Signed-in redemption uses the authenticated
+app-scoped Apps AV promo endpoint, and the resulting grant still has to
+reconcile through the Apps AV entitlement before Pro becomes active.
