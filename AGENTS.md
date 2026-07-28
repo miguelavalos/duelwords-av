@@ -220,3 +220,11 @@ if either setting disappears. Do not fall back to an ad hoc archive command.
 The canonical helper must regenerate the ignored production runtime before its
 effective-config check so `.xcode.env.local` refreshes `NODE_BINARY`; never
 preserve a stale Homebrew Cellar path across archive attempts.
+
+A validated `.xcarchive` may still use an Apple Development profile because
+App Store export re-signs it. Before calling a local TestFlight candidate
+distribution-ready, run the no-upload canonical
+`scripts/ios/export-release-ipa.sh` and require its exact App Store profile,
+Apple Distribution authority, `get-task-allow=false`, production entitlements,
+deep signature and IPA hash checks. Do not infer distribution readiness from
+the archive signature alone.
