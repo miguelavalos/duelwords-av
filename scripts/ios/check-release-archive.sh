@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 archive_path=""
-expected_build="2"
+expected_build="3"
 expected_version="0.1.0"
 expected_bundle_id="com.avalsys.duelwordsav"
 expected_team_id="935PM55U6R"
@@ -136,6 +136,7 @@ const expectedCollectedData = new Map([
   ["NSPrivacyCollectedDataTypeEmailAddress", true],
   ["NSPrivacyCollectedDataTypeUserID", true],
   ["NSPrivacyCollectedDataTypeGameplayContent", true],
+  ["NSPrivacyCollectedDataTypePurchases", true],
   ["NSPrivacyCollectedDataTypeCoarseLocation", false],
 ]);
 const collectedData = manifest.NSPrivacyCollectedDataTypes;
