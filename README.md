@@ -282,9 +282,17 @@ privacy manifest, entitlements, and deep signature validation. A local
 App Store export then produced a 34,925,228-byte `DuelWordsAV.ipa` with SHA-256
 `82d21dce279eda777014f45c9f2aaca8cc14f962c485a0ce50262f1ecac09439`,
 profile UUID `56a98c4c-5187-433f-b042-f3f893f906a0`, `get-task-allow=false`, and
-the matching Apple Distribution certificate. Sentry uploads remained disabled
-and no App Store Connect/TestFlight upload occurred. The registered physical
-iPhone remained unavailable, so no install or data mutation was attempted.
+the matching Apple Distribution certificate. After exact owner authorization,
+the same RC8 archive was uploaded locally to App Store Connect on 2026-07-28.
+Apple completed processing, marked binary `0.1.0 (2)` as validated, reported
+symbols included and non-exempt encryption `No`, and exposed it to the existing
+internal `avalsys` group. The upload completed with eight non-blocking missing
+third-party-framework dSYM warnings; application/dSYM parity remains verified,
+but crash symbolication inside those vendor frameworks is a retained risk.
+Sentry uploads remained disabled. No external group, App Review submission,
+production deploy, purchase, or Infisical write occurred. The registered
+physical iPhone remained unavailable, so no install or data mutation was
+attempted.
 
 The 2026-07-26 content audit follows Tune AV's Avi composition rule precisely:
 the cropped Avi navigation treatment in the shared phone footer is separate
@@ -882,9 +890,10 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Keep RC8 from public source `bd936f4` frozen. Its local distribution IPA is
-  ready, but do not upload it to App Store Connect/TestFlight without a new
-  exact authorization for this candidate.
+- Keep the uploaded RC8 from public source `bd936f4` frozen. Apple has processed
+  build `0.1.0 (2)` and the existing internal `avalsys` group has access. Do not
+  expire it, broaden testing, attach it to App Review, or submit it without new
+  exact authorization.
 - Install the post-fix signed candidate over the existing physical iPhone app
   without uninstalling or clearing data when that phone is connected. No
   physical iPad exists; this candidate's iPad acceptance is the dedicated
