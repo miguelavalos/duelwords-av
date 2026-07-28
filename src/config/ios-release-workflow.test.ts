@@ -68,6 +68,12 @@ describe('iOS release and Sentry workflow', () => {
     expect(configGenerator).toContain('shell_export NODE_BINARY "$node_binary"');
   });
 
+  it('uses the CocoaPods Ruby runtime when the system Ruby cannot load xcodeproj', () => {
+    expect(configGenerator).toContain('pod_ruby="$(sed -n');
+    expect(configGenerator).toContain('GEM_HOME="$pod_gem_home" "$pod_ruby" -e "require \'xcodeproj\'"');
+    expect(configGenerator).toContain('GEM_HOME="$pod_gem_home" "$pod_ruby" "$configurator" "$repo_root"');
+  });
+
   it('requires production identity, symbols, runtime, and Sentry in the final archive', () => {
     expect(archiveCheck).toContain('expected_build="2"');
     expect(archiveCheck).toContain('expected_bundle_id="com.avalsys.duelwordsav"');

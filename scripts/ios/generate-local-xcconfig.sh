@@ -232,11 +232,17 @@ configure_xcode_project() {
   fi
 
   local pod_bin
+  local pod_exec
   local pod_gem_home
+  local pod_ruby
   pod_bin="$(command -v pod || true)"
   pod_gem_home="$(sed -n 's/^GEM_HOME="\([^"]*\)".*/\1/p' "$pod_bin" 2>/dev/null | head -n 1)"
-  if [ -n "$pod_gem_home" ] && GEM_HOME="$pod_gem_home" ruby -e "require 'xcodeproj'" >/dev/null 2>&1; then
-    GEM_HOME="$pod_gem_home" ruby "$configurator" "$repo_root"
+  pod_exec="$(sed -n 's/.*exec "\([^"]*\/bin\/pod\)".*/\1/p' "$pod_bin" 2>/dev/null | head -n 1)"
+  pod_exec="${pod_exec:-$pod_bin}"
+  pod_ruby="$(sed -n '1s/^#!//p' "$pod_exec" 2>/dev/null)"
+  if [ -n "$pod_gem_home" ] && [ -x "$pod_ruby" ] \
+    && GEM_HOME="$pod_gem_home" "$pod_ruby" -e "require 'xcodeproj'" >/dev/null 2>&1; then
+    GEM_HOME="$pod_gem_home" "$pod_ruby" "$configurator" "$repo_root"
     return
   fi
 
