@@ -78,6 +78,12 @@ if [ ! -x "$varlock_bin" ] || [ ! -x "$bootstrap" ]; then
   exit 1
 fi
 
+node_binary="$(command -v node || true)"
+if [ -z "$node_binary" ] || [ ! -x "$node_binary" ]; then
+  echo "A runnable Node binary is required for Xcode build phases." >&2
+  exit 1
+fi
+
 eval "$("$bootstrap" "$profile")"
 
 read_account_publishable_key() {
@@ -160,6 +166,7 @@ if [ -f "$xcode_env_path" ]; then
   awk -v start="$managed_start" -v end="$managed_end" '
     $0 == start { managed = 1; next }
     $0 == end { managed = 0; next }
+    !managed && $0 ~ /^export NODE_BINARY=/ { next }
     !managed { print }
   ' "$xcode_env_path" > "$preserved_env"
 fi
@@ -172,6 +179,7 @@ shell_export() {
 
 {
   cat "$preserved_env"
+  shell_export NODE_BINARY "$node_binary"
   printf '%s\n' "$managed_start"
   shell_export DUELWORDSAV_IOS_BUILD_VARIANT "$build_variant"
   shell_export ACCOUNTAV_PUBLISHABLE_KEY "$publishable_key"

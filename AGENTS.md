@@ -216,3 +216,6 @@ The generated Expo Xcode project does not persist a development team. Keep the
 canonical `scripts/ios/archive-release.sh` command explicit about the expected
 Avalsys team and automatic signing; the release-workflow regression must fail
 if either setting disappears. Do not fall back to an ad hoc archive command.
+The canonical helper must regenerate the ignored production runtime before its
+effective-config check so `.xcode.env.local` refreshes `NODE_BINARY`; never
+preserve a stale Homebrew Cellar path across archive attempts.

@@ -46,7 +46,12 @@ describe('iOS release and Sentry workflow', () => {
   });
 
   it('creates and validates an archive without containing an App Store upload path', () => {
+    const generateRuntimeIndex = archiveScript.indexOf('pnpm run config:ios:generate:prod');
+    const checkRuntimeIndex = archiveScript.indexOf('pnpm run config:ios:runtime:prod');
+
     expect(archiveScript).toContain('xcodebuild archive');
+    expect(generateRuntimeIndex).toBeGreaterThan(-1);
+    expect(checkRuntimeIndex).toBeGreaterThan(generateRuntimeIndex);
     expect(archiveScript).toContain('chmod 600 "$build_log"');
     expect(archiveScript).toContain('> "$build_log" 2>&1');
     expect(archiveScript).toContain('Protected log: $build_log');
@@ -55,6 +60,12 @@ describe('iOS release and Sentry workflow', () => {
     expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);
+  });
+
+  it('refreshes the ignored Xcode Node path before release script phases run', () => {
+    expect(configGenerator).toContain('node_binary="$(command -v node || true)"');
+    expect(configGenerator).toContain('!managed && $0 ~ /^export NODE_BINARY=/ { next }');
+    expect(configGenerator).toContain('shell_export NODE_BINARY "$node_binary"');
   });
 
   it('requires production identity, symbols, runtime, and Sentry in the final archive', () => {

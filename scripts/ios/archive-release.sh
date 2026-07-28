@@ -55,6 +55,7 @@ else
   export SENTRY_DISABLE_AUTO_UPLOAD=true
 fi
 
+(cd "$repo_root" && pnpm run config:ios:generate:prod)
 (cd "$repo_root" && pnpm run config:ios:runtime:prod)
 
 if ! xcodebuild archive \
