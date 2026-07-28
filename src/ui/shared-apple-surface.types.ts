@@ -20,6 +20,7 @@ export type SharedAppleSurfaceProps = {
   accountAvailable?: boolean;
   activeProvider?: '' | 'apple' | 'google';
   appearance?: 'dark' | 'light' | 'system';
+  aviDifficulty?: string;
   authError?: string;
   authInitiallyPresented?: boolean;
   displayName?: string;
@@ -31,9 +32,11 @@ export type SharedAppleSurfaceProps = {
   deletionWarningsJSON?: string;
   email?: string;
   hapticsEnabled?: boolean;
+  gameLanguage?: string;
   interfaceLocale?: string;
   onAction?: (event: SharedAppleAction) => void;
   planTier?: string;
+  playerDisplayName?: string;
   selectedTab?: string;
   signedIn?: boolean;
   subscriptionBusy?: boolean;

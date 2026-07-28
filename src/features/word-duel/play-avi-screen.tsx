@@ -21,6 +21,7 @@ import {
   type AviBotOpponentRoundState,
   type AviBotReactionId,
 } from '@/game/word-duel-bot/view-model';
+import { DEFAULT_AVI_DIFFICULTY, type AviDifficulty } from '@/game/word-duel-bot/difficulty';
 import type { WordDuelResultOutcome, WordDuelResultReason } from '@/game/word-duel-result/view-model';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { t, type InterfaceLocale } from '@/i18n/locales';
@@ -31,7 +32,6 @@ import { AviArtwork } from '@/ui/brand';
 import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
-import { GameLanguagePicker } from './components/game-language-picker';
 import { useWordDuelInputBuffer } from './components/use-word-duel-input-buffer';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import { fillEditingRow } from './components/word-duel-ui-model';
@@ -42,6 +42,7 @@ import {
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
 
 type PlayAviScreenProps = {
+  initialAviDifficulty?: AviDifficulty;
   initialGameLanguage?: GameLanguage;
 };
 
@@ -85,7 +86,7 @@ const AVI_DUEL_COPY: Record<InterfaceLocale, AviDuelCopy> = {
   de: { botDuel: 'Lokales Duell', cluesReady: 'Hinweise bereit', close: 'Schließen', correctPosition: 'Richtige Position', couldNotOpenResult: 'Ergebnis konnte nicht geöffnet werden', draw: 'Unentschieden', home: 'Start', issue: 'Problem', lost: 'Verloren', newChallenge: 'Neues Duell', noWinner: 'Kein Gewinner', normal: 'Normal', offlineDuel: 'Offline-Duell', openResult: 'Ergebnis öffnen', opening: 'Wird geöffnet…', opponent: 'Gegner', playAvi: 'Gegen Avi spielen', resultReady: 'Ergebnis bereit', round: 'Runde', roundLocked: 'Runde beendet', solved: 'Gelöst', submitted: 'Gesendet', thinking: 'Denkt nach', unavailable: 'Nicht verfügbar', validLetters: 'Gültige Buchstaben', waitingForAvi: 'Warten auf Avi', won: 'Gewonnen', yourTurn: 'Du bist dran', reactions: { gg: 'GG', nice: 'Gut', no_pressure: 'Kein Druck', tick_tock: 'Zeit', your_turn: 'Du bist dran' } },
 };
 
-export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps) {
+export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, initialGameLanguage = 'en' }: PlayAviScreenProps) {
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
@@ -101,7 +102,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
       mode: 'play_avi',
       targetCount: getLocalTargetCount(initialGameLanguage),
     }));
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
+  const [gameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const inputBuffer = useWordDuelInputBuffer();
   const { input } = inputBuffer;
   const [isOpeningResult, setIsOpeningResult] = useState(false);
@@ -109,6 +110,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   const [activeReaction, setActiveReaction] = useState<AviBotReactionId | null>(null);
   const [session, setSession] = useState(() =>
     createAviBotDuelSession({
+      aviDifficulty: initialAviDifficulty,
       gameLanguage: initialGameLanguage,
       gameSeed: targetSelection.index,
       nowMs: Date.now(),
@@ -144,10 +146,10 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
   }, [targetSelection]);
 
   function reset(selection: TargetRotationSelection) {
-    setGameLanguage(selection.language);
     setTargetSelection(selection);
     setSession(
       createAviBotDuelSession({
+        aviDifficulty: initialAviDifficulty,
         gameLanguage: selection.language,
         gameSeed: selection.index,
         nowMs: Date.now(),
@@ -158,14 +160,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
     isOpeningResultRef.current = false;
     setIsOpeningResult(false);
     setMessage('');
-  }
-
-  function changeLanguage(language: GameLanguage) {
-    reset(planTargetSelection({
-      language,
-      mode: 'play_avi',
-      targetCount: getLocalTargetCount(language),
-    }));
   }
 
   function newChallenge() {
@@ -278,13 +272,6 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         title={duelCopy.playAvi}
       />
 
-      <GameLanguagePicker
-        dismissLabel={t(interfaceLocale, 'done')}
-        label={copy.gameLanguage}
-        onChange={changeLanguage}
-        value={gameLanguage}
-      />
-
       <View style={[styles.timerRow, compactViewport && styles.timerRowCompact]}>
         <View>
           <Text style={styles.metaLabel}>{duelCopy.round}</Text>
@@ -299,6 +286,10 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
           <Text style={styles.metaLabel}>{t(interfaceLocale, 'gameLanguage')}</Text>
           <Text style={styles.metaValue}>{viewModel.gameLanguage.toUpperCase()}</Text>
         </View>
+        <View style={styles.sideBlock}>
+          <Text style={styles.metaLabel}>{duelCopy.opponent}</Text>
+          <Text style={styles.metaValue}>{viewModel.aviDifficulty.toUpperCase()}</Text>
+        </View>
       </View>
 
       <OpponentSummary
@@ -307,6 +298,7 @@ export function PlayAviScreen({ initialGameLanguage = 'en' }: PlayAviScreenProps
         compact={compactViewport}
         roundState={viewModel.opponent.roundState}
         copy={duelCopy}
+        difficulty={viewModel.aviDifficulty}
       />
 
       <WordDuelBoard
@@ -372,12 +364,14 @@ function OpponentSummary({
   attempts,
   compact,
   copy,
+  difficulty,
   roundState,
 }: {
   activeReaction: AviBotReactionId | null;
   attempts: readonly AviBotOpponentAttemptSummary[];
   compact: boolean;
   copy: AviDuelCopy;
+  difficulty: AviDifficulty;
   roundState: AviBotOpponentRoundState;
 }) {
   const styles = usePlayAviStyles();
@@ -388,7 +382,7 @@ function OpponentSummary({
           <AviArtwork size={compact ? 42 : 54} />
           <View>
             <Text style={styles.metaLabel}>{copy.opponent}</Text>
-            <Text style={[styles.opponentName, compact && styles.opponentNameCompact]}>Avi · {copy.normal}</Text>
+            <Text style={[styles.opponentName, compact && styles.opponentNameCompact]}>Avi · {difficultyLabel(difficulty)}</Text>
           </View>
         </View>
         {roundState !== 'waiting' ? (
@@ -426,6 +420,10 @@ function OpponentSummary({
       ) : null}
     </View>
   );
+}
+
+function difficultyLabel(difficulty: AviDifficulty): string {
+  return `${difficulty.slice(0, 1).toUpperCase()}${difficulty.slice(1)}`;
 }
 
 function ReactionTray({

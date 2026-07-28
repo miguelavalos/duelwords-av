@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
+import { getLocalDictionary } from '../dictionaries/local-fixtures';
 import {
   createAviBotDelayMs,
   createAviBotDuelSession,
@@ -28,8 +29,8 @@ describe('Avi bot duel local view model', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 3, nowMs: NOW_MS });
 
     expect(session).toMatchObject({
-      botProfile: 'normal',
-      botProfileVersion: 'normal-v1',
+      botProfile: 'friendly',
+      botProfileVersion: 'difficulty-v1',
       dictionaryVersion: 'local-fixture-preview',
       gameLanguage: 'en',
       isLocalPreviewOnly: true,
@@ -63,7 +64,7 @@ describe('Avi bot duel local view model', () => {
     });
     expect(viewModel.opponent).toMatchObject({
       kind: 'bot',
-      profileLabel: 'Bot Normal',
+      profileLabel: 'Avi Friendly',
       safeDisplayName: 'Avi',
     });
   });
@@ -101,8 +102,8 @@ describe('Avi bot duel local view model', () => {
 
   it('varies opening guesses by deterministic seed', () => {
     const baseInput = {
-      botProfile: 'normal',
-      botProfileVersion: 'normal-v1',
+      botProfile: 'friendly',
+      botProfileVersion: 'difficulty-v1',
       dictionary: {
         language: 'en',
         validGuesses: ['crane', 'flame', 'civic'],
@@ -120,7 +121,7 @@ describe('Avi bot duel local view model', () => {
     expect(selectAviBotGuess({ ...baseInput, gameSeed: 1 })).toBe('flame');
   });
 
-  it('prevents Normal Avi from winning on the first guess when opener matches target', () => {
+  it('prevents Friendly Avi from winning before its fourth attempt', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'ca', gameSeed: 0, nowMs: NOW_MS });
     const submitted = submitAviBotDuelGuess({ input: 'sobre', nowMs: NOW_MS + 1_000, session });
 
@@ -131,18 +132,37 @@ describe('Avi bot duel local view model', () => {
     expect(submitted.session.pendingRound?.botRow.normalizedWord).not.toBe(session.target.normalizedWord);
   });
 
-  it('keeps deterministic bot delay in the V1 Normal range and before timeout', () => {
-    const delay = createAviBotDelayMs({ gameSeed: 4, language: 'es', roundNumber: 2 });
+  it('keeps Friendly Avi from solving in any of its first three completed rounds', () => {
+    let session = createAviBotDuelSession({ aviDifficulty: 'friendly', gameLanguage: 'en', gameSeed: 4, nowMs: NOW_MS });
+    const dictionary = getLocalDictionary('en');
+
+    for (let round = 0; round < 3; round += 1) {
+      const input = dictionary.validGuesses.find(
+        (guess) => guess !== session.target.normalizedWord && !session.humanState.guesses.some((row) => row.normalizedWord === guess),
+      );
+      if (!input) throw new Error('Expected a non-target fixture guess.');
+      const submitted = submitAviBotDuelGuess({ input, nowMs: NOW_MS + round * 20_000 + 1_000, session });
+      if (!submitted.accepted) throw new Error('Expected the fixture guess to be accepted.');
+      session = resolveAviBotRound({ nowMs: NOW_MS + round * 20_000 + 12_000, session: submitted.session });
+    }
+
+    expect(session.botState.guesses).toHaveLength(3);
+    expect(session.botState.guesses.every((row) => row.normalizedWord !== session.target.normalizedWord)).toBe(true);
+    expect(session.status).toBe('active');
+  });
+
+  it('keeps deterministic Friendly Avi delay in range and before timeout', () => {
+    const delay = createAviBotDelayMs({ difficulty: 'friendly', gameSeed: 4, language: 'es', roundNumber: 2 });
     const session = createAviBotDuelSession({ gameLanguage: 'es', gameSeed: 4, nowMs: NOW_MS });
     const submitted = submitAviBotDuelGuess({ input: 'perla', nowMs: NOW_MS + 1_000, session });
 
-    expect(delay).toBeGreaterThanOrEqual(2_000);
-    expect(delay).toBeLessThanOrEqual(12_000);
+    expect(delay).toBeGreaterThanOrEqual(5_000);
+    expect(delay).toBeLessThanOrEqual(10_000);
     if (!submitted.accepted) {
       throw new Error('Expected human fixture guess to be accepted.');
     }
-    expect(submitted.session.pendingRound?.botDelayMs).toBeGreaterThanOrEqual(2_000);
-    expect(submitted.session.pendingRound?.botDelayMs).toBeLessThanOrEqual(12_000);
+    expect(submitted.session.pendingRound?.botDelayMs).toBeGreaterThanOrEqual(5_000);
+    expect(submitted.session.pendingRound?.botDelayMs).toBeLessThanOrEqual(10_000);
     expect(submitted.session.pendingRound?.botDueAtMs).toBeLessThan(session.roundOpenedAtMs + session.roundTimeoutMs);
   });
 
@@ -218,7 +238,7 @@ describe('Avi bot duel local view model', () => {
       mode: 'bot_duel',
       opponentKind: 'bot',
       opponentName: 'Avi',
-      opponentProfile: 'normal',
+      opponentProfile: 'friendly',
     });
     expect(projection.attemptSummaries[0]).toEqual({
       attemptNumber: 1,

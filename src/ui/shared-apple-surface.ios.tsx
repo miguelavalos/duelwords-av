@@ -18,6 +18,7 @@ export function SharedAppleSurface({
   accountAvailable = false,
   activeProvider = '',
   appearance = 'system',
+  aviDifficulty = 'friendly',
   authError = '',
   authInitiallyPresented = false,
   displayName = '',
@@ -29,9 +30,11 @@ export function SharedAppleSurface({
   deletionWarningsJSON = '[]',
   email = '',
   hapticsEnabled = true,
+  gameLanguage = 'en',
   interfaceLocale = 'en',
   onAction,
   planTier = 'free',
+  playerDisplayName = '',
   selectedTab = 'play',
   signedIn = false,
   subscriptionBusy = false,
@@ -48,6 +51,7 @@ export function SharedAppleSurface({
       accountAvailable={accountAvailable}
       activeProvider={activeProvider}
       appearance={appearance}
+      aviDifficulty={aviDifficulty}
       authError={authError}
       authInitiallyPresented={authInitiallyPresented}
       displayName={displayName}
@@ -59,9 +63,11 @@ export function SharedAppleSurface({
       deletionWarningsJSON={deletionWarningsJSON}
       email={email}
       hapticsEnabled={hapticsEnabled}
+      gameLanguage={gameLanguage}
       interfaceLocale={interfaceLocale}
       onAction={onAction ? (event) => onAction(event.nativeEvent) : undefined}
       planTier={planTier}
+      playerDisplayName={playerDisplayName}
       selectedTab={selectedTab}
       signedIn={signedIn}
       subscriptionBusy={subscriptionBusy}

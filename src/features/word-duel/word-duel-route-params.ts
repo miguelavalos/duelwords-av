@@ -1,6 +1,7 @@
 import type { Href } from 'expo-router';
 
 import type { GameLanguage } from '../../game/word-duel-engine';
+import { isAviDifficulty, type AviDifficulty } from '../../game/word-duel-bot/difficulty';
 import type { InterfaceLocale } from '../../i18n/locales';
 import {
   createWordDuelActiveDemoHandoff,
@@ -31,6 +32,7 @@ export const WORD_DUEL_ROUTE_PATHS = {
   playAvi: '/word-duel/play-avi',
   practice: '/word-duel/practice',
   result: '/word-duel/result-demo',
+  setup: '/word-duel/setup',
   soloDaily: '/word-duel/daily',
 } as const;
 
@@ -39,6 +41,7 @@ export type WordDuelRouteMode = WordDuelResultMode;
 export type WordDuelSearchParamValue = string | string[] | undefined;
 
 export type WordDuelResultSourceSearchParams = {
+  difficulty?: WordDuelSearchParamValue;
   lang?: WordDuelSearchParamValue;
   mode?: WordDuelSearchParamValue;
   outcome?: WordDuelSearchParamValue;
@@ -60,6 +63,11 @@ export function parseGameLanguageParam(value: WordDuelSearchParamValue): GameLan
   return language === 'ca' || language === 'de' || language === 'es' || language === 'fr'
     ? language
     : 'en';
+}
+
+export function parseAviDifficultyParam(value: WordDuelSearchParamValue): AviDifficulty | null {
+  const difficulty = firstParam(value);
+  return isAviDifficulty(difficulty) ? difficulty : null;
 }
 
 export function parseInterfaceLocaleParam(value: WordDuelSearchParamValue): InterfaceLocale | null {
@@ -161,6 +169,7 @@ export function buildWordDuelHref(
   path: WordDuelRoutePath,
   params: {
     gameLanguage?: GameLanguage;
+    aviDifficulty?: AviDifficulty;
     interfaceLocale?: InterfaceLocale;
     localResult?: WordDuelResultLocalPayload;
     mode?: WordDuelRouteMode;
@@ -173,6 +182,10 @@ export function buildWordDuelHref(
 
   if (params.gameLanguage) {
     searchParams.set('lang', params.gameLanguage);
+  }
+
+  if (params.aviDifficulty) {
+    searchParams.set('difficulty', params.aviDifficulty);
   }
 
   if (params.interfaceLocale) {

@@ -56,7 +56,7 @@ export function PlayScreen() {
         detail={copy.challengeDetail}
         primary
         mark="VS"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}
+        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.setup, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}
       />
 
       <View style={[styles.modeGrid, twoColumn && styles.modeGridWide]}>
@@ -65,14 +65,14 @@ export function PlayScreen() {
           detail={copy.playAviDetail}
           mark="AV"
           compact={twoColumn}
-          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.playAvi, { gameLanguage, mode: 'bot_duel' }))}
+          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.setup, { gameLanguage, interfaceLocale, mode: 'bot_duel' }))}
         />
         <ModeCard
           title={copy.practice}
           detail={copy.practiceDetail}
           mark="5×6"
           compact={twoColumn}
-          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.practice, { gameLanguage, mode: 'practice' }))}
+          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.setup, { gameLanguage, interfaceLocale, mode: 'practice' }))}
         />
       </View>
 

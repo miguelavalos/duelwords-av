@@ -23,6 +23,21 @@ Guest identity is an opaque, device-stable session; a Free or Pro actor uses
 the internal Apps AV user. Daily guesses, results and finished-game summaries
 remain local to the device.
 
+## Local game defaults
+
+Settings keeps game-only choices separate from Account AV: the default game
+language, Avi difficulty, and an optional DuelWords player name. They apply to
+new Practice, Play Avi, and human-challenge flows on that device; each new game
+also presents a setup screen where its language and, for Avi, difficulty can
+be changed without changing the saved defaults. The optional player name is
+only the room display name sent with a human challenge; it never edits the
+shared Account AV profile.
+
+Avi difficulty is available to every tier and never changes word rules:
+Friendly retains fewer prior clues and cannot solve before its fourth attempt;
+Balanced may solve from its third; Expert may solve from its second. All modes
+keep five letters, six attempts, the same dictionaries, and the same feedback.
+
 ## Subscription identity
 
 - Product: `duelwordsav_pro_monthly`

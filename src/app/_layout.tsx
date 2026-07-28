@@ -46,6 +46,7 @@ function RootLayout() {
               <Stack.Screen name="word-duel/practice" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="word-duel/daily" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="word-duel/result-demo" options={duelWordsFlowScreenOptions} />
+              <Stack.Screen name="word-duel/setup" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="word-duel/solo-daily-demo" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="+not-found" />
             </Stack>

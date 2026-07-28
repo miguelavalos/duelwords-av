@@ -994,6 +994,11 @@ game id; it only creates a start request after recipient acceptance.
   no target repeats until that language's full deck has been used.
 - Play Avi resolves the opponent turn automatically and exposes only aggregate
   valid-letter/correct-position counts for Avi's completed attempts.
+- New non-Daily games start from a setup screen. Settings stores this device's
+  default game language, Avi difficulty, and optional human-challenge display
+  name; none of those choices edits Account AV. Friendly Avi intentionally
+  retains fewer clues and cannot solve before attempt four, while the game
+  rules remain identical at every difficulty.
 - Feedback uses a duplicate-letter-safe two-pass algorithm.
 
 The bundled dictionaries are the offline native candidate. English and Spanish

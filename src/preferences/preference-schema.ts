@@ -1,31 +1,43 @@
 import type { GameLanguage } from '@/game/word-duel-engine';
+import {
+  DEFAULT_AVI_DIFFICULTY,
+  isAviDifficulty,
+  type AviDifficulty,
+} from '../game/word-duel-bot/difficulty';
 import type { InterfaceLocale } from '@/i18n/locales';
 
 export type AppAppearance = 'dark' | 'light' | 'system';
 
 export type AppPreferences = {
   appearance: AppAppearance;
+  aviDifficulty: AviDifficulty;
   gameLanguage: GameLanguage;
   hapticsEnabled: boolean;
   interfaceLocale: InterfaceLocale;
-  version: 2;
+  playerDisplayName: string;
+  version: 3;
 };
 
 export const DEFAULT_APP_PREFERENCES: AppPreferences = Object.freeze({
   appearance: 'system',
+  aviDifficulty: DEFAULT_AVI_DIFFICULTY,
   gameLanguage: 'en',
   hapticsEnabled: true,
   interfaceLocale: 'en',
-  version: 2,
+  playerDisplayName: '',
+  version: 3,
 });
 
 export function parseAppPreferences(value: unknown): AppPreferences {
-  if (!isRecord(value) || (value.version !== 1 && value.version !== 2)) {
+  if (!isRecord(value) || (value.version !== 1 && value.version !== 2 && value.version !== 3)) {
     return DEFAULT_APP_PREFERENCES;
   }
 
   return {
     appearance: isAppearance(value.appearance) ? value.appearance : DEFAULT_APP_PREFERENCES.appearance,
+    aviDifficulty: isAviDifficulty(value.aviDifficulty)
+      ? value.aviDifficulty
+      : DEFAULT_APP_PREFERENCES.aviDifficulty,
     gameLanguage: isGameLanguage(value.gameLanguage)
       ? value.gameLanguage
       : DEFAULT_APP_PREFERENCES.gameLanguage,
@@ -37,8 +49,20 @@ export function parseAppPreferences(value: unknown): AppPreferences {
     interfaceLocale: isInterfaceLocale(value.interfaceLocale)
       ? value.interfaceLocale
       : DEFAULT_APP_PREFERENCES.interfaceLocale,
-    version: 2,
+    playerDisplayName: sanitizePlayerDisplayName(value.playerDisplayName),
+    version: 3,
   };
+}
+
+export function sanitizePlayerDisplayName(value: unknown): string {
+  if (typeof value !== 'string') return '';
+
+  const normalized = value.normalize('NFC').trim().replace(/\s+/g, ' ');
+  if (/[\u0000-\u001f\u007f]/.test(normalized) || Array.from(normalized).length > 32) {
+    return '';
+  }
+
+  return normalized;
 }
 
 export function parseStoredAppPreferences(value: string | null): AppPreferences {

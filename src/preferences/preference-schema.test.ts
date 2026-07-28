@@ -10,16 +10,20 @@ describe('app preference schema', () => {
   it('accepts the complete versioned preference shape', () => {
     expect(parseAppPreferences({
       appearance: 'dark',
+      aviDifficulty: 'balanced',
       gameLanguage: 'es',
       hapticsEnabled: false,
       interfaceLocale: 'ca',
-      version: 2,
+      playerDisplayName: 'María Sol',
+      version: 3,
     })).toEqual({
       appearance: 'dark',
+      aviDifficulty: 'balanced',
       gameLanguage: 'es',
       hapticsEnabled: false,
       interfaceLocale: 'ca',
-      version: 2,
+      playerDisplayName: 'María Sol',
+      version: 3,
     });
   });
 
@@ -28,7 +32,7 @@ describe('app preference schema', () => {
       appearance: 'provider-theme',
       gameLanguage: 'ca',
       interfaceLocale: 'xx',
-      version: 2,
+      version: 3,
     })).toEqual({
       ...DEFAULT_APP_PREFERENCES,
       gameLanguage: 'ca',
@@ -48,7 +52,7 @@ describe('app preference schema', () => {
       appearance: 'dark',
       gameLanguage: 'es',
       interfaceLocale: 'es',
-      version: 3,
+      version: 4,
     }))).toEqual(DEFAULT_APP_PREFERENCES);
   });
 
@@ -63,7 +67,20 @@ describe('app preference schema', () => {
       gameLanguage: 'es',
       hapticsEnabled: true,
       interfaceLocale: 'es',
-      version: 2,
+      playerDisplayName: '',
+      aviDifficulty: 'friendly',
+      version: 3,
     });
+  });
+
+  it('sanitizes the optional local DuelWords display name during migration', () => {
+    expect(parseAppPreferences({
+      ...DEFAULT_APP_PREFERENCES,
+      playerDisplayName: '  María   Sol  ',
+    }).playerDisplayName).toBe('María Sol');
+    expect(parseAppPreferences({
+      ...DEFAULT_APP_PREFERENCES,
+      playerDisplayName: 'a'.repeat(33),
+    }).playerDisplayName).toBe('');
   });
 });

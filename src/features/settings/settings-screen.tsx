@@ -3,21 +3,21 @@ import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
-import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { AVI_DIFFICULTIES, isAviDifficulty } from '@/game/word-duel-bot/difficulty';
+import { type GameLanguage } from '@/game/word-duel-engine';
 import { resetTargetRotation } from '@/game/dictionaries/target-rotation';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { INTERFACE_LOCALES, t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
-import { AppButton } from '@/ui/buttons';
 import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
+import { GameLanguagePicker } from '../word-duel/components/game-language-picker';
 
 const links = {
-  deleteAccount: 'https://duelwords-av.avalsys.com/delete-account/',
   notices: 'https://duelwords-av.avalsys.com/notices/',
   privacy: 'https://duelwords-av.avalsys.com/privacy/',
   source: 'https://github.com/miguelavalos/duelwords-av',
@@ -28,10 +28,9 @@ const links = {
 export function SettingsScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const account = useDuelWordsAccount();
   const styles = useStyles();
   const [preferences, setPreferences] = useAppPreferences();
-  const { appearance, hapticsEnabled, interfaceLocale } = preferences;
+  const { appearance, aviDifficulty, gameLanguage, hapticsEnabled, interfaceLocale, playerDisplayName } = preferences;
   const copy = experienceCopy(interfaceLocale);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
@@ -42,10 +41,7 @@ export function SettingsScreen() {
   }
 
   function handleSharedAction({ action, value }: SharedAppleAction) {
-    if (action === 'account') router.replace('/(tabs)/account' as Href);
-    else if (action === 'paywall') router.push('/pro' as Href);
-    else if (action === 'deleteAccount') router.push('/delete-account' as Href);
-    else if (action === 'openPrivacy') openLink(links.privacy);
+    if (action === 'openPrivacy') openLink(links.privacy);
     else if (action === 'openTerms') openLink(links.terms);
     else if (action === 'openSupport') openLink(links.support);
     else if (action === 'openNotices') openLink(links.notices);
@@ -55,6 +51,12 @@ export function SettingsScreen() {
       setPreferences((current) => ({ ...current, interfaceLocale: value as typeof current.interfaceLocale }));
     } else if (action === 'setAppearance' && (value === 'system' || value === 'light' || value === 'dark')) {
       setPreferences((current) => ({ ...current, appearance: value }));
+    } else if (action === 'setGameLanguage' && isGameLanguage(value)) {
+      setPreferences((current) => ({ ...current, gameLanguage: value }));
+    } else if (action === 'setAviDifficulty' && isAviDifficulty(value)) {
+      setPreferences((current) => ({ ...current, aviDifficulty: value }));
+    } else if (action === 'setPlayerDisplayName') {
+      setPreferences((current) => ({ ...current, playerDisplayName: value ?? '' }));
     } else if (action === 'setHaptics') {
       void setHaptics(value === 'true');
     }
@@ -63,16 +65,14 @@ export function SettingsScreen() {
   if (isSharedAppleSurfaceAvailable) {
     return (
       <SharedAppleSurface
-        accountAvailable={account.available}
         appearance={appearance}
-        displayName={account.user?.displayName ?? ''}
-        email={account.user?.email ?? ''}
+        aviDifficulty={aviDifficulty}
+        gameLanguage={gameLanguage}
         hapticsEnabled={hapticsEnabled}
         interfaceLocale={interfaceLocale}
         onAction={handleSharedAction}
-        planTier={account.access.planTier}
+        playerDisplayName={playerDisplayName}
         selectedTab="settings"
-        signedIn={account.user !== null}
         style={styles.sharedScreen}
         surface="settings"
       />
@@ -94,6 +94,20 @@ export function SettingsScreen() {
         <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{t(interfaceLocale, 'settings')}</Text>
         <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
       </View>
+
+      <PaperCard>
+        <SectionHeading title="Game preferences" detail="Defaults for new practice, Avi, and human games. You can change them before each game." />
+        <GameLanguagePicker dismissLabel={t(interfaceLocale, 'done')} label={copy.gameLanguage} onChange={(nextGameLanguage) => setPreferences((current) => ({ ...current, gameLanguage: nextGameLanguage }))} value={gameLanguage} />
+        <Text style={styles.settingLabel}>Avi difficulty</Text>
+        <View style={styles.optionList}>
+          {AVI_DIFFICULTIES.map((difficulty) => <Option key={difficulty} label={difficultyLabel(difficulty)} selected={aviDifficulty === difficulty} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, aviDifficulty: difficulty }))} />)}
+        </View>
+        <View style={styles.settingCopy}>
+          <Text style={styles.settingLabel}>DuelWords player name</Text>
+          <Text style={styles.settingDetail}>Used for human challenges from this device. It does not change your Account AV profile.</Text>
+        </View>
+        <TextInput accessibilityLabel="DuelWords player name" maxLength={32} onChangeText={(value) => setPreferences((current) => ({ ...current, playerDisplayName: value }))} placeholder="Optional" placeholderTextColor={styles.placeholder.color} style={styles.textInput} value={playerDisplayName} />
+      </PaperCard>
 
       <PaperCard>
         <SectionHeading title={t(interfaceLocale, 'interfaceLanguage')} detail="Language used by navigation, help, account, and game messages." />
@@ -120,21 +134,11 @@ export function SettingsScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Account & plan" detail="Account AV and DuelWords Pro do not change your game language." />
-        <View style={styles.buttonRow}>
-          <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.replace('/(tabs)/account' as Href)}>{copy.account}</AppButton>
-          <AppButton tone="quiet" style={styles.flexButton} onPress={() => router.push('/pro' as Href)}>DuelWords Pro</AppButton>
-        </View>
-      </PaperCard>
-
-      <PaperCard>
         <SectionHeading title="Privacy, help & legal" detail="Public information and help open in your browser." />
         <ExternalRow label="Privacy policy" onPress={() => openLink(links.privacy)} />
         <ExternalRow label="Terms of use" onPress={() => openLink(links.terms)} />
         <ExternalRow label="Support" onPress={() => openLink(links.support)} />
         <ExternalRow label="Dictionary notices & licenses" onPress={() => openLink(links.notices)} />
-        <ExternalRow label="Account deletion support" destructive onPress={() => openLink(links.deleteAccount)} />
-        <InternalRow label="Delete Apps AV account" destructive onPress={() => router.push('/delete-account' as Href)} />
       </PaperCard>
 
       <PaperCard>
@@ -178,13 +182,12 @@ function ExternalRow({ destructive, label, onPress }: { destructive?: boolean; l
   );
 }
 
-function InternalRow({ destructive, label, onPress }: { destructive?: boolean; label: string; onPress: () => void }) {
-  const styles = useStyles();
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.externalRow, pressed && styles.pressed]}>
-      <Text style={[styles.externalLabel, destructive && styles.destructive]}>{label}</Text><Text style={[styles.externalArrow, destructive && styles.destructive]}>→</Text>
-    </Pressable>
-  );
+function isGameLanguage(value: string | undefined): value is GameLanguage {
+  return value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr';
+}
+
+function difficultyLabel(value: (typeof AVI_DIFFICULTIES)[number]): string {
+  return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
 }
 
 function openLink(url: string) {
@@ -209,6 +212,8 @@ function useStyles() {
     settingCopy: { flex: 1, gap: 2 },
     settingLabel: { color: colors.text, fontSize: typeScale.body, fontWeight: '800' },
     settingDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 18 },
+    textInput: { borderColor: colors.border, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, color: colors.text, fontSize: typeScale.body, minHeight: 48, paddingHorizontal: spacing.md },
+    placeholder: { color: colors.textMuted },
     buttonRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
     flexButton: { flexBasis: 160, flexGrow: 1 },
     externalRow: { minHeight: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },

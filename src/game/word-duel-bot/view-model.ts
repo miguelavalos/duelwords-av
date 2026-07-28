@@ -18,8 +18,14 @@ import {
   type LetterFeedback,
   type LocalWordDuelState,
 } from '../word-duel-engine';
+import {
+  DEFAULT_AVI_DIFFICULTY,
+  aviDifficultyClueMemory,
+  aviDifficultyMinimumSolveRound,
+  type AviDifficulty,
+} from './difficulty';
 
-export type AviBotProfile = 'normal';
+export type AviBotProfile = AviDifficulty;
 export type AviBotDuelStatus = 'active' | 'won' | 'lost' | 'draw' | 'no_winner' | 'technical_error_bot';
 export type AviBotRoundPhase = 'editing' | 'waiting_for_avi' | 'finalized';
 export type AviBotOpponentAttemptState = 'waiting' | 'thinking' | 'scored' | 'technical_error';
@@ -34,7 +40,7 @@ export type AviBotSolverPriorGuess = {
 
 export type AviBotSolverInput = {
   botProfile: AviBotProfile;
-  botProfileVersion: 'normal-v1';
+  botProfileVersion: 'difficulty-v1';
   dictionary: DictionaryProfile;
   gameSeed: number;
   language: GameLanguage;
@@ -57,7 +63,7 @@ export type AviBotPendingRound = {
 
 export type AviBotDuelSession = {
   botProfile: AviBotProfile;
-  botProfileVersion: 'normal-v1';
+  botProfileVersion: 'difficulty-v1';
   botState: LocalWordDuelState;
   createdAtMs: number;
   dictionaryVersion: 'local-fixture-preview';
@@ -105,7 +111,7 @@ export type AviBotOpponentAttemptSummary = {
 export type AviBotSafeOpponentSummary = {
   attemptSummaries: AviBotOpponentAttemptSummary[];
   kind: 'bot';
-  profileLabel: 'Bot Normal';
+  profileLabel: string;
   roundState: AviBotOpponentRoundState;
   safeDisplayName: 'Avi';
 };
@@ -115,7 +121,7 @@ export type AviBotSafeRealtimeProjection = {
   mode: 'bot_duel';
   opponentKind: 'bot';
   opponentName: 'Avi';
-  opponentProfile: 'normal';
+  opponentProfile: AviBotProfile;
   opponentStatus: AviBotOpponentRoundState;
   roundNumber: number;
 };
@@ -128,6 +134,7 @@ export type AviBotDuelSharePreview = {
 export type AviBotDuelViewModel = {
   availableReactions: readonly AviBotReactionId[];
   gameLanguage: GameLanguage;
+  aviDifficulty: AviDifficulty;
   isInputOpen: boolean;
   isLocalPreviewOnly: true;
   maxAttempts: number;
@@ -176,10 +183,12 @@ const OPENING_POOLS: Record<GameLanguage, readonly string[]> = {
 };
 
 export function createAviBotDuelSession({
+  aviDifficulty = DEFAULT_AVI_DIFFICULTY,
   gameLanguage = 'en',
   gameSeed = 0,
   nowMs,
 }: {
+  aviDifficulty?: AviDifficulty;
   gameLanguage?: GameLanguage;
   gameSeed?: number;
   nowMs: number;
@@ -193,8 +202,8 @@ export function createAviBotDuelSession({
   };
 
   return {
-    botProfile: 'normal',
-    botProfileVersion: 'normal-v1',
+    botProfile: aviDifficulty,
+    botProfileVersion: 'difficulty-v1',
     botState: createLocalGame(baseState),
     createdAtMs: nowMs,
     dictionaryVersion: 'local-fixture-preview',
@@ -321,6 +330,7 @@ export function createAviBotDuelViewModel(session: AviBotDuelSession): AviBotDue
 
   return {
     availableReactions: session.reactions,
+    aviDifficulty: session.botProfile,
     gameLanguage: session.gameLanguage,
     isInputOpen: session.status === 'active' && session.phase === 'editing',
     isLocalPreviewOnly: true,
@@ -350,7 +360,7 @@ export function createAviBotSafeRealtimeProjection(session: AviBotDuelSession): 
     mode: 'bot_duel',
     opponentKind: 'bot',
     opponentName: 'Avi',
-    opponentProfile: 'normal',
+    opponentProfile: session.botProfile,
     opponentStatus: opponent.roundState,
     roundNumber: session.roundNumber,
   };
@@ -375,9 +385,10 @@ export function selectAviBotGuess(input: AviBotSolverInput): string {
     return openingGuess(input.language, input.gameSeed);
   }
 
+  const rememberedGuesses = input.priorGuesses.slice(-aviDifficultyClueMemory(input.botProfile));
   const candidates = LOCAL_WORD_FIXTURES[input.language]
     .filter((entry) => entry.isTarget)
-    .filter((entry) => candidateMatchesPriorFeedback(entry.normalizedWord, input.priorGuesses))
+    .filter((entry) => candidateMatchesPriorFeedback(entry.normalizedWord, rememberedGuesses))
     .filter((entry) => !input.priorGuesses.some((guess) => guess.normalizedWord === entry.normalizedWord))
     .sort((left, right) => right.frequencyScore - left.frequencyScore || left.normalizedWord.localeCompare(right.normalizedWord));
 
@@ -393,12 +404,16 @@ export function selectAviBotGuess(input: AviBotSolverInput): string {
 }
 
 export function createAviBotDelayMs(input: {
+  difficulty?: AviDifficulty;
   gameSeed: number;
   language: GameLanguage;
   roundNumber: number;
 }): number {
-  const jitter = stableHash(`${input.gameSeed}:${input.language}:${input.roundNumber}:normal`) % 10_001;
+  const difficulty = input.difficulty ?? DEFAULT_AVI_DIFFICULTY;
+  const jitter = stableHash(`${input.gameSeed}:${input.language}:${input.roundNumber}:${difficulty}`) % 5_001;
 
+  if (difficulty === 'friendly') return 5_000 + jitter;
+  if (difficulty === 'balanced') return 3_000 + jitter;
   return 2_000 + jitter;
 }
 
@@ -416,6 +431,7 @@ function createAviBotRoundPlan(
   scheduledActionId: string;
 } {
   const delayMs = createAviBotDelayMs({
+    difficulty: session.botProfile,
     gameSeed: session.gameSeed,
     language: session.gameLanguage,
     roundNumber: session.roundNumber,
@@ -437,7 +453,8 @@ function createAviBotRoundPlan(
   };
   const selectedGuess = selectAviBotGuess(solverInput);
   const normalizedWord =
-    session.roundNumber === 1 && selectedGuess === session.target.normalizedWord
+    (session.roundNumber < aviDifficultyMinimumSolveRound(session.botProfile)
+      && selectedGuess === session.target.normalizedWord)
       ? nextOpeningGuessAwayFromTarget(session.gameLanguage, session.gameSeed, session.target.normalizedWord)
       : selectedGuess;
 
@@ -494,7 +511,7 @@ function createAviBotSafeOpponentSummary(session: AviBotDuelSession): AviBotSafe
   return {
     attemptSummaries,
     kind: 'bot',
-    profileLabel: 'Bot Normal',
+    profileLabel: `Avi ${capitalizeDifficulty(session.botProfile)}`,
     roundState: opponentRoundState(session),
     safeDisplayName: 'Avi',
   };
@@ -656,6 +673,10 @@ function shareOutcomeLabel(status: AviBotDuelStatus): string {
     return 'Result unavailable';
   }
   return 'No winner vs Avi';
+}
+
+function capitalizeDifficulty(difficulty: AviDifficulty): string {
+  return `${difficulty.slice(0, 1).toUpperCase()}${difficulty.slice(1)}`;
 }
 
 function stableHash(value: string): number {

@@ -250,6 +250,7 @@ private struct DuelWordsSettingsSurface: View {
     @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     @Environment(\.avBrandPalette) private var brandPalette
     @State private var didResetLocalData = false
+    @State private var playerDisplayName = ""
     @State private var resetConfirmationIsPresented = false
 
     var body: some View {
@@ -263,6 +264,7 @@ private struct DuelWordsSettingsSurface: View {
             DuelWordsHeaderSurface(props: props, action: action)
         } content: {
             appPreferencesCard
+            gamePreferencesCard
             onDeviceCard
             helpCard
         }
@@ -392,6 +394,100 @@ private struct DuelWordsSettingsSurface: View {
         }
     }
 
+    private var gamePreferencesCard: some View {
+        AVSettingsSectionCard(
+            title: props.localized("Game preferences"),
+            subtitle: props.localized("Defaults for new practice, Avi, and human games. You can change them before each game.")
+        ) {
+            AVSettingsInfoRow(
+                systemImage: "character.book.closed",
+                title: props.localized("Game language"),
+                detail: props.localized("Default language for new DuelWords games.")
+            )
+            gameLanguageSelector
+
+            AVSettingsInfoRow(
+                systemImage: "brain.head.profile",
+                title: props.localized("Avi difficulty"),
+                detail: props.localized("Friendly remembers fewer clues and cannot solve before the fourth attempt.")
+            )
+            HStack(spacing: 10) {
+                aviDifficultyOption(props.localized("Friendly"), value: "friendly")
+                aviDifficultyOption(props.localized("Balanced"), value: "balanced")
+                aviDifficultyOption(props.localized("Expert"), value: "expert")
+            }
+
+            AVSettingsInfoRow(
+                systemImage: "person.text.rectangle",
+                title: props.localized("DuelWords player name"),
+                detail: props.localized("Used for human challenges from this device. It does not change your Account AV profile.")
+            )
+            TextField(
+                props.localized("Optional"),
+                text: $playerDisplayName
+            )
+            .textFieldStyle(.roundedBorder)
+            .textInputAutocapitalization(.words)
+            .autocorrectionDisabled()
+            .accessibilityIdentifier("settings.playerDisplayName")
+            .onAppear { playerDisplayName = props.playerDisplayName }
+            .onChange(of: playerDisplayName) { _, value in
+                let limited = String(value.prefix(32))
+                if limited != value {
+                    playerDisplayName = limited
+                } else {
+                    action("setPlayerDisplayName", value)
+                }
+            }
+        }
+    }
+
+    private var gameLanguageSelector: some View {
+        Menu {
+            ForEach(DuelWordsGameLanguageOption.all(copy: props.localizedCopy)) { language in
+                Button {
+                    action("setGameLanguage", language.id)
+                } label: {
+                    if props.gameLanguage == language.id {
+                        Label(language.menuTitle, systemImage: "checkmark")
+                    } else {
+                        Text(language.menuTitle)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(selectedGameLanguage.displayName)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(AVBrandColor.textPrimary)
+                    Text(selectedGameLanguage.autonym)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(AVBrandColor.textSecondary)
+                }
+                Spacer()
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(brandPalette.accent)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(brandPalette.accent.opacity(0.07)))
+            .overlay { RoundedRectangle(cornerRadius: 18, style: .continuous).stroke(brandPalette.accent.opacity(0.18), lineWidth: 1) }
+        }
+    }
+
+    private var selectedGameLanguage: DuelWordsGameLanguageOption {
+        let languages = DuelWordsGameLanguageOption.all(copy: props.localizedCopy)
+        return languages.first(where: { $0.id == props.gameLanguage }) ?? languages[0]
+    }
+
+    private func aviDifficultyOption(_ title: String, value: String) -> some View {
+        AVSettingsOptionButton(title: title, systemImage: value == "friendly" ? "heart.fill" : value == "balanced" ? "scale.3d" : "bolt.fill", isSelected: props.aviDifficulty == value) {
+            action("setAviDifficulty", value)
+        }
+    }
+
     private var appVersionDisplay: String {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String
         let build = Bundle.main.object(forInfoDictionaryKey: "CFBundleVersion") as? String
@@ -413,13 +509,6 @@ private struct DuelWordsSettingsSurface: View {
             AVSettingsActionRow(systemImage: "questionmark.circle", title: props.localized("Support"), detail: props.localized("Open DuelWords AV support."), action: { action("openSupport", nil) })
             AVSettingsActionRow(systemImage: "hand.raised", title: props.localized("Privacy policy"), detail: props.localized("How DuelWords AV handles product and account data."), action: { action("openPrivacy", nil) })
             AVSettingsActionRow(systemImage: "doc.text", title: props.localized("Terms of use"), detail: props.localized("Terms that apply to DuelWords AV."), action: { action("openTerms", nil) })
-            AVSettingsDestructiveActionCard(
-                sectionTitle: props.localized("Account safety"),
-                systemImage: "person.crop.circle.badge.minus",
-                title: props.localized("Delete Apps AV account"),
-                detail: props.localized("Review the secure deletion workflow and consequences."),
-                action: { action("deleteAccount", nil) }
-            )
         }
     }
 
@@ -524,6 +613,24 @@ private struct DuelWordsInterfaceLocaleOption: Identifiable {
             DuelWordsInterfaceLocaleOption(id: "ca", displayName: copy.text("Catalan"), autonym: "Català"),
             DuelWordsInterfaceLocaleOption(id: "fr", displayName: copy.text("French"), autonym: "Français"),
             DuelWordsInterfaceLocaleOption(id: "de", displayName: copy.text("German"), autonym: "Deutsch")
+        ]
+    }
+}
+
+private struct DuelWordsGameLanguageOption: Identifiable {
+    let id: String
+    let displayName: String
+    let autonym: String
+
+    var menuTitle: String { "\(displayName) (\(autonym))" }
+
+    static func all(copy: DuelWordsNativeL10n) -> [DuelWordsGameLanguageOption] {
+        [
+            DuelWordsGameLanguageOption(id: "en", displayName: copy.text("English"), autonym: "English"),
+            DuelWordsGameLanguageOption(id: "es", displayName: copy.text("Spanish"), autonym: "Español"),
+            DuelWordsGameLanguageOption(id: "ca", displayName: copy.text("Catalan"), autonym: "Català"),
+            DuelWordsGameLanguageOption(id: "fr", displayName: copy.text("French"), autonym: "Français"),
+            DuelWordsGameLanguageOption(id: "de", displayName: copy.text("German"), autonym: "Deutsch")
         ]
     }
 }

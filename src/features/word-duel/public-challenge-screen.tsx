@@ -107,6 +107,9 @@ export function PublicWordDuelChallengeScreen({
   const accountDisplayName = account.user
     ? accountRoomDisplayName(account.user, copy('accountPlayerName'))
     : null;
+  const configuredDisplayNameResult = normalizeWordDuelGuestDisplayName(preferences.playerDisplayName);
+  const configuredDisplayName = configuredDisplayNameResult.ok ? configuredDisplayNameResult.value : null;
+  const effectiveDisplayName = configuredDisplayName ?? accountDisplayName ?? displayName;
 
   useEffect(() => {
     mountedRef.current = true;
@@ -343,7 +346,7 @@ export function PublicWordDuelChallengeScreen({
   }
 
   function currentActor(): DuelWordsApiActor | null {
-    const normalized = normalizeWordDuelGuestDisplayName(accountDisplayName ?? displayName);
+    const normalized = normalizeWordDuelGuestDisplayName(effectiveDisplayName);
     if (!normalized.ok) {
       setStatusMessage(displayNameErrorLabel(interfaceLocale, normalized.reason));
       return null;
@@ -612,15 +615,15 @@ export function PublicWordDuelChallengeScreen({
           accessibilityLabelledBy="word-duel-display-name-label"
           autoCapitalize="words"
           autoCorrect={false}
-          editable={!isBusy && lobbyState === null && account.user === null}
+          editable={!isBusy && lobbyState === null && account.user === null && configuredDisplayName === null}
           maxLength={32}
           onChangeText={setDisplayName}
           placeholder={copy('displayNamePlaceholder')}
           placeholderTextColor={colors.textMuted}
           style={styles.input}
-          value={accountDisplayName ?? displayName}
+          value={effectiveDisplayName}
         />
-        <Text style={styles.helper}>{copy(account.user ? 'accountRoomNameHelp' : 'roomNameHelp')}</Text>
+        <Text style={styles.helper}>{configuredDisplayName ? 'Edit this DuelWords name in Settings.' : copy(account.user ? 'accountRoomNameHelp' : 'roomNameHelp')}</Text>
       </View>
 
       {lobbyState === null ? (

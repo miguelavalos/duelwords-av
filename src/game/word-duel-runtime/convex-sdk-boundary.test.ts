@@ -106,12 +106,10 @@ describe('DuelWords public Convex SDK boundary', () => {
       'utf8',
     );
 
-    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.challenge');
-    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.practice');
+    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.setup');
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.lobby');
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.active');
     expect(playScreen).not.toContain('WORD_DUEL_ROUTE_PATHS.result');
-    expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.playAvi');
     expect(playScreen).toContain('WORD_DUEL_ROUTE_PATHS.soloDaily');
     expect(playScreen).not.toContain('play-avi-demo');
     expect(playScreen).not.toContain('solo-daily-demo');

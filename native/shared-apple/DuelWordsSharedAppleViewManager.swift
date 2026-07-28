@@ -36,6 +36,7 @@ final class DuelWordsSharedAppleHostView: UIView {
             render()
         }
     }
+    var aviDifficulty: NSString = "friendly" { didSet { render() } }
     var accountAvailable = false { didSet { render() } }
     var signedIn = false { didSet { render() } }
     var displayName: NSString = "" { didSet { render() } }
@@ -47,10 +48,12 @@ final class DuelWordsSharedAppleHostView: UIView {
     var deletionWarningsJSON: NSString = "[]" { didSet { render() } }
     var email: NSString = "" { didSet { render() } }
     var planTier: NSString = "free" { didSet { render() } }
+    var playerDisplayName: NSString = "" { didSet { render() } }
     var activeProvider: NSString = "" { didSet { render() } }
     var authError: NSString = "" { didSet { render() } }
     var authInitiallyPresented = false { didSet { render() } }
     var hapticsEnabled = true { didSet { render() } }
+    var gameLanguage: NSString = "en" { didSet { render() } }
     var subscriptionBusy = false { didSet { render() } }
     var subscriptionError: NSString = "" { didSet { render() } }
     var subscriptionPrice: NSString = "" { didSet { render() } }
@@ -96,6 +99,7 @@ final class DuelWordsSharedAppleHostView: UIView {
             selectedTab: selectedTab as String,
             interfaceLocale: interfaceLocale as String,
             appearance: appearance as String,
+            aviDifficulty: aviDifficulty as String,
             accountAvailable: accountAvailable,
             signedIn: signedIn,
             displayName: displayName as String,
@@ -107,10 +111,12 @@ final class DuelWordsSharedAppleHostView: UIView {
             deletionWarningsJSON: deletionWarningsJSON as String,
             email: email as String,
             planTier: planTier as String,
+            playerDisplayName: playerDisplayName as String,
             activeProvider: activeProvider as String,
             authError: authError as String,
             authInitiallyPresented: authInitiallyPresented,
             hapticsEnabled: hapticsEnabled,
+            gameLanguage: gameLanguage as String,
             subscriptionBusy: subscriptionBusy,
             subscriptionError: subscriptionError as String,
             subscriptionPrice: subscriptionPrice as String,
@@ -183,6 +189,7 @@ struct DuelWordsSharedSurfaceProps {
     let selectedTab: String
     let interfaceLocale: String
     let appearance: String
+    let aviDifficulty: String
     let accountAvailable: Bool
     let signedIn: Bool
     let displayName: String
@@ -194,10 +201,12 @@ struct DuelWordsSharedSurfaceProps {
     let deletionWarningsJSON: String
     let email: String
     let planTier: String
+    let playerDisplayName: String
     let activeProvider: String
     let authError: String
     let authInitiallyPresented: Bool
     let hapticsEnabled: Bool
+    let gameLanguage: String
     let subscriptionBusy: Bool
     let subscriptionError: String
     let subscriptionPrice: String
@@ -221,6 +230,7 @@ private extension DuelWordsSharedSurfaceProps {
             selectedTab: selectedTab,
             interfaceLocale: interfaceLocale,
             appearance: appearance,
+            aviDifficulty: aviDifficulty,
             accountAvailable: true,
             signedIn: true,
             displayName: "UI Test User",
@@ -232,10 +242,12 @@ private extension DuelWordsSharedSurfaceProps {
             deletionWarningsJSON: deletion.warnings,
             email: "ui-test@example.test",
             planTier: accountMode == "pro" ? "pro" : "free",
+            playerDisplayName: playerDisplayName,
             activeProvider: activeProvider,
             authError: authError,
             authInitiallyPresented: authInitiallyPresented,
             hapticsEnabled: hapticsEnabled,
+            gameLanguage: gameLanguage,
             subscriptionBusy: subscriptionBusy,
             subscriptionError: subscriptionError,
             subscriptionPrice: subscriptionPrice,
