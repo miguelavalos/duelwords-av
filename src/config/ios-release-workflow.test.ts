@@ -13,6 +13,7 @@ const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 
 };
 const archiveScript = fs.readFileSync(path.join(root, 'scripts/ios/archive-release.sh'), 'utf8');
 const archiveCheck = fs.readFileSync(path.join(root, 'scripts/ios/check-release-archive.sh'), 'utf8');
+const ipaExportScript = fs.readFileSync(path.join(root, 'scripts/ios/export-release-ipa.sh'), 'utf8');
 const sentryDsymRepair = fs.readFileSync(
   path.join(root, 'scripts/ios/repair-release-archive-sentry-dsym.sh'),
   'utf8',
@@ -62,6 +63,19 @@ describe('iOS release and Sentry workflow', () => {
     expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);
+  });
+
+  it('exports a distribution-signed IPA locally without an upload path', () => {
+    expect(ipaExportScript).toContain('<string>export</string>');
+    expect(ipaExportScript).toContain('<string>app-store-connect</string>');
+    expect(ipaExportScript).toContain('<string>manual</string>');
+    expect(ipaExportScript).toContain('expected_profile_name="DuelWords AV App Store"');
+    expect(ipaExportScript).toContain('<string>$expected_profile_name</string>');
+    expect(ipaExportScript).toContain('<string>Apple Distribution</string>');
+    expect(ipaExportScript).toContain('manageAppVersionAndBuildNumber');
+    expect(ipaExportScript).toContain('get-task-allow=false');
+    expect(ipaExportScript).toContain('codesign --verify --deep --strict');
+    expect(ipaExportScript).not.toMatch(/destination>\s*<string>upload|eas\s+submit|altool|notarytool/);
   });
 
   it('refreshes the ignored Xcode Node path before release script phases run', () => {
