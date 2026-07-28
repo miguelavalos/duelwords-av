@@ -258,16 +258,33 @@ That connected pass reproduced one client-only race: a late timeout rejection
 could replace the correct next-round status with `Could not close timed-out
 round` after gameplay had already advanced. `f9fc5ff` now ignores timeout
 results that belong to a resolved or superseded round and includes a permanent
-view-model regression. The full gate passes 71 test files / 365 tests,
+view-model regression. The full gate passes 71 test files / 366 tests,
 TypeScript, Expo lint, SDK dependency alignment, and diff hygiene. React Doctor
-0.9.1 reports zero errors; the full scan retains 73 structural warnings (score
-65), while the changed scope has six warnings and no errors (score 82).
+0.9.2 reports zero issues in the current changed scope (100/100); its full scan
+retains 73 pre-existing structural warnings (65/100).
 No backend deploy, Cloudflare/Convex/Account AV/Sentry mutation, Infisical
 write, TestFlight upload, or purchase ran. The physical iPhone was unavailable
 and no physical iPad exists, so the post-fix device install was not claimed.
-The canonical signed archive attempt stopped before compilation because Office
-Openspace has neither an Xcode account nor a local provisioning profile for
-`com.avalsys.duelwordsav`; no archive or upload was produced.
+
+The follow-up restored the existing Apple team in Xcode and regenerated the
+already-owned `DuelWords AV App Store` profile against the installed Apple
+Distribution identity expiring 2027-06-08. The first signed retry exposed an
+ignored `.xcode.env.local` path into a retired Homebrew Cellar. Public
+`bd936f4` makes the canonical helper regenerate production runtime config,
+refresh `NODE_BINARY`, and then check the effective configuration before
+archiving; a permanent release-workflow regression covers that order and path.
+
+Office Openspace rebuilt clean public source `bd936f4` as RC8. The canonical
+archive passes version/build `0.1.0 (2)`, bundle `com.avalsys.duelwordsav`, team
+`935PM55U6R`, arm64 app/dSYM UUID
+`9692B671-438D-3DB8-9720-A68F84239BA1`, production Account AV/runtime config,
+privacy manifest, entitlements, and deep signature validation. A local
+App Store export then produced a 34,925,228-byte `DuelWordsAV.ipa` with SHA-256
+`82d21dce279eda777014f45c9f2aaca8cc14f962c485a0ce50262f1ecac09439`,
+profile UUID `56a98c4c-5187-433f-b042-f3f893f906a0`, `get-task-allow=false`, and
+the matching Apple Distribution certificate. Sentry uploads remained disabled
+and no App Store Connect/TestFlight upload occurred. The registered physical
+iPhone remained unavailable, so no install or data mutation was attempted.
 
 The 2026-07-26 content audit follows Tune AV's Avi composition rule precisely:
 the cropped Avi navigation treatment in the shared phone footer is separate
@@ -865,11 +882,9 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Restore signing capability on Office Openspace by signing in to the existing
-  Apple developer team and downloading the already-owned DuelWords provisioning
-  profile, then rebuild and validate the canonical `0.1.0 (2)` archive from
-  public source `f9fc5ff`. Do not create a TestFlight upload from that archive
-  without a new exact authorization.
+- Keep RC8 from public source `bd936f4` frozen. Its local distribution IPA is
+  ready, but do not upload it to App Store Connect/TestFlight without a new
+  exact authorization for this candidate.
 - Install the post-fix signed candidate over the existing physical iPhone app
   without uninstalling or clearing data when that phone is connected. No
   physical iPad exists; this candidate's iPad acceptance is the dedicated
