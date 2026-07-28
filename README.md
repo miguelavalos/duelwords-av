@@ -607,8 +607,10 @@ Their private canonical promotion and review status are documented under
 keeps a DuelWords-specific icon, mark, lockup, and editorial imagery. Every
 common surface uses the same shared components, canonical palette, layout
 grammar, Avi V2 assets, and footer behavior as Tune AV. The 2026-07-28 logo,
-wordmark, symbol, and corrected splash promotion is owner-directed; signed
-iPhone/iPad crop review remains mandatory before build `2`.
+wordmark, symbol, and corrected splash pixels are owner-approved. Expo prebuild
+wires the approved light/dark wordmark, lockup, and splash hero into the shared
+Apple asset catalogs; signed iPhone/iPad crop review remains mandatory before a
+replacement upload.
 
 `pnpm run config:ios:check` pins the promoted icon, product symbol, light/dark
 wordmark and lockup sources, splash/onboarding art, and the exact shared Tune AV

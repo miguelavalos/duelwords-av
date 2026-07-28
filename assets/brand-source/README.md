@@ -43,6 +43,7 @@ Generated outputs are normalized into:
 
 Do not regenerate these assets independently from the Apps AV references. Any
 future revision must compare the full icon, splash, onboarding, header, and
-footer family together. The logo, wordmark, mark, and revised splash were
-promoted into the private canonical brand-system folder on 2026-07-28 by owner
-direction. Signed-device crop review remains part of the next TestFlight gate.
+footer family together. The owner approved all generated logo, wordmark, mark,
+and revised splash pixels on 2026-07-28; they are promoted in the private
+canonical brand-system folder and wired into the generated iOS asset catalogs.
+Signed-device crop review remains part of the next TestFlight gate.

@@ -10,6 +10,7 @@ const appJson = JSON.parse(readFileSync(resolve(repoRoot, 'app.json'), 'utf8'));
 const easJson = JSON.parse(readFileSync(resolve(repoRoot, 'eas.json'), 'utf8'));
 const packageJson = JSON.parse(readFileSync(resolve(repoRoot, 'package.json'), 'utf8'));
 const iosConfigGenerator = readFileSync(resolve(repoRoot, 'scripts/ios/generate-local-xcconfig.sh'), 'utf8');
+const sharedApplePlugin = require(resolve(repoRoot, 'plugins/with-duelwords-shared-apple.js'));
 const development = process.argv.includes('--development');
 const expoConfig = require(resolve(repoRoot, 'app.config.js'))();
 const failures = [];
@@ -135,6 +136,30 @@ expectEqual(
   'expo-splash-screen lockup width',
   expoPluginOptions('expo-splash-screen')?.imageWidth,
   280,
+);
+const expectedSharedAppleAssets = {
+  AviFooterIcon: 'avi-footer.png',
+  AviV2LoginSheetPeek: 'avi-login-sheet-peek.png',
+  AviV2OnboardingCTA: 'avi-onboarding.png',
+  DuelWordsHeaderLogo: {
+    light: 'duelwords-wordmark.png',
+    dark: 'duelwords-wordmark-dark.png',
+  },
+  DuelWordsOnboardingBrand: {
+    light: 'duelwords-logo-lockup.png',
+    dark: 'duelwords-logo-lockup-dark.png',
+  },
+  DuelWordsOnboardingHero: 'duelwords-onboarding-hero.png',
+  DuelWordsSplashHero: 'duelwords-splash-hero.png',
+  DuelWordsSplashLogo: {
+    light: 'duelwords-logo-lockup.png',
+    dark: 'duelwords-logo-lockup-dark.png',
+  },
+};
+expectEqual(
+  'shared Apple approved asset catalog mapping',
+  JSON.stringify(sharedApplePlugin.ASSETS),
+  JSON.stringify(expectedSharedAppleAssets),
 );
 expectEqual(
   'expo.ios.entitlements com.apple.developer.applesignin',

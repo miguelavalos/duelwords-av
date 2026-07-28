@@ -128,3 +128,4 @@ function withDuelWordsSharedApple(config) {
 }
 
 module.exports = withDuelWordsSharedApple;
+module.exports.ASSETS = ASSETS;
