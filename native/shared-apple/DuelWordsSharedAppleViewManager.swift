@@ -51,6 +51,10 @@ final class DuelWordsSharedAppleHostView: UIView {
     var authError: NSString = "" { didSet { render() } }
     var authInitiallyPresented = false { didSet { render() } }
     var hapticsEnabled = true { didSet { render() } }
+    var subscriptionBusy = false { didSet { render() } }
+    var subscriptionError: NSString = "" { didSet { render() } }
+    var subscriptionPrice: NSString = "" { didSet { render() } }
+    var subscriptionState: NSString = "unavailable" { didSet { render() } }
     var onAction: RCTBubblingEventBlock?
 
     private var hostingController: UIHostingController<AnyView>?
@@ -106,7 +110,11 @@ final class DuelWordsSharedAppleHostView: UIView {
             activeProvider: activeProvider as String,
             authError: authError as String,
             authInitiallyPresented: authInitiallyPresented,
-            hapticsEnabled: hapticsEnabled
+            hapticsEnabled: hapticsEnabled,
+            subscriptionBusy: subscriptionBusy,
+            subscriptionError: subscriptionError as String,
+            subscriptionPrice: subscriptionPrice as String,
+            subscriptionState: subscriptionState as String
         ).applyingSimulatorUITestOverrides()
         let rootView = AnyView(
             DuelWordsSharedSurfaceRoot(props: props) { [weak self] action, value in
@@ -190,6 +198,10 @@ struct DuelWordsSharedSurfaceProps {
     let authError: String
     let authInitiallyPresented: Bool
     let hapticsEnabled: Bool
+    let subscriptionBusy: Bool
+    let subscriptionError: String
+    let subscriptionPrice: String
+    let subscriptionState: String
 }
 
 private extension DuelWordsSharedSurfaceProps {
@@ -223,7 +235,11 @@ private extension DuelWordsSharedSurfaceProps {
             activeProvider: activeProvider,
             authError: authError,
             authInitiallyPresented: authInitiallyPresented,
-            hapticsEnabled: hapticsEnabled
+            hapticsEnabled: hapticsEnabled,
+            subscriptionBusy: subscriptionBusy,
+            subscriptionError: subscriptionError,
+            subscriptionPrice: subscriptionPrice,
+            subscriptionState: subscriptionState
         )
 #else
         return self

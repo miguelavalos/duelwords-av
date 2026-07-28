@@ -1,7 +1,9 @@
 import type { GameLanguage } from '../word-duel-engine';
 
 const STORAGE_KEY = 'duelwords-av:activity:v1';
-const MAX_ACTIVITY_RECORDS = 100;
+// Persist the deepest supported local tier once; presentation applies the
+// account-specific visibility cap without deleting history after a downgrade.
+const MAX_ACTIVITY_RECORDS = 1_000;
 const listeners = new Set<() => void>();
 let revision = 0;
 

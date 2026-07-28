@@ -13,6 +13,7 @@ import type {
   DuelWordsApiClient,
   DuelWordsApiDailyTarget,
 } from '../word-duel-lobby/api-client';
+import type { DuelWordsActorIdentity } from '../word-duel-active/api-adapter';
 import { recordDuelWordsActivity } from '../activity/device-activity-store';
 
 const STORAGE_KEY = 'duelwords-av:official-daily:v1';
@@ -77,6 +78,7 @@ export class OfficialDailyLoader {
   ) {}
 
   load(input: {
+    actor: DuelWordsActorIdentity;
     language: GameLanguage;
     now?: Date;
     signal?: AbortSignal;
@@ -94,7 +96,7 @@ export class OfficialDailyLoader {
       return Promise.resolve({ session: cached, source: 'cache' });
     }
 
-    const key = sessionKey(dailyDate, input.timeZone, input.language);
+    const key = `${sessionKey(dailyDate, input.timeZone, input.language)}|${dailyActorKey(input.actor)}`;
     const pending = this.inFlight.get(key);
     if (pending) {
       return pending;
@@ -107,6 +109,7 @@ export class OfficialDailyLoader {
   }
 
   private async fetchAndPersist(input: {
+    actor: DuelWordsActorIdentity;
     dailyDate: string;
     language: GameLanguage;
     now: Date;
@@ -114,6 +117,7 @@ export class OfficialDailyLoader {
     timeZone: string;
   }): Promise<OfficialDailyLoadResult> {
     const target = await this.api.getDailyTarget({
+      actor: input.actor,
       language: input.language,
       signal: input.signal,
       timeZone: input.timeZone,
@@ -125,6 +129,10 @@ export class OfficialDailyLoader {
     persistOfficialDailySession(session, this.storage);
     return { session, source: 'network' };
   }
+}
+
+function dailyActorKey(actor: DuelWordsActorIdentity): string {
+  return actor.actorType === 'account_user' ? 'account' : actor.guestSessionId;
 }
 
 export function createOfficialDailySession(
@@ -181,6 +189,17 @@ export function readOfficialDailySession(input: {
 }): OfficialDailySession | null {
   const store = readStore(input.storage === undefined ? deviceStorage() : input.storage);
   return store.sessions[sessionKey(input.dailyDate, input.timeZone, input.language)] ?? null;
+}
+
+export function readOfficialDailySessionsForDate(input: {
+  dailyDate: string;
+  storage?: OfficialDailyStorage | null;
+  timeZone: string;
+}): readonly OfficialDailySession[] {
+  const store = readStore(input.storage === undefined ? deviceStorage() : input.storage);
+  return Object.values(store.sessions)
+    .filter((session) => session.dailyDate === input.dailyDate && session.timeZone === input.timeZone)
+    .sort((left, right) => Date.parse(left.startedAt) - Date.parse(right.startedAt));
 }
 
 export function persistOfficialDailySession(

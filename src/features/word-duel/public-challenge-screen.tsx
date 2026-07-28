@@ -23,6 +23,7 @@ import type { WordDuelLobbyPlayer } from '@/game/word-duel-lobby/view-model';
 import {
   createWordDuelDefaultGuestDisplayName,
   createWordDuelGuestActor,
+  getOrCreateWordDuelGuestSessionId,
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
   parseWordDuelInviteEntry,
@@ -349,6 +350,7 @@ export function PublicWordDuelChallengeScreen({
     if (guestActorRef.current === null) {
       guestActorRef.current = createWordDuelGuestActor({
         displayName: normalized.value,
+        guestSessionId: getOrCreateWordDuelGuestSessionId(randomUUID),
         randomUuid: randomUUID,
       });
     } else {
@@ -711,6 +713,7 @@ function actionErrorMessage(
   copy: (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) => string,
 ) {
   if (error instanceof DuelWordsApiError) {
+    if (error.code === 'human_challenge_daily_limit_reached') return copy('challengeDailyLimitReached');
     if (error.code === 'game_full') return copy('challengeClosed');
     if (error.code === 'game_expired') return copy('challengeClosed');
     if (error.status >= 500 || error.status === 0) return copy('safeRealtimeUnavailable');

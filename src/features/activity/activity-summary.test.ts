@@ -35,7 +35,7 @@ function dailyStats(overrides: Partial<Record<GameLanguage, Partial<OfficialDail
 }
 
 describe('activity summaries', () => {
-  it('combines official Daily totals without double-counting Daily activity rows', () => {
+  it('summarizes the supplied tier and time-window activity without double-counting Daily rows', () => {
     const summary = summarizeDuelWordsStats({
       dailyStats: dailyStats({ en: { completed: 2, currentStreak: 2, solved: 1 } }),
       records: [
@@ -47,10 +47,10 @@ describe('activity summaries', () => {
     });
 
     expect(summary).toEqual({
-      completed: 4,
+      completed: 3,
       currentDailyStreak: 2,
-      modeCounts: { avi: 0, daily: 2, friends: 1, practice: 1 },
-      successRate: 50,
+      modeCounts: { avi: 0, daily: 1, friends: 1, practice: 1 },
+      successRate: 67,
       victories: 2,
     });
   });

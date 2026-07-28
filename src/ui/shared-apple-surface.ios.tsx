@@ -34,6 +34,10 @@ export function SharedAppleSurface({
   planTier = 'free',
   selectedTab = 'play',
   signedIn = false,
+  subscriptionBusy = false,
+  subscriptionError = '',
+  subscriptionPrice = '',
+  subscriptionState = 'unavailable',
   ...props
 }: SharedAppleSurfaceProps) {
   if (!NativeSharedAppleSurface) return null;
@@ -60,6 +64,10 @@ export function SharedAppleSurface({
       planTier={planTier}
       selectedTab={selectedTab}
       signedIn={signedIn}
+      subscriptionBusy={subscriptionBusy}
+      subscriptionError={subscriptionError}
+      subscriptionPrice={subscriptionPrice}
+      subscriptionState={subscriptionState}
     />
   );
 }

@@ -12,15 +12,17 @@ Sentry's bundled manifest declares its diagnostic categories.
 | Email address | Yes | No | App functionality |
 | User ID | Yes | No | App functionality |
 | Gameplay content | Yes for signed users | No | App functionality |
+| Purchases | Yes | No | App functionality |
 | Coarse location | No | No | App diagnostics |
 | Crash data | No | No | App diagnostics |
 | Performance data | No | No | App diagnostics |
 | Other diagnostic data | No | No | App diagnostics |
 
-Do not declare advertising data, advertising identifiers, purchases, precise
-location or tracking for the V1 binary. If advertising or real purchases are
-added later, this contract, the public privacy policy, consent design, binary
-audit and App Store Connect answers must all be reviewed again before release.
+Do not declare advertising data, advertising identifiers, precise location or
+tracking. RevenueCat attribution identifier collection remains disabled. Any
+future advertising or attribution integration requires this contract, the
+public privacy policy, consent design, binary audit and App Store Connect
+answers to be reviewed again before release.
 
 ## Diagnostic boundary
 

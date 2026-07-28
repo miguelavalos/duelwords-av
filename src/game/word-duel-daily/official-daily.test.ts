@@ -11,8 +11,11 @@ import {
   persistOfficialDailySession,
   readOfficialDailyStats,
   readOfficialDailySession,
+  readOfficialDailySessionsForDate,
   type OfficialDailyStorage,
 } from './official-daily';
+
+const DAILY_ACTOR = { actorType: 'guest_session', guestSessionId: 'daily-guest' } as const;
 
 function memoryStorage(): OfficialDailyStorage {
   const values = new Map<string, string>();
@@ -41,6 +44,7 @@ describe('official Daily local-first runtime', () => {
     const getDailyTarget = vi.fn(async () => response);
 
     const first = await new OfficialDailyLoader({ getDailyTarget }, storage).load({
+      actor: DAILY_ACTOR,
       language: 'en',
       now: new Date('2026-07-27T10:00:00.000Z'),
       timeZone: 'Europe/Madrid',
@@ -48,6 +52,7 @@ describe('official Daily local-first runtime', () => {
     const second = await new OfficialDailyLoader({
       getDailyTarget: vi.fn(() => Promise.reject(new Error('network must not run'))),
     }, storage).load({
+      actor: DAILY_ACTOR,
       language: 'en',
       now: new Date('2026-07-27T10:05:00.000Z'),
       timeZone: 'Europe/Madrid',
@@ -71,6 +76,7 @@ describe('official Daily local-first runtime', () => {
     const getDailyTarget = vi.fn(async () => response);
     const loader = new OfficialDailyLoader({ getDailyTarget }, storage);
     const input = {
+      actor: DAILY_ACTOR,
       language: 'es' as const,
       now: new Date('2026-07-27T10:00:00.000Z'),
       timeZone: 'Europe/Madrid',
@@ -82,11 +88,33 @@ describe('official Daily local-first runtime', () => {
     expect(second).toEqual(first);
   });
 
+  it('finds an already-started Daily in any language for the one-total-per-day tiers', () => {
+    const storage = memoryStorage();
+    const spanish = createOfficialDailySession(
+      targetResponse('es', 'avion'),
+      '2026-07-27',
+      new Date('2026-07-27T08:00:00.000Z'),
+    );
+    persistOfficialDailySession(spanish, storage);
+
+    expect(readOfficialDailySessionsForDate({
+      dailyDate: '2026-07-27',
+      storage,
+      timeZone: 'Europe/Madrid',
+    })).toEqual([spanish]);
+    expect(readOfficialDailySessionsForDate({
+      dailyDate: '2026-07-28',
+      storage,
+      timeZone: 'Europe/Madrid',
+    })).toEqual([]);
+  });
+
   it('rejects an unknown server target without caching it', async () => {
     const storage = memoryStorage();
     const getDailyTarget = vi.fn(async () => targetResponse('fr', 'xxxxx'));
 
     await expect(new OfficialDailyLoader({ getDailyTarget }, storage).load({
+      actor: DAILY_ACTOR,
       language: 'fr',
       now: new Date('2026-07-27T10:00:00.000Z'),
       timeZone: 'UTC',
@@ -121,6 +149,7 @@ describe('official Daily local-first runtime', () => {
     await expect(new OfficialDailyLoader({
       getDailyTarget: vi.fn(() => Promise.reject(offline)),
     }, storage).load({
+      actor: DAILY_ACTOR,
       language: 'en',
       now: new Date('2026-07-27T08:00:00.000Z'),
       timeZone: 'UTC',

@@ -5,6 +5,7 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { t } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
+import { useDuelWordsProPurchase } from '@/subscriptions/use-duelwords-pro-purchase';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
@@ -19,11 +20,19 @@ export function ProScreen() {
   const styles = useStyles();
   const isPro = account.access.planTier === 'pro';
   const signedIn = account.user !== null;
+  const subscription = useDuelWordsProPurchase({
+    isPro,
+    refreshAccount: account.refresh,
+    userId: account.user?.id ?? null,
+  });
 
   function handleSharedAction({ action }: SharedAppleAction) {
     if (action === 'close') router.back();
     else if (action === 'signIn') router.replace('/auth?mode=signIn' as Href);
     else if (action === 'refreshAccount') void account.refresh();
+    else if (action === 'purchasePro') void subscription.purchase();
+    else if (action === 'restorePurchases') void subscription.restore();
+    else if (action === 'manageSubscriptions') void Linking.openURL('https://apps.apple.com/account/subscriptions');
     else if (action === 'openTerms') void Linking.openURL('https://duelwords-av.avalsys.com/terms/');
     else if (action === 'openPrivacy') void Linking.openURL('https://duelwords-av.avalsys.com/privacy/');
     else if (action === 'openSupport') void Linking.openURL('https://duelwords-av.avalsys.com/support/');
@@ -41,6 +50,10 @@ export function ProScreen() {
         onAction={handleSharedAction}
         planTier={account.access.planTier}
         signedIn={signedIn}
+        subscriptionBusy={subscription.state === 'loading'}
+        subscriptionError={subscription.error ?? ''}
+        subscriptionPrice={subscription.price ?? ''}
+        subscriptionState={subscription.state}
         style={styles.sharedScreen}
         surface="paywall"
       />
@@ -62,14 +75,16 @@ export function ProScreen() {
 
       <PaperCard emphasized>
         <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
-        <Benefit title="Deeper private history" detail="Keep more finished game summaries without exposing full boards publicly." />
+        <Benefit title="Daily in every language" detail="Play the Official Daily once per language each day." />
+        <Benefit title="1,000 history records" detail="Keep a private 365-day statistics window on this device." />
+        <Benefit title="100 challenges per day" detail="Create more human challenges without changing duel rules." />
         <Benefit title="Account-backed access" detail="Your Apps AV account keeps Pro access with you." />
       </PaperCard>
 
       <PaperCard emphasized>
         <SectionHeading
-          title={isPro ? 'Your access' : signedIn ? 'Subscriptions are coming later' : 'Account AV required'}
-          detail={isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Subscriptions will be available later. Your account and local games remain unchanged.' : 'Sign in first so future Pro access can stay with your Apps AV account.'}
+          title={isPro ? 'Your access' : signedIn ? 'Monthly subscription' : 'Account AV required'}
+          detail={isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Cancel anytime in your Apple subscription settings.' : 'Sign in first so Pro access stays with your Apps AV account.'}
         />
         {isPro ? (
           <>
@@ -78,8 +93,25 @@ export function ProScreen() {
           </>
         ) : signedIn ? (
           <>
-            <AppButton disabled>Not available yet</AppButton>
-            <AppButton tone="quiet" onPress={() => void account.refresh()}>Refresh Apps AV access</AppButton>
+            <AppButton
+              disabled={subscription.state !== 'ready'}
+              onPress={() => void subscription.purchase()}>
+              {subscription.state === 'loading'
+                ? 'Loading subscription…'
+                : subscription.price
+                  ? `Subscribe · ${subscription.price} per month`
+                  : 'Subscription unavailable'}
+            </AppButton>
+            <AppButton
+              disabled={subscription.state === 'loading'}
+              tone="quiet"
+              onPress={() => void subscription.restore()}>
+              Restore purchases
+            </AppButton>
+            {subscription.state === 'pending_reconciliation' ? (
+              <Text style={styles.status}>Purchase received. Confirming Pro access with Apps AV…</Text>
+            ) : null}
+            {subscription.error ? <Text style={styles.error}>{subscription.error}</Text> : null}
           </>
         ) : (
           <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>Sign in to continue</AppButton>
@@ -91,7 +123,7 @@ export function ProScreen() {
         <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy</AppButton>
         <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>Support</AppButton>
       </View>
-      <Text style={styles.legal}>DuelWords Pro subscriptions will be available later. Pro never changes the rules of a duel.</Text>
+      <Text style={styles.legal}>Payment renews monthly through Apple until cancelled. Pro never changes the rules of a duel.</Text>
     </AppScreen>
   );
 }
@@ -121,6 +153,8 @@ function useStyles() {
     benefitTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
     benefitDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 18 },
     legal: { maxWidth: 620, alignSelf: 'center', color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center' },
+    status: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center' },
+    error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 19, textAlign: 'center', fontWeight: '700' },
     legalActions: { flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: spacing.sm },
     legalButton: { minWidth: 96 },
   }), [colors]);

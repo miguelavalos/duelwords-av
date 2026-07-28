@@ -4,6 +4,9 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { activityCopy, activityOutcomeLabel } from '@/features/activity/activity-copy';
 import { summarizeRecentRivals } from '@/features/activity/activity-summary';
 import { useDeviceActivity } from '@/features/activity/use-device-activity';
+import { visibleDuelWordsHistory } from '@/features/activity/activity-tier-policy';
+import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { duelWordsTierForAccess } from '@/entitlements/duelwords-tier-policy';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { type InterfaceLocale } from '@/i18n/locales';
@@ -22,11 +25,15 @@ const DATE_FORMATTERS: Record<InterfaceLocale, Intl.DateTimeFormat> = {
 };
 
 export function RivalsScreen() {
+  const account = useDuelWordsAccount();
   const router = useRouter();
   const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const activity = activityCopy(interfaceLocale);
-  const rivals = summarizeRecentRivals(useDeviceActivity());
+  const records = useDeviceActivity();
+  const rivals = summarizeRecentRivals(
+    visibleDuelWordsHistory(records, duelWordsTierForAccess(account.access)),
+  );
   const { colors } = useAppTheme();
   const { width } = useWindowDimensions();
   const dateFormatter = DATE_FORMATTERS[interfaceLocale];

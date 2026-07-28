@@ -1,6 +1,7 @@
 import { getDuelWordsAppsApiRuntimeConfig } from '@/config/expo-apps-api';
+import { randomUUID } from 'expo-crypto';
 import { useRouter } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, Share, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import {
@@ -9,22 +10,27 @@ import {
   localDateForTimeZone,
   OfficialDailyLoader,
   readOfficialDailySession,
+  readOfficialDailySessionsForDate,
   readOfficialDailyStats,
   type OfficialDailySession,
 } from '@/game/word-duel-daily/official-daily';
+import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { duelWordsTierForAccess } from '@/entitlements/duelwords-tier-policy';
 import {
   normalizeGuess,
   type GameLanguage,
   type GuessRejection,
 } from '@/game/word-duel-engine';
 import { createDuelWordsRuntimeApiClient } from '@/game/word-duel-lobby/runtime-api-client';
+import { DuelWordsApiError } from '@/game/word-duel-lobby/api-client';
+import { getOrCreateWordDuelGuestSessionId } from '@/game/word-duel-public/guest-entry';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { gameLanguageLabel, t, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard } from '@/ui/brand';
-import { InteriorScreenHeader, ScreenInfoButton } from '@/ui/screen-navigation';
+import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { createKeyboardFeedbackFromGuesses, createRowsFromLocalWordDuelState } from './components/word-duel-ui-model';
 import { GameLanguagePicker } from './components/game-language-picker';
@@ -35,11 +41,6 @@ import { dailyCopy } from './daily-copy';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from './word-duel-route-params';
 
 const DEVICE_TIME_ZONE = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
-const DAILY_API_BUNDLE = createDuelWordsRuntimeApiClient({
-  platform: apiPlatform(),
-  runtimeConfig: getDuelWordsAppsApiRuntimeConfig(),
-});
-const DAILY_LOADER = DAILY_API_BUNDLE.ok ? new OfficialDailyLoader(DAILY_API_BUNDLE.client) : null;
 const DAILY_DATE_FORMATTERS: Record<InterfaceLocale, Intl.DateTimeFormat> = {
   en: new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeZone: 'UTC' }),
   es: new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeZone: 'UTC' }),
@@ -57,19 +58,41 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
   const { height, width } = useWindowDimensions();
   const compact = width <= 480 && height <= 900;
   const tablet = width >= 760;
-  const [{ interfaceLocale }] = useAppPreferences();
+  const account = useDuelWordsAccount();
+  const [{ gameLanguage: settingsGameLanguage, interfaceLocale }] = useAppPreferences();
+  const tier = duelWordsTierForAccess(account.access);
+  const canSelectLanguage = tier === 'pro';
   const commonCopy = experienceCopy(interfaceLocale);
   const copy = dailyCopy(interfaceLocale);
   const styles = useStyles();
   const dateFormatter = DAILY_DATE_FORMATTERS[interfaceLocale];
   const timeZone = DEVICE_TIME_ZONE;
-  const loader = DAILY_LOADER;
+  const apiBundle = useMemo(() => createDuelWordsRuntimeApiClient({
+    getAuthToken: account.getToken,
+    platform: apiPlatform(),
+    runtimeConfig: getDuelWordsAppsApiRuntimeConfig(),
+  }), [account.getToken]);
+  const loader = useMemo(
+    () => apiBundle.ok ? new OfficialDailyLoader(apiBundle.client) : null,
+    [apiBundle],
+  );
+  const actor = account.user
+    ? { actorType: 'account_user' as const }
+    : {
+        actorType: 'guest_session' as const,
+        guestSessionId: getOrCreateWordDuelGuestSessionId(randomUUID),
+      };
   const requestController = useRef<AbortController | null>(null);
   const inputBuffer = useWordDuelInputBuffer();
-  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(initialGameLanguage);
-  const [session, setSession] = useState<OfficialDailySession | null>(() => cachedSession(initialGameLanguage, timeZone));
+  const existingSession = firstDailySessionToday(timeZone);
+  const allowedInitialLanguage = canSelectLanguage
+    ? initialGameLanguage
+    : existingSession?.language ?? settingsGameLanguage;
+  const [gameLanguage, setGameLanguage] = useState<GameLanguage>(allowedInitialLanguage);
+  const [session, setSession] = useState<OfficialDailySession | null>(
+    () => cachedSession(allowedInitialLanguage, timeZone),
+  );
   const [isLoading, setIsLoading] = useState(false);
-  const [showGameInfo, setShowGameInfo] = useState(false);
   const [message, setMessage] = useState('');
 
   useEffect(() => () => {
@@ -86,6 +109,7 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
   const tileSize = compact ? Math.min(46, regularTileSize) : regularTileSize;
 
   function changeLanguage(language: GameLanguage) {
+    if (!canSelectLanguage) return;
     setGameLanguage(language);
     setSession(cachedSession(language, timeZone));
     inputBuffer.clear();
@@ -94,11 +118,26 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
 
   function startOrResume() {
     if (!loader || isLoading) return;
+    if (!canSelectLanguage) {
+      const startedToday = firstDailySessionToday(timeZone);
+      if (startedToday) {
+        setGameLanguage(startedToday.language);
+        setSession(startedToday);
+        inputBuffer.clear();
+        return;
+      }
+      if (gameLanguage !== settingsGameLanguage) {
+        setGameLanguage(settingsGameLanguage);
+        setSession(cachedSession(settingsGameLanguage, timeZone));
+        return;
+      }
+    }
     const controller = new AbortController();
     requestController.current = controller;
     setIsLoading(true);
     setMessage('');
     void loader.load({
+        actor,
         language: gameLanguage,
         signal: controller.signal,
         timeZone,
@@ -106,7 +145,11 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
       .then((loaded) => setSession(loaded.session))
       .catch((error: unknown) => {
         if (!(error instanceof Error && error.name === 'AbortError')) {
-          setMessage(copy.unavailableDetail);
+          setMessage(
+            error instanceof DuelWordsApiError && error.code === 'daily_language_already_used'
+              ? copy.alreadyPlayedLanguage
+              : copy.unavailableDetail,
+          );
         }
       })
       .finally(() => {
@@ -174,13 +217,6 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
         detail={sessionDetail}
         onBack={() => router.back()}
         title={session ? copy.eyebrow : undefined}
-        trailing={session ? (
-          <ScreenInfoButton
-            accessibilityLabel={showGameInfo ? copy.hideInformation : copy.information}
-            expanded={showGameInfo}
-            onPress={() => setShowGameInfo((visible) => !visible)}
-          />
-        ) : undefined}
       />
 
       {!session ? (
@@ -194,16 +230,18 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
             </View>
           </View>
 
-          <GameLanguagePicker
-            dismissLabel={t(interfaceLocale, 'done')}
-            label={commonCopy.gameLanguage}
-            onChange={changeLanguage}
-            value={gameLanguage}
-          />
+          {canSelectLanguage ? (
+            <GameLanguagePicker
+              dismissLabel={t(interfaceLocale, 'done')}
+              label={commonCopy.gameLanguage}
+              onChange={changeLanguage}
+              value={gameLanguage}
+            />
+          ) : null}
         </>
       ) : null}
 
-      {session && showGameInfo ? (
+      {session ? (
         <PaperCard>
           <View style={styles.infoRow}>
             <View style={styles.flexCopy}>
@@ -317,6 +355,13 @@ function cachedSession(language: GameLanguage, timeZone: string) {
     language,
     timeZone,
   });
+}
+
+function firstDailySessionToday(timeZone: string) {
+  return readOfficialDailySessionsForDate({
+    dailyDate: localDateForTimeZone(new Date(), timeZone),
+    timeZone,
+  })[0] ?? null;
 }
 
 function apiPlatform() {

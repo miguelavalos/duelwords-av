@@ -280,6 +280,7 @@ export type DuelWordsApiClient = {
     maxAttempts?: number;
   }): Promise<DuelWordsApiLobbyResponse>;
   getDailyTarget(input: {
+    actor: DuelWordsActorIdentity;
     language: GameLanguage;
     signal?: AbortSignal;
     timeZone: string;
@@ -446,6 +447,7 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
     async getDailyTarget(input) {
       const payload = await requestJson('/v1/apps/duelwords/daily/target', {
         body: {
+          actor: input.actor,
           language: input.language,
           timeZone: input.timeZone,
         },

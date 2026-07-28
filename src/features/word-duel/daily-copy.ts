@@ -1,6 +1,7 @@
 import type { InterfaceLocale } from '@/i18n/locales';
 
 export type DailyCopy = {
+  alreadyPlayedLanguage: string;
   aviDetail: string;
   aviTitle: string;
   best: string;
@@ -36,6 +37,7 @@ export type DailyCopy = {
 
 export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
   en: {
+    alreadyPlayedLanguage: 'Today’s Daily was already started in another language. Free and Guest access includes one Daily in total each day.',
     aviDetail: 'The word is collected once. Every guess stays on this device.',
     aviTitle: 'Avi keeps it fair',
     best: 'Best',
@@ -69,6 +71,7 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     unavailableTitle: 'Today’s word is not ready',
   },
   es: {
+    alreadyPlayedLanguage: 'El Diario de hoy ya se ha iniciado en otro idioma. El acceso Free e invitado incluye un solo Diario en total cada día.',
     aviDetail: 'La palabra se recoge una sola vez. Cada intento se queda en este dispositivo.',
     aviTitle: 'Avi mantiene el juego justo',
     best: 'Mejor',
@@ -102,6 +105,7 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     unavailableTitle: 'La palabra de hoy no está lista',
   },
   ca: {
+    alreadyPlayedLanguage: 'El Diari d’avui ja s’ha iniciat en un altre idioma. L’accés Free i convidat inclou un sol Diari en total cada dia.',
     aviDetail: 'La paraula es recull una sola vegada. Cada intent es queda en aquest dispositiu.',
     aviTitle: 'L’Avi manté el joc just',
     best: 'Millor',
@@ -135,6 +139,7 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     unavailableTitle: 'La paraula d’avui no està preparada',
   },
   fr: {
+    alreadyPlayedLanguage: 'Le Quotidien du jour a déjà été commencé dans une autre langue. L’accès Free et invité comprend un seul Quotidien par jour.',
     aviDetail: 'Le mot est récupéré une seule fois. Chaque essai reste sur cet appareil.',
     aviTitle: 'Avi veille à l’équité',
     best: 'Meilleur',
@@ -168,6 +173,7 @@ export const DAILY_COPY: Record<InterfaceLocale, DailyCopy> = {
     unavailableTitle: 'Le mot du jour n’est pas prêt',
   },
   de: {
+    alreadyPlayedLanguage: 'Das heutige Tageswort wurde bereits in einer anderen Sprache begonnen. Free- und Gastzugang umfasst insgesamt ein Tageswort pro Tag.',
     aviDetail: 'Das Wort wird einmal geholt. Jeder Versuch bleibt auf diesem Gerät.',
     aviTitle: 'Avi sorgt für Fairness',
     best: 'Bestwert',

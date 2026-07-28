@@ -6,6 +6,9 @@ const INVITE_HOST = 'app.duelwords-av.avalsys.com';
 const INVITE_PATH_PREFIX = '/i/c/';
 const INVITE_TOKEN_PATTERN = /^[a-z0-9_-]{8,160}$/i;
 const CONTROL_CHARACTER_PATTERN = /[\u0000-\u001f\u007f]/;
+const GUEST_SESSION_STORAGE_KEY = 'duelwords-av:guest-session:v1';
+
+export type DuelWordsGuestSessionStorage = Pick<Storage, 'getItem' | 'setItem'>;
 
 export type WordDuelGuestDisplayNameResult =
   | { ok: true; value: string }
@@ -41,6 +44,7 @@ export function createWordDuelDefaultGuestDisplayName(randomUuid: () => string):
 
 export function createWordDuelGuestActor(input: {
   displayName: string;
+  guestSessionId?: string;
   randomUuid: () => string;
 }): DuelWordsGuestActor {
   const displayName = normalizeWordDuelGuestDisplayName(input.displayName);
@@ -48,16 +52,52 @@ export function createWordDuelGuestActor(input: {
     throw new Error(`invalid_guest_display_name:${displayName.reason}`);
   }
 
-  const uuid = input.randomUuid().trim().replace(/[^a-z0-9-]/gi, '').slice(0, 96);
-  if (uuid.length < 16) {
-    throw new Error('invalid_guest_session_randomness');
-  }
+  const guestSessionId = input.guestSessionId ?? createGuestSessionId(input.randomUuid);
 
   return {
     actorType: 'guest_session',
-    guestSessionId: `dwg_${uuid}`,
+    guestSessionId,
     safeDisplayName: displayName.value,
   };
+}
+
+export function getOrCreateWordDuelGuestSessionId(
+  randomUuid: () => string,
+  storage: DuelWordsGuestSessionStorage | null = deviceStorage(),
+): string {
+  if (storage) {
+    try {
+      const existing = storage.getItem(GUEST_SESSION_STORAGE_KEY);
+      if (isGuestSessionId(existing)) return existing;
+    } catch {
+      // Continue with an in-memory identity if device storage is unavailable.
+    }
+  }
+  const created = createGuestSessionId(randomUuid);
+  try {
+    storage?.setItem(GUEST_SESSION_STORAGE_KEY, created);
+  } catch {
+    // Guest play remains available; only cross-screen quota continuity degrades.
+  }
+  return created;
+}
+
+function createGuestSessionId(randomUuid: () => string): string {
+  const uuid = randomUuid().trim().replace(/[^a-z0-9-]/gi, '').slice(0, 96);
+  if (uuid.length < 16) throw new Error('invalid_guest_session_randomness');
+  return `dwg_${uuid}`;
+}
+
+function isGuestSessionId(value: unknown): value is string {
+  return typeof value === 'string' && /^dwg_[a-z0-9-]{16,96}$/i.test(value);
+}
+
+function deviceStorage(): DuelWordsGuestSessionStorage | null {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function parseWordDuelInviteEntry(input: string): WordDuelInviteEntryResult {

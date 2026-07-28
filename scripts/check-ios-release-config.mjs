@@ -76,6 +76,7 @@ const expectedCollectedDataTypes = [
   ['NSPrivacyCollectedDataTypeEmailAddress', true],
   ['NSPrivacyCollectedDataTypeUserID', true],
   ['NSPrivacyCollectedDataTypeGameplayContent', true],
+  ['NSPrivacyCollectedDataTypePurchases', true],
   ['NSPrivacyCollectedDataTypeCoarseLocation', false],
 ];
 for (const [dataType, linked] of expectedCollectedDataTypes) {
@@ -219,6 +220,11 @@ expectEqual(
 expectEqual('eas.build.testflight.ios.autoIncrement', easJson.build?.testflight?.ios?.autoIncrement, false);
 expectEqual('package @clerk/expo', packageJson.dependencies?.['@clerk/expo'], '4.0.3');
 expectEqual('package @sentry/react-native', packageJson.dependencies?.['@sentry/react-native'], '~7.11.0');
+expectEqual('package react-native-purchases', packageJson.dependencies?.['react-native-purchases'], '10.4.4');
+expectEqual('RevenueCat entitlement', expoConfig.extra?.duelWordsAv?.revenueCat?.entitlementId, 'pro');
+expectEqual('RevenueCat offering', expoConfig.extra?.duelWordsAv?.revenueCat?.offeringId, 'default');
+expectEqual('RevenueCat monthly package', expoConfig.extra?.duelWordsAv?.revenueCat?.monthlyPackageId, '$rc_monthly');
+expectEqual('RevenueCat product', expoConfig.extra?.duelWordsAv?.revenueCat?.productId, 'duelwordsav_pro_monthly');
 expectEqual(
   'local Xcode Sentry upload is explicit opt-in',
   iosConfigGenerator.includes('if [ -z "${SENTRY_DISABLE_AUTO_UPLOAD:-}" ]; then'),
@@ -276,6 +282,13 @@ if (process.argv.includes('--require-preview-runtime')) {
     if (typeof value !== 'string' || !value.startsWith('https://')) {
       failures.push(`${name} must resolve to a non-empty HTTPS URL.`);
     }
+  }
+
+  if (
+    typeof expoConfig.extra?.duelWordsAv?.revenueCat?.apiKey !== 'string'
+    || !expoConfig.extra.duelWordsAv.revenueCat.apiKey.startsWith('appl_')
+  ) {
+    failures.push('DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY must resolve to an Apple public SDK key.');
   }
 
   if (

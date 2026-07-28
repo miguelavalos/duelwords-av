@@ -2,6 +2,9 @@ import { useRouter } from 'expo-router';
 import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDeviceActivity } from '@/features/activity/use-device-activity';
+import { duelWordsStatsWindow, visibleDuelWordsHistory } from '@/features/activity/activity-tier-policy';
+import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { duelWordsTierForAccess } from '@/entitlements/duelwords-tier-policy';
 import { activityCopy, activityModeLabel, activityOutcomeLabel } from '@/features/activity/activity-copy';
 import { summarizeDuelWordsStats } from '@/features/activity/activity-summary';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
@@ -24,10 +27,14 @@ const DATE_FORMATTERS: Record<InterfaceLocale, Intl.DateTimeFormat> = {
 
 export function StatsScreen() {
   const router = useRouter();
+  const account = useDuelWordsAccount();
   const [{ gameLanguage, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
   const activity = activityCopy(interfaceLocale);
   const records = useDeviceActivity();
+  const tier = duelWordsTierForAccess(account.access);
+  const visibleHistory = visibleDuelWordsHistory(records, tier);
+  const statsRecords = duelWordsStatsWindow(records, tier);
   const { colors } = useAppTheme();
   const { width } = useWindowDimensions();
   const stats = summarizeDuelWordsStats({
@@ -38,10 +45,10 @@ export function StatsScreen() {
       fr: readOfficialDailyStats('fr'),
       de: readOfficialDailyStats('de'),
     },
-    records,
+    records: statsRecords,
     selectedLanguage: gameLanguage,
   });
-  const recent = records.slice(0, 5);
+  const recent = visibleHistory.slice(0, 5);
   const dateFormatter = DATE_FORMATTERS[interfaceLocale];
 
   return (

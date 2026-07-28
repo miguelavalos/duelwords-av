@@ -36,6 +36,10 @@ export type SharedAppleSurfaceProps = {
   planTier?: string;
   selectedTab?: string;
   signedIn?: boolean;
+  subscriptionBusy?: boolean;
+  subscriptionError?: string;
+  subscriptionPrice?: string;
+  subscriptionState?: string;
   style?: StyleProp<ViewStyle>;
   surface: SharedAppleSurfaceName;
 };

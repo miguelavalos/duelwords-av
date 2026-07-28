@@ -108,6 +108,11 @@ read_service_value() {
 publishable_key="$(read_account_publishable_key)"
 convex_url="$(read_service_value DUELWORDSAV_CONVEX_URL)"
 sentry_dsn="$(read_service_value DUELWORDSAV_IOS_SENTRY_DSN)"
+revenuecat_public_api_key="$(read_service_value DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY)"
+revenuecat_offering_id="$(read_service_value DUELWORDSAV_REVENUECAT_OFFERING_ID)"
+revenuecat_monthly_package_id="$(read_service_value DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID)"
+revenuecat_offering_id="${revenuecat_offering_id:-default}"
+revenuecat_monthly_package_id="${revenuecat_monthly_package_id:-\$rc_monthly}"
 
 case "$publishable_key" in
   pk_test_*|pk_live_*) ;;
@@ -129,6 +134,18 @@ if [ -n "$sentry_dsn" ] && [[ ! "$sentry_dsn" =~ ^https://[^/@]+@([A-Za-z0-9-]+\
   echo "DUELWORDSAV_IOS_SENTRY_DSN is malformed for $env_name." >&2
   exit 1
 fi
+case "$revenuecat_public_api_key" in
+  appl_*) ;;
+  *) echo "DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY is missing or malformed for $env_name." >&2; exit 1 ;;
+esac
+[ "$revenuecat_offering_id" = "default" ] || {
+  echo "DUELWORDSAV_REVENUECAT_OFFERING_ID must be default." >&2
+  exit 1
+}
+[ "$revenuecat_monthly_package_id" = '$rc_monthly' ] || {
+  echo 'DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID must be $rc_monthly.' >&2
+  exit 1
+}
 
 escape_xcconfig_url() {
   printf '%s' "$1" | sed 's#/#$(XCCONFIG_SLASH)#g'
@@ -151,6 +168,9 @@ mkdir -p "$(dirname "$output_path")"
   printf 'EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL = %s\n' "$(escape_xcconfig_url "$convex_url")"
   printf 'EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED = %s\n' "$realtime_disabled"
   printf 'EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT = %s\n' "$sentry_environment"
+  printf 'EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY = %s\n' "$revenuecat_public_api_key"
+  printf 'EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_OFFERING_ID = %s\n' "$revenuecat_offering_id"
+  printf 'EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID = %s\n' "$revenuecat_monthly_package_id"
   if [ -n "$sentry_dsn" ]; then
     printf 'EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN = %s\n' "$(escape_xcconfig_url "$sentry_dsn")"
   fi
@@ -190,6 +210,9 @@ shell_export() {
   shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL "$convex_url"
   shell_export EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED "$realtime_disabled"
   shell_export EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT "$sentry_environment"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY "$revenuecat_public_api_key"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_OFFERING_ID "$revenuecat_offering_id"
+  shell_export EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID "$revenuecat_monthly_package_id"
   printf '%s\n' 'if [ -z "${SENTRY_DISABLE_AUTO_UPLOAD:-}" ]; then'
   shell_export SENTRY_DISABLE_AUTO_UPLOAD 'true'
   printf '%s\n' 'fi'

@@ -40,9 +40,9 @@ describe('device activity store', () => {
     expect(storage.value()).not.toMatch(/target|guess|feedback|gameId|playerId|token|email|subject/i);
   });
 
-  it('drops malformed records and keeps only the newest 100 summaries', () => {
+  it('drops malformed records and keeps only the newest 1,000 summaries', () => {
     const storage = memoryStorage();
-    for (let index = 0; index < 105; index += 1) {
+    for (let index = 0; index < 1_005; index += 1) {
       recordDuelWordsActivity({
         attemptsUsed: index % 6,
         completedAt: new Date(Date.UTC(2026, 6, 27, 0, index)).toISOString(),
@@ -53,8 +53,8 @@ describe('device activity store', () => {
     }
 
     const records = readDuelWordsActivity(storage);
-    expect(records).toHaveLength(100);
-    expect(records[0]?.completedAt).toBe('2026-07-27T01:44:00.000Z');
+    expect(records).toHaveLength(1_000);
+    expect(records[0]?.completedAt).toBe('2026-07-27T16:44:00.000Z');
 
     storage.setItem('duelwords-av:activity:v1', JSON.stringify({
       records: [{ targetWord: 'CIDER', version: 1 }],

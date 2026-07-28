@@ -38,12 +38,13 @@ describe('DuelWords Apps AV API client', () => {
     });
 
     const target = await client.getDailyTarget({
+      actor: GUEST_IDENTITY,
       language: 'ca',
       timeZone: 'Europe/Madrid',
     });
 
     expect(recorder.calls).toEqual([expect.objectContaining({
-      body: { language: 'ca', timeZone: 'Europe/Madrid' },
+      body: { actor: GUEST_IDENTITY, language: 'ca', timeZone: 'Europe/Madrid' },
       method: 'POST',
       url: 'https://api.test/v1/apps/duelwords/daily/target',
     })]);

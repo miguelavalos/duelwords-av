@@ -137,11 +137,13 @@ describe('interior screen navigation contract', () => {
     expect(practice).toBeLessThan(aviHelp);
   });
 
-  it('keeps the active Daily header compact and reveals secondary information on demand', () => {
+  it('keeps the active Daily header compact and shows date and language without a redundant info toggle', () => {
     const daily = source('src/features/word-duel/daily-screen.tsx');
     expect(daily).toContain('sessionDetail');
-    expect(daily).toContain('ScreenInfoButton');
-    expect(daily).toContain('showGameInfo');
+    expect(daily).not.toContain('ScreenInfoButton');
+    expect(daily).not.toContain('showGameInfo');
+    expect(daily).toContain('session.dailyDate');
+    expect(daily).toContain('gameLanguageLabel(session.language)');
     expect(daily).not.toContain('styles.statusRow');
   });
 

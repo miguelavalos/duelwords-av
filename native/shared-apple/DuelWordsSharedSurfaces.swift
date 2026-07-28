@@ -546,20 +546,41 @@ private struct DuelWordsPaywallSurface: View {
                 subtitle: props.localized("Pro keeps more private history without changing the rules of a duel.")
             )
             AVPaywallOfferCard(
-                title: props.planTier == "pro" ? props.localized("Your access") : props.signedIn ? props.localized("Subscriptions are coming later") : props.localized("Account AV required"),
-                detail: props.planTier == "pro" ? props.localized("DuelWords Pro is active on this account.") : props.localized("DuelWords Pro subscriptions will be available later."),
-                primaryButtonTitle: props.planTier == "pro" ? props.localized("Done") : props.signedIn ? props.localized("Not available yet") : props.localized("Sign in to continue"),
-                primaryButtonIsDisabled: props.signedIn && props.planTier != "pro",
-                primaryAction: { action(props.planTier == "pro" ? "close" : "signIn", nil) },
+                title: props.planTier == "pro" ? props.localized("Your access") : props.localized("Monthly subscription"),
+                detail: props.planTier == "pro" ? props.localized("DuelWords Pro is active on this account.") : props.localized("Cancel anytime in your Apple subscription settings."),
+                primaryButtonTitle: primaryButtonTitle,
+                primaryButtonIsDisabled: primaryButtonIsDisabled,
+                primaryAccessibilityIdentifier: "paywall.purchase",
+                primaryAction: primaryAction,
                 avatar: {
                     Image("AviV2OnboardingCTA").resizable().scaledToFit()
                 },
                 restoreButton: {
-                    AVPaywallRestoreButton(title: props.localized("Refresh Apps AV access"), action: { action("refreshAccount", nil) })
+                    if props.signedIn && props.planTier != "pro" {
+                        AVPaywallRestoreButton(
+                            title: props.localized("Restore purchases"),
+                            isDisabled: props.subscriptionBusy,
+                            action: { action("restorePurchases", nil) }
+                        )
+                    } else if props.planTier == "pro" {
+                        AVPaywallRestoreButton(
+                            title: props.localized("Manage Apple subscription"),
+                            action: { action("manageSubscriptions", nil) }
+                        )
+                    }
                 }
             )
+            if props.subscriptionState == "pending_reconciliation" {
+                AVPaywallStatusRow(systemImage: "clock.arrow.circlepath", message: props.localized("Purchase received. Confirming Pro access with Apps AV…"))
+            } else if !props.subscriptionError.isEmpty {
+                AVPaywallStatusRow(systemImage: "exclamationmark.triangle", message: props.localized(props.subscriptionError))
+            } else if props.signedIn && props.planTier != "pro" && !props.subscriptionPrice.isEmpty {
+                AVPaywallStatusRow(systemImage: "calendar.badge.clock", message: "\(props.subscriptionPrice) · \(props.localized("per month"))")
+            }
             AVPaywallBenefitList(items: [
-                AVPaywallBenefitItem(id: "history", systemImage: "clock.arrow.circlepath", title: props.localized("Deeper private history"), detail: props.localized("Keep more finished game summaries private.")),
+                AVPaywallBenefitItem(id: "daily", systemImage: "calendar", title: props.localized("Daily in every language"), detail: props.localized("Play once per language each day.")),
+                AVPaywallBenefitItem(id: "history", systemImage: "clock.arrow.circlepath", title: props.localized("1,000 history records"), detail: props.localized("Keep a 365-day private statistics window on this device.")),
+                AVPaywallBenefitItem(id: "challenges", systemImage: "person.2", title: props.localized("100 challenges per day"), detail: props.localized("Create more human challenges without changing duel rules.")),
                 AVPaywallBenefitItem(id: "fair", systemImage: "checkmark.shield", title: props.localized("Same fair rules"), detail: props.localized("No hints, extra time, attempts, or feedback.")),
                 AVPaywallBenefitItem(id: "account", systemImage: "person.crop.circle.badge.checkmark", title: props.localized("Account-backed access"), detail: props.localized("Your Apps AV account keeps Pro access with you."))
             ])
@@ -569,6 +590,26 @@ private struct DuelWordsPaywallSurface: View {
                 AVPaywallFooterAction(title: props.localized("Support"), accessibilityIdentifier: "paywall.support", action: { action("openSupport", nil) })
             ])
         }
+    }
+
+    private var primaryButtonTitle: String {
+        if props.planTier == "pro" { return props.localized("Done") }
+        if !props.signedIn { return props.localized("Sign in to continue") }
+        if props.subscriptionBusy { return props.localized("Please wait…") }
+        if props.subscriptionState == "ready", !props.subscriptionPrice.isEmpty {
+            return "\(props.localized("Subscribe")) · \(props.subscriptionPrice)"
+        }
+        return props.localized("Subscription unavailable")
+    }
+
+    private var primaryButtonIsDisabled: Bool {
+        props.signedIn && props.planTier != "pro" && (props.subscriptionState != "ready" || props.subscriptionBusy)
+    }
+
+    private func primaryAction() {
+        if props.planTier == "pro" { action("close", nil) }
+        else if props.signedIn { action("purchasePro", nil) }
+        else { action("signIn", nil) }
     }
 }
 

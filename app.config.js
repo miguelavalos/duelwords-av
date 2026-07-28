@@ -10,6 +10,18 @@ function createExpoConfig() {
   const convexUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL);
   const convexRealtimeDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED);
   const sentryDsn = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_SENTRY_DSN);
+  const revenueCatPublicApiKey = normalizedOptionalString(
+    process.env.DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY
+      ?? process.env.EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY,
+  );
+  const revenueCatOfferingId = normalizedOptionalString(
+    process.env.DUELWORDSAV_REVENUECAT_OFFERING_ID
+      ?? process.env.EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_OFFERING_ID,
+  ) ?? 'default';
+  const revenueCatMonthlyPackageId = normalizedOptionalString(
+    process.env.DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID
+      ?? process.env.EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID,
+  ) ?? '$rc_monthly';
   const sentryEnvironment = normalizeSentryEnvironment(
     process.env.EXPO_PUBLIC_DUELWORDSAV_SENTRY_ENVIRONMENT,
     iosBuildVariant,
@@ -49,6 +61,7 @@ function createExpoConfig() {
           collectedDataType('NSPrivacyCollectedDataTypeEmailAddress', true),
           collectedDataType('NSPrivacyCollectedDataTypeUserID', true),
           collectedDataType('NSPrivacyCollectedDataTypeGameplayContent', true),
+          collectedDataType('NSPrivacyCollectedDataTypePurchases', true),
           collectedDataType('NSPrivacyCollectedDataTypeCoarseLocation', false),
         ],
         NSPrivacyTracking: false,
@@ -70,6 +83,13 @@ function createExpoConfig() {
         convexRealtimeDisabled,
         convexUrl,
         iosBuildVariant,
+        revenueCat: {
+          apiKey: revenueCatPublicApiKey,
+          entitlementId: 'pro',
+          monthlyPackageId: revenueCatMonthlyPackageId,
+          offeringId: revenueCatOfferingId,
+          productId: 'duelwordsav_pro_monthly',
+        },
         sentry: {
           dsn: sentryDsn,
           environment: sentryEnvironment,

@@ -85,6 +85,9 @@ api_base_url="$(setting EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL)"
 api_disabled="$(setting EXPO_PUBLIC_DUELWORDSAV_API_DISABLED)"
 convex_url="$(setting EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL)"
 convex_disabled="$(setting EXPO_PUBLIC_DUELWORDSAV_CONVEX_REALTIME_DISABLED)"
+revenuecat_public_api_key="$(setting EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_PUBLIC_API_KEY)"
+revenuecat_offering_id="$(setting EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_OFFERING_ID)"
+revenuecat_monthly_package_id="$(setting EXPO_PUBLIC_DUELWORDSAV_REVENUECAT_MONTHLY_PACKAGE_ID)"
 
 [ "$product_bundle" = "$expected_bundle" ] || fail "bundle identifier mismatch"
 [ "$runtime_environment" = "$env_name" ] || fail "runtime environment mismatch"
@@ -105,6 +108,9 @@ case "$publishable_key" in pk_test_*|pk_live_*) ;; *) fail "Account AV publishab
 if [ "$env_name" = "prod" ] && [[ "$publishable_key" != pk_live_* ]]; then
   fail "production Account AV key must use pk_live_"
 fi
+case "$revenuecat_public_api_key" in appl_*) ;; *) fail "RevenueCat public SDK key is missing or malformed" ;; esac
+[ "$revenuecat_offering_id" = "default" ] || fail "RevenueCat offering must be default"
+[ "$revenuecat_monthly_package_id" = '$rc_monthly' ] || fail 'RevenueCat monthly package must be $rc_monthly'
 
 if [ "$failures" -gt 0 ]; then
   exit 1

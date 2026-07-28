@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-na
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
+import { localDateForTimeZone, readOfficialDailySessionsForDate } from '@/game/word-duel-daily/official-daily';
 import { AppScreen } from '@/ui/app-screen';
 import { AppChromeHeader, AviArtwork, InkEyebrow, PaperCard } from '@/ui/brand';
 import { layout, radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
@@ -18,6 +19,11 @@ export function PlayScreen() {
   const styles = useStyles();
   const twoColumn = width >= 680;
   const tablet = width >= 760;
+  const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC';
+  const dailySession = readOfficialDailySessionsForDate({
+    dailyDate: localDateForTimeZone(new Date(), timeZone),
+    timeZone,
+  })[0];
 
   return (
     <AppScreen bottomInset={tablet ? spacing.xxl : layout.phoneShellBottomInset}>
@@ -40,7 +46,7 @@ export function PlayScreen() {
         title={copy.daily}
         detail={copy.dailyDetail}
         primary
-        mark="1"
+        mark={dailySession?.state.status === 'playing' ? '…' : dailySession ? '✓' : '1'}
         onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.soloDaily, { gameLanguage, mode: 'daily_preview' }))}
       />
 

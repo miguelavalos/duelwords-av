@@ -3,12 +3,34 @@ import { describe, expect, it } from 'vitest';
 import {
   createWordDuelDefaultGuestDisplayName,
   createWordDuelGuestActor,
+  getOrCreateWordDuelGuestSessionId,
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
   parseWordDuelInviteEntry,
 } from './guest-entry';
 
+function memoryStorage() {
+  const values = new Map<string, string>();
+  return {
+    getItem: (key: string) => values.get(key) ?? null,
+    setItem: (key: string, value: string) => values.set(key, value),
+  };
+}
+
 describe('public guest Word Duel entry', () => {
+  it('keeps one opaque guest session across screens on the same device', () => {
+    const storage = memoryStorage();
+    const first = getOrCreateWordDuelGuestSessionId(
+      () => '12345678-1234-1234-1234-123456789abc',
+      storage,
+    );
+    const second = getOrCreateWordDuelGuestSessionId(
+      () => 'ffffffff-ffff-ffff-ffff-ffffffffffff',
+      storage,
+    );
+    expect(second).toBe(first);
+    expect(first).toBe('dwg_12345678-1234-1234-1234-123456789abc');
+  });
   it('creates a local editable guest alias without establishing identity', () => {
     expect(createWordDuelDefaultGuestDisplayName(
       () => '12345678-1234-1234-1234-123456789abc',

@@ -30,22 +30,17 @@ export function summarizeDuelWordsStats(input: {
   records: readonly DuelWordsActivitySummary[];
   selectedLanguage: GameLanguage;
 }): DuelWordsStatsSummary {
-  const nonDaily = input.records.filter((record) => record.mode !== 'daily');
-  const daily = Object.values(input.dailyStats).reduce(
-    (totals, stats) => ({ completed: totals.completed + stats.completed, solved: totals.solved + stats.solved }),
-    { completed: 0, solved: 0 },
-  );
-  const victories = nonDaily.filter((record) => record.outcome === 'win').length + daily.solved;
-  const completed = nonDaily.length + daily.completed;
+  const completed = input.records.length;
+  const victories = input.records.filter((record) => record.outcome === 'win').length;
 
   return {
     completed,
     currentDailyStreak: input.dailyStats[input.selectedLanguage].currentStreak,
     modeCounts: {
-      avi: nonDaily.filter((record) => record.mode === 'bot_duel').length,
-      daily: daily.completed,
-      friends: nonDaily.filter((record) => record.mode === 'human_duel').length,
-      practice: nonDaily.filter((record) => record.mode === 'practice').length,
+      avi: input.records.filter((record) => record.mode === 'bot_duel').length,
+      daily: input.records.filter((record) => record.mode === 'daily').length,
+      friends: input.records.filter((record) => record.mode === 'human_duel').length,
+      practice: input.records.filter((record) => record.mode === 'practice').length,
     },
     successRate: completed === 0 ? 0 : Math.round((victories / completed) * 100),
     victories,
