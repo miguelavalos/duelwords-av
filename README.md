@@ -315,7 +315,10 @@ of diagnostic. A production-identity Release then passed its built Account AV
 configuration and deep signature checks and installed over the existing
 `com.avalsys.duelwordsav` app on the connected iPhone 14 without uninstalling
 or clearing data. The first automatic launch attempt was deferred because the
-phone was locked. No backend deploy, Cloudflare/Convex/Account AV/Sentry
+phone was locked; a later retry after unlock launched the installed bundle
+successfully. Visual confirmation of the restored Account AV session and local
+game data remains a physical-device interaction gate. No backend deploy,
+Cloudflare/Convex/Account AV/Sentry
 mutation, TestFlight upload, App Review action, purchase, or Infisical write
 ran.
 
