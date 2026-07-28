@@ -936,14 +936,16 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Keep the uploaded RC8 from public source `bd936f4` frozen. Apple has processed
-  build `0.1.0 (2)` and the existing internal `avalsys` group has access. Do not
-  expire it, broaden testing, attach it to App Review, or submit it without new
-  exact authorization.
-- Install the post-fix signed candidate over the existing physical iPhone app
-  without uninstalling or clearing data when that phone is connected. No
-  physical iPad exists; this candidate's iPad acceptance is the dedicated
-  Release simulator matrix above, and that limitation must remain explicit.
+- Keep RC11 binary source `1ced3327` frozen. Apple processed build `0.1.0 (3)`
+  as `Validado` / `Lista para enviar` on 2026-07-28 and exposed it only to the
+  existing internal `avalsys` group. RC8 build `2` remains immutable historical
+  evidence. Do not expire either build, broaden RC11 beyond internal testing,
+  attach it to App Review, or submit it without new exact authorization.
+- RC11 was installed over the existing physical iPhone app without uninstalling
+  or clearing data and launched successfully. Visual owner confirmation that
+  the prior Account AV session and local data remain present is still open. No
+  physical iPad exists; iPad acceptance is the dedicated Release simulator
+  matrix above, and that limitation must remain explicit.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android
