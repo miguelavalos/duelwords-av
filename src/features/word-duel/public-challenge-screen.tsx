@@ -301,22 +301,31 @@ export function PublicWordDuelChallengeScreen({
       }
       setActiveController(bundle.controller);
       setStatusMessage(null);
-    });
+    }, { trackBusy: false });
 
     return () => {
       cancelled = true;
     };
-    // runAction is component-local; the refs make this initialization idempotent.
+    // Opening is an effect-driven handoff, so runAction must not update
+    // busyAction and trigger this cleanup itself. The action gate still keeps
+    // interactive lobby commands exclusive while the handoff is in flight.
+    // runAction is component-local; the refs make initialization idempotent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeController, busyAction, lobbyState, runtime]);
 
-  async function runAction(actionName: string, action: () => Promise<void>) {
+  async function runAction(
+    actionName: string,
+    action: () => Promise<void>,
+    { trackBusy = true }: { trackBusy?: boolean } = {},
+  ) {
     if (!actionGate.tryStart(actionName)) {
       return;
     }
 
     if (mountedRef.current) {
-      setBusyAction(actionName);
+      if (trackBusy) {
+        setBusyAction(actionName);
+      }
       setStatusMessage(null);
     }
     try {
@@ -327,7 +336,7 @@ export function PublicWordDuelChallengeScreen({
       }
     } finally {
       actionGate.finish(actionName);
-      if (mountedRef.current) {
+      if (trackBusy && mountedRef.current) {
         setBusyAction(null);
       }
     }
