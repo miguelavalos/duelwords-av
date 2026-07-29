@@ -111,3 +111,49 @@ two-device acceptance remain open.
 No archive, IPA, App Store Connect or TestFlight upload was created. This
 stabilization did not write Infisical or perform an additional Convex,
 Cloudflare, D1 or other production deployment.
+
+## Home automatic-rematch follow-up
+
+Public app source was superseded again by
+`4925cd177f80d8dc606032d0b10ffb87c8f415fc`. The candidate metadata remains
+DuelWords AV `0.1.0 (4)`, Production runtime, zero expected incremental
+provider cost and Sentry upload disabled.
+
+The result screen now checks the Apps API rematch proposal automatically once
+per second while it is visible. A rival request therefore exposes Accept and
+Decline without a manual Refresh control. Once accepted, both participants
+automatically leave the completed result and open the next lobby. Closing a
+connected journey also returns to Join rather than Create.
+
+Automated gates passed on the exact source:
+
+- `pnpm test`: 76 files and 409 tests;
+- `pnpm typecheck`, `pnpm lint`, `pnpm config:ios:check` and
+  `git diff --check`;
+- React Doctor completed with no errors; its 77/100 report contains ten
+  advisory warnings in the changed large screen.
+
+Fresh dedicated Production Release iPhone 17 and iPad Pro 13 simulators
+completed a full six-round duel. The iPad requested a rematch and, without any
+refresh action, the iPhone exposed Accept in about two seconds. Acceptance
+automatically opened the same next lobby on both devices; the host exposed
+Start game and the recipient waited without an extra ready action.
+
+The accepted rematch lobby currently renders its backend game identifier
+(`dwr_…`) in the Room code field. This is a v1 capture/release blocker: it must
+be replaced by suitable rematch copy or a human-facing code before marketing
+screenshots or release readiness are declared. The existing guest daily-limit
+message can also prevent further rematch testing once a simulator identity has
+exhausted its challenge allowance; fresh identities were used to isolate the
+automatic-rematch behavior.
+
+A development-identity signed Production Release app was rebuilt from exact
+source `4925cd177f80d8dc606032d0b10ffb87c8f415fc`. Effective runtime config,
+`0.1.0 (4)` metadata and strict code signature passed, and Sentry upload was
+explicitly skipped. It was installed in place on the connected physical iPhone
+14 and iPad Air without uninstalling or clearing data. The iPad launched; the
+iPhone installation succeeded and only its automated launch was denied because
+the device was locked.
+
+No archive, IPA, App Store Connect or TestFlight upload was created, and no
+Infisical, Convex, Cloudflare, D1 or other production deployment was performed.
