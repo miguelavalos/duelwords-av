@@ -649,7 +649,7 @@ function LobbyStatePanel({ state }: { state: WordDuelLobbyControllerState }) {
       <Text style={styles.panelTitle}>Lobby</Text>
       <View style={styles.summaryGrid}>
         <SummaryPill label="Status" value={state.lobby.status} />
-        <SummaryPill label="Room" value={state.lobby.invitePreview.roomCode} />
+        <SummaryPill label="Room" value={state.lobby.invitePreview.roomCode ?? 'Rematch'} />
         <SummaryPill label="Players" value={`${joinedPlayerCount(state.lobby.players)}/2`} />
       </View>
       <View style={styles.inviteBlock}>

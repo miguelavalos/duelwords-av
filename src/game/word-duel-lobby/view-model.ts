@@ -33,11 +33,11 @@ export type WordDuelInvitePreview = {
   expiresAtMs: number;
   gameLanguage: GameLanguage;
   gameName: 'Word Duel';
-  inviteUrl: string;
+  inviteUrl: string | null;
   joinAvailability: WordDuelLobbyJoinAvailability;
   maxAttempts: number;
   mode: 'human_duel';
-  roomCode: string;
+  roomCode: string | null;
   roomState: WordDuelLobbyStatus;
   solutionSelected: false;
   wordLength: number;
@@ -431,7 +431,7 @@ function createSharePayload(preview: WordDuelInvitePreview): string {
   return [
     'DuelWords AV',
     'Word Duel challenge',
-    `Join: ${preview.inviteUrl}`,
-    `Code: ${preview.roomCode}`,
-  ].join('\n');
+    preview.inviteUrl ? `Join: ${preview.inviteUrl}` : null,
+    preview.roomCode ? `Code: ${preview.roomCode}` : null,
+  ].filter((line): line is string => line !== null).join('\n');
 }

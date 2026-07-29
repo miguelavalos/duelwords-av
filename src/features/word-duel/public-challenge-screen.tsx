@@ -51,6 +51,7 @@ import { createExclusiveActionGate } from './exclusive-action-gate';
 import {
   canHostStartChallenge,
   joinChallengeAsReadyRecipient,
+  readyAcceptedRematchRecipient,
   shouldSubscribeToLobbyRealtime,
 } from './public-challenge-flow';
 import {
@@ -172,17 +173,39 @@ export function PublicWordDuelChallengeScreen({
       return;
     }
 
-    setLobbyState(createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+    const nextLobbyState = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
       actor,
       nowMs: Date.now(),
       proposal: rematchProposal,
-    }));
-    activeOpeningStartedRef.current = false;
-    setActiveController(null);
-    setFinalResult(null);
-    setRematchProposal(null);
-    setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedReady'));
-  }, [interfaceLocale, lobbyState?.session.actor, rematchProposal]);
+    });
+    let cancelled = false;
+
+    void readyAcceptedRematchRecipient({
+      controller,
+      nowMs: () => Date.now(),
+      state: nextLobbyState,
+    }).then((preparedLobbyState) => {
+      if (cancelled || !mountedRef.current) return;
+      activeOpeningStartedRef.current = false;
+      setLobbyState(preparedLobbyState);
+      setActiveController(null);
+      setFinalResult(null);
+      setRematchProposal(null);
+      setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedReady'));
+    }).catch(() => {
+      if (cancelled || !mountedRef.current) return;
+      activeOpeningStartedRef.current = false;
+      setLobbyState(nextLobbyState);
+      setActiveController(null);
+      setFinalResult(null);
+      setRematchProposal(null);
+      setStatusMessage(publicDuelT(interfaceLocale, 'actionUnavailable'));
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [controller, interfaceLocale, lobbyState?.session.actor, rematchProposal]);
 
   useEffect(() => {
     const realtime = lobbyState?.realtime;
@@ -506,14 +529,15 @@ export function PublicWordDuelChallengeScreen({
 
   function shareInvite() {
     const lobby = lobbyState?.lobby;
-    if (!lobby) {
+    const inviteUrl = lobby?.invitePreview.inviteUrl;
+    if (!lobby || !lobby.canShareInvite || !inviteUrl) {
       return;
     }
 
     void runAction('share', async () => {
       await Share.share({
         message: lobby.sharePayload,
-        url: lobby.invitePreview.inviteUrl,
+        url: inviteUrl,
       });
       if (!mountedRef.current) return;
       setStatusMessage(copy('inviteShareOpened'));
@@ -865,7 +889,9 @@ function PublicLobbyPanel({
       <View style={styles.summaryRow}>
         <Summary label={copy('letters')} value={String(lobby.invitePreview.wordLength)} />
         <Summary label={copy('attempts')} value={String(lobby.invitePreview.maxAttempts)} />
-        <Summary label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide />
+        {lobby.invitePreview.roomCode !== null ? (
+          <Summary label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide />
+        ) : null}
       </View>
 
       <View style={styles.playersBox}>
@@ -907,7 +933,7 @@ function PublicLobbyPanel({
             {copy('joinChallenge')}
           </AppButton>
         ) : null}
-        {lobby.viewerRole === 'host' && (lobby.status === 'waiting_for_player' || lobby.status === 'lobby') ? (
+        {lobby.canShareInvite ? (
           <AppButton disabled={busy} onPress={onShare} style={styles.actionButton}>
             {copy('shareInvite')}
           </AppButton>
@@ -915,6 +941,11 @@ function PublicLobbyPanel({
         {canHostStartChallenge(lobby) ? (
           <AppButton disabled={busy} onPress={onStart} style={styles.actionButton}>
             {copy('startGame')}
+          </AppButton>
+        ) : null}
+        {lobby.viewerRole === 'recipient' && lobby.status === 'lobby' && lobby.canPressReady ? (
+          <AppButton disabled={busy} onPress={onStart} style={styles.actionButton}>
+            {copy('ready')}
           </AppButton>
         ) : null}
         <AppButton disabled={busy} tone="quiet" onPress={onReset} style={styles.actionButton}>

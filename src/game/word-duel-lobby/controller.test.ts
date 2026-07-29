@@ -520,6 +520,10 @@ describe('Word Duel lobby controller', () => {
     });
     expect(state.lobby).toMatchObject({
       canPressReady: true,
+      canShareInvite: false,
+      invitePreview: {
+        roomCode: null,
+      },
       status: 'lobby',
       viewerRole: 'recipient',
       viewerSide: 'b',
@@ -533,6 +537,40 @@ describe('Word Duel lobby controller', () => {
     expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('game-2');
     expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('target');
     expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('dictionary');
+    expect(JSON.stringify(state.lobby).toLowerCase()).not.toContain('dwr_room_2');
+  });
+
+  it('maps a rematch owner to the next host even when they were side b before', () => {
+    const state = createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor: {
+        actorType: 'guest_session',
+        guestSessionId: 'guest-owner',
+      },
+      nowMs: NOW_MS,
+      proposal: rematchProposalPayload({
+        nextGame: acceptedRematchNextGamePayload(),
+        status: 'accepted',
+        viewer: {
+          canAccept: false,
+          canCancel: false,
+          canDecline: false,
+          playerId: 'player-b-previous',
+          role: 'owner',
+          side: 'b',
+        },
+      }),
+    });
+
+    expect(state).toMatchObject({
+      lobby: {
+        viewerRole: 'host',
+        viewerSide: 'a',
+      },
+      session: {
+        playerId: 'player-a-next',
+        side: 'a',
+      },
+    });
   });
 
   it('rejects accepted rematch lobby handoffs without an accepted next game', () => {

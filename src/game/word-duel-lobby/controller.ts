@@ -46,6 +46,7 @@ export type WordDuelLobbyControllerSource = 'apps_av_api' | 'disabled_runtime' |
 export type WordDuelLobbyControllerSession = {
   actor: DuelWordsActorIdentity | null;
   apiInvite: DuelWordsApiInvitePreview | null;
+  exposesPublicInvite?: boolean;
   gameId: string | null;
   inviteToken: string | null;
   playerId: string | null;
@@ -204,7 +205,9 @@ export function createWordDuelLobbyControllerStateFromAcceptedRematchProposal(in
   }
 
   const nextGame = input.proposal.nextGame;
-  const viewerSide = input.proposal.viewer.side;
+  // A rematch owner always becomes the next game's host, regardless of which
+  // side they occupied in the completed game.
+  const viewerSide = input.proposal.viewer.role === 'owner' ? 'a' : 'b';
   const viewerPlayer = nextGame.players.find((player) => player.side === viewerSide);
   if (!viewerPlayer) {
     throw new WordDuelLobbyControllerError(
@@ -225,6 +228,7 @@ export function createWordDuelLobbyControllerStateFromAcceptedRematchProposal(in
   }, null, {
     actor: input.actor,
     apiInvite: invite,
+    exposesPublicInvite: false,
     gameId: nextGame.gameId,
     inviteToken: invite.inviteToken,
     playerId: viewerPlayer.playerId,
@@ -618,7 +622,12 @@ function stateFromApiLobby(
     lobby: deriveWordDuelLobbyViewModel({
       activeRound,
       countdown,
-      invitePreview: invitePreviewFromApi(lobby.invite, status, nowMs),
+      invitePreview: invitePreviewFromApi(
+        lobby.invite,
+        status,
+        nowMs,
+        previousSession.exposesPublicInvite !== false,
+      ),
       players,
       readyBySide,
       status,
@@ -694,16 +703,19 @@ function invitePreviewFromApi(
   invite: DuelWordsApiInvitePreview,
   status: WordDuelLobbyStatus,
   nowMs: number,
+  exposesPublicInvite = true,
 ): WordDuelInvitePreview {
   return {
     expiresAtMs: parseOptionalTime(invite.expiresAt) ?? nowMs,
     gameLanguage: invite.gameLanguage,
     gameName: 'Word Duel',
-    inviteUrl: `${DEFAULT_INVITE_BASE_URL}${encodeURIComponent(invite.inviteToken)}`,
+    inviteUrl: exposesPublicInvite
+      ? `${DEFAULT_INVITE_BASE_URL}${encodeURIComponent(invite.inviteToken)}`
+      : null,
     joinAvailability: mapApiJoinAvailability(invite.joinAvailability),
     maxAttempts: invite.maxAttempts || WORD_DUEL_MAX_ATTEMPTS,
     mode: 'human_duel',
-    roomCode: invite.roomCode,
+    roomCode: exposesPublicInvite ? invite.roomCode : null,
     roomState: status,
     solutionSelected: false,
     wordLength: invite.wordLength || WORD_DUEL_WORD_LENGTH,

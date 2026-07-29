@@ -31,6 +31,21 @@ export async function joinChallengeAsReadyRecipient(input: {
   });
 }
 
+export async function readyAcceptedRematchRecipient(input: {
+  controller: Pick<WordDuelLobbyController, 'markReady'>;
+  nowMs: () => number;
+  state: WordDuelLobbyControllerState;
+}): Promise<WordDuelLobbyControllerState> {
+  if (input.state.lobby.viewerRole !== 'recipient' || !input.state.lobby.canPressReady) {
+    return input.state;
+  }
+
+  return input.controller.markReady({
+    nowMs: input.nowMs(),
+    state: input.state,
+  });
+}
+
 export function canHostStartChallenge(
   lobby: Pick<WordDuelLobbyViewModel, 'canPressReady' | 'viewerRole'>,
 ): boolean {

@@ -6,6 +6,7 @@ import { createWordDuelLobbyController } from '../../game/word-duel-lobby/contro
 import {
   canHostStartChallenge,
   joinChallengeAsReadyRecipient,
+  readyAcceptedRematchRecipient,
   shouldRearmActiveDuelOpening,
   shouldShowLobbyRefresh,
   shouldSubscribeToLobbyRealtime,
@@ -43,6 +44,25 @@ describe('public Challenge recovery flow', () => {
     expect(canHostStartChallenge(hostView.lobby)).toBe(true);
 
     const countdown = await controller.markReady({ nowMs: 5_000, state: hostView });
+    expect(countdown.lobby.status).toBe('countdown');
+    expect(countdown.lobby.readyBySide).toEqual({ a: true, b: true });
+  });
+
+  it('makes the accepting rematch recipient ready before the host starts', async () => {
+    const controller = createWordDuelLobbyController({ mode: 'local_mock' });
+    const host = await controller.createHostInvite({ gameLanguage: 'en', nowMs: 1_000 });
+    const review = await controller.viewInviteReview({ nowMs: 2_000, state: host });
+    const joined = await controller.joinInvite({ nowMs: 3_000, safeDisplayName: 'Rival', state: review });
+
+    const recipient = await readyAcceptedRematchRecipient({
+      controller,
+      nowMs: () => 4_000,
+      state: joined,
+    });
+
+    expect(recipient.lobby.readyBySide).toEqual({ a: false, b: true });
+    const hostView = await controller.viewAsHost({ nowMs: 5_000, state: recipient });
+    const countdown = await controller.markReady({ nowMs: 6_000, state: hostView });
     expect(countdown.lobby.status).toBe('countdown');
     expect(countdown.lobby.readyBySide).toEqual({ a: true, b: true });
   });

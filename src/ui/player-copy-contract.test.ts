@@ -76,7 +76,9 @@ describe('player-facing local-game copy contract', () => {
   });
 
   it('keeps room codes complete and compact iPad mode titles on one line', () => {
+    expect(publicChallengeSource).toContain('lobby.invitePreview.roomCode !== null ?');
     expect(publicChallengeSource).toContain("label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide");
+    expect(publicChallengeSource).toContain('lobby.canShareInvite ?');
     expect(publicChallengeSource).toContain('numberOfLines={selectable ? undefined : 1}');
     expect(playScreenSource).toContain('adjustsFontSizeToFit={compact}');
     expect(playScreenSource).toContain('numberOfLines={compact ? 1 : undefined}');
