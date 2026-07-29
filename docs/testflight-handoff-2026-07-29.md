@@ -272,3 +272,17 @@ The existing manual Apple provisioning profile was corrected to use the local
 distribution identity that expires on 2027-06-07; no certificate was created.
 No code, backend, Infisical, D1 or production-runtime change accompanied that
 profile correction.
+
+## Post-upload Sentry correlation
+
+A read-only Production Sentry check found two new native watchdog events for
+`0.1.0 (4)`: the physical iPhone at `2026-07-29T16:49:18Z` and physical iPad at
+`2026-07-29T16:49:25Z`. Those timestamps match the in-place installation of the
+new app on each device exactly. Both events contain no crash file, stack trace
+or runtime error and were reported when Sentry next launched. There was no
+later occurrence during launch or the accepted real multi-round duel.
+
+The evidence therefore classifies these two events as installation-induced
+termination of the previously running app, not a reproduced memory or gameplay
+failure in the final candidate. The Sentry issue remains unmodified and
+unresolved so that any genuinely independent recurrence remains visible.
