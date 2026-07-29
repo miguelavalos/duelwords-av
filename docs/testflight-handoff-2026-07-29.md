@@ -7,13 +7,20 @@ was performed for this candidate.
 
 ## Reserved candidate
 
-- Public repository: `miguelavalos/duelwords-av` `main` at `2487f9f02dafc0b568fd0adfc20f686b2b15d792`.
-- Private repository: `avalsys/avalsys-suite` `main` at `a842ec2fadd2a3d29af360d499fc868eb0424169`.
+- Public app-source reservation: `2487f9f02dafc0b568fd0adfc20f686b2b15d792`.
+- Private signed-runtime/preflight baseline:
+  `a842ec2fadd2a3d29af360d499fc868eb0424169`.
 - Marketing version/build: `0.1.0 (4)`.
 - Runtime target when authorized: production.
 - Expected incremental provider cost for archive/export/upload: zero.
 - Sentry source-map upload remains disabled unless separately and explicitly
   authorized.
+
+The public branch also contains this handoff documentation, so Home must use
+its synchronized `origin/main` head for the exact archive gate rather than
+assuming the app-source reservation is the branch head. The private repository
+may likewise receive documentation-only integration commits; synchronize it
+before recording the exact private gate commit.
 
 The public source contains the approved Play Avi balance, local game setup and
 preferences, separate Account/Settings ownership, and device-local DuelWords
