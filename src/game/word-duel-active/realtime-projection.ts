@@ -6,6 +6,7 @@ import {
   type ActiveDuelPresenceState,
   type ActiveDuelReactionId,
   type ActiveDuelViewModel,
+  synchronizeActiveDuelRound,
 } from './view-model';
 
 const REACTION_TTL_MS = 4000;
@@ -341,14 +342,18 @@ export function applyRealtimeProjectionToActiveDuelViewModel(
   viewModel: ActiveDuelViewModel,
   projection: DuelWordsRealtimeRoomView,
 ): ActiveDuelViewModel {
+  const roundChanged = projection.room.roundNumber > viewModel.roundNumber;
+  const currentRoundViewModel = roundChanged
+    ? synchronizeActiveDuelRound(viewModel, projection.room.roundNumber)
+    : viewModel;
   const remainingSeconds = projection.room.roundDeadlineAt
     ? Math.max(0, Math.ceil((projection.room.roundDeadlineAt - projection.room.serverNow) / 1000))
-    : viewModel.remainingSeconds;
+    : currentRoundViewModel.remainingSeconds;
   const opponent = projection.opponent;
-  const ownRoundState = deriveOwnRoundState(projection, viewModel);
+  const ownRoundState = deriveOwnRoundState(projection, currentRoundViewModel);
 
   return {
-    ...viewModel,
+    ...currentRoundViewModel,
     activeReaction: latestActiveDuelReactionFromRealtimeProjection(projection),
     gameLanguage: projection.room.language,
     maxAttempts: projection.room.maxAttempts,
@@ -360,7 +365,7 @@ export function applyRealtimeProjectionToActiveDuelViewModel(
           safeDisplayName: opponent.safeDisplayName,
         }
       : {
-          ...viewModel.opponent,
+          ...currentRoundViewModel.opponent,
           presence: 'disconnected',
           roundState: 'waiting',
         },

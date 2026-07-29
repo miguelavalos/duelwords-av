@@ -34,7 +34,7 @@ import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import { experienceCopy } from '@/i18n/experience-copy';
-import type { InterfaceLocale } from '@/i18n/locales';
+import { GAME_LANGUAGES, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -51,8 +51,6 @@ import { createExclusiveActionGate } from './exclusive-action-gate';
 import {
   canHostStartChallenge,
   joinChallengeAsReadyRecipient,
-  shouldRearmActiveDuelOpening,
-  shouldShowLobbyRefresh,
   shouldSubscribeToLobbyRealtime,
 } from './public-challenge-flow';
 import {
@@ -101,12 +99,12 @@ export function PublicWordDuelChallengeScreen({
   const mountedRef = useRef(true);
   const [actionGate] = useState(createExclusiveActionGate);
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  const [entryMode, setEntryMode] = useState<'create' | 'join'>('join');
   const [displayName, setDisplayName] = useState(
     () => createWordDuelDefaultGuestDisplayName(randomUUID),
   );
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(() =>
     connectedGameLanguage(initialGameLanguage ?? preferences.gameLanguage));
-  const [inviteInput, setInviteInput] = useState(initialInviteInput);
   const [roomCodeFirst, setRoomCodeFirst] = useState(
     () => splitWordDuelRoomCode(initialRoomCode).first,
   );
@@ -232,7 +230,6 @@ export function PublicWordDuelChallengeScreen({
     setFinalResult(null);
     setLobbyState(null);
     setRematchProposal(null);
-    setInviteInput(invite);
     const codeParts = splitWordDuelRoomCode(code);
     setRoomCodeFirst(codeParts.first);
     setRoomCodeSecond(codeParts.second);
@@ -412,26 +409,6 @@ export function PublicWordDuelChallengeScreen({
     });
   }
 
-  function previewInvite(value = inviteInput) {
-    const parsed = parseWordDuelInviteEntry(value);
-    if (!parsed.ok) {
-      setStatusMessage(parsed.reason === 'unsupported_host'
-        ? copy('unsupportedInvite')
-        : copy('validInviteRequired'));
-      return;
-    }
-
-    void runAction('preview', async () => {
-      const nextState = await controller.previewInviteByToken({
-        inviteToken: parsed.value,
-        nowMs: Date.now(),
-      });
-      if (!mountedRef.current) return;
-      setLobbyState(nextState);
-      setStatusMessage(copy('reviewBeforeJoin'));
-    });
-  }
-
   function previewRoomCode(value = roomCode) {
     const normalized = normalizeWordDuelRoomCode(value);
     if (!normalized.ok) {
@@ -472,25 +449,6 @@ export function PublicWordDuelChallengeScreen({
     });
   }
 
-  function refreshLobby() {
-    if (!lobbyState) {
-      return;
-    }
-
-    void runAction('refresh', async () => {
-      const nextState = await controller.refreshLobby({ nowMs: Date.now(), state: lobbyState });
-      if (!mountedRef.current) return;
-      if (shouldRearmActiveDuelOpening({
-        hasActiveController: activeController !== null,
-        lobbyStatus: nextState.lobby.status,
-      })) {
-        activeOpeningStartedRef.current = false;
-      }
-      setLobbyState(nextState);
-      setStatusMessage(copy('lobbyUpdated'));
-    });
-  }
-
   function startGame() {
     if (!lobbyState) {
       return;
@@ -526,7 +484,7 @@ export function PublicWordDuelChallengeScreen({
     setFinalResult(null);
     setLobbyState(null);
     setRematchProposal(null);
-    setInviteInput('');
+    setEntryMode('create');
     setRoomCodeFirst('');
     setRoomCodeSecond('');
     setStatusMessage(null);
@@ -625,12 +583,12 @@ export function PublicWordDuelChallengeScreen({
         }}
         title={copy('wordDuel')}
       />
-      <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text>
+      {lobbyState === null ? <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text> : null}
 
       {!runtime.ok ? <RuntimeUnavailable interfaceLocale={interfaceLocale} reason={runtime.reason} /> : null}
 
-      <View style={styles.panel}>
-        <Text nativeID="word-duel-display-name-label" style={styles.panelTitle}>{copy('roomName')}</Text>
+      {lobbyState === null ? <View style={styles.compactPanel}>
+        <Text nativeID="word-duel-display-name-label" style={styles.inputLabel}>{copy('roomName')}</Text>
         <TextInput
           accessibilityLabel={copy('displayNameLabel')}
           accessibilityLabelledBy="word-duel-display-name-label"
@@ -644,15 +602,34 @@ export function PublicWordDuelChallengeScreen({
           style={styles.input}
           value={effectiveDisplayName}
         />
-        <Text style={styles.helper}>{configuredDisplayName ? 'Edit this DuelWords name in Settings.' : copy(account.user ? 'accountRoomNameHelp' : 'roomNameHelp')}</Text>
-      </View>
+        {!configuredDisplayName ? (
+          <Text style={styles.helper}>{copy(account.user ? 'accountRoomNameHelp' : 'roomNameHelp')}</Text>
+        ) : null}
+      </View> : null}
 
       {lobbyState === null ? (
         <>
-          <View style={styles.panel}>
-            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('joinChallenge')}</Text>
-            <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>{copy('roomCode')}</Text>
-            <View accessibilityLabelledBy="word-duel-room-code-label" style={styles.roomCodeInputRow}>
+          <View accessibilityRole="tablist" style={styles.entryModeRow}>
+            <AppButton
+              onPress={() => setEntryMode('join')}
+              style={styles.entryModeButton}
+              tone={entryMode === 'join' ? 'primary' : 'secondary'}>
+              {copy('joinChallenge')}
+            </AppButton>
+            <AppButton
+              onPress={() => setEntryMode('create')}
+              style={styles.entryModeButton}
+              tone={entryMode === 'create' ? 'primary' : 'secondary'}>
+              {copy('createChallenge')}
+            </AppButton>
+          </View>
+
+          {entryMode === 'join' ? (
+            <View style={styles.panel}>
+              <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('joinChallenge')}</Text>
+              <Text style={styles.helper}>{copy('joinCodeHelp')}</Text>
+              <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>{copy('roomCode')}</Text>
+              <View accessibilityLabelledBy="word-duel-room-code-label" style={styles.roomCodeInputRow}>
               <TextInput
                 accessibilityLabel={`${copy('roomCode')} 1`}
                 autoCapitalize="characters"
@@ -695,52 +672,36 @@ export function PublicWordDuelChallengeScreen({
                 style={[styles.input, styles.roomCodeInput]}
                 value={roomCodeSecond}
               />
+              </View>
+              <AppButton
+                disabled={!runtime.ok || isBusy || !roomCodeComplete}
+                onPress={() => previewRoomCode()}>
+                {copy('findRoom')}
+              </AppButton>
             </View>
-            <AppButton
-              disabled={!runtime.ok || isBusy || !roomCodeComplete}
-              onPress={() => previewRoomCode()}>
-              {copy('findRoom')}
-            </AppButton>
-            <View style={styles.divider} />
-            <Text nativeID="word-duel-invite-label" style={styles.inputLabel}>{copy('inviteLabel')}</Text>
-            <TextInput
-              accessibilityLabel={copy('inviteLabel')}
-              accessibilityLabelledBy="word-duel-invite-label"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={runtime.ok && !isBusy}
-              onChangeText={setInviteInput}
-              placeholder={copy('invitePlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              style={styles.input}
-              value={inviteInput}
-            />
-            <AppButton disabled={!runtime.ok || isBusy || inviteInput.trim().length === 0} tone="secondary" onPress={() => previewInvite()}>
-              {copy('reviewInvite')}
-            </AppButton>
-          </View>
-
-          <View style={styles.panel}>
-            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
-            <GameLanguagePicker
-              disabled={isBusy}
-              dismissLabel={copy('close')}
-              label={experience.gameLanguage}
-              onChange={setGameLanguage}
-              options={CONNECTED_GAME_LANGUAGES}
-              value={gameLanguage}
-            />
-            <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
-              {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
-            </AppButton>
-          </View>
+          ) : (
+            <View style={styles.panel}>
+              <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
+              <Text style={styles.helper}>{copy('createChallengeHelp')}</Text>
+              <GameLanguagePicker
+                disabled={isBusy}
+                dismissLabel={copy('close')}
+                label={experience.gameLanguage}
+                onChange={setGameLanguage}
+                options={CONNECTED_GAME_LANGUAGES}
+                value={gameLanguage}
+              />
+              <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
+                {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
+              </AppButton>
+            </View>
+          )}
         </>
       ) : (
         <PublicLobbyPanel
           busy={isBusy}
           onJoin={joinInvite}
           onStart={startGame}
-          onRefresh={refreshLobby}
           onReset={resetJourney}
           onShare={shareInvite}
           interfaceLocale={interfaceLocale}
@@ -865,7 +826,6 @@ function PublicLobbyPanel({
   interfaceLocale,
   onJoin,
   onStart,
-  onRefresh,
   onReset,
   onShare,
   state,
@@ -874,7 +834,6 @@ function PublicLobbyPanel({
   interfaceLocale: InterfaceLocale;
   onJoin: () => void;
   onStart: () => void;
-  onRefresh: () => void;
   onReset: () => void;
   onShare: () => void;
   state: WordDuelLobbyControllerState;
@@ -892,7 +851,7 @@ function PublicLobbyPanel({
           <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{lobby.invitePreview.gameName}</Text>
         </View>
         <View style={styles.languagePill}>
-          <Text style={styles.languageText}>{lobby.invitePreview.gameLanguage.toUpperCase()}</Text>
+          <Text style={styles.languageText}>{gameLanguageLabel(lobby.invitePreview.gameLanguage)}</Text>
         </View>
       </View>
 
@@ -951,11 +910,6 @@ function PublicLobbyPanel({
             {copy('startGame')}
           </AppButton>
         ) : null}
-        {shouldShowLobbyRefresh(lobby.status) ? (
-          <AppButton disabled={busy} tone="secondary" onPress={onRefresh} style={styles.actionButton}>
-            {copy('refreshLobby')}
-          </AppButton>
-        ) : null}
         <AppButton disabled={busy} tone="quiet" onPress={onReset} style={styles.actionButton}>
           {copy('back')}
         </AppButton>
@@ -969,7 +923,6 @@ function PlayerRow({ interfaceLocale, player }: { interfaceLocale: InterfaceLoca
   const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
   return (
     <View style={styles.playerRow}>
-      <View style={styles.sideBadge}><Text style={styles.sideText}>{player.side.toUpperCase()}</Text></View>
       <View style={styles.playerText}>
         <Text style={styles.playerName}>{player.safeDisplayName}{player.isViewer ? ` · ${copy('you')}` : ''}</Text>
         <Text style={styles.helper}>{player.role === 'host' ? copy('host') : copy('rival')}</Text>
@@ -1023,6 +976,10 @@ function resultOutcomeLabel(locale: InterfaceLocale, outcome: string): string {
   return publicDuelT(locale, 'duelComplete');
 }
 
+function gameLanguageLabel(language: GameLanguage): string {
+  return GAME_LANGUAGES.find((candidate) => candidate.code === language)?.label ?? language.toUpperCase();
+}
+
 function rematchLabel(locale: InterfaceLocale, proposal: DuelWordsApiRematchProposal | null): string {
   if (!proposal) return publicDuelT(locale, 'requestRematchHelp');
   if (proposal.status === 'sent' && proposal.viewer.role === 'recipient') return publicDuelT(locale, 'rivalRequestedRematch');
@@ -1058,6 +1015,9 @@ function usePublicChallengeStyles() {
   kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
   subtitle: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 21 },
   panel: { gap: spacing.md, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.lg },
+  compactPanel: { gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md },
+  entryModeRow: { flexDirection: 'row', gap: spacing.sm },
+  entryModeButton: { flex: 1, minWidth: 0, paddingHorizontal: spacing.sm },
   panelTitle: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
   helper: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
   inputLabel: { color: colors.text, fontSize: typeScale.small, fontWeight: '800' },
@@ -1065,7 +1025,6 @@ function usePublicChallengeStyles() {
   roomCodeInputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   roomCodeInput: { flex: 1, textAlign: 'center', fontWeight: '900', fontVariant: ['tabular-nums'], letterSpacing: 2 },
   roomCodeSeparator: { color: colors.textMuted, fontSize: typeScale.lead, fontWeight: '900' },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   unavailableBox: { gap: spacing.sm, borderRadius: radii.md, backgroundColor: colors.pressureSoft, padding: spacing.lg },
   unavailableRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   unavailableCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
@@ -1083,8 +1042,6 @@ function usePublicChallengeStyles() {
   roomCodeValue: { fontVariant: ['tabular-nums'], letterSpacing: 1.2 },
   playersBox: { gap: spacing.sm },
   playerRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radii.md, backgroundColor: colors.background, padding: spacing.md },
-  sideBadge: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: radii.md, backgroundColor: colors.secondarySoft },
-  sideText: { color: colors.secondary, fontWeight: '900' },
   playerText: { flex: 1, minWidth: 0 },
   playerName: { color: colors.text, fontSize: typeScale.body, fontWeight: '800' },
   playerState: { color: colors.textMuted, fontSize: typeScale.small, fontWeight: '800' },

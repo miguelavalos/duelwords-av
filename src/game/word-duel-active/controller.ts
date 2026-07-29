@@ -37,7 +37,7 @@ import {
   type ActiveDuelViewModel,
   markActiveDuelGuessSubmitted,
   markActiveDuelTimedOut,
-  openActiveDuelNextLocalRound,
+  synchronizeActiveDuelRound,
   revealActiveDuelOwnRoundFeedback,
 } from './view-model';
 
@@ -422,7 +422,7 @@ function createAppsApiWordDuelActiveController(input: {
       });
       const previousRoundNumber = viewModel.roundNumber;
       if (response.game.currentRound > previousRoundNumber) {
-        viewModel = openActiveDuelNextLocalRound(viewModel);
+        viewModel = synchronizeActiveDuelRound(viewModel, response.game.currentRound);
       }
 
       return {

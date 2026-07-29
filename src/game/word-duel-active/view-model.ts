@@ -259,7 +259,20 @@ export function markActiveDuelTimedOut(viewModel: ActiveDuelViewModel): ActiveDu
 }
 
 export function openActiveDuelNextLocalRound(viewModel: ActiveDuelViewModel): ActiveDuelViewModel {
-  const nextRoundNumber = Math.min(viewModel.roundNumber + 1, viewModel.maxAttempts);
+  return synchronizeActiveDuelRound(viewModel, viewModel.roundNumber + 1);
+}
+
+export function synchronizeActiveDuelRound(
+  viewModel: ActiveDuelViewModel,
+  authoritativeRoundNumber: number,
+): ActiveDuelViewModel {
+  const nextRoundNumber = Math.min(
+    Math.max(1, Math.trunc(authoritativeRoundNumber)),
+    viewModel.maxAttempts,
+  );
+  if (nextRoundNumber <= viewModel.roundNumber) {
+    return viewModel;
+  }
   const nextRowIndex = nextRoundNumber - 1;
   const nextRows = replaceRoundRow(viewModel, emptyRow('editing'), nextRowIndex);
 

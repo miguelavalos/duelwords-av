@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { createDemoActiveDuelViewModel } from './view-model';
+import { createDemoActiveDuelViewModel, markActiveDuelTimedOut } from './view-model';
 import {
   activeDuelReactionToRealtimeKey,
   applyRealtimeProjectionToActiveDuelViewModel,
@@ -78,6 +78,27 @@ describe('active duel realtime projection adapter', () => {
     ]);
     expect(mapped.opponent.presence).toBe('connected');
     expect(mapped.ownRoundState).toBe('rival_submitted');
+  });
+
+  it('opens authoritative new rounds instead of carrying a timeout lock forward', async () => {
+    const client = createLocalDuelWordsRealtimeProjectionClient({
+      roundNumber: 3,
+    });
+    const timedOutRoundTwo = markActiveDuelTimedOut(createDemoActiveDuelViewModel({
+      gameLanguage: 'en',
+      scenario: 'editing',
+    }));
+    const projection = await client.getActiveRoomView({
+      realtimeSessionId: 'local-realtime-session',
+      roomToken: 'local-active-room',
+    });
+
+    const mapped = applyRealtimeProjectionToActiveDuelViewModel(timedOutRoundTwo, projection!);
+
+    expect(mapped.roundNumber).toBe(3);
+    expect(mapped.ownRoundState).toBe('rival_submitted');
+    expect(mapped.ownBoardRows[1]?.state).toBe('timeout');
+    expect(mapped.ownBoardRows[2]?.state).toBe('editing');
   });
 
   it('publishes a local accepted submit projection and switches to resolving when both sides submitted', async () => {

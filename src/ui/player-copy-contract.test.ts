@@ -62,7 +62,7 @@ describe('player-facing local-game copy contract', () => {
     expect(resultScreenSource).toContain("width: '100%'");
   });
 
-  it('opens the human challenge hub directly and puts room-code join before create', () => {
+  it('opens the human challenge hub directly and prioritizes room-code join', () => {
     expect(playScreenSource).toContain('WORD_DUEL_ROUTE_PATHS.challenge');
     expect(playScreenSource.match(/WORD_DUEL_ROUTE_PATHS\.setup/g)).toHaveLength(2);
 
@@ -71,7 +71,8 @@ describe('player-facing local-game copy contract', () => {
       publicChallengeSource.indexOf('<PublicLobbyPanel'),
     );
     expect(entrySource.indexOf("copy('joinChallenge')")).toBeLessThan(entrySource.indexOf("copy('createChallenge')"));
-    expect(entrySource.indexOf("copy('roomCode')")).toBeLessThan(entrySource.indexOf("copy('inviteLabel')"));
+    expect(entrySource.indexOf("copy('roomCode')")).toBeLessThan(entrySource.indexOf("copy('createChallengeHelp')"));
+    expect(entrySource).not.toContain("copy('inviteLabel')");
   });
 
   it('keeps room codes complete and compact iPad mode titles on one line', () => {

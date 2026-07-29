@@ -15,6 +15,15 @@ DuelWords AV runbook.
 
 Current implementation slice:
 
+- Recurrent connected-round rule: Convex publishes the authoritative
+  `serverNow`/round-deadline pair only when safe room state changes; it is not a
+  one-second clock. Anchor the foreground UI clock from that server delta and
+  tick it locally. When the safe projection becomes `round_resolving`, recover
+  the caller's private round snapshot and request the idempotent
+  `open-next-if-due` transition after the server pause. Never require manual
+  Refresh/Sync/Next actions for normal round progression, and keep
+  `active-duel-live-round.test.ts` green.
+
 - Expo Router SDK 57 shell.
 - Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
   system/light/dark appearance. Word language is game-scoped: local modes and
