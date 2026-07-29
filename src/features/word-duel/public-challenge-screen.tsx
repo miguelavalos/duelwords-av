@@ -779,7 +779,7 @@ function actionErrorMessage(
   return copy('actionUnavailable');
 }
 
-export function ConnectedResultPanel({
+function ConnectedResultPanel({
   busy,
   finalResult,
   interfaceLocale,
