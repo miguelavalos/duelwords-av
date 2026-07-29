@@ -49,6 +49,8 @@ import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-lan
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
 import {
+  canHostStartChallenge,
+  joinChallengeAsReadyRecipient,
   shouldRearmActiveDuelOpening,
   shouldShowLobbyRefresh,
   shouldSubscribeToLobbyRealtime,
@@ -458,14 +460,15 @@ export function PublicWordDuelChallengeScreen({
     }
 
     void runAction('join', async () => {
-      const nextState = await controller.joinInvite({
-        nowMs: Date.now(),
+      const nextState = await joinChallengeAsReadyRecipient({
+        controller,
+        nowMs: () => Date.now(),
         player,
         state: lobbyState,
       });
       if (!mountedRef.current) return;
       setLobbyState(nextState);
-      setStatusMessage(copy('joinedChallenge'));
+      setStatusMessage(copy('waitingForHost'));
     });
   }
 
@@ -488,16 +491,16 @@ export function PublicWordDuelChallengeScreen({
     });
   }
 
-  function markReady() {
+  function startGame() {
     if (!lobbyState) {
       return;
     }
 
-    void runAction('ready', async () => {
+    void runAction('start-game', async () => {
       const nextState = await controller.markReady({ nowMs: Date.now(), state: lobbyState });
       if (!mountedRef.current) return;
       setLobbyState(nextState);
-      setStatusMessage(nextState.lobby.status === 'countdown' ? copy('bothReady') : copy('readyLocked'));
+      setStatusMessage(nextState.lobby.status === 'countdown' ? copy('starting') : copy('waitingRound'));
     });
   }
 
@@ -736,7 +739,7 @@ export function PublicWordDuelChallengeScreen({
         <PublicLobbyPanel
           busy={isBusy}
           onJoin={joinInvite}
-          onReady={markReady}
+          onStart={startGame}
           onRefresh={refreshLobby}
           onReset={resetJourney}
           onShare={shareInvite}
@@ -861,7 +864,7 @@ function PublicLobbyPanel({
   busy,
   interfaceLocale,
   onJoin,
-  onReady,
+  onStart,
   onRefresh,
   onReset,
   onShare,
@@ -870,7 +873,7 @@ function PublicLobbyPanel({
   busy: boolean;
   interfaceLocale: InterfaceLocale;
   onJoin: () => void;
-  onReady: () => void;
+  onStart: () => void;
   onRefresh: () => void;
   onReset: () => void;
   onShare: () => void;
@@ -924,6 +927,14 @@ function PublicLobbyPanel({
         </View>
       ) : null}
 
+      {lobby.viewerRole === 'recipient'
+        && lobby.status === 'lobby'
+        && lobby.readyBySide[lobby.viewerSide] ? (
+          <View style={styles.reviewBox}>
+            <Text style={styles.helper}>{copy('waitingForHost')}</Text>
+          </View>
+        ) : null}
+
       <View style={styles.actionRow}>
         {lobby.status === 'invite_review' ? (
           <AppButton disabled={busy || !lobby.canJoin} onPress={onJoin} style={styles.actionButton}>
@@ -935,9 +946,9 @@ function PublicLobbyPanel({
             {copy('shareInvite')}
           </AppButton>
         ) : null}
-        {lobby.canPressReady ? (
-          <AppButton disabled={busy} onPress={onReady} style={styles.actionButton}>
-            {copy('ready')}
+        {canHostStartChallenge(lobby) ? (
+          <AppButton disabled={busy} onPress={onStart} style={styles.actionButton}>
+            {copy('startGame')}
           </AppButton>
         ) : null}
         {shouldShowLobbyRefresh(lobby.status) ? (

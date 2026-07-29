@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import type { WordDuelLobbyStatus } from '@/game/word-duel-lobby/view-model';
+import { createWordDuelLobbyController } from '../../game/word-duel-lobby/controller';
 
 import {
+  canHostStartChallenge,
+  joinChallengeAsReadyRecipient,
   shouldRearmActiveDuelOpening,
   shouldShowLobbyRefresh,
   shouldSubscribeToLobbyRealtime,
@@ -17,6 +20,33 @@ const path = require('node:path') as {
 };
 
 describe('public Challenge recovery flow', () => {
+  it('makes the recipient ready on join and leaves one Start action for the host', async () => {
+    const controller = createWordDuelLobbyController({ mode: 'local_mock' });
+    const host = await controller.createHostInvite({
+      gameLanguage: 'en',
+      nowMs: 1_000,
+    });
+    const review = await controller.viewInviteReview({ nowMs: 2_000, state: host });
+    const recipient = await joinChallengeAsReadyRecipient({
+      controller,
+      nowMs: () => 3_000,
+      safeDisplayName: 'Rival',
+      state: review,
+    });
+
+    expect(recipient.lobby.viewerRole).toBe('recipient');
+    expect(recipient.lobby.readyBySide).toEqual({ a: false, b: true });
+    expect(recipient.lobby.canPressReady).toBe(false);
+    expect(canHostStartChallenge(recipient.lobby)).toBe(false);
+
+    const hostView = await controller.viewAsHost({ nowMs: 4_000, state: recipient });
+    expect(canHostStartChallenge(hostView.lobby)).toBe(true);
+
+    const countdown = await controller.markReady({ nowMs: 5_000, state: hostView });
+    expect(countdown.lobby.status).toBe('countdown');
+    expect(countdown.lobby.readyBySide).toEqual({ a: true, b: true });
+  });
+
   it('does not cancel active-duel opening on its own busy-state render', () => {
     const screen = fs.readFileSync(
       path.resolve(process.cwd(), 'src/features/word-duel/public-challenge-screen.tsx'),

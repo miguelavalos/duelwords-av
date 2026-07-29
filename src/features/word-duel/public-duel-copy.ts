@@ -44,7 +44,7 @@ const englishCopy = {
   inviteShareOpened: 'Invite share opened.',
   joinChallenge: 'Join challenge',
   joinChallengeQuestion: 'Join this challenge?',
-  joinHelp: 'Joining takes the open rival seat. The game starts only after both players press Ready.',
+  joinHelp: 'Joining takes the open rival seat. You will be ready while the host starts the game.',
   joined: 'Joined',
   joinedChallenge: 'You joined the challenge.',
   letters: 'Letters',
@@ -111,6 +111,7 @@ const englishCopy = {
   slowDown: 'Slow down',
   solved: 'Solved',
   starting: 'Starting',
+  startGame: 'Start game',
   submitted: 'Submitted',
   submitting: 'Submitting',
   syncRound: 'Sync round',
@@ -123,6 +124,7 @@ const englishCopy = {
   validInviteRequired: 'Enter a valid invite link.',
   waiting: 'Waiting',
   waitingForAnswer: 'Waiting for your rival to answer.',
+  waitingForHost: 'Waiting for the host to start the game.',
   waitingForRival: 'Waiting for rival',
   waitingRound: 'Waiting for round 1.',
   wordLength: '{count} letters',
@@ -170,6 +172,9 @@ Object.assign(spanishCopyDraft, {
   roundReady: 'La ronda 1 está lista.',
   runtimeDescription: 'Práctica y Jugar con Avi siguen disponibles sin conexión. Revisa tu conexión y vuelve a intentar el reto en directo.',
   safeRealtimeUnavailable: 'Las actualizaciones en directo aún no están listas',
+  joinHelp: 'Al unirte ocuparás la plaza rival y quedarás listo. El anfitrión iniciará la partida.',
+  startGame: 'Iniciar partida',
+  waitingForHost: 'Esperando a que el anfitrión inicie la partida.',
   wordDuel: 'Duelo de palabras',
 });
 
@@ -225,7 +230,6 @@ Object.assign(catalanCopyDraft, {
   countdownHelp: 'La ronda 1 s’obre quan acaba el compte enrere.',
   feedbackReady: 'Pistes disponibles',
   inviteShareOpened: 'S’ha obert el menú per compartir la invitació.',
-  joinHelp: 'En unir-t’hi ocuparàs la plaça rival. La partida només comença quan tots dos premeu Preparat.',
   joinedChallenge: 'T’has unit al repte.',
   lobbyUpdated: 'Sala actualitzada.',
   locked: 'Bloquejat',
@@ -275,6 +279,9 @@ Object.assign(catalanCopyDraft, {
   yourFinalBoard: 'El teu tauler final',
   actionUnavailable: 'Aquesta acció no està disponible ara. Torna-ho a provar.',
   safeRealtimeRequired: 'Cal una connexió en directe segura per jugar en línia.',
+  joinHelp: 'En unir-t’hi ocuparàs la plaça rival i quedaràs preparat. L’amfitrió començarà la partida.',
+  startGame: 'Començar partida',
+  waitingForHost: 'Esperant que l’amfitrió comenci la partida.',
   rivalFinalBoard: 'Tauler final del rival',
 });
 
@@ -288,7 +295,6 @@ Object.assign(frenchCopyDraft, {
   countdownHelp: 'La manche 1 s’ouvre à la fin du compte à rebours.',
   feedbackReady: 'Indices disponibles',
   inviteShareOpened: 'Le menu de partage de l’invitation a été ouvert.',
-  joinHelp: 'En rejoignant, vous prenez la place du rival. La partie ne commence que lorsque les deux joueurs appuient sur Prêt.',
   joinedChallenge: 'Vous avez rejoint le défi.',
   lobbyUpdated: 'Salon actualisé.',
   locked: 'Verrouillé',
@@ -336,6 +342,9 @@ Object.assign(frenchCopyDraft, {
   yourFinalBoard: 'Votre grille finale',
   actionUnavailable: 'Cette action n’est pas disponible pour le moment. Réessayez.',
   safeRealtimeRequired: 'Une connexion en direct sécurisée est requise pour jouer en ligne.',
+  joinHelp: 'En rejoignant, vous prenez la place du rival et êtes prêt. L’hôte démarrera la partie.',
+  startGame: 'Démarrer la partie',
+  waitingForHost: 'En attente du démarrage par l’hôte.',
   rivalFinalBoard: 'Grille finale du rival',
 });
 
@@ -349,7 +358,6 @@ Object.assign(germanCopyDraft, {
   countdownHelp: 'Runde 1 öffnet sich nach Ablauf des Countdowns.',
   feedbackReady: 'Hinweise verfügbar',
   inviteShareOpened: 'Das Menü zum Teilen der Einladung wurde geöffnet.',
-  joinHelp: 'Beim Beitritt übernimmst du den freien Rivalenplatz. Das Spiel beginnt erst, wenn beide Bereit drücken.',
   joinedChallenge: 'Du bist der Herausforderung beigetreten.',
   lobbyUpdated: 'Lobby aktualisiert.',
   locked: 'Gesperrt',
@@ -397,6 +405,9 @@ Object.assign(germanCopyDraft, {
   yourFinalBoard: 'Dein finales Brett',
   actionUnavailable: 'Diese Aktion ist derzeit nicht verfügbar. Versuche es erneut.',
   safeRealtimeRequired: 'Für Online-Spiele ist eine sichere Live-Verbindung erforderlich.',
+  joinHelp: 'Beim Beitritt übernimmst du den Rivalenplatz und bist bereit. Der Gastgeber startet das Spiel.',
+  startGame: 'Spiel starten',
+  waitingForHost: 'Warten, bis der Gastgeber das Spiel startet.',
   rivalFinalBoard: 'Finales Brett des Rivalen',
 });
 
