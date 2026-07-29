@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 
 import type { WordDuelLobbyStatus } from '@/game/word-duel-lobby/view-model';
 
-import { shouldRearmActiveDuelOpening, shouldShowLobbyRefresh } from './public-challenge-flow';
+import {
+  shouldRearmActiveDuelOpening,
+  shouldShowLobbyRefresh,
+  shouldSubscribeToLobbyRealtime,
+} from './public-challenge-flow';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const fs = require('node:fs') as {
@@ -36,6 +40,13 @@ describe('public Challenge recovery flow', () => {
       hasActiveController: false,
       lobbyStatus: 'active_round',
     })).toBe(true);
+  });
+
+  it('subscribes while the host waits for the invited player', () => {
+    expect(shouldSubscribeToLobbyRealtime('waiting_for_player')).toBe(true);
+    expect(shouldSubscribeToLobbyRealtime('lobby')).toBe(true);
+    expect(shouldSubscribeToLobbyRealtime('countdown')).toBe(true);
+    expect(shouldSubscribeToLobbyRealtime('active_round')).toBe(false);
   });
 
   it('does not rearm an already open duel', () => {

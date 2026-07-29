@@ -141,3 +141,15 @@ export function normalizeWordDuelRoomCode(input: string): WordDuelRoomCodeResult
 
   return { ok: true, value: `${compact.slice(0, 4)}-${compact.slice(4)}` };
 }
+
+export function sanitizeWordDuelRoomCodePart(input: string): string {
+  return input.replace(/[^0-9a-f]/gi, '').toUpperCase().slice(0, 4);
+}
+
+export function splitWordDuelRoomCode(input: string): { first: string; second: string } {
+  const compact = input.replace(/[^0-9a-f]/gi, '').toUpperCase().slice(0, 8);
+  return {
+    first: compact.slice(0, 4),
+    second: compact.slice(4),
+  };
+}

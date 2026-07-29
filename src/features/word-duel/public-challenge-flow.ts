@@ -16,3 +16,9 @@ export function shouldShowLobbyRefresh(status: WordDuelLobbyStatus): boolean {
     || status === 'countdown'
     || status === 'active_round';
 }
+
+export function shouldSubscribeToLobbyRealtime(status: WordDuelLobbyStatus): boolean {
+  return status === 'waiting_for_player'
+    || status === 'lobby'
+    || status === 'countdown';
+}

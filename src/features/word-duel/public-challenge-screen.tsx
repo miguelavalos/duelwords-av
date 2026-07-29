@@ -27,6 +27,8 @@ import {
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
   parseWordDuelInviteEntry,
+  sanitizeWordDuelRoomCodePart,
+  splitWordDuelRoomCode,
 } from '@/game/word-duel-public/guest-entry';
 import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-result/view-model';
 import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
@@ -46,7 +48,11 @@ import { GameLanguagePicker } from './components/game-language-picker';
 import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
-import { shouldRearmActiveDuelOpening, shouldShowLobbyRefresh } from './public-challenge-flow';
+import {
+  shouldRearmActiveDuelOpening,
+  shouldShowLobbyRefresh,
+  shouldSubscribeToLobbyRealtime,
+} from './public-challenge-flow';
 import {
   createWordDuelResultLocalPayloadFromApiFinalResult,
   finalizeApiWordDuelResult,
@@ -84,6 +90,8 @@ export function PublicWordDuelChallengeScreen({
     [runtime.appsApi],
   );
   const guestActorRef = useRef<GuestActor | null>(null);
+  const roomCodeFirstInputRef = useRef<TextInput>(null);
+  const roomCodeSecondInputRef = useRef<TextInput>(null);
   const initialPreviewKeyRef = useRef<string | null>(null);
   const recordedFinalGameIdRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
@@ -97,13 +105,20 @@ export function PublicWordDuelChallengeScreen({
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(() =>
     connectedGameLanguage(initialGameLanguage ?? preferences.gameLanguage));
   const [inviteInput, setInviteInput] = useState(initialInviteInput);
-  const [roomCode, setRoomCode] = useState(initialRoomCode);
+  const [roomCodeFirst, setRoomCodeFirst] = useState(
+    () => splitWordDuelRoomCode(initialRoomCode).first,
+  );
+  const [roomCodeSecond, setRoomCodeSecond] = useState(
+    () => splitWordDuelRoomCode(initialRoomCode).second,
+  );
   const [lobbyState, setLobbyState] = useState<WordDuelLobbyControllerState | null>(null);
   const [activeController, setActiveController] = useState<WordDuelActiveController | null>(null);
   const [finalResult, setFinalResult] = useState<DuelWordsApiFinalResult | null>(null);
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const isBusy = busyAction !== null;
+  const roomCode = `${roomCodeFirst}-${roomCodeSecond}`;
+  const roomCodeComplete = roomCodeFirst.length === 4 && roomCodeSecond.length === 4;
   const accountDisplayName = account.user
     ? accountRoomDisplayName(account.user, copy('accountPlayerName'))
     : null;
@@ -133,7 +148,7 @@ export function PublicWordDuelChallengeScreen({
       !runtime.ok
       || !lobbyState
       || !realtime
-      || (lobbyState.lobby.status !== 'lobby' && lobbyState.lobby.status !== 'countdown')
+      || !shouldSubscribeToLobbyRealtime(lobbyState.lobby.status)
     ) {
       return undefined;
     }
@@ -216,7 +231,9 @@ export function PublicWordDuelChallengeScreen({
     setLobbyState(null);
     setRematchProposal(null);
     setInviteInput(invite);
-    setRoomCode(code);
+    const codeParts = splitWordDuelRoomCode(code);
+    setRoomCodeFirst(codeParts.first);
+    setRoomCodeSecond(codeParts.second);
     setStatusMessage(null);
     setBusyAction(invite.length > 0 ? 'preview' : 'preview-code');
 
@@ -507,7 +524,8 @@ export function PublicWordDuelChallengeScreen({
     setLobbyState(null);
     setRematchProposal(null);
     setInviteInput('');
-    setRoomCode('');
+    setRoomCodeFirst('');
+    setRoomCodeSecond('');
     setStatusMessage(null);
   }
 
@@ -631,21 +649,52 @@ export function PublicWordDuelChallengeScreen({
           <View style={styles.panel}>
             <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('joinChallenge')}</Text>
             <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>{copy('roomCode')}</Text>
-            <TextInput
-              accessibilityLabel={copy('roomCode')}
-              accessibilityLabelledBy="word-duel-room-code-label"
-              autoCapitalize="characters"
-              autoCorrect={false}
-              editable={runtime.ok && !isBusy}
-              maxLength={9}
-              onChangeText={setRoomCode}
-              placeholder="ABCD-1234"
-              placeholderTextColor={colors.textMuted}
-              style={styles.input}
-              value={roomCode}
-            />
+            <View accessibilityLabelledBy="word-duel-room-code-label" style={styles.roomCodeInputRow}>
+              <TextInput
+                accessibilityLabel={`${copy('roomCode')} 1`}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={runtime.ok && !isBusy}
+                maxLength={4}
+                onChangeText={(value) => {
+                  const next = sanitizeWordDuelRoomCodePart(value);
+                  setRoomCodeFirst(next);
+                  if (next.length === 4) roomCodeSecondInputRef.current?.focus();
+                }}
+                onSubmitEditing={() => roomCodeSecondInputRef.current?.focus()}
+                placeholder="AB3F"
+                placeholderTextColor={colors.textMuted}
+                ref={roomCodeFirstInputRef}
+                returnKeyType="next"
+                style={[styles.input, styles.roomCodeInput]}
+                value={roomCodeFirst}
+              />
+              <Text accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.roomCodeSeparator}>–</Text>
+              <TextInput
+                accessibilityLabel={`${copy('roomCode')} 2`}
+                autoCapitalize="characters"
+                autoCorrect={false}
+                editable={runtime.ok && !isBusy}
+                maxLength={4}
+                onChangeText={(value) => setRoomCodeSecond(sanitizeWordDuelRoomCodePart(value))}
+                onKeyPress={({ nativeEvent }) => {
+                  if (nativeEvent.key === 'Backspace' && roomCodeSecond.length === 0) {
+                    roomCodeFirstInputRef.current?.focus();
+                  }
+                }}
+                onSubmitEditing={() => {
+                  if (roomCodeComplete) previewRoomCode();
+                }}
+                placeholder="12C4"
+                placeholderTextColor={colors.textMuted}
+                ref={roomCodeSecondInputRef}
+                returnKeyType="go"
+                style={[styles.input, styles.roomCodeInput]}
+                value={roomCodeSecond}
+              />
+            </View>
             <AppButton
-              disabled={!runtime.ok || isBusy || roomCode.trim().length === 0}
+              disabled={!runtime.ok || isBusy || !roomCodeComplete}
               onPress={() => previewRoomCode()}>
               {copy('findRoom')}
             </AppButton>
@@ -1002,6 +1051,9 @@ function usePublicChallengeStyles() {
   helper: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
   inputLabel: { color: colors.text, fontSize: typeScale.small, fontWeight: '800' },
   input: { minHeight: 48, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, color: colors.text, fontSize: typeScale.body, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  roomCodeInputRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  roomCodeInput: { flex: 1, textAlign: 'center', fontWeight: '900', fontVariant: ['tabular-nums'], letterSpacing: 2 },
+  roomCodeSeparator: { color: colors.textMuted, fontSize: typeScale.lead, fontWeight: '900' },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   unavailableBox: { gap: spacing.sm, borderRadius: radii.md, backgroundColor: colors.pressureSoft, padding: spacing.lg },
   unavailableRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },

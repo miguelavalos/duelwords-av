@@ -7,6 +7,8 @@ import {
   normalizeWordDuelGuestDisplayName,
   normalizeWordDuelRoomCode,
   parseWordDuelInviteEntry,
+  sanitizeWordDuelRoomCodePart,
+  splitWordDuelRoomCode,
 } from './guest-entry';
 
 function memoryStorage() {
@@ -101,5 +103,12 @@ describe('public guest Word Duel entry', () => {
       ok: false,
       reason: 'invalid_room_code',
     });
+  });
+
+  it('formats room-code entry as two hexadecimal groups without typing the separator', () => {
+    expect(sanitizeWordDuelRoomCodePart('a-b 19z')).toBe('AB19');
+    expect(sanitizeWordDuelRoomCodePart('abcdef')).toBe('ABCD');
+    expect(splitWordDuelRoomCode('ab3f-12c4')).toEqual({ first: 'AB3F', second: '12C4' });
+    expect(splitWordDuelRoomCode('bad')).toEqual({ first: 'BAD', second: '' });
   });
 });
