@@ -6,7 +6,10 @@ const path = require('node:path') as { join(...paths: string[]): string };
 
 const root = process.cwd();
 const appJson = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8')) as {
-  expo: { plugins: (string | [string, Record<string, unknown>])[] };
+  expo: {
+    ios?: { buildNumber?: string };
+    plugins: (string | [string, Record<string, unknown>])[];
+  };
 };
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')) as {
   devDependencies?: Record<string, string>;
@@ -20,6 +23,7 @@ const sentryDsymRepair = fs.readFileSync(
 );
 const builtConfigCheck = fs.readFileSync(path.join(root, 'scripts/ios/check-built-account-config.mjs'), 'utf8');
 const configGenerator = fs.readFileSync(path.join(root, 'scripts/ios/generate-local-xcconfig.sh'), 'utf8');
+const releaseBuild = appJson.expo.ios?.buildNumber;
 
 describe('iOS release and Sentry workflow', () => {
   it('pins the official Sentry Expo plugin without an auth token', () => {
@@ -60,12 +64,14 @@ describe('iOS release and Sentry workflow', () => {
     expect(archiveScript).toContain('CODE_SIGN_STYLE=Automatic');
     expect(archiveScript).toContain('MARKETING_VERSION="$version_number"');
     expect(archiveScript).toContain('CURRENT_PROJECT_VERSION="$build_number"');
+    expect(archiveScript).toContain(`build_number="${releaseBuild}"`);
     expect(archiveScript).toContain('repair-release-archive-sentry-dsym.sh');
     expect(archiveScript).toContain('check-release-archive.sh');
     expect(archiveScript).not.toMatch(/-exportArchive|altool|notarytool|eas\s+submit/);
   });
 
   it('exports a distribution-signed IPA locally without an upload path', () => {
+    expect(ipaExportScript).toContain(`expected_build="${releaseBuild}"`);
     expect(ipaExportScript).toContain('<string>export</string>');
     expect(ipaExportScript).toContain('<string>app-store-connect</string>');
     expect(ipaExportScript).toContain('<string>manual</string>');
@@ -91,7 +97,7 @@ describe('iOS release and Sentry workflow', () => {
   });
 
   it('requires production identity, symbols, runtime, and Sentry in the final archive', () => {
-    expect(archiveCheck).toContain('expected_build="3"');
+    expect(archiveCheck).toContain(`expected_build="${releaseBuild}"`);
     expect(archiveCheck).toContain('expected_bundle_id="com.avalsys.duelwordsav"');
     expect(archiveCheck).toContain('["NSPrivacyCollectedDataTypePurchases", true]');
     expect(archiveCheck).toContain('app dSYM UUID does not match app binary');
