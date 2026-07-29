@@ -10,9 +10,12 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-28: this repository has a public, guest-first Word Duel
-V1 branding and hardening candidate, but is not yet ready for another
-TestFlight upload. **Challenge a Friend**
+Current as of 2026-07-29: this repository has a public, guest-first Word Duel
+V1 branding and hardening candidate. Build `0.1.0 (4)` is reserved at public
+commit `2487f9f`; it has not been archived, exported, installed, or uploaded
+from Openspace. The exact Home continuation, including its mandatory release
+approval gate, is recorded in
+[the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
 enabled, that route can create a room-scoped guest, create or review an invite
 without auto-joining, join explicitly, Ready, start, play connected rounds,
@@ -941,6 +944,11 @@ game id; it only creates a start request after recipient acceptance.
   existing internal `avalsys` group. RC8 build `2` remains immutable historical
   evidence. Do not expire either build, broaden RC11 beyond internal testing,
   attach it to App Review, or submit it without new exact authorization.
+- Treat `2487f9f` as the source reservation for the next candidate,
+  `0.1.0 (4)`, not as signed-build evidence. Home must first synchronize both
+  repositories, run the signed-runtime preflight and archive/export validators,
+  and obtain current approval for the exact public/private commits before any
+  App Store Connect mutation. The handoff is intentionally upload-silent.
 - RC11 was installed over the existing physical iPhone app without uninstalling
   or clearing data and launched successfully. Visual owner confirmation that
   the prior Account AV session and local data remain present is still open. No
