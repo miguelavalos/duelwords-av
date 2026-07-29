@@ -286,3 +286,22 @@ The evidence therefore classifies these two events as installation-induced
 termination of the previously running app, not a reproduced memory or gameplay
 failure in the final candidate. The Sentry issue remains unmodified and
 unresolved so that any genuinely independent recurrence remains visible.
+
+## TestFlight availability follow-up
+
+App Store Connect continues to report upload `0.1.0 (4)` / build id
+`55ac273b-4143-430c-a8fa-c8fb1d914d36` as `Finalizado`, binary `Validado`, with
+symbols, non-exempt encryption `No` and 90 days remaining. As of
+`2026-07-29T18:23Z`, Apple still had not exposed `Lista para enviar`, enabled
+the build controls or allowed the build to join an internal testing group.
+There is no visible processing error, compliance request or missing metadata
+action. The archive and upload must not be repeated and build `5` remains
+unreserved.
+
+During monitoring, builds `0.1.0 (1)`, `(2)` and `(3)` changed to `Caducado` and
+the existing internal `avalsys` group changed to zero builds while retaining
+its single tester. This task did not expire or remove those builds and did not
+modify the group. A bounded five-minute heartbeat now observes only build `4`;
+when Apple enables it, the authorized next action is to add that exact build to
+the existing internal group and verify `En pruebas`. No external testing or
+App Review action is authorized.
