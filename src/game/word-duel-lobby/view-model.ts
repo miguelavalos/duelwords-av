@@ -375,7 +375,9 @@ function withDerivedControls(
     canOpenActiveDuel: status === 'active_round' && lobby.activeRound !== null,
     canOpenRound: status === 'countdown' && countdown !== null && countdown.remainingSeconds === 0,
     canPressReady: bothPlayers && !ownReady && status === 'lobby',
-    canShareInvite: lobby.viewerRole === 'host' && !anyReady && status === 'waiting_for_player',
+    canShareInvite: lobby.viewerRole === 'host'
+      && !anyReady
+      && (status === 'waiting_for_player' || (status === 'lobby' && !bothPlayers)),
     countdown,
     invitePreview,
     sharePayload: createSharePayload(invitePreview),

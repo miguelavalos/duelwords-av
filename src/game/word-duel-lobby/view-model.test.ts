@@ -4,6 +4,7 @@ import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engi
 import {
   cancelInvite,
   createLocalInviteLobbyViewModel,
+  deriveWordDuelLobbyViewModel,
   expireInvite,
   joinInvite,
   openRoundIfDue,
@@ -34,6 +35,23 @@ describe('word duel lobby view model', () => {
       wordLength: WORD_DUEL_WORD_LENGTH,
     });
     expect(lobby.players.map((player) => player.state)).toEqual(['joined', 'waiting']);
+  });
+
+  it('keeps sharing available when the API calls a one-player room a lobby', () => {
+    const waiting = createLocalInviteLobbyViewModel({ gameLanguage: 'en', nowMs: NOW_MS });
+    const lobby = deriveWordDuelLobbyViewModel({
+      activeRound: waiting.activeRound,
+      countdown: waiting.countdown,
+      invitePreview: waiting.invitePreview,
+      players: waiting.players,
+      readyBySide: waiting.readyBySide,
+      status: 'lobby',
+      viewerRole: 'host',
+      viewerSide: 'a',
+    }, NOW_MS);
+
+    expect(lobby.players.map((player) => player.state)).toEqual(['joined', 'waiting']);
+    expect(lobby.canShareInvite).toBe(true);
   });
 
   it('keeps invite review read-only until explicit join', () => {
