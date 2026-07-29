@@ -305,3 +305,40 @@ modify the group. A bounded five-minute heartbeat now observes only build `4`;
 when Apple enables it, the authorized next action is to add that exact build to
 the existing internal group and verify `En pruebas`. No external testing or
 App Review action is authorized.
+
+## Owner-authorized replacement-build experiment
+
+The owner superseded the earlier no-reupload hold and explicitly authorized a
+new build to test the same TestFlight propagation failure reproduced in another
+Avalsys app. Public commit
+`3979ae4b96a55cb83dd842834163051720ab732e` changes only the iOS build number
+and its executable release checks from `4` to `5`; functional app source remains
+the physically accepted `afc84da5c12253b0bbb6a8e34b097977906ad9a3`, and
+backend source remains `8b123c502b9d11a56fa38c0863fe5f5284196695`.
+Node `22.23.1` and pnpm `11.9.0` passed 77 files / 414 tests, typecheck, lint,
+the iOS release-config check and diff validation.
+
+The canonical Production archive, local IPA verification and authorized upload
+then completed with Sentry upload disabled and zero expected incremental cost:
+
+- archive: `.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-5-2026-07-29-211438.xcarchive`;
+- application UUID: `FB8416B2-A056-36CD-87A9-BF48E41472C5`;
+- IPA: `.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-5-2026-07-29-211438-local/DuelWordsAV.ipa`;
+- IPA size: `41,080,754` bytes;
+- IPA SHA-256: `964d37f24859a7968243017836919c09e307f490e31c4275a23e8eb7a1c5f6ad`;
+- App Store Connect build id: `5bea9253-f372-4f3e-9660-588582a73d52`.
+
+The upload receipt ended with `Upload succeeded`, `Uploaded DuelWordsAV` and
+`EXPORT SUCCEEDED`. Immediate official App Store Connect API readback reports
+both builds `4` and `5` as `VALID`, `APP_STORE_ELIGIBLE`, encryption exempt and
+still missing `buildBetaDetail` with HTTP `404`. Therefore build `5` did not
+immediately activate build `4`. The existing `avalsys` group still reported
+`hasAccessToAllBuilds=true`; a later read of the group endpoint returned an
+Apple HTTP `500` while both build reads remained stable. No group/tester,
+external testing, App Review, backend, provider, Sentry or production mutation
+accompanied the experiment.
+
+Heartbeat `completar-testflight-duelwords-build-4` now observes only builds `4`
+and `5`. If Apple creates a beta detail for build `4`, the authorized mutation
+remains limited to making that exact build available to the existing internal
+`avalsys` group and verifying its sole tester. Do not upload build `6`.
