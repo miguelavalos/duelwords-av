@@ -342,3 +342,19 @@ Heartbeat `completar-testflight-duelwords-build-4` now observes only builds `4`
 and `5`. If Apple creates a beta detail for build `4`, the authorized mutation
 remains limited to making that exact build available to the existing internal
 `avalsys` group and verifying its sole tester. Do not upload build `6`.
+
+## TestFlight propagation closure
+
+Apple's beta service later recovered without another upload or configuration
+change. At `2026-07-29T20:20Z`, official API readback reported build `5` as
+`VALID`, `APP_STORE_ELIGIBLE` and `IN_BETA_TESTING`, with beta detail HTTP
+`200`. The internal `avalsys` group remains configured with
+`hasAccessToAllBuilds=true` and exactly one tester. The owner confirmed that
+build `5` was installed from TestFlight.
+
+Apple simultaneously created beta detail for build `4` but marked it
+`EXPIRED`; build `5`, id `5bea9253-f372-4f3e-9660-588582a73d52`, is therefore
+the accepted internal-testing artifact. No manual group assignment was needed.
+No external tester, App Review, review submission, public release, backend,
+provider, Sentry, Infisical or production mutation occurred during closure.
+The propagation heartbeat is no longer required.
