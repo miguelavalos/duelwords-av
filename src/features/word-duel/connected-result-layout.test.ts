@@ -20,6 +20,12 @@ describe('connected result layout contract', () => {
 
     expect(panel).toContain("copy('you')");
     expect(panel).toContain("copy('rival')");
+    expect(panel).toContain("const ownIsWinner = result.outcome === 'win';");
+    expect(panel).toContain("const rivalIsWinner = result.outcome === 'loss';");
+    expect(panel).toContain('ownIsWinner && styles.resultPlayerCardWinner');
+    expect(panel).toContain('rivalIsWinner && styles.resultPlayerCardWinner');
+    expect(source).toContain('resultPlayerCardWinner: { borderWidth: 2, borderColor: colors.accentPressed, backgroundColor: colors.accent }');
+    expect(source).toContain('resultWinnerText: { color: colors.onAccent }');
     expect(panel.indexOf('<ConnectedRematchActions')).toBeGreaterThan(0);
     expect(panel.indexOf('<ConnectedRematchActions')).toBeLessThan(panel.indexOf("copy('yourFinalBoard')"));
   });

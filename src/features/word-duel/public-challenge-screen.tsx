@@ -807,6 +807,8 @@ function ConnectedResultPanel({
   const copy = (key: Parameters<typeof publicDuelT>[1], values?: Record<string, string | number>) =>
     publicDuelT(interfaceLocale, key, values);
   const boardRows = (rows: typeof result.own.boardRows) => rows.map((row) => ({ ...row, state: 'scored' as const }));
+  const ownIsWinner = result.outcome === 'win';
+  const rivalIsWinner = result.outcome === 'loss';
 
   function shareResult() {
     void Share.share({ message: result.safeSharePreview.text });
@@ -822,16 +824,16 @@ function ConnectedResultPanel({
       />
 
       <View style={styles.resultOverview}>
-        <View style={styles.resultPlayerCard}>
-          <Text style={styles.resultRole}>{copy('you')}</Text>
-          <Text numberOfLines={1} style={styles.resultPlayerName}>{result.own.safeDisplayName}</Text>
-          <Text style={styles.resultAttempts}>{result.own.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+        <View style={[styles.resultPlayerCard, ownIsWinner && styles.resultPlayerCardWinner]}>
+          <Text style={[styles.resultRole, ownIsWinner && styles.resultWinnerText]}>{copy('you')}</Text>
+          <Text numberOfLines={1} style={[styles.resultPlayerName, ownIsWinner && styles.resultWinnerText]}>{result.own.safeDisplayName}</Text>
+          <Text style={[styles.resultAttempts, ownIsWinner && styles.resultWinnerText]}>{result.own.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
         </View>
         <Text accessibilityElementsHidden style={styles.resultVersus}>vs</Text>
-        <View style={styles.resultPlayerCard}>
-          <Text style={styles.resultRole}>{copy('rival')}</Text>
-          <Text numberOfLines={1} style={styles.resultPlayerName}>{result.opponent.safeDisplayName}</Text>
-          <Text style={styles.resultAttempts}>{result.opponent.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+        <View style={[styles.resultPlayerCard, rivalIsWinner && styles.resultPlayerCardWinner]}>
+          <Text style={[styles.resultRole, rivalIsWinner && styles.resultWinnerText]}>{copy('rival')}</Text>
+          <Text numberOfLines={1} style={[styles.resultPlayerName, rivalIsWinner && styles.resultWinnerText]}>{result.opponent.safeDisplayName}</Text>
+          <Text style={[styles.resultAttempts, rivalIsWinner && styles.resultWinnerText]}>{result.opponent.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
         </View>
       </View>
 
@@ -1119,6 +1121,8 @@ function usePublicChallengeStyles() {
   panel: { gap: spacing.md, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.lg },
   resultOverview: { minHeight: 92, flexDirection: 'row', alignItems: 'stretch', gap: spacing.sm, borderRadius: radii.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surfaceSoft, padding: spacing.md },
   resultPlayerCard: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2, borderRadius: radii.md, backgroundColor: colors.surface, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  resultPlayerCardWinner: { borderWidth: 2, borderColor: colors.accentPressed, backgroundColor: colors.accent },
+  resultWinnerText: { color: colors.onAccent },
   resultRole: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
   resultPlayerName: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
   resultAttempts: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '800', textTransform: 'uppercase' },
