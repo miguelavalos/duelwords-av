@@ -238,3 +238,37 @@ two-device acceptance remain open.
 
 No Infisical write or sync, D1 migration/import, repeated automated gameplay
 smoke, archive, IPA, TestFlight upload or App Store build submission occurred.
+
+## Final physical acceptance and TestFlight upload
+
+The final public source candidate is
+`afc84da5c12253b0bbb6a8e34b097977906ad9a3`; the private backend source remains
+`8b123c502b9d11a56fa38c0863fe5f5284196695`. The final follow-up highlights the
+winning `You` or `Rival` summary card in green while keeping the losing card
+neutral. The owner accepted the corrected result on the physical iPhone and
+iPad after the real multi-round Production duel. Final public gates passed at
+77 files / 414 tests plus typecheck, lint, `config:ios:check`, diff validation
+and React Doctor 81/100 with six pre-existing structural advisories.
+
+The canonical archive/export/upload completed for exact candidate `0.1.0 (4)`,
+Production runtime, zero expected incremental provider cost and disabled Sentry
+upload:
+
+- archive: `.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-4-2026-07-29-190240.xcarchive`;
+- application UUID: `A166D0F8-E339-3623-8993-BCE1E8124AF1`;
+- IPA: `.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-4-2026-07-29-190240-auto/DuelWordsAV.ipa`;
+- IPA size: `41,082,188` bytes;
+- IPA SHA-256: `651c8225508c177883b121f945c38b949ba0716aa3560abc8411a6727b6251e6`;
+- App Store Connect build id: `55ac273b-4143-430c-a8fa-c8fb1d914d36`.
+
+The upload log ended with `Upload succeeded`, `Uploaded DuelWordsAV` and
+`EXPORT SUCCEEDED`. App Store Connect reports the upload as `Finalizado`, the
+binary as validated, symbols present, non-exempt encryption `No`, the expected
+entitlements and a 90-day TestFlight window. The build has no beta group or
+beta status because it was not added to testing. It was not added or submitted
+to App Review. No build `5` was reserved, archived or uploaded.
+
+The existing manual Apple provisioning profile was corrected to use the local
+distribution identity that expires on 2027-06-07; no certificate was created.
+No code, backend, Infisical, D1 or production-runtime change accompanied that
+profile correction.
