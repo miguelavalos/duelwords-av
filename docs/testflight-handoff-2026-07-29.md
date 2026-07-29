@@ -209,3 +209,32 @@ multi-round duel must be repeated before release readiness is declared.
 No final physical install, archive, IPA, App Store Connect/TestFlight upload,
 Infisical mutation, Convex deployment, Cloudflare deployment, D1 mutation or
 other production change was performed at this checkpoint.
+
+## Home Production activation and physical-install checkpoint
+
+The owner explicitly authorized the exact synchronized code pair: public app
+source `7fb1925f748fd412dd8bc859d4f8573b7448000e` and private projection/API
+source `8b123c502b9d11a56fa38c0863fe5f5284196695`, for DuelWords AV `0.1.0 (4)`,
+Production runtime, zero expected incremental provider cost and disabled Sentry
+upload.
+
+The isolated DuelWords Convex bundle deployed first to Production deployment
+`blissful-shark-434`. Its pre-deploy and post-deploy dry-runs selected the same
+deployment, kept crons disabled, validated the schema and deleted no indexes.
+Apps API Production then deployed as Worker version
+`77640926-e7e3-4104-8c44-d3fb377d7e0a`; the preceding rollback version is
+`4699f459-7dda-4b7b-bea8-3283f5f6fbee`. The new version is active at 100%, has
+both required DuelWords Convex secret binding names, keeps realtime enabled,
+and returned a healthy Production response.
+
+A clean development-identity signed Production Release app was built from the
+exact public source. Strict signature validation, `0.1.0 (4)` metadata,
+production bundle id, Account AV keychain/associated-domain entitlements and
+the Production Apps API/Convex runtime targets passed. The app was installed in
+place over `com.avalsys.duelwordsav` on the physical iPhone 14 and iPad Air,
+without uninstalling or clearing data. Both automated launches were denied only
+because the devices were locked; manual launch and the real multi-round
+two-device acceptance remain open.
+
+No Infisical write or sync, D1 migration/import, repeated automated gameplay
+smoke, archive, IPA, TestFlight upload or App Store build submission occurred.
