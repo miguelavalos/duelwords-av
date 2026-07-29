@@ -18,6 +18,9 @@ describe('public duel copy', () => {
     expect(publicDuelT(locale, 'accountPlayerName')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'accountRoomNameHelp')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'wordDuel')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'validLetters')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'correctPosition')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'rivalRounds')).not.toHaveLength(0);
   });
 
   it('interpolates all public runtime values', () => {

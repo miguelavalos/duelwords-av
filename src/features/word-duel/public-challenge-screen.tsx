@@ -1,7 +1,7 @@
 import { randomUUID } from 'expo-crypto';
 import { useRouter } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Share, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -779,7 +779,7 @@ function actionErrorMessage(
   return copy('actionUnavailable');
 }
 
-function ConnectedResultPanel({
+export function ConnectedResultPanel({
   busy,
   finalResult,
   interfaceLocale,
@@ -799,6 +799,8 @@ function ConnectedResultPanel({
   statusMessage: string | null;
 }) {
   const styles = usePublicChallengeStyles();
+  const { width } = useWindowDimensions();
+  const usesWideResultLayout = width >= 768;
   const result = createWordDuelResultViewModelFromLocalPayload(
     createWordDuelResultLocalPayloadFromApiFinalResult(finalResult),
   );
@@ -819,36 +821,98 @@ function ConnectedResultPanel({
         title={resultOutcomeLabel(interfaceLocale, result.outcome)}
       />
 
-      <View style={styles.panel}>
-        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.own.safeDisplayName}</Text>
-        <WordDuelBoard accessibilityLabel={copy('yourFinalBoard')} density="compact" rows={boardRows(result.own.boardRows)} tileSize={34} />
-      </View>
-      <View style={styles.panel}>
-        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.opponent.safeDisplayName}</Text>
-        <WordDuelBoard accessibilityLabel={copy('rivalFinalBoard')} density="compact" rows={boardRows(result.opponent.boardRows)} tileSize={34} />
+      <View style={styles.resultOverview}>
+        <View style={styles.resultPlayerCard}>
+          <Text style={styles.resultRole}>{copy('you')}</Text>
+          <Text numberOfLines={1} style={styles.resultPlayerName}>{result.own.safeDisplayName}</Text>
+          <Text style={styles.resultAttempts}>{result.own.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+        </View>
+        <Text accessibilityElementsHidden style={styles.resultVersus}>vs</Text>
+        <View style={styles.resultPlayerCard}>
+          <Text style={styles.resultRole}>{copy('rival')}</Text>
+          <Text numberOfLines={1} style={styles.resultPlayerName}>{result.opponent.safeDisplayName}</Text>
+          <Text style={styles.resultAttempts}>{result.opponent.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+        </View>
       </View>
 
-      <View style={styles.panel}>
-        <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('playAgain')}</Text>
-        <Text style={styles.helper}>{rematchLabel(interfaceLocale, proposal)}</Text>
-        <View style={styles.actionRow}>
-          {canRequestRematch(proposal) ? (
-            <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>{copy('requestRematch')}</AppButton>
-          ) : null}
-          {proposal?.viewer.canAccept ? (
-            <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>{copy('accept')}</AppButton>
-          ) : null}
-          {proposal?.viewer.canDecline ? (
-            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('decline')} style={styles.actionButton}>{copy('decline')}</AppButton>
-          ) : null}
-          {proposal?.viewer.canCancel ? (
-            <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('cancel')} style={styles.actionButton}>{copy('cancelRequest')}</AppButton>
-          ) : null}
-          <AppButton disabled={busy} tone="quiet" onPress={shareResult} style={styles.actionButton}>{copy('shareResult')}</AppButton>
+      <ConnectedRematchActions
+        busy={busy}
+        interfaceLocale={interfaceLocale}
+        onCreateRematch={onCreateRematch}
+        onRespond={onRespond}
+        onShare={shareResult}
+        proposal={proposal}
+      />
+
+      <View style={[styles.resultBoards, usesWideResultLayout && styles.resultBoardsWide]}>
+        <View style={[styles.resultBoardPanel, usesWideResultLayout && styles.resultBoardPanelWide]}>
+          <View style={styles.resultBoardHeader}>
+            <View>
+              <Text style={styles.resultRole}>{copy('you')}</Text>
+              <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.own.safeDisplayName}</Text>
+            </View>
+            <Text style={styles.resultAttempts}>{result.own.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+          </View>
+          <WordDuelBoard accessibilityLabel={copy('yourFinalBoard')} density="compact" rows={boardRows(result.own.boardRows)} tileSize={usesWideResultLayout ? 48 : 34} />
+        </View>
+        <View style={[styles.resultBoardPanel, usesWideResultLayout && styles.resultBoardPanelWide]}>
+          <View style={styles.resultBoardHeader}>
+            <View>
+              <Text style={styles.resultRole}>{copy('rival')}</Text>
+              <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{result.opponent.safeDisplayName}</Text>
+            </View>
+            <Text style={styles.resultAttempts}>{result.opponent.attemptsUsed}/{result.maxAttempts} {copy('attempts')}</Text>
+          </View>
+          <WordDuelBoard accessibilityLabel={copy('rivalFinalBoard')} density="compact" rows={boardRows(result.opponent.boardRows)} tileSize={usesWideResultLayout ? 48 : 34} />
         </View>
       </View>
       {statusMessage ? <View accessibilityLiveRegion="polite" style={styles.statusBox}><Text selectable style={styles.statusText}>{statusMessage}</Text></View> : null}
     </AppScreen>
+  );
+}
+
+function ConnectedRematchActions({
+  busy,
+  interfaceLocale,
+  onCreateRematch,
+  onRespond,
+  onShare,
+  proposal,
+}: {
+  busy: boolean;
+  interfaceLocale: InterfaceLocale;
+  onCreateRematch: () => void;
+  onRespond: (action: 'accept' | 'cancel' | 'decline') => void;
+  onShare: () => void;
+  proposal: DuelWordsApiRematchProposal | null;
+}) {
+  const styles = usePublicChallengeStyles();
+  const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
+
+  return (
+    <View accessibilityLiveRegion="polite" style={styles.rematchActionPanel}>
+      <View style={styles.rematchActionHeader}>
+        <View style={styles.rematchActionText}>
+          <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('playAgain')}</Text>
+          <Text style={styles.helper}>{rematchLabel(interfaceLocale, proposal)}</Text>
+        </View>
+        <AppButton disabled={busy} tone="quiet" onPress={onShare} style={styles.shareResultButton}>{copy('shareResult')}</AppButton>
+      </View>
+      <View style={styles.actionRow}>
+        {canRequestRematch(proposal) ? (
+          <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>{copy('requestRematch')}</AppButton>
+        ) : null}
+        {proposal?.viewer.canAccept ? (
+          <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>{copy('accept')}</AppButton>
+        ) : null}
+        {proposal?.viewer.canDecline ? (
+          <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('decline')} style={styles.actionButton}>{copy('decline')}</AppButton>
+        ) : null}
+        {proposal?.viewer.canCancel ? (
+          <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('cancel')} style={styles.actionButton}>{copy('cancelRequest')}</AppButton>
+        ) : null}
+      </View>
+    </View>
   );
 }
 
@@ -1053,6 +1117,21 @@ function usePublicChallengeStyles() {
   kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
   subtitle: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 21 },
   panel: { gap: spacing.md, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.lg },
+  resultOverview: { minHeight: 92, flexDirection: 'row', alignItems: 'stretch', gap: spacing.sm, borderRadius: radii.lg, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surfaceSoft, padding: spacing.md },
+  resultPlayerCard: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 2, borderRadius: radii.md, backgroundColor: colors.surface, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
+  resultRole: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
+  resultPlayerName: { color: colors.text, fontSize: typeScale.lead, fontWeight: '900' },
+  resultAttempts: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '800', textTransform: 'uppercase' },
+  resultVersus: { alignSelf: 'center', color: colors.textMuted, fontSize: typeScale.small, fontWeight: '900', textTransform: 'uppercase' },
+  resultBoards: { gap: spacing.md },
+  resultBoardsWide: { flexDirection: 'row', alignItems: 'stretch' },
+  resultBoardPanel: { gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md },
+  resultBoardPanelWide: { flex: 1, minWidth: 0 },
+  resultBoardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  rematchActionPanel: { gap: spacing.md, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.secondary, backgroundColor: colors.secondarySoft, padding: spacing.md },
+  rematchActionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  rematchActionText: { flex: 1, minWidth: 0, gap: 2 },
+  shareResultButton: { minWidth: 100, minHeight: 38 },
   compactPanel: { gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md },
   entryModeRow: { flexDirection: 'row', gap: spacing.sm },
   entryModeButton: { flex: 1, minWidth: 0, paddingHorizontal: spacing.sm },

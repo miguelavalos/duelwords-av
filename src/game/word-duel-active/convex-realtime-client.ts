@@ -175,7 +175,14 @@ export function readDuelWordsRealtimeRoomView(payload: unknown): DuelWordsRealti
   const opponent = readNullableOpponent(payload.opponent);
   const reactions = readReactions(payload.reactions);
 
-  if (!room.ok || !own.ok || !opponent.ok || !reactions.ok) {
+  if (
+    !room.ok
+    || !own.ok
+    || !opponent.ok
+    || !reactions.ok
+    || !roundSummariesFitRoom(own.value, room.value)
+    || !roundSummariesFitRoom(opponent.value, room.value)
+  ) {
     return null;
   }
 
@@ -317,6 +324,7 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
   const attemptCount = readNonNegativeInteger(payload.attemptCount);
   const feedbackAvailableRound = readOptionalPositiveInteger(payload.feedbackAvailableRound);
   const safeDisplayName = readDisplayName(payload.safeDisplayName);
+  const roundSummaries = readRoundSummaries(payload.roundSummaries);
   const side = readSide(payload.side);
   const status = readPlayerStatus(payload.status);
   const timeoutCount = readNonNegativeInteger(payload.timeoutCount);
@@ -327,6 +335,7 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
     || typeof payload.hasSubmittedCurrentRound !== 'boolean'
     || typeof payload.isReady !== 'boolean'
     || safeDisplayName === null
+    || !roundSummaries.ok
     || side === null
     || status === null
     || timeoutCount === null
@@ -341,12 +350,65 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
       feedbackAvailableRound: feedbackAvailableRound.value,
       hasSubmittedCurrentRound: payload.hasSubmittedCurrentRound,
       isReady: payload.isReady,
+      roundSummaries: roundSummaries.value,
       safeDisplayName,
       side,
       status,
       timeoutCount,
     }),
   };
+}
+
+function readRoundSummaries(
+  payload: unknown,
+): ReadResult<NonNullable<DuelWordsRealtimePlayerView['roundSummaries']>> {
+  if (payload === undefined || payload === null) {
+    return { ok: true, value: [] };
+  }
+  if (!Array.isArray(payload)) {
+    return { ok: false };
+  }
+
+  const summaries: NonNullable<DuelWordsRealtimePlayerView['roundSummaries']> = [];
+  for (const item of payload.slice(0, 6)) {
+    if (!isRecord(item)) {
+      return { ok: false };
+    }
+    const roundNumber = readPositiveInteger(item.roundNumber);
+    if (roundNumber === null) {
+      return { ok: false };
+    }
+    if (item.state === 'timeout') {
+      summaries.push({ roundNumber, state: 'timeout' });
+      continue;
+    }
+    const exactCount = readNonNegativeInteger(item.exactCount);
+    const validCount = readNonNegativeInteger(item.validCount);
+    if (item.state !== 'scored' || exactCount === null || validCount === null || exactCount > validCount) {
+      return { ok: false };
+    }
+    summaries.push({ exactCount, roundNumber, state: 'scored', validCount });
+  }
+
+  return { ok: true, value: summaries };
+}
+
+function roundSummariesFitRoom(
+  player: DuelWordsRealtimePlayerView | null,
+  room: DuelWordsRealtimeRoomView['room'],
+): boolean {
+  const seenRounds = new Set<number>();
+  for (const summary of player?.roundSummaries ?? []) {
+    if (
+      summary.roundNumber > room.maxAttempts
+      || seenRounds.has(summary.roundNumber)
+      || (summary.state === 'scored' && summary.validCount > room.wordLength)
+    ) {
+      return false;
+    }
+    seenRounds.add(summary.roundNumber);
+  }
+  return true;
 }
 
 function readReactions(payload: unknown): ReadResult<DuelWordsRealtimeReactionView[]> {

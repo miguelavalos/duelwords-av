@@ -6,6 +6,7 @@ import {
   applyRealtimeProjectionToActiveDuelViewModel,
   createLocalDuelWordsRealtimeProjectionClient,
   latestActiveDuelReactionFromRealtimeProjection,
+  latestActiveDuelReactionEventFromRealtimeProjection,
 } from './realtime-projection';
 
 describe('active duel realtime projection adapter', () => {
@@ -75,6 +76,9 @@ describe('active duel realtime projection adapter', () => {
       'waiting',
       'waiting',
       'waiting',
+    ]);
+    expect(mapped.opponent.roundSummaries).toEqual([
+      { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 3 },
     ]);
     expect(mapped.opponent.presence).toBe('connected');
     expect(mapped.ownRoundState).toBe('rival_submitted');
@@ -175,6 +179,21 @@ describe('active duel realtime projection adapter', () => {
     });
 
     expect(latestActiveDuelReactionFromRealtimeProjection(view!)).toBe('tick_tock');
+    expect(latestActiveDuelReactionEventFromRealtimeProjection(view!)).toEqual({
+      reaction: 'tick_tock',
+      sender: 'own',
+    });
+    expect(latestActiveDuelReactionEventFromRealtimeProjection({
+      ...view!,
+      reactions: [{
+        expiresAt: view!.room.serverNow + 5_000,
+        reactionKey: 'nice',
+        side: 'b',
+      }],
+    })).toEqual({
+      reaction: 'nice',
+      sender: 'opponent',
+    });
     expect(applyRealtimeProjectionToActiveDuelViewModel(
       createDemoActiveDuelViewModel({ gameLanguage: 'en' }),
       view!,

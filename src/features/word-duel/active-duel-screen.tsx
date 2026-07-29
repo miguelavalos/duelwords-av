@@ -15,7 +15,8 @@ import {
 import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presence-heartbeat';
 import {
   applyRealtimeProjectionToActiveDuelViewModel,
-  latestActiveDuelReactionFromRealtimeProjection,
+  latestActiveDuelReactionEventFromRealtimeProjection,
+  type ActiveDuelReactionEvent,
   type DuelWordsRealtimeRoomStatus,
 } from '@/game/word-duel-active/realtime-projection';
 import {
@@ -23,6 +24,7 @@ import {
   shouldReportActiveDuelTimeoutFailure,
   updateActiveDuelEditingLetters,
   type ActiveDuelOpponentMarkerState,
+  type ActiveDuelOpponentRoundSummary,
   type ActiveDuelReactionId,
   type ActiveDuelViewModel,
 } from '@/game/word-duel-active/view-model';
@@ -103,7 +105,7 @@ export function ActiveDuelScreen({
   const [muted, setMuted] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [showRecoveryAction, setShowRecoveryAction] = useState(false);
-  const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionId | null>(null);
+  const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionEvent | null>(null);
   const activeDuelController = useMemo(
     () => controller ?? createWordDuelActiveController({
       handoff: activeHandoff,
@@ -128,7 +130,7 @@ export function ActiveDuelScreen({
   const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
   const boardWidth = Math.min(width - spacing.lg * 2, 418);
   const regularTileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
-  const tileSize = compactViewport ? Math.min(40, regularTileSize) : regularTileSize;
+  const tileSize = compactViewport ? Math.min(36, regularTileSize) : regularTileSize;
 
   useEffect(() => {
     viewModelRef.current = viewModel;
@@ -259,7 +261,7 @@ export function ActiveDuelScreen({
         status: projection.room.status,
       });
       setViewModel((current) => applyRealtimeProjectionToActiveDuelViewModel(current, projection));
-      setActiveReaction(latestActiveDuelReactionFromRealtimeProjection(projection));
+      setActiveReaction(latestActiveDuelReactionEventFromRealtimeProjection(projection));
 
       if (
         activeDuelController.source === 'apps_av_api'
@@ -470,6 +472,7 @@ export function ActiveDuelScreen({
         markers={viewModel.opponent.attemptMarkers}
         presence={viewModel.opponent.presence}
         roundState={viewModel.opponent.roundState}
+        roundSummaries={viewModel.opponent.roundSummaries}
         safeDisplayName={viewModel.opponent.safeDisplayName}
       />
 
@@ -525,13 +528,15 @@ function OpponentSummary({
   markers,
   presence,
   roundState,
+  roundSummaries,
   safeDisplayName,
 }: {
-  activeReaction: ActiveDuelReactionId | null;
+  activeReaction: ActiveDuelReactionEvent | null;
   interfaceLocale: InterfaceLocale;
   markers: ActiveDuelOpponentMarkerState[];
   presence: string;
   roundState: ActiveDuelOpponentMarkerState;
+  roundSummaries: ActiveDuelOpponentRoundSummary[];
   safeDisplayName: string;
 }) {
   const styles = useActiveDuelStyles();
@@ -540,38 +545,65 @@ function OpponentSummary({
       <View style={styles.opponentTopRow}>
         <View>
           <Text style={styles.metaLabel}>{publicDuelT(interfaceLocale, 'rival')}</Text>
-          <Text style={styles.opponentName}>{safeDisplayName}</Text>
+          <Text numberOfLines={1} style={styles.opponentName}>{safeDisplayName}</Text>
         </View>
         <View style={styles.presencePill}>
           <Text style={styles.presenceText}>{presenceLabel(interfaceLocale, presence)}</Text>
         </View>
       </View>
-      <View style={styles.opponentBottomRow}>
-        <View style={styles.markerGroup}>
-          <Text style={styles.markerLegend}>{publicDuelT(interfaceLocale, 'attempts')}</Text>
-          <View style={styles.markerRow}>
-            {markers.map((marker, index) => (
-              <View
-                key={`opponent-marker-${index}`}
-                accessibilityLabel={publicDuelT(interfaceLocale, 'opponentAttempt', {
-                  number: index + 1,
-                  state: opponentStateLabel(interfaceLocale, marker),
-                })}
-                style={[styles.marker, markerStyle(marker, styles)]}>
-                <Text style={styles.markerText}>{markerSymbol(marker)}</Text>
-              </View>
-            ))}
+      <View style={styles.markerGroup}>
+        <View style={styles.markerLegendRow}>
+          <Text style={styles.markerLegend}>{publicDuelT(interfaceLocale, 'rivalRounds')}</Text>
+          <View style={styles.scoreLegend}>
+            <Text style={styles.scoreLegendText}>● {publicDuelT(interfaceLocale, 'validLetters')}</Text>
+            <Text style={styles.scoreLegendText}>◎ {publicDuelT(interfaceLocale, 'correctPosition')}</Text>
           </View>
         </View>
-        <View style={styles.opponentStatusSlot}>
-          {activeReaction ? (
-            <View style={styles.reactionBubble}>
-              <Text style={styles.reactionBubbleText}>{reactionLabel(interfaceLocale, activeReaction)}</Text>
-            </View>
-          ) : (
-            <Text style={styles.opponentStatus}>{opponentStateLabel(interfaceLocale, roundState)}</Text>
-          )}
+        <View style={styles.markerRow}>
+          {markers.map((marker, markerIndex) => {
+            const roundNumber = markerIndex + 1;
+            const summary = roundSummaries.find((candidate) => candidate.roundNumber === roundNumber);
+            const accessibilityLabel = summary?.state === 'scored'
+              ? publicDuelT(interfaceLocale, 'rivalRoundScore', {
+                  exact: summary.exactCount,
+                  number: summary.roundNumber,
+                  valid: summary.validCount,
+                })
+              : publicDuelT(interfaceLocale, 'opponentAttempt', {
+                  number: roundNumber,
+                  state: opponentStateLabel(interfaceLocale, marker),
+                });
+            return (
+              <View
+                key={`opponent-round-${roundNumber}`}
+                accessibilityLabel={accessibilityLabel}
+                style={[styles.marker, markerStyle(marker, styles), summary?.state === 'scored' && styles.markerScored]}>
+                <Text style={styles.markerNumber}>{roundNumber}</Text>
+                <Text style={styles.markerText}>{markerSymbol(marker, summary)}</Text>
+              </View>
+            );
+          })}
         </View>
+      </View>
+      <View style={styles.opponentStatusSlot}>
+        {activeReaction ? (
+          <View style={[
+            styles.reactionBubble,
+            activeReaction.sender === 'own' ? styles.reactionBubbleOwn : styles.reactionBubbleOpponent,
+          ]}>
+            <Text style={[
+              styles.reactionBubbleText,
+              activeReaction.sender === 'own' ? styles.reactionBubbleTextOwn : styles.reactionBubbleTextOpponent,
+            ]}>
+              {publicDuelT(interfaceLocale, 'reactionFrom', {
+                reaction: reactionLabel(interfaceLocale, activeReaction.reaction),
+                sender: activeReaction.sender === 'own' ? publicDuelT(interfaceLocale, 'you') : safeDisplayName,
+              })}
+            </Text>
+          </View>
+        ) : (
+          <Text style={styles.opponentStatus}>{opponentStateLabel(interfaceLocale, roundState)}</Text>
+        )}
       </View>
     </View>
   );
@@ -670,7 +702,13 @@ function activeDuelErrorLabel(locale: InterfaceLocale, code: DuelWordsClientErro
   return publicDuelT(locale, 'locked');
 }
 
-function markerSymbol(marker: ActiveDuelOpponentMarkerState): string {
+function markerSymbol(
+  marker: ActiveDuelOpponentMarkerState,
+  summary?: ActiveDuelOpponentRoundSummary,
+): string {
+  if (summary?.state === 'scored') {
+    return `${summary.validCount}·${summary.exactCount}`;
+  }
   if (marker === 'submitted') {
     return 'S';
   }
@@ -813,13 +851,13 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   opponentStrip: {
-    minHeight: 100,
-    gap: spacing.sm,
+    minHeight: 126,
+    gap: spacing.xs,
     borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     backgroundColor: colors.surface,
-    padding: spacing.md,
+    padding: spacing.sm,
   },
   opponentTopRow: {
     flexDirection: 'row',
@@ -828,6 +866,7 @@ function useActiveDuelStyles() {
     gap: spacing.md,
   },
   opponentName: {
+    maxWidth: 250,
     color: colors.text,
     fontSize: typeScale.lead,
     fontWeight: '900',
@@ -845,13 +884,6 @@ function useActiveDuelStyles() {
     fontSize: typeScale.small,
     fontWeight: '800',
   },
-  opponentBottomRow: {
-    minHeight: 34,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-  },
   markerRow: {
     flexDirection: 'row',
     gap: spacing.xs,
@@ -866,9 +898,27 @@ function useActiveDuelStyles() {
     fontWeight: '800',
     textTransform: 'uppercase',
   },
+  markerLegendRow: {
+    minHeight: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  scoreLegend: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  scoreLegendText: {
+    color: colors.textMuted,
+    fontSize: 9,
+    fontWeight: '800',
+    textTransform: 'uppercase',
+  },
   marker: {
-    width: 26,
-    height: 26,
+    minWidth: 0,
+    height: 34,
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
@@ -894,15 +944,26 @@ function useActiveDuelStyles() {
     backgroundColor: colors.surfaceStrong,
     borderColor: colors.border,
   },
+  markerScored: {
+    backgroundColor: colors.surfaceStrong,
+    borderColor: colors.border,
+  },
+  markerNumber: {
+    position: 'absolute',
+    top: 2,
+    left: 5,
+    color: colors.textMuted,
+    fontSize: 8,
+    fontWeight: '900',
+  },
   markerText: {
     color: colors.text,
     fontSize: typeScale.tiny,
     fontWeight: '900',
   },
   opponentStatusSlot: {
-    minWidth: 112,
     minHeight: 34,
-    alignItems: 'flex-end',
+    alignItems: 'stretch',
     justifyContent: 'center',
   },
   opponentStatus: {
@@ -915,15 +976,27 @@ function useActiveDuelStyles() {
     minHeight: 30,
     justifyContent: 'center',
     borderRadius: radii.md,
-    backgroundColor: colors.pressureSoft,
     paddingHorizontal: spacing.md,
   },
+  reactionBubbleOwn: {
+    alignSelf: 'flex-end',
+    backgroundColor: colors.secondarySoft,
+  },
+  reactionBubbleOpponent: {
+    alignSelf: 'flex-start',
+    backgroundColor: colors.pressureSoft,
+  },
   reactionBubbleText: {
-    color: colors.pressure,
     fontWeight: '900',
   },
+  reactionBubbleTextOwn: {
+    color: colors.secondary,
+  },
+  reactionBubbleTextOpponent: {
+    color: colors.pressure,
+  },
   stateRow: {
-    minHeight: 44,
+    minHeight: 40,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

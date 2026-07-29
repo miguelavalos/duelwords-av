@@ -3,6 +3,7 @@ import type {
 } from '../word-duel-engine';
 import {
   type ActiveDuelOpponentMarkerState,
+  type ActiveDuelOpponentRoundSummary,
   type ActiveDuelPresenceState,
   type ActiveDuelReactionId,
   type ActiveDuelViewModel,
@@ -69,10 +70,28 @@ export type DuelWordsRealtimePlayerView = {
   feedbackAvailableRound?: number;
   hasSubmittedCurrentRound: boolean;
   isReady: boolean;
+  roundSummaries?: DuelWordsRealtimeRoundSummary[];
   safeDisplayName: string;
   side: DuelWordsRealtimeSide;
   status: DuelWordsRealtimePlayerStatus;
   timeoutCount: number;
+};
+
+export type DuelWordsRealtimeRoundSummary =
+  | {
+      exactCount: number;
+      roundNumber: number;
+      state: 'scored';
+      validCount: number;
+    }
+  | {
+      roundNumber: number;
+      state: 'timeout';
+    };
+
+export type ActiveDuelReactionEvent = {
+  reaction: ActiveDuelReactionId;
+  sender: 'opponent' | 'own';
 };
 
 export type DuelWordsRealtimeReactionView = {
@@ -156,6 +175,9 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
       attemptCount: Math.max(0, (input.roundNumber ?? 2) - 1),
       hasSubmittedCurrentRound: false,
       isReady: true,
+      roundSummaries: [
+        { exactCount: 2, roundNumber: 1, state: 'scored', validCount: 2 },
+      ],
       safeDisplayName: 'You',
       side: ownSide,
       status: 'joined',
@@ -166,6 +188,9 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
       hasSubmittedCurrentRound: true,
       isReady: true,
       presenceState: 'online',
+      roundSummaries: [
+        { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 3 },
+      ],
       safeDisplayName: 'Rival',
       side: opponentSide,
       status: 'submitted',
@@ -338,6 +363,22 @@ export function latestActiveDuelReactionFromRealtimeProjection(
   return realtimeReactionToActiveDuelReaction(latestReaction.reactionKey);
 }
 
+export function latestActiveDuelReactionEventFromRealtimeProjection(
+  view: DuelWordsRealtimeRoomView,
+): ActiveDuelReactionEvent | null {
+  const latestReaction = [...view.reactions]
+    .filter((reaction) => reaction.expiresAt > view.room.serverNow)
+    .sort((left, right) => right.expiresAt - left.expiresAt)[0];
+  if (!latestReaction || !view.own) {
+    return null;
+  }
+
+  return {
+    reaction: realtimeReactionToActiveDuelReaction(latestReaction.reactionKey),
+    sender: latestReaction.side === view.own.side ? 'own' : 'opponent',
+  };
+}
+
 export function applyRealtimeProjectionToActiveDuelViewModel(
   viewModel: ActiveDuelViewModel,
   projection: DuelWordsRealtimeRoomView,
@@ -362,6 +403,7 @@ export function applyRealtimeProjectionToActiveDuelViewModel(
           attemptMarkers: opponentMarkersFromProjection(opponent, projection.room.roundNumber, projection.room.maxAttempts),
           presence: presenceFromProjection(opponent.presenceState),
           roundState: opponentRoundStateFromProjection(opponent, projection.room.roundNumber),
+          roundSummaries: (opponent.roundSummaries ?? []).map(toActiveDuelRoundSummary),
           safeDisplayName: opponent.safeDisplayName,
         }
       : {
@@ -380,9 +422,18 @@ function cloneRoomView(view: DuelWordsRealtimeRoomView): DuelWordsRealtimeRoomVi
   return {
     room: { ...view.room },
     own: view.own ? { ...view.own } : null,
-    opponent: view.opponent ? { ...view.opponent } : null,
+    opponent: view.opponent ? {
+      ...view.opponent,
+      roundSummaries: view.opponent.roundSummaries?.map((summary) => ({ ...summary })),
+    } : null,
     reactions: view.reactions.map((reaction) => ({ ...reaction })),
   };
+}
+
+function toActiveDuelRoundSummary(
+  summary: DuelWordsRealtimeRoundSummary,
+): ActiveDuelOpponentRoundSummary {
+  return { ...summary };
 }
 
 function clientWritable(status: DuelWordsRealtimeRoomStatus): boolean {

@@ -31,6 +31,9 @@ describe('DuelWords Convex realtime projection client', () => {
       opponent: {
         hasSubmittedCurrentRound: true,
         presenceState: 'online',
+        roundSummaries: [
+          { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 3 },
+        ],
         safeDisplayName: 'Rival',
       },
       own: {
@@ -102,6 +105,21 @@ describe('DuelWords Convex realtime projection client', () => {
     const view = await client.getActiveRoomView(SESSION_REQUEST);
 
     expect(view?.room).toMatchObject({ roundNumber: 0, status: 'lobby' });
+  });
+
+  it('rejects rival round summaries outside the room contract', async () => {
+    const convexClient = createFakeConvexClient({
+      queryPayload: safeRoomPayload({
+        opponent: {
+          roundSummaries: [
+            { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 6 },
+          ],
+        },
+      }),
+    });
+    const client = createDuelWordsConvexRealtimeProjectionClient({ convexClient });
+
+    await expect(client.getActiveRoomView(SESSION_REQUEST)).resolves.toBeNull();
   });
 
   it('sends heartbeat and reactions through public Convex mutations only', async () => {
@@ -277,6 +295,9 @@ function safeRoomPayload(overrides: {
       hasSubmittedCurrentRound: true,
       isReady: true,
       presenceState: 'online',
+      roundSummaries: [
+        { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 3 },
+      ],
       safeDisplayName: 'Rival',
       side: 'b',
       status: 'submitted',

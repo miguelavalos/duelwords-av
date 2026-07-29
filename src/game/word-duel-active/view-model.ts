@@ -1,5 +1,9 @@
-import type { GameLanguage, LetterFeedback } from '../word-duel-engine';
-import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
+import {
+  WORD_DUEL_MAX_ATTEMPTS,
+  WORD_DUEL_WORD_LENGTH,
+  type GameLanguage,
+  type LetterFeedback,
+} from '../word-duel-engine/types';
 
 export type ActiveDuelOwnRowState = 'revealed' | 'submitted_pending' | 'editing' | 'empty' | 'timeout';
 export type ActiveDuelOwnRoundState =
@@ -11,6 +15,17 @@ export type ActiveDuelOwnRoundState =
   | 'resolving'
   | 'timed_out';
 export type ActiveDuelOpponentMarkerState = 'waiting' | 'submitted' | 'solved' | 'timeout' | 'failed';
+export type ActiveDuelOpponentRoundSummary =
+  | {
+      exactCount: number;
+      roundNumber: number;
+      state: 'scored';
+      validCount: number;
+    }
+  | {
+      roundNumber: number;
+      state: 'timeout';
+    };
 export type ActiveDuelPresenceState = 'connected' | 'reconnecting' | 'disconnected';
 export type ActiveDuelReactionId =
   | 'gg'
@@ -34,6 +49,7 @@ export type ActiveDuelOpponentSummary = {
   attemptMarkers: ActiveDuelOpponentMarkerState[];
   presence: ActiveDuelPresenceState;
   roundState: ActiveDuelOpponentMarkerState;
+  roundSummaries: ActiveDuelOpponentRoundSummary[];
   safeDisplayName: string;
 };
 
@@ -143,6 +159,9 @@ export function createDemoActiveDuelViewModel(input: {
       attemptMarkers: ['failed', 'submitted', 'waiting', 'waiting', 'waiting', 'waiting'],
       presence: 'connected',
       roundState: 'submitted',
+      roundSummaries: [
+        { exactCount: 1, roundNumber: 1, state: 'scored', validCount: 3 },
+      ],
       safeDisplayName: 'Rival',
     },
     ownBoardRows,
@@ -177,6 +196,7 @@ export function createRuntimeActiveDuelViewModel(input: {
       attemptMarkers: Array.from({ length: WORD_DUEL_MAX_ATTEMPTS }, () => 'waiting'),
       presence: 'connected',
       roundState: 'waiting',
+      roundSummaries: [],
       safeDisplayName: 'Rival',
     },
     ownBoardRows,
