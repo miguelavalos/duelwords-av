@@ -41,7 +41,8 @@ export function SettingsScreen() {
   }
 
   function handleSharedAction({ action, value }: SharedAppleAction) {
-    if (action === 'openPrivacy') openLink(links.privacy);
+    if (action === 'account') router.replace('/(tabs)/account' as Href);
+    else if (action === 'openPrivacy') openLink(links.privacy);
     else if (action === 'openTerms') openLink(links.terms);
     else if (action === 'openSupport') openLink(links.support);
     else if (action === 'openNotices') openLink(links.notices);

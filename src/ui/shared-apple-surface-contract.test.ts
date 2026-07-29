@@ -73,6 +73,16 @@ describe('shared Apps AV native-surface contract', () => {
     expect(authSource).toContain('initialAuthExpanded');
   });
 
+  it('routes shared mobile chrome between Settings and Account in both directions', () => {
+    const settingsSource = source('src/features/settings/settings-screen.tsx');
+    const accountSource = source('src/features/account/account-screen.tsx');
+
+    expect(settingsSource).toContain("action === 'account'");
+    expect(settingsSource).toContain("router.replace('/(tabs)/account' as Href)");
+    expect(accountSource).toContain("action === 'settings'");
+    expect(accountSource).toContain("router.replace('/(tabs)/settings' as Href)");
+  });
+
   it('keeps Tune AV common chrome foundations, palette, Avi, and adaptive navigation', () => {
     for (const foundation of [
       'AVAppShellFoundation',
