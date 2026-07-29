@@ -157,3 +157,55 @@ the device was locked.
 
 No archive, IPA, App Store Connect or TestFlight upload was created, and no
 Infisical, Convex, Cloudflare, D1 or other production deployment was performed.
+
+## Home round-progress and result-clarity follow-up
+
+The next synchronized code checkpoint is public app commit
+`7fb1925f748fd412dd8bc859d4f8573b7448000e` with private projection commit
+`8b123c50e267982178d199523904138fe9964d72`. Candidate metadata remains
+DuelWords AV `0.1.0 (4)`, Production runtime, zero expected incremental
+provider cost and Sentry upload disabled.
+
+The active duel now follows the existing Play Avi information contract for
+rival progress: each resolved round exposes only aggregate valid-letter and
+correct-position counts. Convex never exposes the rival's word, letters or
+feedback states. Sent reactions are labelled as the viewer's and align to the
+right; received reactions are labelled with the rival and align to the left.
+Both occupy a fixed-height lane, so neither board nor keyboard moves.
+
+The connected result screen now identifies `You` and `Rival` in both a result
+overview and each final board, includes separate attempt counts, and places the
+live rematch action before the boards. A received rematch therefore exposes
+Accept and Decline immediately. On iPad the final boards render side by side
+with larger tiles; on iPhone they remain stacked below the always-visible
+rematch action.
+
+Final source gates at this checkpoint passed:
+
+- public `pnpm test`: 77 files and 414 tests;
+- public typecheck, lint, `config:ios:check` and `git diff --check`;
+- private focused projection suite: 2 files and 17 tests;
+- private Apps API and Convex TypeScript checks and Apps API lint;
+- React Doctor completed without errors. Its remaining 13 warnings are the
+  pre-existing state/component-structure advisories in the two large screens;
+  the unstable list key and barrel import introduced during this follow-up
+  were removed.
+
+Production Release fixtures were inspected on the dedicated iPhone 17 and iPad
+Pro 13 simulators. The iPhone kept rival scores, reactions, board, keyboard and
+controls visible without displacement. The redesigned final screen exposed a
+received rematch above both boards on both devices, and the iPad wide layout
+showed both labelled boards simultaneously. The temporary Release preview
+access used for that inspection was removed before the final source commit;
+existing development-only routes retain their normal Release redirects.
+
+The new private projection code has not been deployed to Convex production or
+the production Apps API. Consequently the aggregate rival scores are not yet
+an end-to-end production result. The exact production Convex and Apps API
+deployments require new explicit authorization; after them, the final build
+must be installed in place on the physical iPhone and iPad and a real
+multi-round duel must be repeated before release readiness is declared.
+
+No final physical install, archive, IPA, App Store Connect/TestFlight upload,
+Infisical mutation, Convex deployment, Cloudflare deployment, D1 mutation or
+other production change was performed at this checkpoint.
