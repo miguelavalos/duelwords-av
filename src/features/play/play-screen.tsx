@@ -56,7 +56,7 @@ export function PlayScreen() {
         detail={copy.challengeDetail}
         primary
         mark="VS"
-        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.setup, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}
+        onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, { gameLanguage, interfaceLocale, mode: 'human_duel' }))}
       />
 
       <View style={[styles.modeGrid, twoColumn && styles.modeGridWide]}>
@@ -103,16 +103,16 @@ function ModeCard({ compact, detail, eyebrow, mark, onPress, primary, title }: {
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}. ${detail}`} onPress={onPress} style={compact && styles.modeGridItem}>
       {({ pressed }) => (
         <PaperCard emphasized={primary} style={{ minHeight: compact ? 190 : 132, opacity: pressed ? 0.76 : 1 }}>
-          <View style={styles.modeRow}>
-            <View style={[styles.modeMark, { backgroundColor: primary ? colors.accent : colors.surfaceSoft, borderColor: primary ? colors.accent : colors.border }]}>
+          <View style={[styles.modeRow, compact && styles.modeRowCompact]}>
+            <View style={[styles.modeMark, compact && styles.modeMarkCompact, { backgroundColor: primary ? colors.accent : colors.surfaceSoft, borderColor: primary ? colors.accent : colors.border }]}>
               <Text style={[styles.modeMarkText, { color: primary ? colors.onAccent : colors.accent }]}>{mark}</Text>
             </View>
             <View style={styles.modeCopy}>
               {eyebrow ? <InkEyebrow>{eyebrow}</InkEyebrow> : null}
-              <Text style={styles.modeTitle}>{title}</Text>
+              <Text adjustsFontSizeToFit={compact} minimumFontScale={compact ? 0.78 : undefined} numberOfLines={compact ? 1 : undefined} style={styles.modeTitle}>{title}</Text>
               <Text style={styles.modeDetail}>{detail}</Text>
             </View>
-            <Text style={styles.arrow}>→</Text>
+            <Text style={[styles.arrow, compact && styles.arrowCompact]}>→</Text>
           </View>
         </PaperCard>
       )}
@@ -130,12 +130,15 @@ function useStyles() {
     modeGridWide: { flexDirection: 'row' },
     modeGridItem: { flex: 1 },
     modeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
+    modeRowCompact: { gap: spacing.md },
     modeMark: { width: 68, height: 68, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, borderRadius: radii.md, transform: [{ rotate: '-2deg' }] },
+    modeMarkCompact: { width: 56, height: 56 },
     modeMarkText: { fontFamily: 'Georgia', fontSize: 19, fontWeight: '700' },
     modeCopy: { flex: 1, minWidth: 0, gap: spacing.xs },
     modeTitle: { color: colors.text, fontFamily: 'Georgia', fontSize: typeScale.subtitle, fontWeight: '700', letterSpacing: -0.5 },
     modeDetail: { color: colors.textMuted, fontSize: typeScale.small, lineHeight: 19 },
     arrow: { color: colors.accent, fontSize: 26, fontWeight: '500' },
+    arrowCompact: { fontSize: 22 },
     aviBrief: { flexDirection: 'row', alignItems: 'center', gap: spacing.lg },
     aviBriefCopy: { flex: 1, gap: spacing.xs },
   }), [colors]);

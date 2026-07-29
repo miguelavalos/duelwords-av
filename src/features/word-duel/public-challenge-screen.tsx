@@ -629,39 +629,7 @@ export function PublicWordDuelChallengeScreen({
       {lobbyState === null ? (
         <>
           <View style={styles.panel}>
-            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
-            <GameLanguagePicker
-              disabled={isBusy}
-              dismissLabel={copy('close')}
-              label={experience.gameLanguage}
-              onChange={setGameLanguage}
-              options={CONNECTED_GAME_LANGUAGES}
-              value={gameLanguage}
-            />
-            <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
-              {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
-            </AppButton>
-          </View>
-
-          <View style={styles.panel}>
             <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('joinChallenge')}</Text>
-            <Text nativeID="word-duel-invite-label" style={styles.inputLabel}>{copy('inviteLabel')}</Text>
-            <TextInput
-              accessibilityLabel={copy('inviteLabel')}
-              accessibilityLabelledBy="word-duel-invite-label"
-              autoCapitalize="none"
-              autoCorrect={false}
-              editable={runtime.ok && !isBusy}
-              onChangeText={setInviteInput}
-              placeholder={copy('invitePlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              style={styles.input}
-              value={inviteInput}
-            />
-            <AppButton disabled={!runtime.ok || isBusy || inviteInput.trim().length === 0} onPress={() => previewInvite()}>
-              {copy('reviewInvite')}
-            </AppButton>
-            <View style={styles.divider} />
             <Text nativeID="word-duel-room-code-label" style={styles.inputLabel}>{copy('roomCode')}</Text>
             <TextInput
               accessibilityLabel={copy('roomCode')}
@@ -678,9 +646,40 @@ export function PublicWordDuelChallengeScreen({
             />
             <AppButton
               disabled={!runtime.ok || isBusy || roomCode.trim().length === 0}
-              tone="secondary"
               onPress={() => previewRoomCode()}>
               {copy('findRoom')}
+            </AppButton>
+            <View style={styles.divider} />
+            <Text nativeID="word-duel-invite-label" style={styles.inputLabel}>{copy('inviteLabel')}</Text>
+            <TextInput
+              accessibilityLabel={copy('inviteLabel')}
+              accessibilityLabelledBy="word-duel-invite-label"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={runtime.ok && !isBusy}
+              onChangeText={setInviteInput}
+              placeholder={copy('invitePlaceholder')}
+              placeholderTextColor={colors.textMuted}
+              style={styles.input}
+              value={inviteInput}
+            />
+            <AppButton disabled={!runtime.ok || isBusy || inviteInput.trim().length === 0} tone="secondary" onPress={() => previewInvite()}>
+              {copy('reviewInvite')}
+            </AppButton>
+          </View>
+
+          <View style={styles.panel}>
+            <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('createChallenge')}</Text>
+            <GameLanguagePicker
+              disabled={isBusy}
+              dismissLabel={copy('close')}
+              label={experience.gameLanguage}
+              onChange={setGameLanguage}
+              options={CONNECTED_GAME_LANGUAGES}
+              value={gameLanguage}
+            />
+            <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
+              {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
             </AppButton>
           </View>
         </>
@@ -848,7 +847,7 @@ function PublicLobbyPanel({
       <View style={styles.summaryRow}>
         <Summary label={copy('letters')} value={String(lobby.invitePreview.wordLength)} />
         <Summary label={copy('attempts')} value={String(lobby.invitePreview.maxAttempts)} />
-        <Summary label={copy('code')} value={lobby.invitePreview.roomCode} selectable />
+        <Summary label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide />
       </View>
 
       <View style={styles.playersBox}>
@@ -920,12 +919,12 @@ function PlayerRow({ interfaceLocale, player }: { interfaceLocale: InterfaceLoca
   );
 }
 
-function Summary({ label, selectable, value }: { label: string; selectable?: boolean; value: string }) {
+function Summary({ label, selectable, value, wide }: { label: string; selectable?: boolean; value: string; wide?: boolean }) {
   const styles = usePublicChallengeStyles();
   return (
-    <View style={styles.summary}>
+    <View style={[styles.summary, wide && styles.summaryWide]}>
       <Text style={styles.metaLabel}>{label}</Text>
-      <Text selectable={selectable} numberOfLines={1} style={styles.summaryValue}>{value}</Text>
+      <Text selectable={selectable} numberOfLines={selectable ? undefined : 1} style={[styles.summaryValue, selectable && styles.roomCodeValue]}>{value}</Text>
     </View>
   );
 }
@@ -1015,8 +1014,10 @@ function usePublicChallengeStyles() {
   languageText: { color: colors.accent, fontWeight: '900' },
   summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   summary: { flex: 1, flexBasis: 90, minWidth: 0, gap: spacing.xs, borderRadius: radii.md, backgroundColor: colors.surfaceStrong, padding: spacing.md },
+  summaryWide: { flexBasis: '100%' },
   metaLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '800', textTransform: 'uppercase' },
   summaryValue: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
+  roomCodeValue: { fontVariant: ['tabular-nums'], letterSpacing: 1.2 },
   playersBox: { gap: spacing.sm },
   playerRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radii.md, backgroundColor: colors.background, padding: spacing.md },
   sideBadge: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: radii.md, backgroundColor: colors.secondarySoft },

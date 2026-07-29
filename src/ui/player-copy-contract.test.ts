@@ -21,6 +21,14 @@ describe('player-facing local-game copy contract', () => {
     path.join(process.cwd(), 'src/features/word-duel/result-screen.tsx'),
     'utf8',
   );
+  const playScreenSource = fs.readFileSync(
+    path.join(process.cwd(), 'src/features/play/play-screen.tsx'),
+    'utf8',
+  );
+  const publicChallengeSource = fs.readFileSync(
+    path.join(process.cwd(), 'src/features/word-duel/public-challenge-screen.tsx'),
+    'utf8',
+  );
   const developmentRouteSources = [
     'active-demo.tsx',
     'connected-runtime.tsx',
@@ -52,6 +60,25 @@ describe('player-facing local-game copy contract', () => {
     expect(resultScreenSource).toContain('const compactActions = width < 480');
     expect(resultScreenSource).toContain('styles.actionRowCompact');
     expect(resultScreenSource).toContain("width: '100%'");
+  });
+
+  it('opens the human challenge hub directly and puts room-code join before create', () => {
+    expect(playScreenSource).toContain('WORD_DUEL_ROUTE_PATHS.challenge');
+    expect(playScreenSource.match(/WORD_DUEL_ROUTE_PATHS\.setup/g)).toHaveLength(2);
+
+    const entrySource = publicChallengeSource.slice(
+      publicChallengeSource.indexOf('{lobbyState === null ? ('),
+      publicChallengeSource.indexOf('<PublicLobbyPanel'),
+    );
+    expect(entrySource.indexOf("copy('joinChallenge')")).toBeLessThan(entrySource.indexOf("copy('createChallenge')"));
+    expect(entrySource.indexOf("copy('roomCode')")).toBeLessThan(entrySource.indexOf("copy('inviteLabel')"));
+  });
+
+  it('keeps room codes complete and compact iPad mode titles on one line', () => {
+    expect(publicChallengeSource).toContain("label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide");
+    expect(publicChallengeSource).toContain('numberOfLines={selectable ? undefined : 1}');
+    expect(playScreenSource).toContain('adjustsFontSizeToFit={compact}');
+    expect(playScreenSource).toContain('numberOfLines={compact ? 1 : undefined}');
   });
 
   it('keeps engineering preview routes out of non-development builds', () => {
