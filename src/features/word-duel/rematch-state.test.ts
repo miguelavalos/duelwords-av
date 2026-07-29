@@ -1,8 +1,16 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 
 import type { DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
 
-import { canRequestRematch } from './rematch-state';
+import {
+  canRequestRematch,
+  rematchProposalRevisionKey,
+  startRematchProposalPolling,
+} from './rematch-state';
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe('canRequestRematch', () => {
   test.each(['cancelled', 'declined', 'expired'] as const)(
@@ -21,6 +29,62 @@ describe('canRequestRematch', () => {
   });
 });
 
+describe('startRematchProposalPolling', () => {
+  test('loads immediately, refreshes each second, and stops cleanly', async () => {
+    vi.useFakeTimers();
+    const proposal = proposalWithStatus('sent');
+    const load = vi.fn().mockResolvedValue(proposal);
+    const onProposal = vi.fn();
+
+    const stop = startRematchProposalPolling({ load, onProposal });
+    await vi.runAllTicks();
+    expect(load).toHaveBeenCalledTimes(1);
+    expect(onProposal).toHaveBeenLastCalledWith(proposal);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(load).toHaveBeenCalledTimes(3);
+
+    stop();
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(load).toHaveBeenCalledTimes(3);
+  });
+
+  test('does not publish an in-flight response after stopping', async () => {
+    vi.useFakeTimers();
+    let resolveLoad!: (proposal: DuelWordsApiRematchProposal | null) => void;
+    const load = vi.fn(() => new Promise<DuelWordsApiRematchProposal | null>((resolve) => {
+      resolveLoad = resolve;
+    }));
+    const onProposal = vi.fn();
+
+    const stop = startRematchProposalPolling({ load, onProposal });
+    stop();
+    resolveLoad(proposalWithStatus('sent'));
+    await vi.runAllTicks();
+
+    expect(onProposal).not.toHaveBeenCalled();
+  });
+});
+
+test('rematch proposal revision changes when acceptance opens the next game', () => {
+  const sent = proposalWithStatus('sent');
+  const accepted = {
+    ...sent,
+    status: 'accepted',
+    nextGame: { gameId: 'next-game' },
+  } as DuelWordsApiRematchProposal;
+  expect(rematchProposalRevisionKey(sent)).not.toBe(rematchProposalRevisionKey(accepted));
+});
+
 function proposalWithStatus(status: DuelWordsApiRematchProposal['status']): DuelWordsApiRematchProposal {
-  return { status } as DuelWordsApiRematchProposal;
+  return {
+    nextGame: null,
+    proposalId: 'proposal-1',
+    status,
+    viewer: {
+      canAccept: status === 'sent',
+      canCancel: false,
+      canDecline: status === 'sent',
+    },
+  } as DuelWordsApiRematchProposal;
 }

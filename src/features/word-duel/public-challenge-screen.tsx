@@ -58,7 +58,11 @@ import {
   finalizeApiWordDuelResult,
 } from './result-finalization';
 import { publicDuelT } from './public-duel-copy';
-import { canRequestRematch } from './rematch-state';
+import {
+  canRequestRematch,
+  rematchProposalRevisionKey,
+  startRematchProposalPolling,
+} from './rematch-state';
 
 type PublicWordDuelChallengeScreenProps = {
   initialGameLanguage?: GameLanguage;
@@ -141,6 +145,44 @@ export function PublicWordDuelChallengeScreen({
     recordedFinalGameIdRef.current = finalResult.game.gameId;
     void finalizeApiWordDuelResult(finalResult).catch(() => undefined);
   }, [finalResult]);
+
+  useEffect(() => {
+    if (!activeController || !finalResult) return undefined;
+
+    return startRematchProposalPolling({
+      load: () => activeController.getCurrentRematchProposal(),
+      onProposal: (proposal) => {
+        if (!mountedRef.current) return;
+        setRematchProposal((current) => (
+          rematchProposalRevisionKey(current) === rematchProposalRevisionKey(proposal)
+            ? current
+            : proposal
+        ));
+      },
+    });
+  }, [activeController, finalResult]);
+
+  useEffect(() => {
+    const actor = lobbyState?.session.actor;
+    if (
+      !actor
+      || rematchProposal?.status !== 'accepted'
+      || rematchProposal.nextGame === null
+    ) {
+      return;
+    }
+
+    setLobbyState(createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
+      actor,
+      nowMs: Date.now(),
+      proposal: rematchProposal,
+    }));
+    activeOpeningStartedRef.current = false;
+    setActiveController(null);
+    setFinalResult(null);
+    setRematchProposal(null);
+    setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedReady'));
+  }, [interfaceLocale, lobbyState?.session.actor, rematchProposal]);
 
   useEffect(() => {
     const realtime = lobbyState?.realtime;
@@ -484,29 +526,10 @@ export function PublicWordDuelChallengeScreen({
     setFinalResult(null);
     setLobbyState(null);
     setRematchProposal(null);
-    setEntryMode('create');
+    setEntryMode('join');
     setRoomCodeFirst('');
     setRoomCodeSecond('');
     setStatusMessage(null);
-  }
-
-  function continueAcceptedRematch(proposal: DuelWordsApiRematchProposal): boolean {
-    const actor = lobbyState?.session.actor;
-    if (!actor || proposal.status !== 'accepted' || proposal.nextGame === null) {
-      return false;
-    }
-
-    setLobbyState(createWordDuelLobbyControllerStateFromAcceptedRematchProposal({
-      actor,
-      nowMs: Date.now(),
-      proposal,
-    }));
-    activeOpeningStartedRef.current = false;
-    setActiveController(null);
-    setFinalResult(null);
-    setRematchProposal(null);
-    setStatusMessage(copy('rematchAcceptedReady'));
-    return true;
   }
 
   function createRematch() {
@@ -516,17 +539,6 @@ export function PublicWordDuelChallengeScreen({
       if (!mountedRef.current) return;
       setRematchProposal(proposal);
       setStatusMessage(copy('rematchSent'));
-    });
-  }
-
-  function refreshRematch() {
-    if (!activeController) return;
-    void runAction('rematch-refresh', async () => {
-      const proposal = await activeController.getCurrentRematchProposal();
-      if (!mountedRef.current) return;
-      setRematchProposal(proposal);
-      if (proposal && continueAcceptedRematch(proposal)) return;
-      setStatusMessage(proposal ? copy('rematchUpdated') : copy('noRematch'));
     });
   }
 
@@ -540,7 +552,6 @@ export function PublicWordDuelChallengeScreen({
           : await activeController.cancelRematchProposal({ proposalId: rematchProposal.proposalId });
       if (!mountedRef.current) return;
       setRematchProposal(proposal);
-      if (continueAcceptedRematch(proposal)) return;
       setStatusMessage(copy('rematchStatus', { status: proposal.status }));
     });
   }
@@ -564,7 +575,6 @@ export function PublicWordDuelChallengeScreen({
         interfaceLocale={interfaceLocale}
         onClose={resetJourney}
         onCreateRematch={createRematch}
-        onRefreshRematch={refreshRematch}
         onRespond={respondToRematch}
         proposal={rematchProposal}
         statusMessage={statusMessage}
@@ -751,7 +761,6 @@ function ConnectedResultPanel({
   interfaceLocale,
   onClose,
   onCreateRematch,
-  onRefreshRematch,
   onRespond,
   proposal,
   statusMessage,
@@ -761,7 +770,6 @@ function ConnectedResultPanel({
   interfaceLocale: InterfaceLocale;
   onClose: () => void;
   onCreateRematch: () => void;
-  onRefreshRematch: () => void;
   onRespond: (action: 'accept' | 'cancel' | 'decline') => void;
   proposal: DuelWordsApiRematchProposal | null;
   statusMessage: string | null;
@@ -812,7 +820,6 @@ function ConnectedResultPanel({
           {proposal?.viewer.canCancel ? (
             <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('cancel')} style={styles.actionButton}>{copy('cancelRequest')}</AppButton>
           ) : null}
-          <AppButton disabled={busy} tone="secondary" onPress={onRefreshRematch} style={styles.actionButton}>{copy('refresh')}</AppButton>
           <AppButton disabled={busy} tone="quiet" onPress={shareResult} style={styles.actionButton}>{copy('shareResult')}</AppButton>
         </View>
       </View>
