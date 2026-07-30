@@ -31,6 +31,9 @@ Home. It requests fresh realtime credentials whenever that screen is recreated.
 The same follow-up protects the completed result so Back cannot silently discard
 a rematch, keeps result-screen rematch discovery bounded to one second, and
 shows explicit sending, waiting, received, accepting, and synchronizing states.
+On web, the game keyboard also accepts physical letter keys plus Enter and
+Backspace/Delete while a board is active; editable fields retain their normal
+browser keyboard behavior.
 This navigation-recovery follow-up was archived from exact public source
 `084e67a` as internal TestFlight build `0.1.0 (9)`. Apple processed it as
 `VALID` / `IN_BETA_TESTING` and exposed it through the automatic internal

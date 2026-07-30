@@ -435,3 +435,13 @@ stack frames inside those vendor binaries retain the previously recorded
 symbolication risk. The other remaining product risk is editorial: the 6/7
 target decks are deterministic and frequency-filtered but have not been
 reviewed word by word.
+
+## Web physical-keyboard parity
+
+The shared on-screen keyboard remains the visual and touch target on every
+platform. Web additionally subscribes to physical `keydown` events while that
+keyboard is mounted and enabled. Supported game letters, Enter, and
+Backspace/Delete forward through the same `onKeyPress` contract as touch input.
+Modified shortcuts, key-repeat events, unsupported letters, and events originating
+inside editable form controls are ignored so browser and accessibility behavior
+remain intact.

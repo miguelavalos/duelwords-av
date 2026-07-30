@@ -2,37 +2,13 @@ import { useCallback, useLayoutEffect, useMemo, useRef } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Gesture, GestureDetector, type GestureTouchEvent } from 'react-native-gesture-handler';
 
-import type { GameLanguage, LetterFeedback } from '@/game/word-duel-engine';
+import type { LetterFeedback } from '@/game/word-duel-engine';
 import { t, type InterfaceLocale } from '@/i18n/locales';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
-export const WORD_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
-  en: [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
-  ],
-  es: [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', 'Ñ'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
-  ],
-  ca: [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
-  ],
-  fr: [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
-  ],
-  de: [
-    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-    ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DEL'],
-  ],
-};
+import { useWordDuelHardwareKeyboard } from './use-word-duel-hardware-keyboard';
+
+export { WORD_DUEL_KEY_ROWS } from './word-duel-key-rows';
 
 type KeyboardFeedbackByKey = ReadonlyMap<string, LetterFeedback> | Readonly<Record<string, LetterFeedback>>;
 
@@ -78,6 +54,12 @@ export function WordDuelKeyboard({
     disabledRef.current = disabled;
     onKeyPressRef.current = onKeyPress;
   }, [disabled, onKeyPress]);
+
+  useWordDuelHardwareKeyboard({
+    disabled,
+    keyRows,
+    onKeyPress,
+  });
 
   const handleTouchesChanged = useCallback((event: GestureTouchEvent) => {
     handleKeyboardTouches(

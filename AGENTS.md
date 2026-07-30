@@ -71,6 +71,9 @@ Current implementation slice:
   React Native Web's `Alert.alert` is a no-op, so browser confirmation must use
   the platform-specific web confirmation boundary and retain its cancel/confirm
   regression. Never infer web protection from the native Alert path.
+  The web game board must accept physical letter keys, Enter, and
+  Backspace/Delete through the platform hardware-keyboard hook. Do not capture
+  modified shortcuts, repeated keydown events, or typing inside editable fields.
   Never persist or reuse realtime credentials; recovery must request a fresh
   backend-issued session before resubscribing. Home must expose a direct return
   action while that volatile session exists.
