@@ -10,8 +10,9 @@ testing, change a backend, call a paid provider, or write Infisical.
 A later source follow-up adds the pre-game lobby interruption layer described
 below. TestFlight build `0.1.0 (7)` contains the active-duel/reaction feedback
 and rematch correction, but it does **not** contain this later lobby feedback;
-another archive/upload is required before that part can be tested from
-TestFlight.
+internal build `0.1.0 (8)` is reserved for that exact follow-up. Its delivery
+evidence remains pending until the committed source is archived, exported,
+uploaded, processed, and exposed to the internal group.
 
 ## Visual feedback
 

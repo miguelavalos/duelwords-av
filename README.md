@@ -21,7 +21,9 @@ remaining risks are recorded in
 Current source also makes pre-game synchronization deliberately interruptive:
 rival join, rival Ready, authoritative countdown, and active-round opening use
 large timed cards, iOS haptics, and persistent high-contrast lobby states. This
-follow-up is not present in TestFlight build `0.1.0 (7)` yet.
+follow-up is reserved for internal TestFlight build `0.1.0 (8)`; delivery
+evidence remains pending until its exact committed source is archived, exported,
+uploaded, processed, and exposed to the internal group.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

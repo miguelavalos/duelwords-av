@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "7",
+      "buildNumber": "8",
       "bundleIdentifier": "com.avalsys.duelwordsav",
       "config": {
         "usesNonExemptEncryption": false
