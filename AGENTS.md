@@ -27,6 +27,13 @@ Current implementation slice:
   current keyboard. Never require manual Refresh/Sync/Next actions for normal round progression, and keep
   `active-duel-live-round.test.ts` green.
 
+- Recurrent rematch handoff rule: an accepted rematch proposal carries the
+  safe `nextGame` but no realtime session. Recover a backend-issued realtime
+  session for each participant before presenting the next lobby; otherwise the
+  recipient cannot observe the host's countdown/start transition and remains
+  stranded in the lobby. Keep the recovery helper shared with active-duel
+  opening and cover lobby-time recovery in `connected-runtime.test.ts`.
+
 - Expo Router SDK 57 shell.
 - Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
   system/light/dark appearance. Word language is game-scoped: local modes and

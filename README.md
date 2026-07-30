@@ -11,10 +11,14 @@ smokes, observability, and rollback.
 ## Current Status
 
 Current as of 2026-07-30: this repository has a public, guest-first Word Duel
-V1 branding and hardening candidate. Build `0.1.0 (4)` is reserved at public
-commit `2487f9f`; it has not been archived, exported, installed, or uploaded
-from Openspace. The exact Home continuation, including its mandatory release
-approval gate, is recorded in
+V1 branding and hardening candidate. TestFlight build `0.1.0 (5)` is the
+accepted internal artifact; build `0.1.0 (6)` is reserved at public commit
+`ca02a01` and has not been archived, exported, or uploaded. The current source
+adds animated, spoiler-safe connected-duel feedback and repairs accepted-rematch
+realtime handoff; its implementation, simulator evidence, gates, and remaining
+risks are recorded in
+[the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md).
+Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
 enabled, that route can create a room-scoped guest, create or review an invite
