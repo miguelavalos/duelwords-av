@@ -395,5 +395,41 @@ log. Convex was not redeployed because its existing safe projection already
 accepts numeric length and attempt values.
 
 Public commit `345abac` reserves internal iOS build `0.1.0 (10)` and aligns the
-canonical archive/export gates. That build is not yet an uploaded TestFlight;
-archive and App Store Connect delivery remain separate release evidence.
+canonical archive/export gates. The exact production candidate was archived
+from public documentation head `a89dec1`, whose application source is unchanged
+from the configurable-duel feature and build-reservation commits.
+
+The canonical archive is
+`.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-10-2026-07-30-a89dec1.xcarchive`.
+It reports version/build `0.1.0 (10)`, bundle
+`com.avalsys.duelwordsav`, team `935PM55U6R`, arm64 application UUID
+`5A75B8A8-1407-38D2-894A-5E118EC6C567`, and exact application/dSYM parity.
+Production Account AV/runtime configuration, both Associated Domains,
+entitlements, privacy manifest, the exact `DuelWords AV App Store` profile,
+Apple Distribution signing, `get-task-allow=false`, deep signature, and a
+non-interactive framework signing smoke all passed. Sentry is statically linked
+or absent as a dynamic framework and remote symbol upload remained disabled.
+
+The local App Store export is
+`.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-10-2026-07-30-a89dec1-local/DuelWordsAV.ipa`
+(41,945,233 bytes; SHA-256
+`686730fec04aee028c16bf8c76b010b4772aeac16b8d3893a9180146242d93cd`).
+It embeds provisioning profile `DuelWords AV App Store`, UUID
+`ed7d3672-dd55-4995-840f-00307dcfeb44`.
+
+The canonical Xcode App Store upload completed at 21:48 Europe/Madrid on
+2026-07-30 with `Upload succeeded`, `Uploaded DuelWordsAV`, and
+`EXPORT SUCCEEDED`. Apple's delivery build ID is
+`30880a8a-8767-4a47-800d-b0a8805d61fb`. App Store Connect processing and the
+expected automatic `avalsys` internal-group exposure remain a separate readback
+gate; no external group, App Review submission, production runtime, paid
+provider, Sentry, or Infisical mutation ran during this delivery.
+
+Xcode again warned that eight vendor frameworks do not include matching dSYMs:
+ExpoImage, React, ReactNativeDependencies, SDWebImage,
+SDWebImageAVIFCoder, SDWebImageSVGCoder, SDWebImageWebPCoder, and hermesvm.
+These warnings did not block upload and application/dSYM parity is exact, but
+stack frames inside those vendor binaries retain the previously recorded
+symbolication risk. The other remaining product risk is editorial: the 6/7
+target decks are deterministic and frequency-filtered but have not been
+reviewed word by word.

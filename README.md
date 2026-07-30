@@ -35,6 +35,12 @@ This navigation-recovery follow-up was archived from exact public source
 `084e67a` as internal TestFlight build `0.1.0 (9)`. Apple processed it as
 `VALID` / `IN_BETA_TESTING` and exposed it through the automatic internal
 `avalsys` group with two testers on 2026-07-30.
+The current configurable-duel candidate is build `0.1.0 (10)`, archived from
+exact public source `a89dec1` after the 5/6/7-letter backend rollout and
+two-client production lifecycle gates passed. Apple accepted the upload on
+2026-07-30 as build ID `30880a8a-8767-4a47-800d-b0a8805d61fb`; processing and
+automatic internal-group availability are the remaining App Store Connect
+readback gate. No external testing or App Review submission was requested.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
