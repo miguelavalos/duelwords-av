@@ -31,7 +31,10 @@ import {
   splitWordDuelRoomCode,
 } from '@/game/word-duel-public/guest-entry';
 import { createWordDuelResultViewModelFromLocalPayload } from '@/game/word-duel-result/view-model';
-import { createWordDuelConnectedActiveRuntimeController } from '@/game/word-duel-runtime/connected-runtime';
+import {
+  createWordDuelConnectedActiveRuntimeController,
+  recoverWordDuelConnectedRealtimeSessionIfNeeded,
+} from '@/game/word-duel-runtime/connected-runtime';
 import { useDuelWordsRuntimeClients } from '@/game/word-duel-runtime/use-runtime-clients';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { GAME_LANGUAGES, type InterfaceLocale } from '@/i18n/locales';
@@ -180,32 +183,36 @@ export function PublicWordDuelChallengeScreen({
     });
     let cancelled = false;
 
-    void readyAcceptedRematchRecipient({
-      controller,
-      nowMs: () => Date.now(),
-      state: nextLobbyState,
-    }).then((preparedLobbyState) => {
+    void (async () => {
+      const preparedLobbyState = await readyAcceptedRematchRecipient({
+        controller,
+        nowMs: () => Date.now(),
+        state: nextLobbyState,
+      });
+      return recoverWordDuelConnectedRealtimeSessionIfNeeded({
+        lobbyState: preparedLobbyState,
+        runtime,
+      });
+    })().then((recovered) => {
       if (cancelled || !mountedRef.current) return;
+      if (recovered.realtimeSessionSource === 'missing') {
+        throw new Error('Accepted rematch realtime session is unavailable.');
+      }
       activeOpeningStartedRef.current = false;
-      setLobbyState(preparedLobbyState);
+      setLobbyState(recovered.lobbyState);
       setActiveController(null);
       setFinalResult(null);
       setRematchProposal(null);
       setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedReady'));
     }).catch(() => {
       if (cancelled || !mountedRef.current) return;
-      activeOpeningStartedRef.current = false;
-      setLobbyState(nextLobbyState);
-      setActiveController(null);
-      setFinalResult(null);
-      setRematchProposal(null);
       setStatusMessage(publicDuelT(interfaceLocale, 'actionUnavailable'));
     });
 
     return () => {
       cancelled = true;
     };
-  }, [controller, interfaceLocale, lobbyState?.session.actor, rematchProposal]);
+  }, [controller, interfaceLocale, lobbyState?.session.actor, rematchProposal, runtime]);
 
   useEffect(() => {
     const realtime = lobbyState?.realtime;

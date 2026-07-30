@@ -11,6 +11,7 @@ import { deriveWordDuelLobbyViewModel, type WordDuelInvitePreview } from '../wor
 import {
   createWordDuelConnectedActiveRuntimeController,
   describeWordDuelConnectedRuntimeStatus,
+  recoverWordDuelConnectedRealtimeSessionIfNeeded,
 } from './connected-runtime';
 import { createDuelWordsRuntimeClients } from './runtime-clients';
 
@@ -112,6 +113,108 @@ describe('Word Duel connected runtime route helpers', () => {
       },
     ]);
     unsubscribe();
+  });
+
+  it('recovers realtime while a rematch is still in the lobby', async () => {
+    const recorder = createFetchRecorder([
+      jsonResponse({
+        realtime: {
+          realtimeSessionId: 'dwrs_rematch_lobby_session',
+          roomToken: 'dwr_rematch_lobby_room',
+          side: 'b',
+        },
+      }),
+    ]);
+    const runtime = createDuelWordsRuntimeClients({
+      appsApiRuntimeConfig: ENABLED_APPS_API_CONFIG,
+      createConvexClient: fakeConvexClient,
+      fetchImpl: recorder.fetch,
+      platform: 'ios',
+      realtimeRuntimeConfig: ENABLED_REALTIME_CONFIG,
+    });
+    if (!runtime.ok) {
+      throw new Error('Expected ready connected runtime.');
+    }
+    const rematchLobby = activeRuntimeLobbyState({ realtime: null });
+    rematchLobby.lobby = deriveWordDuelLobbyViewModel({
+      activeRound: null,
+      countdown: null,
+      invitePreview: invitePreview(),
+      players: [
+        {
+          isViewer: false,
+          role: 'host',
+          safeDisplayName: 'Host',
+          side: 'a',
+          state: 'joined',
+        },
+        {
+          isViewer: true,
+          role: 'recipient',
+          safeDisplayName: 'Rival',
+          side: 'b',
+          state: 'ready',
+        },
+      ],
+      readyBySide: {
+        a: false,
+        b: true,
+      },
+      status: 'lobby',
+      viewerRole: 'recipient',
+      viewerSide: 'b',
+    }, NOW_MS);
+    rematchLobby.session.side = 'b';
+    rematchLobby.session.playerId = 'player-b';
+
+    const recovered = await recoverWordDuelConnectedRealtimeSessionIfNeeded({
+      lobbyState: rematchLobby,
+      runtime,
+    });
+
+    expect(recovered).toMatchObject({
+      lobbyState: {
+        lobby: {
+          status: 'lobby',
+        },
+        realtime: {
+          realtimeSessionId: 'dwrs_rematch_lobby_session',
+          roomToken: 'dwr_rematch_lobby_room',
+          side: 'b',
+        },
+      },
+      realtimeSessionSource: 'recovered',
+    });
+    expect(recorder.calls[0]?.url).toBe(
+      'https://api.test/v1/apps/duelwords/games/game-1/realtime-sessions',
+    );
+  });
+
+  it('keeps a rematch handoff fail-closed when realtime recovery is rejected', async () => {
+    const runtime = createDuelWordsRuntimeClients({
+      appsApiRuntimeConfig: ENABLED_APPS_API_CONFIG,
+      createConvexClient: fakeConvexClient,
+      fetchImpl: async () => jsonResponse(
+        { code: 'realtime_session_unavailable' },
+        { status: 503 },
+      ),
+      platform: 'ios',
+      realtimeRuntimeConfig: ENABLED_REALTIME_CONFIG,
+    });
+    if (!runtime.ok) {
+      throw new Error('Expected ready connected runtime.');
+    }
+    const rematchLobby = activeRuntimeLobbyState({ realtime: null });
+
+    const recovered = await recoverWordDuelConnectedRealtimeSessionIfNeeded({
+      lobbyState: rematchLobby,
+      runtime,
+    });
+
+    expect(recovered).toEqual({
+      lobbyState: rematchLobby,
+      realtimeSessionSource: 'missing',
+    });
   });
 
   it('does not recover realtime or subscribe when the composed runtime is disabled', async () => {

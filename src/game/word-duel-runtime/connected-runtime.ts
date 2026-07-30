@@ -42,7 +42,7 @@ export async function createWordDuelConnectedActiveRuntimeController(input: {
   realtimeNow?: () => number;
   runtime: DuelWordsRuntimeClientsBundle;
 }): Promise<WordDuelConnectedActiveRuntimeControllerBundle> {
-  const recovered = await recoverRealtimeSessionIfNeeded({
+  const recovered = await recoverWordDuelConnectedRealtimeSessionIfNeeded({
     lobbyState: input.lobbyState,
     runtime: input.runtime,
   });
@@ -62,7 +62,7 @@ export async function createWordDuelConnectedActiveRuntimeController(input: {
   };
 }
 
-async function recoverRealtimeSessionIfNeeded(input: {
+export async function recoverWordDuelConnectedRealtimeSessionIfNeeded(input: {
   lobbyState: WordDuelLobbyControllerState;
   runtime: DuelWordsRuntimeClientsBundle;
 }): Promise<{
@@ -91,11 +91,21 @@ async function recoverRealtimeSessionIfNeeded(input: {
     };
   }
 
-  const realtimeResult = await input.runtime.appsApi.client.createRealtimeSession({
-    actor,
-    gameId,
-    playerId,
-  });
+  let realtimeResult: Awaited<ReturnType<
+    typeof input.runtime.appsApi.client.createRealtimeSession
+  >>;
+  try {
+    realtimeResult = await input.runtime.appsApi.client.createRealtimeSession({
+      actor,
+      gameId,
+      playerId,
+    });
+  } catch {
+    return {
+      lobbyState: input.lobbyState,
+      realtimeSessionSource: 'missing',
+    };
+  }
 
   if (!realtimeResult.ok) {
     return {
