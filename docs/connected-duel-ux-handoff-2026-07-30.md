@@ -488,6 +488,27 @@ horizontal overflow. The same artifact was then promoted without a rebuild to
 production Worker version `37360667-8728-492f-85b3-b967585883eb`; the
 production route returned HTTP 200 and referenced the expected bundle.
 
-Internal iOS build `0.1.0 (11)` is reserved as the first TestFlight candidate
-containing this correction. Archive, export, Apple processing, and internal-
-group evidence must still be recorded before treating build 11 as test-ready.
+Internal iOS build `0.1.0 (11)` is the first uploaded TestFlight candidate
+containing this correction. It was archived from exact public source
+`ea2ddfdfaab50ea8d5488a7f1d0d886ef4372acc` with Xcode 26.6 and production
+runtime. Archive verification passed version/build, bundle/team, arm64,
+Account AV, privacy, entitlements, and exact application/dSYM UUID
+`D22F003A-B459-3097-9854-64653A6BC457`.
+
+The local App Store IPA is
+`.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-11-2026-07-30-ea2ddfd-local/DuelWordsAV.ipa`
+(41,945,867 bytes; SHA-256
+`38960438156a0ddebd01f0c8eb6b358d8fc49084ffae7e9949a68c60016127f8`).
+It uses the manual `DuelWords AV App Store` profile
+`ed7d3672-dd55-4995-840f-00307dcfeb44` and Apple Distribution team
+`935PM55U6R`.
+
+The canonical Xcode upload completed at 23:14:35 CEST on 2026-07-30 with
+`Upload succeeded`, `Uploaded DuelWordsAV`, and `EXPORT SUCCEEDED`. Apple
+reported that the package had begun processing. The same eight known missing
+vendor-framework dSYM warnings remain for ExpoImage, React,
+ReactNativeDependencies, SDWebImage and its AVIF/SVG/WebP coders, and hermesvm;
+application/dSYM parity is exact. App Store Connect processing and assignment
+only to the internal `avalsys` group still require readback before build 11 is
+called test-ready. No external testing, App Review, backend, Convex, D1,
+Infisical, paid-provider, or Sentry mutation accompanied this delivery.
