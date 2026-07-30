@@ -1,9 +1,10 @@
 # Connected-duel visual feedback and rematch handoff — 2026-07-30
 
-This record covers the iPhone/iPad connected-duel UX correction that follows
-the accepted internal TestFlight build `0.1.0 (5)`. Build `0.1.0 (6)` remains
-reserved only. This work did not archive, export, upload, deploy, change a
-backend, call a paid provider, or write Infisical.
+This record covers the iPhone/iPad connected-duel UX correction. TestFlight
+build `0.1.0 (6)` was uploaded before these source commits and therefore does
+not contain this correction. Build `0.1.0 (7)` is reserved for the exact current
+candidate. The implementation work itself did not deploy, change a backend,
+call a paid provider, or write Infisical.
 
 ## Visual feedback
 
