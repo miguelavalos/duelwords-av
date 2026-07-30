@@ -31,9 +31,10 @@ Home. It requests fresh realtime credentials whenever that screen is recreated.
 The same follow-up protects the completed result so Back cannot silently discard
 a rematch, keeps result-screen rematch discovery bounded to one second, and
 shows explicit sending, waiting, received, accepting, and synchronizing states.
-This navigation-recovery follow-up is reserved for internal TestFlight build
-`0.1.0 (9)`; delivery evidence is recorded only after Apple finishes
-processing the exact archive.
+This navigation-recovery follow-up was archived from exact public source
+`084e67a` as internal TestFlight build `0.1.0 (9)`. Apple processed it as
+`VALID` / `IN_BETA_TESTING` and exposed it through the automatic internal
+`avalsys` group with two testers on 2026-07-30.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

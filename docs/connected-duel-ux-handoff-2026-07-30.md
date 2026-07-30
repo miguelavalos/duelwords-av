@@ -240,6 +240,36 @@ warning. A forced alternate navigation to Home exposed â€œReturn to active duelâ
 one tap recovered the active keyboard through a fresh realtime session in 1.56
 seconds. Recent simulator logs contain no fatal/uncaught/crash signature.
 
-This source follow-up is reserved for internal TestFlight build `0.1.0 (9)`.
-Until the exact archive is uploaded, processed, and checked in App Store
-Connect, build `0.1.0 (8)` remains the latest delivered internal binary.
+## Navigation-recovery TestFlight delivery
+
+This source follow-up is included in internal TestFlight build `0.1.0 (9)`,
+archived from exact public source
+`084e67a31e6d61a06006bbeb59ff94610d755f83`. The canonical production archive
+is `.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-9-2026-07-30-084e67a.xcarchive`.
+Its application UUID is `4CAAF6A2-4EA2-3F5F-AD0B-D344C3879F5F`, with exact
+application/dSYM parity. The locally exported App Store IPA is
+`.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-9-2026-07-30-084e67a-local/DuelWordsAV.ipa`
+(41,101,919 bytes; SHA-256
+`8e779c3585aa14d3664e5ab472db46b7664cc908b0fd0b447747d7369d95d44c`).
+
+The clean Expo prebuild and CocoaPods install used Xcode `26.6`; Xcode's bundle
+phase was pinned to Node `22.23.2`. Version/build, bundle/team, production
+Account AV and DuelWords runtime, privacy manifest, iPhone/iPad families,
+arm64, entitlements, exact `DuelWords AV App Store` profile, Apple Distribution,
+`get-task-allow=false`, deep signature, and IPA hash all passed. Sentry is
+statically linked or absent as a dynamic framework and its archive-time upload
+remained disabled.
+
+Apple accepted the exact archive at 18:09 Europe/Madrid. App Store Connect build
+ID `afcb7a01-8e52-42ad-b529-f84c578f5cb5` processed as `VALID`, with non-exempt
+encryption `false`, expiry on 2026-10-28, and internal state
+`IN_BETA_TESTING`. It is available through the existing automatic internal
+`avalsys` group (`hasAccessToAllBuilds=true`) with two testers. External state
+remains only `READY_FOR_BETA_SUBMISSION`; no external group, App Review,
+backend, production-runtime, paid-provider, Sentry, or Infisical mutation ran.
+
+The remaining acceptance risk is the owner's signed-device replay of active
+swipe protection, the two distinct leave warnings, Home recovery, one-tap
+rematch, and coordinated next-lobby/start timing. The complete functional
+iPhone 17/iPad Pro 13 Release simulator battery described above is the current
+source-level evidence; there is still no physical iPad acceptance.
