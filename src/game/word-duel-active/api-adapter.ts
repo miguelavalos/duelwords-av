@@ -1,9 +1,5 @@
 import { normalizeGuess } from '../word-duel-engine/normalize';
-import {
-  WORD_DUEL_MAX_ATTEMPTS,
-  WORD_DUEL_WORD_LENGTH,
-  type GameLanguage,
-} from '../word-duel-engine/types';
+import type { GameLanguage } from '../word-duel-engine/types';
 import {
   createDemoActiveDuelViewModel,
   isActiveDuelInputOpen,
@@ -171,7 +167,7 @@ export function createMockActiveDuelClient(input: {
       currentRound: viewModel.roundNumber,
       gameId,
       language: viewModel.gameLanguage,
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+      maxAttempts: viewModel.maxAttempts,
       mode: 'human_duel',
       players: [
         {
@@ -189,7 +185,7 @@ export function createMockActiveDuelClient(input: {
       ],
       remainingSeconds: viewModel.remainingSeconds,
       status,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      wordLength: viewModel.wordLength,
     };
   }
 

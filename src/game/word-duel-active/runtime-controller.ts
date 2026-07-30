@@ -143,8 +143,10 @@ export function createWordDuelActiveRuntimeController(
         apiClient: runtimeApiClient.client,
         initialViewModel: createRuntimeActiveDuelViewModel({
           gameLanguage: handoff.value.gameLanguage,
+          maxAttempts: handoff.value.maxAttempts,
           ownSide: session.value.realtime.side,
           roundNumber: input.lobbyState.lobby.activeRound?.roundNumber ?? 1,
+          wordLength: handoff.value.wordLength,
         }),
         realtimeClient,
         session: session.value,

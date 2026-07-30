@@ -121,11 +121,15 @@ export const ACTIVE_DUEL_KEY_ROWS: Record<GameLanguage, readonly string[][]> = {
 export function createDemoActiveDuelViewModel(input: {
   gameLanguage: GameLanguage;
   initialLetters?: readonly string[];
+  maxAttempts?: number;
   ownSide?: 'a' | 'b';
   remainingSeconds?: number;
   scenario?: DemoActiveDuelScenario;
+  wordLength?: number;
 }): ActiveDuelViewModel {
   const scenario = input.scenario ?? 'waiting_for_rival';
+  const maxAttempts = input.maxAttempts ?? WORD_DUEL_MAX_ATTEMPTS;
+  const wordLength = input.wordLength ?? WORD_DUEL_WORD_LENGTH;
   const revealedFeedback: LetterFeedback[] = ['exact', 'exact', 'absent', 'absent', 'absent'];
   const currentRoundRow =
     scenario === 'editing'
@@ -133,30 +137,35 @@ export function createDemoActiveDuelViewModel(input: {
           feedback: null,
           letters: input.initialLetters ?? [],
           state: 'editing',
+          wordLength,
         })
       : rowFromLetters({
           feedback: null,
           letters: ['A', 'R', 'O', 'S', 'E'],
           state: 'submitted_pending',
+          wordLength,
         });
   const ownBoardRows: ActiveDuelBoardRow[] = [
     rowFromLetters({
       feedback: revealedFeedback,
       letters: ['C', 'I', 'V', 'I', 'C'],
       state: 'revealed',
+      wordLength,
     }),
     currentRoundRow,
-    ...Array.from({ length: WORD_DUEL_MAX_ATTEMPTS - 2 }, () => emptyRow()),
+    ...Array.from({ length: maxAttempts - 2 }, () => emptyRow('empty', wordLength)),
   ];
 
   return {
     activeReaction: null,
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
-    maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+    maxAttempts,
     mutedReactions: false,
     opponent: {
-      attemptMarkers: ['failed', 'submitted', 'waiting', 'waiting', 'waiting', 'waiting'],
+      attemptMarkers: Array.from({ length: maxAttempts }, (_, index) => (
+        index === 0 ? 'failed' : index === 1 ? 'submitted' : 'waiting'
+      )),
       presence: 'connected',
       roundState: 'submitted',
       roundSummaries: [
@@ -170,30 +179,34 @@ export function createDemoActiveDuelViewModel(input: {
     ownSide: input.ownSide ?? 'a',
     remainingSeconds: input.remainingSeconds ?? 37,
     roundNumber: 2,
-    wordLength: WORD_DUEL_WORD_LENGTH,
+    wordLength,
   };
 }
 
 export function createRuntimeActiveDuelViewModel(input: {
   gameLanguage: GameLanguage;
+  maxAttempts?: number;
   ownSide: 'a' | 'b';
   remainingSeconds?: number;
   roundNumber: number;
+  wordLength?: number;
 }): ActiveDuelViewModel {
-  const roundNumber = clampRoundNumber(input.roundNumber);
+  const maxAttempts = input.maxAttempts ?? WORD_DUEL_MAX_ATTEMPTS;
+  const wordLength = input.wordLength ?? WORD_DUEL_WORD_LENGTH;
+  const roundNumber = clampRoundNumber(input.roundNumber, maxAttempts);
   const ownBoardRows = Array.from(
-    { length: WORD_DUEL_MAX_ATTEMPTS },
-    (_, index) => emptyRow(index === roundNumber - 1 ? 'editing' : 'empty'),
+    { length: maxAttempts },
+    (_, index) => emptyRow(index === roundNumber - 1 ? 'editing' : 'empty', wordLength),
   );
 
   return {
     activeReaction: null,
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
-    maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+    maxAttempts,
     mutedReactions: false,
     opponent: {
-      attemptMarkers: Array.from({ length: WORD_DUEL_MAX_ATTEMPTS }, () => 'waiting'),
+      attemptMarkers: Array.from({ length: maxAttempts }, () => 'waiting'),
       presence: 'connected',
       roundState: 'waiting',
       roundSummaries: [],
@@ -205,7 +218,7 @@ export function createRuntimeActiveDuelViewModel(input: {
     ownSide: input.ownSide,
     remainingSeconds: input.remainingSeconds ?? 37,
     roundNumber,
-    wordLength: WORD_DUEL_WORD_LENGTH,
+    wordLength,
   };
 }
 
@@ -232,6 +245,7 @@ export function updateActiveDuelEditingLetters(
       feedback: null,
       letters: clampLetters(letters, viewModel.wordLength),
       state: 'editing',
+      wordLength: viewModel.wordLength,
     }),
     currentRowIndex,
   );
@@ -266,6 +280,7 @@ export function markActiveDuelGuessSubmitted(
       feedback: null,
       letters: clampLetters(letters, viewModel.wordLength),
       state: 'submitted_pending',
+      wordLength: viewModel.wordLength,
     }),
     currentRowIndex,
   );
@@ -292,7 +307,7 @@ export function markActiveDuelTimedOut(
   if (currentRow?.state === 'revealed' || currentRow?.state === 'timeout') {
     return viewModel;
   }
-  const nextRows = replaceRoundRow(viewModel, emptyRow('timeout'), rowIndex);
+  const nextRows = replaceRoundRow(viewModel, emptyRow('timeout', viewModel.wordLength), rowIndex);
 
   return {
     ...viewModel,
@@ -340,7 +355,7 @@ export function synchronizeActiveDuelRound(
     return viewModel;
   }
   const nextRowIndex = nextRoundNumber - 1;
-  const nextRows = replaceRoundRow(viewModel, emptyRow('editing'), nextRowIndex);
+  const nextRows = replaceRoundRow(viewModel, emptyRow('editing', viewModel.wordLength), nextRowIndex);
 
   return {
     ...viewModel,
@@ -370,6 +385,7 @@ export function revealActiveDuelOwnRoundFeedback(
       feedback: input.feedback.slice(0, viewModel.wordLength),
       letters: clampLetters(input.letters, viewModel.wordLength),
       state: 'revealed',
+      wordLength: viewModel.wordLength,
     }),
     rowIndex,
   );
@@ -386,21 +402,26 @@ function rowFromLetters(input: {
   feedback: LetterFeedback[] | null;
   letters: readonly string[];
   state: ActiveDuelOwnRowState;
+  wordLength?: number;
 }): ActiveDuelBoardRow {
   return {
     state: input.state,
-    cells: Array.from({ length: WORD_DUEL_WORD_LENGTH }, (_, index) => ({
+    cells: Array.from({ length: input.wordLength ?? WORD_DUEL_WORD_LENGTH }, (_, index) => ({
       feedback: input.feedback?.[index] ?? null,
       letter: input.letters[index] ?? null,
     })),
   };
 }
 
-function emptyRow(state: ActiveDuelOwnRowState = 'empty'): ActiveDuelBoardRow {
+function emptyRow(
+  state: ActiveDuelOwnRowState = 'empty',
+  wordLength = WORD_DUEL_WORD_LENGTH,
+): ActiveDuelBoardRow {
   return rowFromLetters({
     feedback: null,
     letters: [],
     state,
+    wordLength,
   });
 }
 
@@ -416,12 +437,12 @@ function clampLetters(letters: readonly string[], wordLength: number): string[] 
   return letters.slice(0, wordLength).map((letter) => letter.toUpperCase());
 }
 
-function clampRoundNumber(value: number): number {
+function clampRoundNumber(value: number, maxAttempts = WORD_DUEL_MAX_ATTEMPTS): number {
   if (!Number.isFinite(value)) {
     return 1;
   }
 
-  return Math.min(WORD_DUEL_MAX_ATTEMPTS, Math.max(1, Math.trunc(value)));
+  return Math.min(maxAttempts, Math.max(1, Math.trunc(value)));
 }
 
 function keyboardFeedbackFromRows(rows: ActiveDuelBoardRow[]): Record<string, LetterFeedback> {

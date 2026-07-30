@@ -445,3 +445,35 @@ Backspace/Delete forward through the same `onKeyPress` contract as touch input.
 Modified shortcuts, key-repeat events, unsupported letters, and events originating
 inside editable form controls are ignored so browser and accessibility behavior
 remain intact.
+
+## Configurable active-board propagation correction
+
+Internal TestFlight build `0.1.0 (10)` and the matching production web client
+expose a client-side rendering defect for connected non-default rules. A room
+created as Epic correctly retains seven letters and eight attempts in the
+backend, invite, and lobby, but the active screen displays a five-column,
+six-row board on both iOS and web. This does not prove a backend rule or
+dictionary failure; the wrong dimensions are introduced after the active
+handoff.
+
+The root cause was a fixed-size initial view model. The active runtime
+assembler discarded the handoff's `wordLength` and `maxAttempts`, while the row
+factory and mock safe-game projection reused the five-letter/six-attempt engine
+constants. Current source passes both values into every connected, local-mock,
+fallback, row-replacement, feedback-reveal, timeout, and next-round path. The
+opponent marker count follows the same configured attempt count.
+
+The regression is locked at two levels: the connected controller assembler
+must produce a 7-column/8-row board before any realtime update arrives, and the
+active model must retain all seven letters of `ANOTHER` through submission and
+round eight. The complete suite passes 88 files / 482 tests, with TypeScript,
+Expo lint, React Doctor changed-scope (100/100), iOS release configuration, and
+diff hygiene also green.
+
+Local visual acceptance used the direct Epic active route. Web at a compact
+mobile viewport renders seven columns and eight rows without horizontal
+overflow and accepts/submits all seven letters. One universal development
+binary then rendered the same complete board on a dark iPhone 17 simulator and
+a light iPad Pro 13 simulator. These are source-level/local-runtime findings;
+the correction is not in production web or TestFlight build 10 until a later
+explicitly authorized deployment and upload.

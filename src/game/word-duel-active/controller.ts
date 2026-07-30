@@ -166,18 +166,26 @@ function createLocalMockWordDuelActiveController(input: {
   const activeClient = createMockActiveDuelClient({
     gameId: LOCAL_ACTIVE_DEMO_GAME_ID,
     gameLanguage: input.handoff.gameLanguage,
+    initialViewModel: createDemoActiveDuelViewModel({
+      gameLanguage: input.handoff.gameLanguage,
+      maxAttempts: input.handoff.maxAttempts,
+      scenario: 'editing',
+      wordLength: input.handoff.wordLength,
+    }),
     now: input.now,
     playerId: LOCAL_ACTIVE_DEMO_PLAYER_ID,
     remainingSeconds: 37,
   });
   const realtimeClient = createDuelWordsRealtimeProjectionClient({
     gameLanguage: input.handoff.gameLanguage,
+    maxAttempts: input.handoff.maxAttempts,
     mode: 'local_mock',
     now: input.realtimeNow,
     ownSide: 'a',
     realtimeSessionId: LOCAL_ACTIVE_DEMO_REALTIME_SESSION_ID,
     remainingMs: 37_000,
     roomToken: LOCAL_ACTIVE_DEMO_ROOM_TOKEN,
+    wordLength: input.handoff.wordLength,
   }).client;
 
   return {
@@ -335,9 +343,11 @@ function createAppsApiWordDuelActiveController(input: {
     input.runtime.initialViewModel ??
     createDemoActiveDuelViewModel({
       gameLanguage: input.handoff.gameLanguage,
+      maxAttempts: input.handoff.maxAttempts,
       ownSide: session.realtime.side,
       remainingSeconds: 37,
       scenario: 'editing',
+      wordLength: input.handoff.wordLength,
     });
 
   function updateFromProjection(view: DuelWordsRealtimeRoomView | null) {
@@ -548,8 +558,10 @@ function createDisabledRuntimeWordDuelActiveController(
 ): WordDuelActiveController {
   const viewModel = createDemoActiveDuelViewModel({
     gameLanguage: handoff.gameLanguage,
+    maxAttempts: handoff.maxAttempts,
     remainingSeconds: 37,
     scenario: 'editing',
+    wordLength: handoff.wordLength,
   });
 
   async function unavailable(): Promise<never> {

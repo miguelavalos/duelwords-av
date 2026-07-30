@@ -86,6 +86,33 @@ describe('active duel safe view model', () => {
     expect(JSON.stringify(submitted.opponent)).not.toContain('feedback');
   });
 
+  it('keeps every active row and marker aligned with Epic 7/8 rules', () => {
+    const editing = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'en',
+      maxAttempts: 8,
+      ownSide: 'a',
+      roundNumber: 1,
+      wordLength: 7,
+    });
+    const drafted = updateActiveDuelEditingLetters(editing, [
+      'A', 'N', 'O', 'T', 'H', 'E', 'R',
+    ]);
+    const submitted = markActiveDuelGuessSubmitted(drafted, [
+      'A', 'N', 'O', 'T', 'H', 'E', 'R',
+    ]);
+    const roundEight = synchronizeActiveDuelRound(submitted, 8);
+
+    expect(editing.ownBoardRows).toHaveLength(8);
+    expect(editing.ownBoardRows.every((row) => row.cells.length === 7)).toBe(true);
+    expect(editing.opponent.attemptMarkers).toHaveLength(8);
+    expect(submitted.ownBoardRows[0]?.cells.map((cell) => cell.letter)).toEqual([
+      'A', 'N', 'O', 'T', 'H', 'E', 'R',
+    ]);
+    expect(roundEight.roundNumber).toBe(8);
+    expect(roundEight.ownBoardRows[7]).toMatchObject({ state: 'editing' });
+    expect(roundEight.ownBoardRows[7]?.cells).toHaveLength(7);
+  });
+
   it('does not surface a stale timeout failure after a round resolves or advances', () => {
     const editing = createRuntimeActiveDuelViewModel({
       gameLanguage: 'en',

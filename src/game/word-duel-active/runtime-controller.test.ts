@@ -156,6 +156,28 @@ describe('Word Duel active runtime controller assembler', () => {
     expect(JSON.stringify(bundle).toLowerCase()).not.toContain('dictionary');
     expect(JSON.stringify(bundle).toLowerCase()).not.toContain('dwr_room_1');
   });
+
+  it('builds the active board from the connected lobby rules before realtime updates arrive', () => {
+    const runtimeApiClient = createDuelWordsRuntimeApiClient({
+      fetchImpl: async () => {
+        throw new Error('No fetch expected while assembling the initial active board.');
+      },
+      runtimeConfig: ENABLED_API_CONFIG,
+    });
+    const bundle = createWordDuelActiveRuntimeController({
+      convexClient: fakeConvexClient(),
+      lobbyState: activeRuntimeLobbyState({ maxAttempts: 8, wordLength: 7 }),
+      realtimeRuntimeConfig: ENABLED_REALTIME_CONFIG,
+      runtimeApiClient,
+    });
+
+    expect(bundle.ok).toBe(true);
+    const viewModel = bundle.controller.getViewModel();
+    expect(viewModel).toMatchObject({ maxAttempts: 8, wordLength: 7 });
+    expect(viewModel.ownBoardRows).toHaveLength(8);
+    expect(viewModel.ownBoardRows.every((row) => row.cells.length === 7)).toBe(true);
+    expect(viewModel.opponent.attemptMarkers).toHaveLength(8);
+  });
 });
 
 type FetchCall = {
@@ -166,8 +188,10 @@ type FetchCall = {
 };
 
 function activeRuntimeLobbyState(input: {
+  maxAttempts?: WordDuelInvitePreview['maxAttempts'];
   realtime?: WordDuelLobbyControllerState['realtime'];
   source?: WordDuelLobbyControllerState['source'];
+  wordLength?: WordDuelInvitePreview['wordLength'];
 } = {}): WordDuelLobbyControllerState {
   return {
     lobby: deriveWordDuelLobbyViewModel({
@@ -176,7 +200,10 @@ function activeRuntimeLobbyState(input: {
         roundOpenedAtMs: NOW_MS,
       },
       countdown: null,
-      invitePreview: invitePreview(),
+      invitePreview: invitePreview({
+        maxAttempts: input.maxAttempts,
+        wordLength: input.wordLength,
+      }),
       players: [
         {
           isViewer: true,
@@ -223,19 +250,22 @@ function activeRuntimeLobbyState(input: {
   };
 }
 
-function invitePreview(): WordDuelInvitePreview {
+function invitePreview(input: {
+  maxAttempts?: WordDuelInvitePreview['maxAttempts'];
+  wordLength?: WordDuelInvitePreview['wordLength'];
+} = {}): WordDuelInvitePreview {
   return {
     expiresAtMs: NOW_MS + 600_000,
     gameLanguage: 'en',
     gameName: 'Word Duel',
     inviteUrl: 'https://app.duelwords-av.avalsys.com/i/c/invite-1',
     joinAvailability: 'started',
-    maxAttempts: 6,
+    maxAttempts: input.maxAttempts ?? 6,
     mode: 'human_duel',
     roomCode: 'ABCD-1234',
     roomState: 'active_round',
     solutionSelected: false,
-    wordLength: 5,
+    wordLength: input.wordLength ?? 5,
   };
 }
 

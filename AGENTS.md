@@ -27,6 +27,15 @@ Current implementation slice:
   current keyboard. Never require manual Refresh/Sync/Next actions for normal round progression, and keep
   `active-duel-live-round.test.ts` green.
 
+- Recurrent configurable-board rule: the active controller must construct its
+  first view model from the lobby handoff's `wordLength` and `maxAttempts`.
+  Never fall back to the five-letter/six-attempt engine constants after a
+  connected lobby has selected different rules. Every later row replacement,
+  timeout, reveal, and local/mock safe-game projection must preserve that
+  configured shape. Keep the connected 7-letter/8-attempt assembler regression
+  in `runtime-controller.test.ts` and the row/marker regression in
+  `view-model.test.ts` green.
+
 - Recurrent rematch handoff rule: an accepted rematch proposal carries the
   safe `nextGame` but no realtime session. Recover a backend-issued realtime
   session for each participant before presenting the next lobby; otherwise the

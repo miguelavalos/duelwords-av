@@ -45,6 +45,14 @@ two-client production lifecycle gates passed. Apple accepted the upload on
 Connect completed processing, reports `Lista para enviar`, and exposes the
 build through the internal `avalsys` group with two invitations. No external
 testing or App Review submission was requested.
+Build `0.1.0 (10)` has a confirmed client rendering defect: connected 6/7-letter
+rooms retain the correct rules in the lobby and backend, but its active screen
+constructs a fixed 5-column/6-row board. Current source fixes the shared
+web/iOS active model so the initial board, later rows, opponent markers, local
+mock, and safe-game projection all preserve the selected word length and
+attempt count. The correction is locally verified as an Epic 7-column/8-row
+board in web, iPhone 17, and iPad Pro 13; it is not present in build 10 and
+requires a later web deployment and TestFlight build before owner testing.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
