@@ -59,6 +59,16 @@ import {
   finalizeActiveWordDuelResult,
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
+import {
+  ActiveDuelFeedbackOverlay,
+  reactionEmoji,
+} from './active-duel-feedback-overlay';
+import {
+  activeDuelVisualFeedbackFromProjection,
+  createOwnSubmittedVisualFeedback,
+  type ActiveDuelVisualFeedback,
+  type ActiveDuelVisualSnapshot,
+} from './active-duel-visual-feedback';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
 import { publicDuelT, type PublicDuelCopyKey } from './public-duel-copy';
 
@@ -107,15 +117,18 @@ export function ActiveDuelScreen({
   const roundSnapshotRecoveryInFlightRef = useRef(new Set<number>());
   const submissionInFlightRef = useRef(false);
   const timedOutRoundRef = useRef<number | null>(null);
+  const visualSnapshotRef = useRef<ActiveDuelVisualSnapshot | null>(null);
   const activeHandoff = useMemo(
     () => initialHandoff ?? createWordDuelActiveDemoHandoff({ gameLanguage: initialGameLanguage ?? 'en' }),
     [initialGameLanguage, initialHandoff],
   );
   const [muted, setMuted] = useState(false);
+  const mutedRef = useRef(muted);
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [showRecoveryAction, setShowRecoveryAction] = useState(false);
   const [submissionInFlight, setSubmissionInFlight] = useState(false);
   const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionEvent | null>(null);
+  const [visualFeedback, setVisualFeedback] = useState<ActiveDuelVisualFeedback | null>(null);
   const activeDuelController = useMemo(
     () => controller ?? createWordDuelActiveController({
       handoff: activeHandoff,
@@ -154,11 +167,13 @@ export function ActiveDuelScreen({
     roundSnapshotRecoveryInFlightRef.current.clear();
     submissionInFlightRef.current = false;
     timedOutRoundRef.current = null;
+    visualSnapshotRef.current = null;
     setReactionsOpen(false);
     setShowRecoveryAction(false);
     setSubmissionInFlight(false);
     setRealtimeRound(null);
     setStatusDetail(copy('roundLive'));
+    setVisualFeedback(null);
     setViewModel(activeDuelController.getViewModel());
   }, [activeDuelController, copy]);
 
@@ -305,6 +320,17 @@ export function ActiveDuelScreen({
         roundNumber: projection.room.roundNumber,
         status: projection.room.status,
       });
+      const visualUpdate = activeDuelVisualFeedbackFromProjection(
+        visualSnapshotRef.current,
+        projection,
+      );
+      visualSnapshotRef.current = visualUpdate.snapshot;
+      if (
+        visualUpdate.feedback
+        && !(mutedRef.current && visualUpdate.feedback.kind === 'opponent_reaction')
+      ) {
+        setVisualFeedback(visualUpdate.feedback);
+      }
       setViewModel((current) => applyRealtimeProjectionToActiveDuelViewModel(current, projection));
       setActiveReaction(latestActiveDuelReactionEventFromRealtimeProjection(projection));
 
@@ -397,6 +423,10 @@ export function ActiveDuelScreen({
       setViewModel(result.viewModel);
       clearDraft();
       setStatusDetail(copy('submitted'));
+      setVisualFeedback(createOwnSubmittedVisualFeedback(
+        result.submission.roundNumber,
+        clientRequestNumber.current,
+      ));
       if (activeDuelController.source === 'local_mock') {
         activeDuelController.publishLocalPlayerSubmittedProjection({
           roundNumber: result.submission.roundNumber,
@@ -491,6 +521,21 @@ export function ActiveDuelScreen({
     }
   }
 
+  const dismissVisualFeedback = useCallback((eventId: string) => {
+    setVisualFeedback((current) => current?.id === eventId ? null : current);
+  }, []);
+
+  const toggleMuted = useCallback(() => {
+    const nextMuted = !mutedRef.current;
+    mutedRef.current = nextMuted;
+    setMuted(nextMuted);
+    if (nextMuted) {
+      setVisualFeedback((current) => (
+        current?.kind === 'opponent_reaction' ? null : current
+      ));
+    }
+  }, []);
+
   useEffect(() => {
     if (
       activeDuelController.source === 'apps_av_api'
@@ -507,9 +552,10 @@ export function ActiveDuelScreen({
   )?.label ?? viewModel.gameLanguage.toUpperCase();
 
   return (
-    <AppScreen
-      bottomInset={compactViewport ? spacing.sm : spacing.md}
-      contentGap={compactViewport ? spacing.sm : spacing.md}>
+    <View style={styles.screenFrame}>
+      <AppScreen
+        bottomInset={compactViewport ? spacing.xl * 2 : spacing.xl}
+        contentGap={compactViewport ? spacing.sm : spacing.md}>
       <InteriorScreenHeader
         backLabel={copy('back')}
         detail={copy('duel')}
@@ -573,19 +619,33 @@ export function ActiveDuelScreen({
         </AppButton>
       ) : null}
 
-      <ReactionTray
-        interfaceLocale={interfaceLocale}
-        muted={muted}
-        onMuteToggle={() => setMuted((current) => !current)}
-        onOpenToggle={() => setReactionsOpen((current) => !current)}
-        onReactionPress={(reaction) => {
-          void sendReaction(reaction);
-        }}
-        open={reactionsOpen}
-        reactions={viewModel.availableReactions}
-      />
+      </AppScreen>
 
-    </AppScreen>
+      <View
+        pointerEvents="box-none"
+        style={[
+          styles.floatingReactionDock,
+          reactionsOpen && styles.floatingReactionDockOpen,
+        ]}>
+        <ReactionTray
+          interfaceLocale={interfaceLocale}
+          muted={muted}
+          onMuteToggle={toggleMuted}
+          onOpenToggle={() => setReactionsOpen((current) => !current)}
+          onReactionPress={(reaction) => {
+            void sendReaction(reaction);
+          }}
+          open={reactionsOpen}
+          reactions={viewModel.availableReactions}
+        />
+      </View>
+
+      <ActiveDuelFeedbackOverlay
+        event={visualFeedback}
+        interfaceLocale={interfaceLocale}
+        onDismiss={dismissVisualFeedback}
+      />
+    </View>
   );
 }
 
@@ -705,9 +765,11 @@ function ReactionTray({
           {compactReactions.map((reaction) => (
             <Pressable
               key={reaction}
+              accessibilityLabel={reactionLabel(interfaceLocale, reaction)}
               accessibilityRole="button"
               onPress={() => onReactionPress(reaction)}
               style={({ pressed }) => [styles.reactionButton, pressed && styles.pressed]}>
+              <Text style={styles.reactionButtonEmoji}>{reactionEmoji(reaction)}</Text>
               <Text adjustsFontSizeToFit numberOfLines={1} style={styles.reactionButtonText}>
                 {reactionLabel(interfaceLocale, reaction)}
               </Text>
@@ -724,15 +786,20 @@ function ReactionTray({
       ) : (
         <View style={styles.reactionHeader}>
           <Pressable
+            accessibilityLabel={publicDuelT(interfaceLocale, 'react')}
             accessibilityRole="button"
             accessibilityState={{ expanded: open }}
             onPress={onOpenToggle}
             style={({ pressed }) => [styles.reactTrigger, pressed && styles.pressed]}>
+            <Text style={styles.reactTriggerEmoji}>⚡</Text>
             <Text style={styles.reactTriggerText}>{publicDuelT(interfaceLocale, 'react')}</Text>
-            <Text style={styles.reactTriggerHint}>{publicDuelT(interfaceLocale, 'quickReaction')}</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" onPress={onMuteToggle} style={styles.muteButton}>
-            <Text style={styles.muteText}>{publicDuelT(interfaceLocale, muted ? 'muted' : 'mute')}</Text>
+          <Pressable
+            accessibilityLabel={publicDuelT(interfaceLocale, muted ? 'muted' : 'mute')}
+            accessibilityRole="button"
+            onPress={onMuteToggle}
+            style={({ pressed }) => [styles.muteButton, pressed && styles.pressed]}>
+            <Text style={styles.muteText}>{muted ? '🔇' : '🔊'}</Text>
           </Pressable>
         </View>
       )}
@@ -853,6 +920,21 @@ function markerStyle(
 function useActiveDuelStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+  screenFrame: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  floatingReactionDock: {
+    position: 'absolute',
+    right: spacing.lg,
+    bottom: spacing.md,
+    zIndex: 30,
+    alignItems: 'flex-end',
+  },
+  floatingReactionDockOpen: {
+    width: '92%',
+    maxWidth: 380,
+  },
   header: {
     minHeight: 48,
     flexDirection: 'row',
@@ -1098,7 +1180,7 @@ function useActiveDuelStyles() {
     textTransform: 'uppercase',
   },
   reactionTray: {
-    minHeight: 42,
+    alignItems: 'flex-end',
     gap: spacing.sm,
   },
   reactionHeader: {
@@ -1107,53 +1189,61 @@ function useActiveDuelStyles() {
     gap: spacing.sm,
   },
   reactTrigger: {
-    minHeight: 40,
-    flex: 1,
+    minWidth: 94,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.sm,
-    borderRadius: radii.sm,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
-    backgroundColor: colors.surface,
-    paddingHorizontal: spacing.md,
+    justifyContent: 'center',
+    gap: spacing.xs,
+    borderRadius: radii.lg,
+    borderWidth: 2,
+    borderColor: colors.secondary,
+    backgroundColor: colors.secondarySoft,
+    paddingHorizontal: spacing.sm,
+    boxShadow: '0 6px 12px rgba(0, 0, 0, 0.16)',
+  },
+  reactTriggerEmoji: {
+    fontSize: typeScale.lead,
   },
   reactTriggerText: {
-    color: colors.text,
+    color: colors.secondary,
     fontSize: typeScale.small,
     fontWeight: '900',
   },
-  reactTriggerHint: {
-    flex: 1,
-    color: colors.textMuted,
-    fontSize: typeScale.tiny,
-    textAlign: 'right',
-  },
   reactionButtons: {
-    flex: 1,
+    width: '100%',
     flexDirection: 'row',
     gap: spacing.xs,
-  },
-  reactionButton: {
-    flex: 1,
-    minHeight: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: radii.sm,
+    borderRadius: radii.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.border,
     backgroundColor: colors.surface,
+    padding: spacing.xs,
+    boxShadow: '0 10px 18px rgba(0, 0, 0, 0.20)',
+  },
+  reactionButton: {
+    flex: 1,
+    minHeight: 64,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 1,
+    borderRadius: radii.sm,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceSoft,
     paddingHorizontal: spacing.xs,
+  },
+  reactionButtonEmoji: {
+    fontSize: typeScale.lead,
   },
   reactionButtonText: {
     color: colors.text,
-    fontSize: typeScale.tiny,
+    fontSize: 10,
     fontWeight: '900',
   },
   reactionCloseButton: {
-    width: 40,
-    minHeight: 40,
+    width: 46,
+    minHeight: 64,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
@@ -1165,18 +1255,18 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   muteButton: {
-    minWidth: 62,
-    minHeight: 40,
+    width: 48,
+    minHeight: 48,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: radii.sm,
-    backgroundColor: colors.surfaceStrong,
-    paddingHorizontal: spacing.sm,
+    borderRadius: radii.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+    boxShadow: '0 6px 10px rgba(0, 0, 0, 0.12)',
   },
   muteText: {
-    color: colors.textMuted,
-    fontSize: typeScale.small,
-    fontWeight: '900',
+    fontSize: typeScale.lead,
   },
   pressed: {
     opacity: 0.76,
