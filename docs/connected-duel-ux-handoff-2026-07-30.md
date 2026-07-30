@@ -375,3 +375,25 @@ entry from the documented, licensed inputs after normalization, not every word
 that may exist in a living language. The unresolved editorial risk remains the
 6/7 target decks, which are frequency-filtered but not yet reviewed word by
 word.
+
+## Configurable-rules backend activation
+
+The connected backend gate closed after public feature source `ed87ede` and
+private rollout source through `f45499b2` were pushed. Preview and production
+each applied migration `0076` and imported immutable dictionary release
+`gaia-5-7-20260730-002` once. Production now has exactly one active version for
+each EN/ES/CA/FR/DE × 5/6/7 pair, 157,017 release word rows, 9,000 targets, and
+zero foreign-key violations. Historical five-letter versions are retired, not
+deleted, so existing games retain their immutable dictionary references.
+
+Production Worker `5be6b490-7da0-4f3c-8a0a-80f36544056c` serves 100% of
+traffic. Ordered six- and seven-letter lifecycle smokes passed create, join,
+Ready/start, synchronized round progression, result, rematch request/
+acceptance, rule-preserving next lobby, and next start. The protected Worker
+tail saw 40 scoped requests, all HTTP 200/outcome `ok`, with no exception or
+log. Convex was not redeployed because its existing safe projection already
+accepts numeric length and attempt values.
+
+Public commit `345abac` reserves internal iOS build `0.1.0 (10)` and aligns the
+canonical archive/export gates. That build is not yet an uploaded TestFlight;
+archive and App Store Connect delivery remain separate release evidence.
