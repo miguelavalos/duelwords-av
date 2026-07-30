@@ -18,6 +18,10 @@ connected-duel feedback and repairs accepted-rematch realtime handoff. Its
 implementation, simulator evidence, release gates, delivery evidence, and
 remaining risks are recorded in
 [the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md).
+Current source also makes pre-game synchronization deliberately interruptive:
+rival join, rival Ready, authoritative countdown, and active-round opening use
+large timed cards, iOS haptics, and persistent high-contrast lobby states. This
+follow-up is not present in TestFlight build `0.1.0 (7)` yet.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

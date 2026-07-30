@@ -1,6 +1,6 @@
 import { randomUUID } from 'expo-crypto';
 import { useRouter } from 'expo-router';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
@@ -49,6 +49,12 @@ import { ActiveDuelScreen } from './active-duel-screen';
 import { accountRoomDisplayName } from './account-room-name';
 import { GameLanguagePicker } from './components/game-language-picker';
 import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
+import { LobbyFeedbackOverlay } from './lobby-feedback-overlay';
+import {
+  lobbyVisualFeedbackFromViewModel,
+  type LobbyVisualFeedback,
+  type LobbyVisualSnapshot,
+} from './lobby-visual-feedback';
 import { WordDuelBoard } from './components/word-duel-board';
 import { createExclusiveActionGate } from './exclusive-action-gate';
 import {
@@ -104,6 +110,7 @@ export function PublicWordDuelChallengeScreen({
   const recordedFinalGameIdRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
   const lobbyRealtimeRefreshInFlightRef = useRef(false);
+  const lobbyVisualSnapshotRef = useRef<LobbyVisualSnapshot | null>(null);
   const mountedRef = useRef(true);
   const [actionGate] = useState(createExclusiveActionGate);
   const [busyAction, setBusyAction] = useState<string | null>(null);
@@ -124,6 +131,7 @@ export function PublicWordDuelChallengeScreen({
   const [finalResult, setFinalResult] = useState<DuelWordsApiFinalResult | null>(null);
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [lobbyVisualFeedback, setLobbyVisualFeedback] = useState<LobbyVisualFeedback | null>(null);
   const isBusy = busyAction !== null;
   const roomCode = `${roomCodeFirst}-${roomCodeSecond}`;
   const roomCodeComplete = roomCodeFirst.length === 4 && roomCodeSecond.length === 4;
@@ -140,6 +148,21 @@ export function PublicWordDuelChallengeScreen({
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (!lobbyState) {
+      lobbyVisualSnapshotRef.current = null;
+      setLobbyVisualFeedback(null);
+      return;
+    }
+
+    const result = lobbyVisualFeedbackFromViewModel(
+      lobbyVisualSnapshotRef.current,
+      lobbyState.lobby,
+    );
+    lobbyVisualSnapshotRef.current = result.snapshot;
+    if (result.feedback) setLobbyVisualFeedback(result.feedback);
+  }, [lobbyState]);
 
   useEffect(() => {
     if (!finalResult || recordedFinalGameIdRef.current === finalResult.game.gameId) return;
@@ -561,7 +584,12 @@ export function PublicWordDuelChallengeScreen({
     setRoomCodeFirst('');
     setRoomCodeSecond('');
     setStatusMessage(null);
+    setLobbyVisualFeedback(null);
   }
+
+  const dismissLobbyVisualFeedback = useCallback((eventId: string) => {
+    setLobbyVisualFeedback((current) => current?.id === eventId ? null : current);
+  }, []);
 
   function createRematch() {
     if (!activeController || !finalResult) return;
@@ -589,12 +617,19 @@ export function PublicWordDuelChallengeScreen({
 
   if (activeController && finalResult === null) {
     return (
-      <ActiveDuelScreen
-        controller={activeController}
-        interfaceLocale={interfaceLocale}
-        onFinalResult={setFinalResult}
-        onLeave={resetJourney}
-      />
+      <View style={styles.screenFrame}>
+        <ActiveDuelScreen
+          controller={activeController}
+          interfaceLocale={interfaceLocale}
+          onFinalResult={setFinalResult}
+          onLeave={resetJourney}
+        />
+        <LobbyFeedbackOverlay
+          event={lobbyVisualFeedback}
+          interfaceLocale={interfaceLocale}
+          onDismiss={dismissLobbyVisualFeedback}
+        />
+      </View>
     );
   }
 
@@ -614,7 +649,8 @@ export function PublicWordDuelChallengeScreen({
   }
 
   return (
-    <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
+    <View style={styles.screenFrame}>
+      <AppScreen bottomInset={spacing.xxl} contentGap={spacing.md}>
       <InteriorScreenHeader
         backLabel={copy('back')}
         detail={copy(account.user ? 'accountChallenge' : 'guestChallenge')}
@@ -755,7 +791,13 @@ export function PublicWordDuelChallengeScreen({
           <Text selectable style={styles.statusText}>{statusMessage}</Text>
         </View>
       ) : null}
-    </AppScreen>
+      </AppScreen>
+      <LobbyFeedbackOverlay
+        event={lobbyVisualFeedback}
+        interfaceLocale={interfaceLocale}
+        onDismiss={dismissLobbyVisualFeedback}
+      />
+    </View>
   );
 }
 
@@ -949,8 +991,13 @@ function PublicLobbyPanel({
 
   return (
     <View style={styles.panel}>
-      <View style={styles.lobbyHeader}>
-        <View>
+      <View style={[
+        styles.lobbyHeader,
+        lobby.status === 'countdown' && styles.lobbyHeaderCountdown,
+        lobby.status === 'active_round' && styles.lobbyHeaderActive,
+      ]}>
+        <Text style={styles.lobbyPhaseGlyph}>{lobbyPhaseGlyph(lobby.status)}</Text>
+        <View style={styles.lobbyHeaderCopy}>
           <Text style={styles.kicker}>{lobbyStatusLabel(interfaceLocale, lobby.status)}</Text>
           <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{lobby.invitePreview.gameName}</Text>
         </View>
@@ -1032,13 +1079,40 @@ function PublicLobbyPanel({
 function PlayerRow({ interfaceLocale, player }: { interfaceLocale: InterfaceLocale; player: WordDuelLobbyPlayer }) {
   const styles = usePublicChallengeStyles();
   const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
+  const stateLabel = player.state === 'ready'
+    ? copy('ready')
+    : player.state === 'joined'
+      ? copy('joined')
+      : copy('waiting');
   return (
-    <View style={styles.playerRow}>
+    <View style={[
+      styles.playerRow,
+      player.state === 'joined' && styles.playerRowJoined,
+      player.state === 'ready' && styles.playerRowReady,
+    ]}>
+      <View style={[
+        styles.playerStateGlyph,
+        player.state === 'joined' && styles.playerStateGlyphJoined,
+        player.state === 'ready' && styles.playerStateGlyphReady,
+      ]}>
+        <Text style={styles.playerStateGlyphText}>
+          {player.state === 'ready' ? '✓' : player.state === 'joined' ? '●' : '…'}
+        </Text>
+      </View>
       <View style={styles.playerText}>
         <Text style={styles.playerName}>{player.safeDisplayName}{player.isViewer ? ` · ${copy('you')}` : ''}</Text>
         <Text style={styles.helper}>{player.role === 'host' ? copy('host') : copy('rival')}</Text>
       </View>
-      <Text style={styles.playerState}>{player.state === 'ready' ? copy('ready') : player.state === 'joined' ? copy('joined') : copy('waiting')}</Text>
+      <View style={[
+        styles.playerStateChip,
+        player.state === 'joined' && styles.playerStateChipJoined,
+        player.state === 'ready' && styles.playerStateChipReady,
+      ]}>
+        <Text style={[
+          styles.playerState,
+          player.state !== 'waiting' && styles.playerStateActive,
+        ]}>{stateLabel}</Text>
+      </View>
     </View>
   );
 }
@@ -1120,9 +1194,19 @@ function lobbyStatusLabel(locale: InterfaceLocale, status: string): string {
   return publicDuelT(locale, 'challengeClosed');
 }
 
+function lobbyPhaseGlyph(status: string): string {
+  if (status === 'waiting_for_player') return '⌁';
+  if (status === 'lobby') return '◎';
+  if (status === 'countdown') return '3';
+  if (status === 'active_round') return '⚔️';
+  if (status === 'invite_review') return '?';
+  return '×';
+}
+
 function usePublicChallengeStyles() {
   const { colors } = useAppTheme();
   return useMemo(() => StyleSheet.create({
+  screenFrame: { flex: 1, backgroundColor: colors.background },
   kicker: { color: colors.accent, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
   subtitle: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 21 },
   panel: { gap: spacing.md, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.lg },
@@ -1159,7 +1243,11 @@ function usePublicChallengeStyles() {
   unavailableTitle: { color: colors.pressure, fontSize: typeScale.lead, fontWeight: '900' },
   unavailableText: { color: colors.text, fontSize: typeScale.small, lineHeight: 19 },
   runtimeReason: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '800', textTransform: 'uppercase' },
-  lobbyHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
+  lobbyHeader: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: 2, borderColor: colors.secondary, borderRadius: radii.lg, backgroundColor: colors.secondarySoft, padding: spacing.md, boxShadow: '0 8px 18px rgba(0, 0, 0, 0.14)' },
+  lobbyHeaderCountdown: { borderWidth: 3, borderColor: colors.pressure, backgroundColor: colors.pressureSoft },
+  lobbyHeaderActive: { borderWidth: 3, borderColor: colors.accent, backgroundColor: colors.surfaceStrong },
+  lobbyHeaderCopy: { flex: 1, minWidth: 0 },
+  lobbyPhaseGlyph: { width: 52, color: colors.secondary, fontSize: 38, fontWeight: '900', textAlign: 'center' },
   languagePill: { borderRadius: radii.md, backgroundColor: colors.surfaceSoft, paddingHorizontal: spacing.md, paddingVertical: spacing.sm },
   languageText: { color: colors.accent, fontWeight: '900' },
   summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
@@ -1169,14 +1257,24 @@ function usePublicChallengeStyles() {
   summaryValue: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
   roomCodeValue: { fontVariant: ['tabular-nums'], letterSpacing: 1.2 },
   playersBox: { gap: spacing.sm },
-  playerRow: { minHeight: 58, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderRadius: radii.md, backgroundColor: colors.background, padding: spacing.md },
+  playerRow: { minHeight: 70, flexDirection: 'row', alignItems: 'center', gap: spacing.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, borderRadius: radii.md, backgroundColor: colors.background, padding: spacing.md },
+  playerRowJoined: { borderWidth: 2, borderColor: colors.secondary, backgroundColor: colors.secondarySoft },
+  playerRowReady: { borderWidth: 3, borderColor: colors.accent, backgroundColor: colors.surfaceStrong },
   playerText: { flex: 1, minWidth: 0 },
   playerName: { color: colors.text, fontSize: typeScale.body, fontWeight: '800' },
-  playerState: { color: colors.textMuted, fontSize: typeScale.small, fontWeight: '800' },
+  playerState: { color: colors.text, fontSize: typeScale.small, fontWeight: '900', textTransform: 'uppercase' },
+  playerStateActive: { color: colors.onAccent },
+  playerStateChip: { minWidth: 78, alignItems: 'center', borderRadius: radii.lg, backgroundColor: colors.surfaceSoft, paddingHorizontal: spacing.sm, paddingVertical: spacing.xs },
+  playerStateChipJoined: { backgroundColor: colors.secondary },
+  playerStateChipReady: { backgroundColor: colors.accent },
+  playerStateGlyph: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: radii.lg, backgroundColor: colors.surfaceSoft },
+  playerStateGlyphJoined: { backgroundColor: colors.secondary },
+  playerStateGlyphReady: { backgroundColor: colors.accent },
+  playerStateGlyphText: { color: colors.onAccent, fontSize: typeScale.lead, fontWeight: '900' },
   reviewBox: { gap: spacing.xs, borderRadius: radii.md, backgroundColor: colors.surfaceSoft, padding: spacing.md },
   reviewTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: '900' },
-  countdownBox: { alignItems: 'center', gap: spacing.sm, borderRadius: radii.md, backgroundColor: colors.secondarySoft, padding: spacing.lg },
-  countdownValue: { color: colors.secondary, fontSize: 44, fontWeight: '900', fontVariant: ['tabular-nums'] },
+  countdownBox: { alignItems: 'center', gap: spacing.sm, borderWidth: 3, borderColor: colors.pressure, borderRadius: radii.lg, backgroundColor: colors.pressureSoft, padding: spacing.xl, boxShadow: '0 12px 26px rgba(0, 0, 0, 0.20)' },
+  countdownValue: { color: colors.pressure, fontSize: 82, lineHeight: 90, fontWeight: '900', fontVariant: ['tabular-nums'] },
   actionRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   actionButton: { flexGrow: 1, flexBasis: 132 },
   statusBox: { borderRadius: radii.md, backgroundColor: colors.surfaceStrong, padding: spacing.md },

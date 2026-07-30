@@ -7,6 +7,12 @@ not contain this correction. Build `0.1.0 (7)` was archived from exact source
 group on 2026-07-30. The delivery did not submit App Review, enable external
 testing, change a backend, call a paid provider, or write Infisical.
 
+A later source follow-up adds the pre-game lobby interruption layer described
+below. TestFlight build `0.1.0 (7)` contains the active-duel/reaction feedback
+and rematch correction, but it does **not** contain this later lobby feedback;
+another archive/upload is required before that part can be tested from
+TestFlight.
+
 ## Visual feedback
 
 The active duel now derives transient presentation events only from the safe
@@ -30,6 +36,22 @@ The event derivation is deterministic and covered separately from rendering:
 the initial projection stays quiet, repeat projections do not replay an event,
 own and expired reactions are ignored, resolution wins over a simultaneous
 opponent-submitted flag, and round changes emit once.
+
+The follow-up applies the same event-driven treatment before play. Safe lobby
+projections now produce a full-screen, non-interactive interruption when the
+rival joins, the rival becomes Ready, the authoritative countdown starts, or
+round 1 becomes active. Join and Ready remain visible for at least 3.6 seconds,
+countdown for at least 3.2 seconds, and active-round opening for at least 2.2
+seconds. The card enters vertically over a dimmed scrim and exits at full size
+with a fade; it never shrinks into a hard-to-see thumbnail. iOS haptics reinforce
+the transitions, while Reduce Motion keeps the same timed static presentation.
+
+The underlying lobby remains readable after the interruption: its phase is a
+large bordered status band, joined/Ready players use thick state-colored rows,
+glyphs and explicit chips, and countdown uses an 82-point pressure-colored
+number. This persistent hierarchy is important when an app resumes after the
+transient event and intentionally exposes only safe display name, side, state,
+countdown deadline and active round number.
 
 ## Accepted-rematch root cause and correction
 
@@ -66,6 +88,17 @@ devices entered the new lobby, and both opened its active round. Local evidence
 includes the iPad reaction/synchronization recordings and final iPhone/iPad
 rematch-active captures retained in the task visualization directory.
 
+The lobby follow-up used the same dedicated device classes with one freshly
+built preview Release app. The iPhone created a real preview room; the iPad
+resolved that room code; joining and Ready were applied with the iPad guest
+identity against the normal preview Apps API; and the iPhone host updated from
+`waiting` to the named joined rival and then to the thick green Ready state
+through its realtime subscription without manual refresh. This pass caught the
+old `ZoomOut` exit as a tiny late-frame card, removed that transform, lengthened
+the presentation, and rebuilt the Release simulator artifact. The deterministic
+tests separately cover initial quiet state, join, Ready, countdown priority,
+active-round emission, no replay, and minimum visibility durations.
+
 ## Automated gates
 
 Before the final Git closure, the changed source passed the focused visual,
@@ -77,6 +110,14 @@ completed at 76/100 with 15 non-blocking structural advisories in the two
 existing large screens; the async effect findings were reviewed and retain
 their cancellation guards. Exact commit hashes are recorded in the private
 living handoff after the public commits are created.
+
+The later lobby follow-up passes the complete Vitest suite (82 files / 451
+tests), TypeScript, Expo lint, effective preview iOS runtime validation, and
+`git diff --check` on Node `22.23.2`. React Doctor changed-scope finishes at
+78/100 with no errors and nine non-blocking advisories: compiler-managed manual
+memoization, two existing synchronous state projections, the existing large
+Challenge component/useState shape, and two async effects whose setters are
+already cancellation-guarded.
 
 ## Internal TestFlight delivery
 
@@ -106,6 +147,9 @@ disabled for the archive. No external testing or App Review action ran.
 - The animation and repaired rematch were accepted on simulators against the
   preview-connected runtime and delivered in TestFlight, but still require the
   owner's signed-device replay from build `0.1.0 (7)`.
+- Build `0.1.0 (7)` predates the stronger lobby join/Ready/countdown/start
+  interruptions. That follow-up is source- and simulator-validated only until a
+  newer TestFlight build is explicitly archived and uploaded.
 - There is no physical iPad acceptance for this source; the processed universal
   binary and the simulator matrix are the current iPhone/iPad evidence.
 - Transient overlays intentionally serialize to one visible event; a newer
