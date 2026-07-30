@@ -16,8 +16,8 @@ import type {
   DuelWordsApiRematchProposal,
   DuelWordsApiSafeGame,
 } from '../word-duel-lobby/api-client';
-import type { GameLanguage, LetterFeedback } from '../word-duel-engine';
-import { normalizeGuess } from '../word-duel-engine';
+import { normalizeGuess } from '../word-duel-engine/normalize';
+import type { GameLanguage, LetterFeedback } from '../word-duel-engine/types';
 import { createDuelWordsRealtimeProjectionClient } from './realtime-client';
 import {
   activeDuelReactionToRealtimeKey,
@@ -489,7 +489,7 @@ function createAppsApiWordDuelActiveController(input: {
         roundNumber,
       });
       const letters = lettersFromGuess(guess, viewModel.gameLanguage);
-      viewModel = markActiveDuelGuessSubmitted(viewModel, letters);
+      viewModel = markActiveDuelGuessSubmitted(viewModel, letters, roundNumber);
 
       return {
         game: activeGameFromApi(response.game, session.playerId, viewModel, nowMs()),
@@ -523,7 +523,7 @@ function createAppsApiWordDuelActiveController(input: {
         playerId: session.playerId,
         roundNumber,
       });
-      viewModel = markActiveDuelTimedOut(viewModel);
+      viewModel = markActiveDuelTimedOut(viewModel, roundNumber);
 
       return {
         game: activeGameFromApi(response.game, session.playerId, viewModel, nowMs()),
@@ -619,7 +619,7 @@ function applyOwnRoundSnapshotToViewModel(
     });
   }
   if (snapshot.own.status === 'timeout') {
-    return markActiveDuelTimedOut(viewModel);
+    return markActiveDuelTimedOut(viewModel, snapshot.roundNumber);
   }
 
   return viewModel;

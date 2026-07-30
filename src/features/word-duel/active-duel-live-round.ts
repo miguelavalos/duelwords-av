@@ -3,8 +3,12 @@ import type {
   DuelWordsRealtimeRoomView,
 } from '@/game/word-duel-active/realtime-projection';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
+import {
+  reconcileActiveDuelResolvedOwnRow,
+  type ActiveDuelViewModel,
+} from '../../game/word-duel-active/view-model';
 
-export const ACTIVE_DUEL_CLOCK_TICK_MS = 250;
+export const ACTIVE_DUEL_CLOCK_TICK_MS = 1_000;
 export const ACTIVE_DUEL_AUTO_ADVANCE_DELAY_MS = 1_100;
 
 export type ActiveDuelRoundClock = {
@@ -51,4 +55,40 @@ export async function advanceResolvedActiveDuelRound(
   const nextRound = await controller.openNextRoundIfDue({ roundNumber });
 
   return { nextRound, snapshot };
+}
+
+export type ActiveDuelRoundTransition = Awaited<ReturnType<typeof advanceResolvedActiveDuelRound>>;
+
+export function reconcileResolvedActiveDuelRoundTransition(
+  current: ActiveDuelViewModel,
+  transition: ActiveDuelRoundTransition,
+  resolvedRoundNumber: number,
+): ActiveDuelViewModel {
+  const transitioned = transition.nextRound.advanced
+    ? transition.nextRound.viewModel
+    : transition.snapshot.viewModel;
+
+  if (current.roundNumber <= resolvedRoundNumber) {
+    return transitioned;
+  }
+
+  return reconcileActiveDuelResolvedOwnRow(
+    current,
+    transition.snapshot.viewModel,
+    resolvedRoundNumber,
+  );
+}
+
+export function resolvedActiveDuelRoundsBeforeProjection(
+  currentRoundNumber: number,
+  projectedRoundNumber: number,
+): number[] {
+  if (projectedRoundNumber <= currentRoundNumber) {
+    return [];
+  }
+
+  return Array.from(
+    { length: projectedRoundNumber - currentRoundNumber },
+    (_, index) => currentRoundNumber + index,
+  );
 }

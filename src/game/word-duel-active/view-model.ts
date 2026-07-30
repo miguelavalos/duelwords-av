@@ -247,8 +247,19 @@ export function updateActiveDuelEditingLetters(
 export function markActiveDuelGuessSubmitted(
   viewModel: ActiveDuelViewModel,
   letters: readonly string[],
+  roundNumber = viewModel.roundNumber,
 ): ActiveDuelViewModel {
-  const currentRowIndex = viewModel.roundNumber - 1;
+  const currentRowIndex = roundNumber - 1;
+  const currentRow = viewModel.ownBoardRows[currentRowIndex];
+  if (
+    currentRowIndex < 0
+    || currentRowIndex >= viewModel.ownBoardRows.length
+    || roundNumber > viewModel.roundNumber
+    || currentRow?.state === 'revealed'
+    || currentRow?.state === 'timeout'
+  ) {
+    return viewModel;
+  }
   const nextRows = replaceRoundRow(
     viewModel,
     rowFromLetters({
@@ -263,18 +274,53 @@ export function markActiveDuelGuessSubmitted(
     ...viewModel,
     ownBoardRows: nextRows,
     ownKeyboardFeedback: keyboardFeedbackFromRows(nextRows),
-    ownRoundState: 'waiting_for_rival',
+    ownRoundState: roundNumber === viewModel.roundNumber
+      ? 'waiting_for_rival'
+      : viewModel.ownRoundState,
   };
 }
 
-export function markActiveDuelTimedOut(viewModel: ActiveDuelViewModel): ActiveDuelViewModel {
-  const currentRowIndex = viewModel.roundNumber - 1;
-  const nextRows = replaceRoundRow(viewModel, emptyRow('timeout'), currentRowIndex);
+export function markActiveDuelTimedOut(
+  viewModel: ActiveDuelViewModel,
+  roundNumber = viewModel.roundNumber,
+): ActiveDuelViewModel {
+  const rowIndex = roundNumber - 1;
+  if (rowIndex < 0 || rowIndex >= viewModel.ownBoardRows.length) {
+    return viewModel;
+  }
+  const currentRow = viewModel.ownBoardRows[rowIndex];
+  if (currentRow?.state === 'revealed' || currentRow?.state === 'timeout') {
+    return viewModel;
+  }
+  const nextRows = replaceRoundRow(viewModel, emptyRow('timeout'), rowIndex);
 
   return {
     ...viewModel,
     ownBoardRows: nextRows,
-    ownRoundState: 'timed_out',
+    ownRoundState: roundNumber === viewModel.roundNumber ? 'timed_out' : viewModel.ownRoundState,
+  };
+}
+
+export function reconcileActiveDuelResolvedOwnRow(
+  viewModel: ActiveDuelViewModel,
+  resolvedViewModel: ActiveDuelViewModel,
+  roundNumber: number,
+): ActiveDuelViewModel {
+  const rowIndex = roundNumber - 1;
+  const resolvedRow = resolvedViewModel.ownBoardRows[rowIndex];
+  if (
+    rowIndex < 0
+    || rowIndex >= viewModel.ownBoardRows.length
+    || (resolvedRow?.state !== 'revealed' && resolvedRow?.state !== 'timeout')
+  ) {
+    return viewModel;
+  }
+
+  const nextRows = replaceRoundRow(viewModel, resolvedRow, rowIndex);
+  return {
+    ...viewModel,
+    ownBoardRows: nextRows,
+    ownKeyboardFeedback: keyboardFeedbackFromRows(nextRows),
   };
 }
 

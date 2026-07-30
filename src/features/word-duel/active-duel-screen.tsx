@@ -3,7 +3,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import type { GameLanguage } from '@/game/word-duel-engine';
-import { DuelWordsClientError } from '@/game/word-duel-active/api-adapter';
 import {
   createWordDuelActiveController,
   type WordDuelActiveController,
@@ -21,6 +20,7 @@ import {
 } from '@/game/word-duel-active/realtime-projection';
 import {
   isActiveDuelInputOpen,
+  reconcileActiveDuelResolvedOwnRow,
   shouldReportActiveDuelTimeoutFailure,
   updateActiveDuelEditingLetters,
   type ActiveDuelOpponentMarkerState,
@@ -45,10 +45,16 @@ import {
   advanceResolvedActiveDuelRound,
   createActiveDuelRoundClock,
   formatActiveDuelSeconds,
+  reconcileResolvedActiveDuelRoundTransition,
+  resolvedActiveDuelRoundsBeforeProjection,
   shouldAutoAdvanceActiveDuelRound,
   shouldOpenActiveDuelFinalResult,
   type ActiveDuelRoundClock,
 } from './active-duel-live-round';
+import {
+  classifyActiveDuelSubmitFailure,
+  type ActiveDuelSubmitFailure,
+} from './active-duel-submit';
 import {
   finalizeActiveWordDuelResult,
   reportWordDuelResultFinalizationError,
@@ -97,6 +103,9 @@ export function ActiveDuelScreen({
   const presenceReconciliationInFlightRef = useRef(false);
   const reactionRequestNumber = useRef(0);
   const autoAdvanceRoundRef = useRef<number | null>(null);
+  const recoveryRoundRef = useRef<number | null>(null);
+  const roundSnapshotRecoveryInFlightRef = useRef(new Set<number>());
+  const submissionInFlightRef = useRef(false);
   const timedOutRoundRef = useRef<number | null>(null);
   const activeHandoff = useMemo(
     () => initialHandoff ?? createWordDuelActiveDemoHandoff({ gameLanguage: initialGameLanguage ?? 'en' }),
@@ -105,6 +114,7 @@ export function ActiveDuelScreen({
   const [muted, setMuted] = useState(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
   const [showRecoveryAction, setShowRecoveryAction] = useState(false);
+  const [submissionInFlight, setSubmissionInFlight] = useState(false);
   const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionEvent | null>(null);
   const activeDuelController = useMemo(
     () => controller ?? createWordDuelActiveController({
@@ -127,7 +137,7 @@ export function ActiveDuelScreen({
   const liveRemainingSeconds = realtimeRound?.clock?.roundNumber === viewModel.roundNumber
     ? activeDuelRemainingSeconds(realtimeRound.clock, clockNowMs)
     : viewModel.remainingSeconds;
-  const keyboardDisabled = !isActiveDuelInputOpen(viewModel.ownRoundState);
+  const keyboardDisabled = submissionInFlight || !isActiveDuelInputOpen(viewModel.ownRoundState);
   const boardWidth = Math.min(width - spacing.lg * 2, 418);
   const regularTileSize = Math.max(40, Math.min(54, Math.floor((boardWidth - spacing.sm * 4) / viewModel.wordLength)));
   const tileSize = compactViewport ? Math.min(36, regularTileSize) : regularTileSize;
@@ -140,12 +150,42 @@ export function ActiveDuelScreen({
     clearDraft();
     isOpeningResultRef.current = false;
     autoAdvanceRoundRef.current = null;
+    recoveryRoundRef.current = null;
+    roundSnapshotRecoveryInFlightRef.current.clear();
+    submissionInFlightRef.current = false;
     timedOutRoundRef.current = null;
     setReactionsOpen(false);
     setShowRecoveryAction(false);
+    setSubmissionInFlight(false);
     setRealtimeRound(null);
     setStatusDetail(copy('roundLive'));
     setViewModel(activeDuelController.getViewModel());
+  }, [activeDuelController, copy]);
+
+  const recoverResolvedRoundSnapshot = useCallback(async (roundNumber: number) => {
+    if (roundSnapshotRecoveryInFlightRef.current.has(roundNumber)) {
+      return;
+    }
+
+    roundSnapshotRecoveryInFlightRef.current.add(roundNumber);
+    try {
+      const snapshot = await activeDuelController.refreshOwnRoundSnapshot({ roundNumber });
+      setViewModel((current) => reconcileActiveDuelResolvedOwnRow(
+        current,
+        snapshot.viewModel,
+        roundNumber,
+      ));
+      if (recoveryRoundRef.current === roundNumber) {
+        recoveryRoundRef.current = null;
+        setShowRecoveryAction(false);
+      }
+    } catch {
+      recoveryRoundRef.current = roundNumber;
+      setStatusDetail(copy('couldNotSync'));
+      setShowRecoveryAction(true);
+    } finally {
+      roundSnapshotRecoveryInFlightRef.current.delete(roundNumber);
+    }
   }, [activeDuelController, copy]);
 
   useEffect(() => {
@@ -215,12 +255,11 @@ export function ActiveDuelScreen({
             activeDuelController,
             resolvedRoundNumber,
           );
-          if (viewModelRef.current.roundNumber !== resolvedRoundNumber) {
-            return;
-          }
-          setViewModel(transition.nextRound.advanced
-            ? transition.nextRound.viewModel
-            : transition.snapshot.viewModel);
+          setViewModel((current) => reconcileResolvedActiveDuelRoundTransition(
+            current,
+            transition,
+            resolvedRoundNumber,
+          ));
           clearDraft();
           setStatusDetail(transition.nextRound.advanced ? copy('nextRoundReady') : copy('roundResolving'));
           if (!transition.nextRound.advanced) {
@@ -252,6 +291,12 @@ export function ActiveDuelScreen({
         timedOutRoundRef.current = null;
         autoAdvanceRoundRef.current = null;
         setStatusDetail(copy('roundStarted', { number: projection.room.roundNumber }));
+        for (const resolvedRoundNumber of resolvedActiveDuelRoundsBeforeProjection(
+          previousRoundNumber,
+          projection.room.roundNumber,
+        )) {
+          void recoverResolvedRoundSnapshot(resolvedRoundNumber);
+        }
       }
       setShowRecoveryAction(false);
       setClockNowMs(receivedAtMs);
@@ -295,7 +340,7 @@ export function ActiveDuelScreen({
       stopHeartbeat();
       unsubscribe();
     };
-  }, [activeDuelController, copy, onFinalResult]);
+  }, [activeDuelController, copy, onFinalResult, recoverResolvedRoundSnapshot]);
 
   function updateDraft(nextDraft: string) {
     const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');
@@ -309,7 +354,7 @@ export function ActiveDuelScreen({
   }
 
   function handleKeyPress(key: string) {
-    if (keyboardDisabled) {
+    if (submissionInFlightRef.current || keyboardDisabled) {
       return;
     }
 
@@ -327,6 +372,10 @@ export function ActiveDuelScreen({
   }
 
   async function submitDraft() {
+    if (submissionInFlightRef.current) {
+      return;
+    }
+
     const currentDraft = draftRef.current;
     const letters = Array.from(currentDraft);
     if (letters.length !== viewModel.wordLength) {
@@ -335,6 +384,9 @@ export function ActiveDuelScreen({
     }
 
     clientRequestNumber.current += 1;
+    submissionInFlightRef.current = true;
+    setSubmissionInFlight(true);
+    setStatusDetail(copy('submitting'));
 
     try {
       const result = await activeDuelController.submitGuess({
@@ -351,9 +403,20 @@ export function ActiveDuelScreen({
         });
       }
     } catch (error) {
-      setStatusDetail(error instanceof DuelWordsClientError
-        ? activeDuelErrorLabel(interfaceLocale, error.code)
-        : copy('tryAgain'));
+      const failure = classifyActiveDuelSubmitFailure(error);
+      setStatusDetail(activeDuelSubmitFailureLabel(
+        interfaceLocale,
+        failure,
+        gameLanguageLabel,
+        currentDraft,
+        viewModel.wordLength,
+      ));
+      if (failure === 'round_changed') {
+        setShowRecoveryAction(true);
+      }
+    } finally {
+      submissionInFlightRef.current = false;
+      setSubmissionInFlight(false);
     }
   }
 
@@ -411,11 +474,15 @@ export function ActiveDuelScreen({
   }, [activeDuelController, copy, onFinalResult, router, viewModel]);
 
   async function syncRound() {
+    const roundNumber = recoveryRoundRef.current ?? viewModel.roundNumber;
     try {
       const snapshot = await activeDuelController.refreshOwnRoundSnapshot({
-        roundNumber: viewModel.roundNumber,
+        roundNumber,
       });
-      setViewModel(snapshot.viewModel);
+      setViewModel((current) => roundNumber < current.roundNumber
+        ? reconcileActiveDuelResolvedOwnRow(current, snapshot.viewModel, roundNumber)
+        : snapshot.viewModel);
+      recoveryRoundRef.current = null;
       setShowRecoveryAction(false);
       setStatusDetail(snapshot.feedbackAvailable ? copy('feedbackReady') : copy('waitingForRival'));
     } catch {
@@ -486,7 +553,7 @@ export function ActiveDuelScreen({
 
       <View style={styles.stateRow}>
         <Text style={styles.stateLabel}>{ownRoundStateLabel(interfaceLocale, viewModel)}</Text>
-        <Text style={styles.stateDetail}>{statusDetail}</Text>
+        <Text accessibilityLiveRegion="polite" style={styles.stateDetail}>{statusDetail}</Text>
       </View>
 
       <WordDuelKeyboard
@@ -692,14 +759,23 @@ function ownRoundStateLabel(locale: InterfaceLocale, viewModel: ActiveDuelViewMo
   return publicDuelT(locale, 'chooseLetters');
 }
 
-function activeDuelErrorLabel(locale: InterfaceLocale, code: DuelWordsClientError['code']): string {
-  if (code === 'invalid_guess_length') {
-    return publicDuelT(locale, 'wordLength', { count: 5 });
+function activeDuelSubmitFailureLabel(
+  locale: InterfaceLocale,
+  failure: ActiveDuelSubmitFailure,
+  language: string,
+  word: string,
+  wordLength: number,
+): string {
+  if (failure === 'invalid_word') {
+    return publicDuelT(locale, 'wordNotInDictionary', { language, word });
   }
-  if (code === 'invalid_round') {
+  if (failure === 'word_length') {
+    return publicDuelT(locale, 'wordLength', { count: wordLength });
+  }
+  if (failure === 'round_changed') {
     return publicDuelT(locale, 'roundChanged');
   }
-  return publicDuelT(locale, 'locked');
+  return publicDuelT(locale, 'tryAgain');
 }
 
 function markerSymbol(
@@ -1004,6 +1080,7 @@ function useActiveDuelStyles() {
     borderRadius: radii.md,
     backgroundColor: colors.surfaceSoft,
     paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
   },
   stateLabel: {
     flex: 1,
@@ -1012,9 +1089,12 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   stateDetail: {
+    flex: 1,
+    flexShrink: 1,
     color: colors.accent,
     fontSize: typeScale.small,
     fontWeight: '900',
+    textAlign: 'right',
     textTransform: 'uppercase',
   },
   reactionTray: {

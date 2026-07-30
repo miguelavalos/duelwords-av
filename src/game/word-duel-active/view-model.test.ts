@@ -6,7 +6,11 @@ import {
   createDemoActiveDuelViewModel,
   createRuntimeActiveDuelViewModel,
   markActiveDuelGuessSubmitted,
+  markActiveDuelTimedOut,
+  reconcileActiveDuelResolvedOwnRow,
+  revealActiveDuelOwnRoundFeedback,
   shouldReportActiveDuelTimeoutFailure,
+  synchronizeActiveDuelRound,
   updateActiveDuelEditingLetters,
 } from './view-model';
 
@@ -98,5 +102,87 @@ describe('active duel safe view model', () => {
     expect(shouldReportActiveDuelTimeoutFailure(editing, 1)).toBe(true);
     expect(shouldReportActiveDuelTimeoutFailure(submitted, 1)).toBe(false);
     expect(shouldReportActiveDuelTimeoutFailure(nextRound, 1)).toBe(false);
+  });
+
+  it('applies a late resolved row without closing input in the new round', () => {
+    const roundFour = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'ca',
+      ownSide: 'a',
+      roundNumber: 4,
+    });
+    const submitted = markActiveDuelGuessSubmitted(roundFour, ['T', 'A', 'P', 'E', 'S']);
+    const resolved = revealActiveDuelOwnRoundFeedback(submitted, {
+      feedback: ['present', 'absent', 'absent', 'absent', 'absent'],
+      letters: ['T', 'A', 'P', 'E', 'S'],
+      roundNumber: 4,
+    });
+    const roundFive = synchronizeActiveDuelRound(submitted, 5);
+    const reconciled = reconcileActiveDuelResolvedOwnRow(roundFive, resolved, 4);
+
+    expect(reconciled.roundNumber).toBe(5);
+    expect(reconciled.ownRoundState).toBe('editing');
+    expect(reconciled.ownBoardRows[3]?.state).toBe('revealed');
+    expect(reconciled.ownBoardRows[4]?.state).toBe('editing');
+    expect(reconciled.ownKeyboardFeedback.t).toBe('present');
+  });
+
+  it('records a late timeout on its original row without disabling the current keyboard', () => {
+    const roundFour = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'en',
+      ownSide: 'a',
+      roundNumber: 4,
+    });
+    const roundFive = synchronizeActiveDuelRound(roundFour, 5);
+    const timedOut = markActiveDuelTimedOut(roundFive, 4);
+
+    expect(timedOut.roundNumber).toBe(5);
+    expect(timedOut.ownRoundState).toBe('editing');
+    expect(timedOut.ownBoardRows[3]?.state).toBe('timeout');
+    expect(timedOut.ownBoardRows[4]?.state).toBe('editing');
+  });
+
+  it('records a late accepted submission on its original row without blocking the new round', () => {
+    const roundFour = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'ca',
+      ownSide: 'a',
+      roundNumber: 4,
+    });
+    const roundFive = synchronizeActiveDuelRound(roundFour, 5);
+    const submitted = markActiveDuelGuessSubmitted(
+      roundFive,
+      ['T', 'A', 'P', 'E', 'S'],
+      4,
+    );
+
+    expect(submitted.roundNumber).toBe(5);
+    expect(submitted.ownRoundState).toBe('editing');
+    expect(submitted.ownBoardRows[3]).toMatchObject({ state: 'submitted_pending' });
+    expect(submitted.ownBoardRows[3]?.cells.map((cell) => cell.letter)).toEqual([
+      'T', 'A', 'P', 'E', 'S',
+    ]);
+    expect(submitted.ownBoardRows[4]?.state).toBe('editing');
+  });
+
+  it('never replaces authoritative feedback with a late command response', () => {
+    const roundFour = createRuntimeActiveDuelViewModel({
+      gameLanguage: 'en',
+      ownSide: 'a',
+      roundNumber: 4,
+    });
+    const submitted = markActiveDuelGuessSubmitted(roundFour, ['R', 'A', 'I', 'S', 'E']);
+    const resolved = revealActiveDuelOwnRoundFeedback(submitted, {
+      feedback: ['absent', 'present', 'exact', 'absent', 'absent'],
+      letters: ['R', 'A', 'I', 'S', 'E'],
+      roundNumber: 4,
+    });
+    const roundFive = synchronizeActiveDuelRound(resolved, 5);
+
+    expect(markActiveDuelGuessSubmitted(
+      roundFive,
+      ['R', 'A', 'I', 'S', 'E'],
+      4,
+    )).toBe(roundFive);
+    expect(markActiveDuelTimedOut(roundFive, 4)).toBe(roundFive);
+    expect(roundFive.ownBoardRows[3]?.state).toBe('revealed');
   });
 });

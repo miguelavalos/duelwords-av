@@ -28,6 +28,8 @@ describe('public duel copy', () => {
       .toBe('Intento rival 2: Enviado');
     expect(publicDuelT('fr', 'target', { word: 'PERLE' })).toBe('Mot : PERLE');
     expect(publicDuelT('de', 'wordLength', { count: 5 })).toBe('5 Buchstaben');
+    expect(publicDuelT('ca', 'wordNotInDictionary', { language: 'Català', word: 'TAPES' }))
+      .toContain('TAPES');
   });
 
   it('does not silently fall back to English for the core localized labels', () => {

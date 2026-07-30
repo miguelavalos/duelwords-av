@@ -374,7 +374,10 @@ export type DuelWordsApiClientConfig = {
   fetchImpl?: typeof fetch;
   getAuthToken?: () => Promise<string | null> | string | null;
   platform?: DuelWordsApiPlatform;
+  requestTimeoutMs?: number;
 };
+
+export const DUELWORDS_API_REQUEST_TIMEOUT_MS = 15_000;
 
 export class DuelWordsApiError extends Error {
   readonly code: string;
@@ -391,31 +394,71 @@ export class DuelWordsApiError extends Error {
 export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): DuelWordsApiClient {
   const baseUrl = normalizedBaseUrl(config.baseUrl);
   const fetchImpl = config.fetchImpl ?? fetch;
+  const requestTimeoutMs = Math.max(1, config.requestTimeoutMs ?? DUELWORDS_API_REQUEST_TIMEOUT_MS);
 
   async function requestJson(path: string, init: {
     body?: unknown;
     method?: 'GET' | 'POST';
     signal?: AbortSignal;
   } = {}): Promise<unknown> {
-    const token = await maybeAuthToken(config.getAuthToken);
-    const response = await fetchImpl(`${baseUrl}${path}`, {
-      body: init.body === undefined ? undefined : JSON.stringify(init.body),
-      headers: {
-        Accept: 'application/json',
-        'x-appsav-app-id': DUELWORDS_APPS_AV_APP_ID,
-        ...(config.platform ? { 'x-appsav-platform': config.platform } : {}),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
-      },
-      method: init.method ?? 'GET',
-      signal: init.signal,
+    const abortController = new AbortController();
+    let timedOut = false;
+    const forwardAbort = () => abortController.abort(init.signal?.reason);
+    const aborted = new Promise<never>((_resolve, reject) => {
+      abortController.signal.addEventListener('abort', () => {
+        if (timedOut) {
+          reject(new DuelWordsApiError(0, 'request_timeout'));
+          return;
+        }
+        const reason = init.signal?.reason;
+        if (reason instanceof Error) {
+          reject(reason);
+          return;
+        }
+        const error = new Error('The DuelWords API request was cancelled.');
+        error.name = 'AbortError';
+        reject(error);
+      }, { once: true });
     });
-
-    if (!response.ok) {
-      throw new DuelWordsApiError(response.status, await errorCode(response));
+    if (init.signal?.aborted) {
+      forwardAbort();
+    } else {
+      init.signal?.addEventListener('abort', forwardAbort, { once: true });
     }
+    const timeout = setTimeout(() => {
+      timedOut = true;
+      abortController.abort();
+    }, requestTimeoutMs);
 
-    return response.json();
+    try {
+      return await Promise.race([
+        (async () => {
+          const token = await maybeAuthToken(config.getAuthToken);
+          const response = await fetchImpl(`${baseUrl}${path}`, {
+            body: init.body === undefined ? undefined : JSON.stringify(init.body),
+            headers: {
+              Accept: 'application/json',
+              'x-appsav-app-id': DUELWORDS_APPS_AV_APP_ID,
+              ...(config.platform ? { 'x-appsav-platform': config.platform } : {}),
+              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }),
+            },
+            method: init.method ?? 'GET',
+            signal: abortController.signal,
+          });
+
+          if (!response.ok) {
+            throw new DuelWordsApiError(response.status, await errorCode(response));
+          }
+
+          return await response.json();
+        })(),
+        aborted,
+      ]);
+    } finally {
+      clearTimeout(timeout);
+      init.signal?.removeEventListener('abort', forwardAbort);
+    }
   }
 
   return {

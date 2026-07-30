@@ -1,10 +1,11 @@
 const appJson = require('./app.json');
 
-function createExpoConfig() {
+function createExpoConfig({ config } = { config: appJson.expo }) {
+  const baseConfig = config ?? appJson.expo;
   const iosBuildVariant = normalizeIosBuildVariant(process.env.DUELWORDSAV_IOS_BUILD_VARIANT);
   const iosBundleIdentifier = iosBuildVariant === 'development'
     ? 'com.avalsys.duelwordsav.dev'
-    : appJson.expo.ios.bundleIdentifier;
+    : baseConfig.ios.bundleIdentifier;
   const apiBaseUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_API_BASE_URL);
   const apiDisabled = isRuntimeDisabled(process.env.EXPO_PUBLIC_DUELWORDSAV_API_DISABLED);
   const convexUrl = normalizedOptionalString(process.env.EXPO_PUBLIC_DUELWORDSAV_CONVEX_URL);
@@ -35,22 +36,22 @@ function createExpoConfig() {
     ?? `935PM55U6R.${iosBundleIdentifier}`;
 
   return {
-    ...appJson.expo,
+    ...baseConfig,
     scheme: iosBundleIdentifier,
     ios: {
-      ...appJson.expo.ios,
+      ...baseConfig.ios,
       associatedDomains: [
         'applinks:app.duelwords-av-preview.avalsys.com',
         'applinks:app.duelwords-av.avalsys.com',
       ],
       bundleIdentifier: iosBundleIdentifier,
       entitlements: {
-        ...(appJson.expo.ios?.entitlements ?? {}),
+        ...(baseConfig.ios?.entitlements ?? {}),
         'com.apple.developer.applesignin': ['Default'],
         'keychain-access-groups': ['$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)'],
       },
       infoPlist: {
-        ...(appJson.expo.ios?.infoPlist ?? {}),
+        ...(baseConfig.ios?.infoPlist ?? {}),
         ACCOUNTAV_KEYCHAIN_ACCESS_GROUP: '$(ACCOUNTAV_KEYCHAIN_ACCESS_GROUP)',
         ACCOUNTAV_KEYCHAIN_SERVICE: '$(ACCOUNTAV_KEYCHAIN_SERVICE)',
         ACCOUNTAV_PUBLISHABLE_KEY: '$(ACCOUNTAV_PUBLISHABLE_KEY)',
@@ -69,7 +70,7 @@ function createExpoConfig() {
       },
     },
     extra: {
-      ...(appJson.expo.extra ?? {}),
+      ...(baseConfig.extra ?? {}),
       accountAv: {
         apiBaseUrl,
         keychainAccessGroup: accountKeychainAccessGroup,
@@ -77,7 +78,7 @@ function createExpoConfig() {
         publishableKey: accountPublishableKey,
       },
       duelWordsAv: {
-        ...(appJson.expo.extra?.duelWordsAv ?? {}),
+        ...(baseConfig.extra?.duelWordsAv ?? {}),
         apiBaseUrl,
         apiDisabled,
         convexRealtimeDisabled,

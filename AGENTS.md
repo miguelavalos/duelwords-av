@@ -20,8 +20,11 @@ Current implementation slice:
   one-second clock. Anchor the foreground UI clock from that server delta and
   tick it locally. When the safe projection becomes `round_resolving`, recover
   the caller's private round snapshot and request the idempotent
-  `open-next-if-due` transition after the server pause. Never require manual
-  Refresh/Sync/Next actions for normal round progression, and keep
+  `open-next-if-due` transition after the server pause. If another device opens
+  the next round first, the newer projection must also recover and merge every
+  skipped private snapshot without replacing the new round's interactive
+  state. A late snapshot may resolve an older row but must never disable the
+  current keyboard. Never require manual Refresh/Sync/Next actions for normal round progression, and keep
   `active-duel-live-round.test.ts` green.
 
 - Expo Router SDK 57 shell.

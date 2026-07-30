@@ -1,9 +1,9 @@
+import { normalizeGuess } from '../word-duel-engine/normalize';
 import {
-  normalizeGuess,
   WORD_DUEL_MAX_ATTEMPTS,
   WORD_DUEL_WORD_LENGTH,
   type GameLanguage,
-} from '../word-duel-engine';
+} from '../word-duel-engine/types';
 import {
   createDemoActiveDuelViewModel,
   isActiveDuelInputOpen,
@@ -218,7 +218,7 @@ export function createMockActiveDuelClient(input: {
         throw new DuelWordsClientError('invalid_guess_length', 'Local mock guesses must match the word length.');
       }
 
-      viewModel = markActiveDuelGuessSubmitted(viewModel, letters);
+      viewModel = markActiveDuelGuessSubmitted(viewModel, letters, request.roundNumber);
 
       const result: DuelWordsSubmitGuessResult = {
         game: safeGame('active'),
@@ -245,7 +245,7 @@ export function createMockActiveDuelClient(input: {
       assertGameMatches(request.gameId);
       assertCurrentRound(request.roundNumber);
 
-      viewModel = markActiveDuelTimedOut(viewModel);
+      viewModel = markActiveDuelTimedOut(viewModel, request.roundNumber);
 
       return {
         game: safeGame('resolving'),

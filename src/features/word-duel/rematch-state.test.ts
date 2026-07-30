@@ -30,7 +30,7 @@ describe('canRequestRematch', () => {
 });
 
 describe('startRematchProposalPolling', () => {
-  test('loads immediately, refreshes each second, and stops cleanly', async () => {
+  test('loads immediately, backs off while unchanged, and stops cleanly', async () => {
     vi.useFakeTimers();
     const proposal = proposalWithStatus('sent');
     const load = vi.fn().mockResolvedValue(proposal);
@@ -42,11 +42,38 @@ describe('startRematchProposalPolling', () => {
     expect(onProposal).toHaveBeenLastCalledWith(proposal);
 
     await vi.advanceTimersByTimeAsync(2_000);
+    expect(load).toHaveBeenCalledTimes(2);
+
+    await vi.advanceTimersByTimeAsync(4_000);
     expect(load).toHaveBeenCalledTimes(3);
 
     stop();
-    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(10_000);
     expect(load).toHaveBeenCalledTimes(3);
+  });
+
+  test('returns to the responsive interval when the proposal revision changes', async () => {
+    vi.useFakeTimers();
+    const sent = proposalWithStatus('sent');
+    const accepted = {
+      ...sent,
+      nextGame: { gameId: 'next-game' },
+      status: 'accepted',
+    } as DuelWordsApiRematchProposal;
+    const load = vi.fn()
+      .mockResolvedValueOnce(sent)
+      .mockResolvedValueOnce(sent)
+      .mockResolvedValue(accepted);
+
+    const stop = startRematchProposalPolling({ load, onProposal: vi.fn() });
+    await vi.runAllTicks();
+    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(4_000);
+    expect(load).toHaveBeenCalledTimes(3);
+
+    await vi.advanceTimersByTimeAsync(2_000);
+    expect(load).toHaveBeenCalledTimes(4);
+    stop();
   });
 
   test('does not publish an in-flight response after stopping', async () => {

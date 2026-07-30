@@ -141,6 +141,7 @@ const englishCopy = {
   waitingForRival: 'Waiting for rival',
   waitingRound: 'Waiting for round 1.',
   wordLength: '{count} letters',
+  wordNotInDictionary: '“{word}” is not in the {language} duel dictionary. Check the spelling or try another word.',
   you: 'You',
   youWon: 'You won',
   yourFinalBoard: 'Your final board',
@@ -202,6 +203,7 @@ Object.assign(spanishCopyDraft, {
   startGame: 'Iniciar partida',
   waitingForHost: 'Esperando a que el anfitrión inicie la partida.',
   validLetters: 'Letras válidas',
+  wordNotInDictionary: '“{word}” no está en el diccionario de {language} del duelo. Revisa la ortografía o prueba otra palabra.',
   wordDuel: 'Duelo de palabras',
 });
 
@@ -230,6 +232,7 @@ Object.assign(catalanCopyDraft, {
   runtimeDescription: 'Pràctica i Jugar amb l’Avi continuen disponibles sense connexió. Revisa la connexió i torna a provar el repte en directe.',
   safeRealtimeUnavailable: 'Les actualitzacions en directe encara no estan preparades',
   validLetters: 'Lletres vàlides',
+  wordNotInDictionary: '“{word}” no és al diccionari de {language} del duel. Revisa l’ortografia o prova una altra paraula.',
   wordDuel: 'Duel de paraules',
 });
 
@@ -258,6 +261,7 @@ Object.assign(frenchCopyDraft, {
   runtimeDescription: 'Entraînement et Jouer contre Avi restent disponibles hors ligne. Vérifiez votre connexion et réessayez le défi en direct.',
   safeRealtimeUnavailable: 'Les parties en direct ne sont pas encore prêtes',
   validLetters: 'Lettres valides',
+  wordNotInDictionary: '« {word} » ne figure pas dans le dictionnaire {language} du duel. Vérifiez l’orthographe ou essayez un autre mot.',
   wordDuel: 'Duel de mots',
 });
 
@@ -286,6 +290,7 @@ Object.assign(germanCopyDraft, {
   runtimeDescription: 'Training und Gegen Avi bleiben offline verfügbar. Prüfe deine Verbindung und versuche das Live-Duell erneut.',
   safeRealtimeUnavailable: 'Live-Aktualisierungen sind noch nicht bereit',
   validLetters: 'Gültige Buchstaben',
+  wordNotInDictionary: '„{word}“ steht nicht im {language}-Wörterbuch des Duells. Prüfe die Schreibweise oder versuche ein anderes Wort.',
   wordDuel: 'Wortduell',
 });
 

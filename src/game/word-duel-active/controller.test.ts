@@ -200,6 +200,69 @@ describe('Word Duel active controller', () => {
     unsubscribe();
   });
 
+  it('does not let a late submit response block a newer authoritative round', async () => {
+    let resolveSubmission!: (
+      value: Awaited<ReturnType<DuelWordsApiClient['submitGuess']>>,
+    ) => void;
+    const apiClient = createApiClientStub({
+      openNextRoundIfDue: async () => ({
+        game: apiGamePayload({ currentRound: 3 }),
+      }),
+      submitGuess: () => new Promise((resolve) => {
+        resolveSubmission = resolve;
+      }),
+    });
+    const controller = createWordDuelActiveController({
+      handoff: createWordDuelActiveDemoHandoff(),
+      mode: 'runtime',
+      runtime: {
+        apiClient,
+        realtimeClient: createLocalDuelWordsRealtimeProjectionClient({
+          realtimeSessionId: RUNTIME_SESSION.realtime.realtimeSessionId,
+          roomToken: RUNTIME_SESSION.realtime.roomToken,
+        }),
+        session: RUNTIME_SESSION,
+      },
+    });
+
+    const pendingSubmission = controller.submitGuess({
+      clientRequestId: 'submit-delayed',
+      guess: 'adore',
+      roundNumber: 2,
+    });
+    await controller.openNextRoundIfDue({ roundNumber: 2 });
+    resolveSubmission({
+      game: apiGamePayload({ currentRound: 2 }),
+      round: {
+        feedbackAvailable: false,
+        gameFinalized: false,
+        resultReason: null,
+        roundNumber: 2,
+        status: 'open',
+        waitingForOpponent: true,
+        winnerSide: null,
+      },
+      submission: {
+        accepted: true,
+        roundNumber: 2,
+        side: 'a',
+        submittedAt: '2026-07-05T08:00:02.000Z',
+      },
+    });
+    await pendingSubmission;
+
+    expect(controller.getViewModel()).toMatchObject({
+      ownRoundState: 'editing',
+      roundNumber: 3,
+    });
+    expect(controller.getViewModel().ownBoardRows[1]).toMatchObject({
+      state: 'submitted_pending',
+    });
+    expect(controller.getViewModel().ownBoardRows[2]).toMatchObject({
+      state: 'editing',
+    });
+  });
+
   it('refreshes the runtime active projection after a successful reaction send', async () => {
     const roomView = {
       room: {

@@ -1,12 +1,14 @@
 import type { DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
 
-export const REMATCH_PROPOSAL_POLL_INTERVAL_MS = 1_000;
+export const REMATCH_PROPOSAL_POLL_INTERVAL_MS = 2_000;
+export const REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS = 5_000;
 
 type RematchProposalPollingInput = {
   load: () => Promise<DuelWordsApiRematchProposal | null>;
   onProposal: (proposal: DuelWordsApiRematchProposal | null) => void;
   onError?: () => void;
   intervalMs?: number;
+  maxIntervalMs?: number;
 };
 
 export function canRequestRematch(proposal: DuelWordsApiRematchProposal | null): boolean {
@@ -30,30 +32,46 @@ export function startRematchProposalPolling({
   onProposal,
   onError,
   intervalMs = REMATCH_PROPOSAL_POLL_INTERVAL_MS,
+  maxIntervalMs = REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS,
 }: RematchProposalPollingInput): () => void {
   let stopped = false;
-  let inFlight = false;
+  let lastRevision: string | null = null;
+  let nextDelayMs = intervalMs;
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+
+  const scheduleNextPoll = (delayMs: number) => {
+    if (stopped) return;
+    timeout = setTimeout(() => {
+      void poll();
+    }, delayMs);
+  };
 
   const poll = async () => {
-    if (stopped || inFlight) return;
-    inFlight = true;
+    if (stopped) return;
     try {
       const proposal = await load();
-      if (!stopped) onProposal(proposal);
+      if (stopped) return;
+      const revision = rematchProposalRevisionKey(proposal);
+      const isFirstRevision = lastRevision === null;
+      const changed = lastRevision !== null && revision !== lastRevision;
+      lastRevision = revision;
+      nextDelayMs = isFirstRevision || changed
+        ? intervalMs
+        : Math.min(maxIntervalMs, Math.max(intervalMs, nextDelayMs * 2));
+      onProposal(proposal);
     } catch {
-      if (!stopped) onError?.();
+      if (stopped) return;
+      nextDelayMs = Math.min(maxIntervalMs, Math.max(intervalMs, nextDelayMs * 2));
+      onError?.();
     } finally {
-      inFlight = false;
+      scheduleNextPoll(nextDelayMs);
     }
   };
 
   void poll();
-  const interval = setInterval(() => {
-    void poll();
-  }, intervalMs);
 
   return () => {
     stopped = true;
-    clearInterval(interval);
+    if (timeout !== null) clearTimeout(timeout);
   };
 }

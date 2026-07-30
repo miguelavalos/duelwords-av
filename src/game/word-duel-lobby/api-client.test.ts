@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   createDuelWordsApiClient,
@@ -16,7 +16,91 @@ const GUEST_IDENTITY = {
   guestSessionId: 'guest-a',
 } as const;
 
+afterEach(() => {
+  vi.useRealTimers();
+});
+
 describe('DuelWords Apps AV API client', () => {
+  it('bounds stalled requests so gameplay controls can recover', async () => {
+    vi.useFakeTimers();
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: (_input, init) => new Promise((_resolve, reject) => {
+        init?.signal?.addEventListener('abort', () => {
+          const error = new Error('aborted');
+          error.name = 'AbortError';
+          reject(error);
+        }, { once: true });
+      }),
+      requestTimeoutMs: 50,
+    });
+
+    const request = client.getInvitePreview({ inviteToken: 'stalled' });
+    const assertion = expect(request).rejects.toMatchObject({
+      code: 'request_timeout',
+      status: 0,
+    });
+    await vi.runAllTicks();
+    await vi.advanceTimersByTimeAsync(50);
+
+    await assertion;
+  });
+
+  it('also bounds an authentication lookup that never completes', async () => {
+    vi.useFakeTimers();
+    let fetchCalled = false;
+    const fetchImpl: typeof fetch = async () => {
+      fetchCalled = true;
+      return new Response('{}');
+    };
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl,
+      getAuthToken: () => new Promise(() => undefined),
+      requestTimeoutMs: 50,
+    });
+
+    const request = client.getInvitePreview({ inviteToken: 'stalled-auth' });
+    const assertion = expect(request).rejects.toMatchObject({
+      code: 'request_timeout',
+      status: 0,
+    });
+    await vi.advanceTimersByTimeAsync(50);
+
+    await assertion;
+    expect(fetchCalled).toBe(false);
+  });
+
+  it('preserves caller cancellation separately from a request timeout', async () => {
+    const abortController = new AbortController();
+    const client = createDuelWordsApiClient({
+      baseUrl: 'https://api.test',
+      fetchImpl: (_input, init) => new Promise((_resolve, reject) => {
+        const rejectAsAborted = () => {
+          const error = new Error('aborted');
+          error.name = 'AbortError';
+          reject(error);
+        };
+        if (init?.signal?.aborted) {
+          rejectAsAborted();
+          return;
+        }
+        init?.signal?.addEventListener('abort', rejectAsAborted, { once: true });
+      }),
+      requestTimeoutMs: 1_000,
+    });
+
+    const request = client.getDailyTarget({
+      actor: GUEST_IDENTITY,
+      language: 'ca',
+      signal: abortController.signal,
+      timeZone: 'Europe/Madrid',
+    });
+    abortController.abort();
+
+    await expect(request).rejects.toMatchObject({ name: 'AbortError' });
+  });
+
   it('fetches one official Daily target with only date, language, and rule metadata', async () => {
     const recorder = createFetchRecorder([
       jsonResponse({
