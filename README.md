@@ -50,9 +50,10 @@ rooms retain the correct rules in the lobby and backend, but its active screen
 constructs a fixed 5-column/6-row board. Current source fixes the shared
 web/iOS active model so the initial board, later rows, opponent markers, local
 mock, and safe-game projection all preserve the selected word length and
-attempt count. The correction is locally verified as an Epic 7-column/8-row
-board in web, iPhone 17, and iPad Pro 13; it is not present in build 10 and
-requires a later web deployment and TestFlight build before owner testing.
+attempt count. The correction is verified as an Epic 7-column/8-row board in
+web, iPhone 17, and iPad Pro 13. Production web now serves the corrected
+artifact from public commit `865e7a0`; internal iOS build `0.1.0 (11)` is the
+first reserved TestFlight candidate that includes it.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

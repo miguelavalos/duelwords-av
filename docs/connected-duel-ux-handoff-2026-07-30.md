@@ -474,6 +474,20 @@ Local visual acceptance used the direct Epic active route. Web at a compact
 mobile viewport renders seven columns and eight rows without horizontal
 overflow and accepts/submits all seven letters. One universal development
 binary then rendered the same complete board on a dark iPhone 17 simulator and
-a light iPad Pro 13 simulator. These are source-level/local-runtime findings;
-the correction is not in production web or TestFlight build 10 until a later
-explicitly authorized deployment and upload.
+a light iPad Pro 13 simulator.
+
+## Corrected web release and build 11 reservation
+
+The environment-neutral artifact built from exact public commit `865e7a0` has
+SHA-256 `f85bf9a8de0d41b164fd888fa6010396b0e616096202f03f3ec5789224b2ff46`
+and bundle `entry-3b02cefd6cc8c6cb809a25f392b3a97b.js`. Preview Worker version
+`9e3a713f-baa0-4d7c-9a18-81e3ef8e9304` passed a compact-viewport,
+production-shape smoke: an Epic room showed `7 letters · 8 attempts`,
+host-selected rules were locked in the lobby, and the document had no
+horizontal overflow. The same artifact was then promoted without a rebuild to
+production Worker version `37360667-8728-492f-85b3-b967585883eb`; the
+production route returned HTTP 200 and referenced the expected bundle.
+
+Internal iOS build `0.1.0 (11)` is reserved as the first TestFlight candidate
+containing this correction. Archive, export, Apple processing, and internal-
+group evidence must still be recorded before treating build 11 as test-ready.

@@ -11,7 +11,7 @@ Usage:
   scripts/ios/archive-release.sh [--archive <DuelWordsAV.xcarchive>]
     [--sentry-upload]
 
-Creates and validates DuelWords AV 0.1.0 (10) from the generated production
+Creates and validates DuelWords AV 0.1.0 (11) from the generated production
 runtime. It never uploads to App Store Connect.
 
 By default Sentry uploads remain disabled. --sentry-upload requires an ambient
@@ -34,13 +34,13 @@ local_config="$repo_root/ios/Config/Local.xcconfig"
 derived_data="$repo_root/.DerivedData-duelwords-testflight"
 development_team="935PM55U6R"
 version_number="0.1.0"
-build_number="10"
+build_number="11"
 [ -d "$workspace" ] || { echo "Generated iOS workspace is missing." >&2; exit 1; }
 [ -s "$local_config" ] || { echo "Generated production Local.xcconfig is missing." >&2; exit 1; }
 
 timestamp="$(date '+%Y-%m-%d-%H%M%S')"
 if [ -z "$archive_path" ]; then
-  archive_path="$derived_data/Archives/DuelWordsAV-0.1.0-10-$timestamp.xcarchive"
+  archive_path="$derived_data/Archives/DuelWordsAV-0.1.0-11-$timestamp.xcarchive"
 fi
 case "$archive_path" in *.xcarchive) ;; *) echo "--archive must end in .xcarchive" >&2; exit 2 ;; esac
 build_log="$derived_data/Logs/archive-$timestamp.log"
