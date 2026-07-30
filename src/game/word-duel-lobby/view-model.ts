@@ -1,4 +1,5 @@
-import type { GameLanguage } from '../word-duel-engine';
+import type { DuelMaxAttempts } from '../duel-rules';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine';
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
 
 export type WordDuelLobbySide = 'a' | 'b';
@@ -35,12 +36,12 @@ export type WordDuelInvitePreview = {
   gameName: 'Word Duel';
   inviteUrl: string | null;
   joinAvailability: WordDuelLobbyJoinAvailability;
-  maxAttempts: number;
+  maxAttempts: DuelMaxAttempts;
   mode: 'human_duel';
   roomCode: string | null;
   roomState: WordDuelLobbyStatus;
   solutionSelected: false;
-  wordLength: number;
+  wordLength: DuelWordLength;
 };
 
 export type WordDuelLobbyCountdown = {
@@ -112,7 +113,9 @@ const INVITE_TTL_MS = 10 * 60_000;
 
 export function createLocalInviteLobbyViewModel(input: {
   gameLanguage: GameLanguage;
+  maxAttempts?: DuelMaxAttempts;
   nowMs: number;
+  wordLength?: DuelWordLength;
 }): WordDuelLobbyViewModel {
   return withDerivedControls({
     activeRound: null,
@@ -123,12 +126,12 @@ export function createLocalInviteLobbyViewModel(input: {
       gameName: 'Word Duel',
       inviteUrl: DEFAULT_INVITE_URL,
       joinAvailability: 'viewer_already_joined',
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+      maxAttempts: input.maxAttempts ?? WORD_DUEL_MAX_ATTEMPTS,
       mode: 'human_duel',
       roomCode: DEFAULT_ROOM_CODE,
       roomState: 'waiting_for_player',
       solutionSelected: false,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      wordLength: input.wordLength ?? WORD_DUEL_WORD_LENGTH,
     },
     players: [
       {

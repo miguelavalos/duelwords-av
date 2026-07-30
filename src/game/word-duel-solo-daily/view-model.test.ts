@@ -126,12 +126,15 @@ describe('word duel solo and daily local preview', () => {
     }
 
     const solvedView = createSoloDailyViewModel(solved.session);
+    const germanSolvedView = createSoloDailyViewModel(solved.session, 'de');
     expect(solvedView.status).toBe('won');
     expect(solvedView.targetReveal).toEqual({
       displayWord: session.target.displayWord.toUpperCase(),
       visible: true,
     });
     expect(solvedView.safeSharePreview?.text).toContain('DuelWords AV');
+    expect(germanSolvedView.safeSharePreview?.text).toContain('Solo-Training');
+    expect(germanSolvedView.safeSharePreview?.ctaLabel).toBe('Fordere mich heraus');
   });
 
   it('keeps the local share preview free of target, guesses, letters, boards and Wordle-like grids', () => {

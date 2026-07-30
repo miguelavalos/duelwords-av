@@ -2,7 +2,8 @@ import type {
   DuelWordsActorIdentity,
 } from '../word-duel-active/api-adapter';
 import type { DuelWordsBackendRealtimeSession } from '../word-duel-active/realtime-session';
-import type { GameLanguage } from '../word-duel-engine';
+import type { DuelMaxAttempts } from '../duel-rules';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine';
 import {
   WORD_DUEL_MAX_ATTEMPTS,
   WORD_DUEL_WORD_LENGTH,
@@ -68,7 +69,9 @@ export type WordDuelLobbyController = {
   createHostInvite(input: {
     gameLanguage: GameLanguage;
     host?: DuelWordsApiActor;
+    maxAttempts?: DuelMaxAttempts;
     nowMs: number;
+    wordLength?: DuelWordLength;
   }): Promise<WordDuelLobbyControllerState>;
   expireInvite(input: {
     nowMs: number;
@@ -164,12 +167,16 @@ const DEFAULT_INVITE_BASE_URL = 'https://app.duelwords-av.avalsys.com/i/c/';
 
 export function createLocalMockWordDuelLobbyControllerState(input: {
   gameLanguage: GameLanguage;
+  maxAttempts?: DuelMaxAttempts;
   nowMs: number;
+  wordLength?: DuelWordLength;
 }): WordDuelLobbyControllerState {
   return {
     lobby: createLocalInviteLobbyViewModel({
       gameLanguage: input.gameLanguage,
+      maxAttempts: input.maxAttempts,
       nowMs: input.nowMs,
+      wordLength: input.wordLength,
     }),
     realtime: null,
     session: createLocalSession(),
@@ -263,7 +270,9 @@ function createLocalMockLobbyController(): WordDuelLobbyController {
     async createHostInvite(input) {
       return createLocalMockWordDuelLobbyControllerState({
         gameLanguage: input.gameLanguage,
+        maxAttempts: input.maxAttempts,
         nowMs: input.nowMs,
+        wordLength: input.wordLength,
       });
     },
     async expireInvite(input) {
@@ -378,6 +387,8 @@ function createAppsApiLobbyController(apiClient: DuelWordsApiClient): WordDuelLo
       const payload = await apiClient.createInvite({
         host: input.host,
         language: input.gameLanguage,
+        maxAttempts: input.maxAttempts,
+        wordLength: input.wordLength,
       });
 
       return stateFromApiPayload(payload, {

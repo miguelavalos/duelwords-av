@@ -29,7 +29,9 @@ Before code or generated assets, record:
 
 - alphabet and any dedicated keyboard key;
 - case, accents, apostrophes, ligatures, and normalization;
-- how a displayed word becomes exactly five normalized game letters;
+- how a displayed word becomes the exact normalized length supported by the
+  mode (currently five for Daily and five, six, or seven for configurable
+  duels);
 - dictionary source, pinned revision, source path, license, and SHA-256;
 - valid-guess policy versus the smaller target-word policy;
 - target count, frequency/ranking source, exclusions, and human curation state.
@@ -52,7 +54,9 @@ Use a separate generator when it is not; do not label another source as Gaia.
 Generation must be deterministic and its source hashes must be pinned.
 
 Add the resulting checked-in file at
-`src/game/dictionaries/generated/<code>.json` and update
+`src/game/dictionaries/generated/<code>.json` for the legacy five-letter deck
+or `src/game/dictionaries/generated/<code>-<length>.json` for another supported
+length, and update
 `THIRD_PARTY_NOTICES.md` with source, license, counts, target policy, and local
 modifications.
 
@@ -148,7 +152,7 @@ Native acceptance must cover:
 - the complete picker without clipping;
 - one valid Practice submission;
 - one complete automatic Play Avi response;
-- fast five-letter entry and immediate submit;
+- fast entry at every supported length and immediate submit;
 - language change/reset;
 - connected two-client create-to-rematch after the backend has been deployed;
 - background/foreground and session restoration without duplicate requests.

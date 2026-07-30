@@ -2,6 +2,8 @@ import { type Href, useRouter } from 'expo-router';
 import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { AviArtwork, InkEyebrow, PaperCard, SectionHeading, aviAssets } from '@/ui/brand';
@@ -11,61 +13,63 @@ import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 export function ProScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const styles = useStyles();
   const isPro = account.access.planTier === 'pro';
   const signedIn = account.user !== null;
 
   return (
     <AppScreen bottomInset={spacing.xxl}>
-      <InteriorScreenHeader backLabel="Back" onBack={() => router.back()} title="DuelWords Pro" />
+      <InteriorScreenHeader backLabel={copy('Back')} onBack={() => router.back()} title="DuelWords Pro" />
 
       <View style={styles.hero}>
         <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
         <View style={styles.heroCopy}>
           <InkEyebrow>DuelWords Pro</InkEyebrow>
           <Text accessibilityRole="header" aria-level={1} style={styles.title}>
-            {isPro ? 'Pro is active.' : 'More of your story. None of the unfair stuff.'}
+            {copy(isPro ? 'Pro is active.' : 'More history. The same fair game.')}
           </Text>
           <Text style={styles.subtitle}>
-            Pro keeps more private history. It never changes the word, timer, attempts, or feedback.
+            {copy('Pro keeps more private history without changing the rules of a duel.')}
           </Text>
         </View>
       </View>
 
       <PaperCard emphasized>
-        <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
-        <Benefit title="Daily in every language" detail="Play the Official Daily once per language each day." />
-        <Benefit title="1,000 history records" detail="Keep a private 365-day statistics window on this device." />
-        <Benefit title="100 challenges per day" detail="Create more human challenges without changing duel rules." />
-        <Benefit title="Account-backed access" detail="Your Account AV identity carries active Pro status to the web." />
+        <SectionHeading title={copy('Fair play')} detail={copy('No hints, extra time, attempts, or feedback.')} />
+        <Benefit title={copy('Daily in every language')} detail={copy('Play once per language each day.')} />
+        <Benefit title={copy('1,000 history records')} detail={copy('Keep a 365-day private statistics window on this device.')} />
+        <Benefit title={copy('100 challenges per day')} detail={copy('Create more human challenges without changing duel rules.')} />
+        <Benefit title={copy('Account-backed access')} detail={copy('Your Apps AV account keeps Pro access with you.')} />
       </PaperCard>
 
       <PaperCard emphasized>
         <SectionHeading
-          title={isPro ? 'Your access' : signedIn ? 'Free account' : 'Account AV optional'}
+          title={copy(isPro ? 'Your access' : signedIn ? 'Your access' : 'Account AV required')}
           detail={isPro
-            ? 'DuelWords Pro is active on this account.'
+            ? copy('DuelWords Pro is active on this account.')
             : signedIn
-              ? 'This account does not currently have DuelWords Pro.'
-              : 'Sign in to check existing Pro access. Guest play remains available.'}
+              ? copy('This account does not currently have DuelWords Pro.')
+              : copy('Sign in to continue')}
         />
-        {isPro ? <AppButton onPress={() => router.back()}>Done</AppButton> : null}
+        {isPro ? <AppButton onPress={() => router.back()}>{copy('Done')}</AppButton> : null}
         {!signedIn ? (
           <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>
-            Sign in to check access
+            {copy('Sign in to continue')}
           </AppButton>
         ) : null}
         {!isPro ? (
           <Text style={styles.status}>
-            Subscriptions are not sold on this website. Existing purchases can be managed in the iPhone or iPad app and their store account.
+            {copy('Subscriptions are not sold on this website. Manage existing purchases in the iPhone or iPad app and its store account.')}
           </Text>
         ) : null}
       </PaperCard>
 
       <View style={styles.legalActions}>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>Terms</AppButton>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy</AppButton>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>Support</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>{copy('Terms')}</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>{copy('Privacy')}</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>{copy('Support')}</AppButton>
       </View>
     </AppScreen>
   );

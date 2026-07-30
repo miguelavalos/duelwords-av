@@ -69,6 +69,24 @@ describe('Avi bot duel local view model', () => {
     });
   });
 
+  it('builds a complete seven-letter, eight-attempt duel from bundled data', () => {
+    const session = createAviBotDuelSession({
+      aviDifficulty: 'expert',
+      gameLanguage: 'fr',
+      gameSeed: 2,
+      maxAttempts: 8,
+      nowMs: NOW_MS,
+      wordLength: 7,
+    });
+    const viewModel = createAviBotDuelViewModel(session);
+
+    expect(viewModel).toMatchObject({ aviDifficulty: 'expert', maxAttempts: 8, wordLength: 7 });
+    expect(viewModel.ownBoardRows).toHaveLength(8);
+    expect(viewModel.ownBoardRows.every((row) => row.cells.length === 7)).toBe(true);
+    expect(viewModel.opponent.attemptSummaries).toHaveLength(8);
+  });
+
+
   it('keeps invalid player guesses from consuming attempts or scheduling Avi', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
     const result = submitAviBotDuelGuess({ input: 'xxxxx', nowMs: NOW_MS + 1_000, session });
@@ -264,9 +282,12 @@ describe('Avi bot duel local view model', () => {
     const started = createAviBotDuelSession({ gameLanguage: 'en', gameSeed: 0, nowMs: NOW_MS });
     const final = submitAndResolve(started, started.target.displayWord, NOW_MS);
     const share = createAviBotDuelViewModel(final).safeSharePreview;
+    const frenchShare = createAviBotDuelViewModel(final, 'fr').safeSharePreview;
     const serialized = JSON.stringify(share).toLowerCase();
 
     expect(share).not.toBeNull();
+    expect(frenchShare?.text).toContain('Jouer contre Avi');
+    expect(frenchShare?.ctaLabel).toBe('Défiez-moi');
     for (const forbidden of [
       started.target.normalizedWord,
       started.target.displayWord,

@@ -8,21 +8,27 @@ import type {
   LocalPracticeSummary,
   LocalWordDuelState,
 } from './types';
-import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from './types';
+import { WORD_DUEL_MAX_ATTEMPTS } from './types';
 
 export function createLocalGame({
   dictionary,
   language,
+  maxAttempts = WORD_DUEL_MAX_ATTEMPTS,
   target,
 }: {
   dictionary: DictionaryProfile;
   language: GameLanguage;
+  maxAttempts?: number;
   target: string;
 }): LocalWordDuelState {
   const normalizedTarget = normalizeGuess(target, language);
+  const wordLength = Array.from(normalizedTarget).length;
 
   if (!dictionary.targetWords.includes(normalizedTarget)) {
     throw new Error(`Target word is not in the ${language} local target fixture.`);
+  }
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1 || maxAttempts > 12) {
+    throw new Error('Local duel attempts must be an integer between 1 and 12.');
   }
 
   return {
@@ -30,8 +36,8 @@ export function createLocalGame({
     targetWord: normalizedTarget,
     status: 'playing',
     guesses: [],
-    maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
-    wordLength: WORD_DUEL_WORD_LENGTH,
+    maxAttempts,
+    wordLength,
   };
 }
 

@@ -12,6 +12,7 @@ import {
 import { getDuelWordsAccountAvConfig } from '@/account/account-av-config';
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { t } from '@/i18n/locales';
+import { sharedSurfaceHasKey, sharedSurfaceT } from '@/i18n/shared-surface-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -33,7 +34,15 @@ export function AccountDeletionScreen() {
   const [error, setError] = useState<string | null>(null);
   const { colors } = useAppTheme();
   const styles = useStyles();
+  const copy = useCallback(
+    (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key),
+    [interfaceLocale],
+  );
   const signedIn = account.user !== null;
+  const localizeServiceText = useCallback(
+    (value: string) => sharedSurfaceHasKey(value) ? sharedSurfaceT(interfaceLocale, value) : value,
+    [interfaceLocale],
+  );
 
   const refresh = useCallback(async () => {
     if (!signedIn || !config.accountApiBaseUrl) return;
@@ -43,10 +52,10 @@ export function AccountDeletionScreen() {
       setEligibility(await fetchAccountDeletionEligibility({ baseUrl: config.accountApiBaseUrl, getToken: account.getToken }));
       setState('idle');
     } catch {
-      setError('Account AV could not verify deletion eligibility. No account changes were made.');
+      setError(copy('We could not check whether the account can be deleted. No account changes were made.'));
       setState('failed');
     }
-  }, [account.getToken, config.accountApiBaseUrl, signedIn]);
+  }, [account.getToken, config.accountApiBaseUrl, copy, signedIn]);
 
   useEffect(() => { void refresh(); }, [refresh]);
 
@@ -68,7 +77,7 @@ export function AccountDeletionScreen() {
         return undefined;
       })
       .catch(() => {
-        setError('The deletion request was not accepted. Your account remains unchanged; refresh and try again.');
+        setError(copy('No account changes were made. Retry or open the public support page.'));
         setState('failed');
       });
   }
@@ -85,7 +94,7 @@ export function AccountDeletionScreen() {
         return undefined;
       })
       .catch(() => {
-        setError('Account AV could not finish deletion. The existing request remains recorded; refresh to check its status.');
+        setError(copy('Your request is already in progress. Check again instead of submitting it twice.'));
         setState('failed');
       });
   }
@@ -129,18 +138,18 @@ export function AccountDeletionScreen() {
     <AppScreen bottomInset={spacing.xxl}>
       <InteriorScreenHeader
         backLabel={t(interfaceLocale, 'back')}
-        detail="Account AV · Safety"
+        detail={copy('Account safety')}
         onBack={() => router.back()}
-        title="Delete Apps AV account"
+        title={copy('Delete Apps AV account')}
       />
       <View style={styles.headerCopy}>
-        <Text style={styles.subtitle}>This deletes the shared identity used by every connected Apps AV product—not only DuelWords AV.</Text>
+        <Text style={styles.subtitle}>{copy('This deletes the shared identity used by connected Apps AV products—not only DuelWords AV.')}</Text>
       </View>
 
       {!signedIn ? (
         <PaperCard emphasized>
-          <SectionHeading title="Sign in first" detail="You can review and delete the Account AV account currently signed in." />
-          <AppButton onPress={() => router.replace('/auth?mode=signIn' as Href)}>Sign in to Account AV</AppButton>
+          <SectionHeading title={copy('Sign in first')} detail={copy('You can review and delete the Account AV account currently signed in.')} />
+          <AppButton onPress={() => router.replace('/auth?mode=signIn' as Href)}>{copy('Sign in to Account AV')}</AppButton>
         </PaperCard>
       ) : null}
 
@@ -150,41 +159,41 @@ export function AccountDeletionScreen() {
             <View style={styles.aviRow}>
               <AviArtwork size={92} source={aviAssets.warning} />
               <View style={styles.aviCopy}>
-                <Text style={styles.cardTitle}>Avi’s checklist</Text>
-                <Text style={styles.cardDetail}>Your shared Account AV data and connected app links are removed. Practice data on this device remains separate.</Text>
+                <Text style={styles.cardTitle}>{copy('Shared Apps AV account')}</Text>
+                <Text style={styles.cardDetail}>{copy('Your shared Account AV data and connected app links are removed. Local practice data on this device is separate.')}</Text>
               </View>
             </View>
           </PaperCard>
 
-          {busy && !eligibility ? <View style={styles.loading}><ActivityIndicator color={colors.accent} /><Text style={styles.cardDetail}>Checking Account AV…</Text></View> : null}
-          {error ? <PaperCard><Text accessibilityRole="alert" style={styles.error}>{error}</Text><AppButton tone="secondary" onPress={() => void refresh()}>Retry safely</AppButton></PaperCard> : null}
+          {busy && !eligibility ? <View style={styles.loading}><ActivityIndicator color={colors.accent} /><Text style={styles.cardDetail}>{copy('Checking Account AV…')}</Text></View> : null}
+          {error ? <PaperCard><Text accessibilityRole="alert" style={styles.error}>{error}</Text><AppButton tone="secondary" onPress={() => void refresh()}>{copy('Retry safely')}</AppButton></PaperCard> : null}
 
-          {eligibility?.blockers.length ? <DeletionItems items={eligibility.blockers} kind="blocker" /> : null}
-          {eligibility?.warnings.length ? <DeletionItems items={eligibility.warnings} kind="warning" /> : null}
+          {eligibility?.blockers.length ? <DeletionItems copy={copy} items={eligibility.blockers} kind="blocker" localizeServiceText={localizeServiceText} /> : null}
+          {eligibility?.warnings.length ? <DeletionItems copy={copy} items={eligibility.warnings} kind="warning" localizeServiceText={localizeServiceText} /> : null}
 
           {eligibility?.status === 'inProgress' ? (
             <PaperCard>
-              <SectionHeading title="Deletion is in progress" detail="The request is already recorded. Refresh to check completion; it is not necessary to submit it again." />
-              <Text style={styles.jobDetail}>Status: {eligibility.currentJob?.status ?? 'processing'}</Text>
+              <SectionHeading title={copy('Deletion is in progress')} detail={copy('Your request is already in progress. Check again instead of submitting it twice.')} />
+              <Text style={styles.jobDetail}>{copy('Deletion is in progress')}</Text>
               <View style={styles.buttonRow}>
-                <AppButton tone="secondary" style={styles.flexButton} onPress={() => void refresh()}>Refresh status</AppButton>
-                {canFinalize ? <AppButton style={styles.flexButton} onPress={() => void submitFinalization()}>Finish deletion</AppButton> : null}
+                <AppButton tone="secondary" style={styles.flexButton} onPress={() => void refresh()}>{copy('Refresh status')}</AppButton>
+                {canFinalize ? <AppButton style={styles.flexButton} onPress={() => void submitFinalization()}>{copy('Finish deletion')}</AppButton> : null}
               </View>
             </PaperCard>
           ) : null}
 
           {eligibility?.status === 'completed' ? (
             <PaperCard emphasized>
-              <SectionHeading title="Account deleted" detail="The shared Account AV deletion workflow has completed. This app will return to guest mode." />
-              <AppButton onPress={() => void finishCompletedDeletion()}>Continue as guest</AppButton>
+              <SectionHeading title={copy('Account deleted')} detail={copy('The shared Account AV deletion workflow has completed. DuelWords AV will return to guest mode.')} />
+              <AppButton onPress={() => void finishCompletedDeletion()}>{copy('Continue as guest')}</AppButton>
             </PaperCard>
           ) : null}
 
           {eligibility?.status === 'eligible' ? (
             <PaperCard>
-              <SectionHeading title="Permanent confirmation" detail="Type DELETE exactly. This cannot be undone and may not cancel subscriptions billed by Apple, Google, or another provider." />
+              <SectionHeading title={copy('Deletion is available')} detail={copy('Type DELETE exactly. This cannot be undone and may not cancel subscriptions billed by Apple, Google, or another provider.')} />
               <TextInput
-                accessibilityLabel="Type DELETE to confirm"
+                accessibilityLabel={copy('Type DELETE exactly. This cannot be undone and may not cancel subscriptions billed by Apple, Google, or another provider.')}
                 autoCapitalize="characters"
                 autoCorrect={false}
                 editable={!busy}
@@ -195,10 +204,10 @@ export function AccountDeletionScreen() {
                 value={confirmation}
               />
               <AppButton disabled={confirmation !== 'DELETE' || busy} tone="danger" onPress={() => void submitDeletion()}>
-                {state === 'requesting' ? 'Requesting deletion…' : 'Delete my Apps AV account'}
+                {state === 'requesting' ? copy('Requesting deletion…') : copy('Delete Apps AV account')}
               </AppButton>
-              <Text style={styles.supportCopy}>Need help instead? Use the public deletion and support page without sharing your sign-in token.</Text>
-              <AppButton tone="quiet" onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/')}>Open deletion support</AppButton>
+              <Text style={styles.supportCopy}>{copy('No account changes were made. Retry or open the public support page.')}</Text>
+              <AppButton tone="quiet" onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/delete-account/')}>{copy('Open deletion support')}</AppButton>
             </PaperCard>
           ) : null}
         </>
@@ -207,19 +216,24 @@ export function AccountDeletionScreen() {
   );
 }
 
-function DeletionItems({ items, kind }: { items: AccountDeletionItem[]; kind: 'blocker' | 'warning' }) {
+function DeletionItems({ copy, items, kind, localizeServiceText }: {
+  copy: (key: Parameters<typeof sharedSurfaceT>[1]) => string;
+  items: AccountDeletionItem[];
+  kind: 'blocker' | 'warning';
+  localizeServiceText: (value: string) => string;
+}) {
   const styles = useStyles();
   return (
     <PaperCard>
       <SectionHeading
-        title={kind === 'blocker' ? 'Action needed before retrying' : 'Review these consequences'}
-        detail={kind === 'blocker' ? 'Some items need your attention before deletion can continue.' : 'These do not prevent deletion, but billing may continue until cancelled with its provider.'}
+        title={copy(kind === 'blocker' ? 'Action needed before deletion' : 'Review local game data separately on each device.')}
+        detail={copy(kind === 'blocker' ? 'Some items need your attention before deletion can continue.' : 'Review every consequence before making the permanent request.')}
       />
       {items.map((item) => (
         <View key={`${item.type}-${item.appId ?? item.label}-${item.detail ?? ''}`} style={styles.item}>
           <View style={[styles.itemMark, kind === 'blocker' ? styles.itemMarkDanger : styles.itemMarkWarning]} />
-          <View style={styles.itemCopy}><Text style={styles.itemTitle}>{item.label}</Text>{item.detail ? <Text style={styles.itemDetail}>{item.detail}</Text> : null}</View>
-          {item.managementUrl ? <AppButton tone="quiet" onPress={() => void Linking.openURL(item.managementUrl!)}>Manage</AppButton> : null}
+          <View style={styles.itemCopy}><Text style={styles.itemTitle}>{localizeServiceText(item.label)}</Text>{item.detail ? <Text style={styles.itemDetail}>{localizeServiceText(item.detail)}</Text> : null}</View>
+          {item.managementUrl ? <AppButton tone="quiet" onPress={() => void Linking.openURL(item.managementUrl!)}>{copy('Manage')}</AppButton> : null}
         </View>
       ))}
     </PaperCard>

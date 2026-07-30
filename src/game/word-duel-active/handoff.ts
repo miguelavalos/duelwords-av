@@ -1,4 +1,5 @@
-import type { GameLanguage } from '../word-duel-engine';
+import { isDuelMaxAttempts, isDuelWordLength, type DuelMaxAttempts } from '../duel-rules';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine';
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
 import type { WordDuelLobbyViewModel } from '../word-duel-lobby/view-model';
 
@@ -7,10 +8,10 @@ export type WordDuelActiveHandoffMode = 'human_duel';
 
 export type WordDuelActiveHandoff = {
   gameLanguage: GameLanguage;
-  maxAttempts: typeof WORD_DUEL_MAX_ATTEMPTS;
+  maxAttempts: DuelMaxAttempts;
   mode: WordDuelActiveHandoffMode;
   source: WordDuelActiveHandoffSource;
-  wordLength: typeof WORD_DUEL_WORD_LENGTH;
+  wordLength: DuelWordLength;
 };
 
 export type WordDuelActiveHandoffErrorCode =
@@ -29,14 +30,21 @@ export class WordDuelActiveHandoffError extends Error {
 
 export function createWordDuelActiveDemoHandoff(input: {
   gameLanguage?: GameLanguage;
+  maxAttempts?: number;
   source?: WordDuelActiveHandoffSource;
+  wordLength?: number;
 } = {}): WordDuelActiveHandoff {
+  const maxAttempts = input.maxAttempts ?? WORD_DUEL_MAX_ATTEMPTS;
+  const wordLength = input.wordLength ?? WORD_DUEL_WORD_LENGTH;
+  if (!isDuelMaxAttempts(maxAttempts) || !isDuelWordLength(wordLength)) {
+    throw new WordDuelActiveHandoffError('unsupported_lobby_settings', 'Unsupported duel rules.');
+  }
   return {
     gameLanguage: input.gameLanguage ?? 'en',
-    maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+    maxAttempts,
     mode: 'human_duel',
     source: input.source ?? 'direct_active_demo',
-    wordLength: WORD_DUEL_WORD_LENGTH,
+    wordLength,
   };
 }
 
@@ -50,17 +58,19 @@ export function createWordDuelActiveHandoffFromLobby(lobby: WordDuelLobbyViewMod
 
   if (
     lobby.invitePreview.mode !== 'human_duel'
-    || lobby.invitePreview.wordLength !== WORD_DUEL_WORD_LENGTH
-    || lobby.invitePreview.maxAttempts !== WORD_DUEL_MAX_ATTEMPTS
+    || !isDuelWordLength(lobby.invitePreview.wordLength)
+    || !isDuelMaxAttempts(lobby.invitePreview.maxAttempts)
   ) {
     throw new WordDuelActiveHandoffError(
       'unsupported_lobby_settings',
-      'The active Word Duel demo only supports the V1 human duel settings.',
+      'The active Word Duel demo received unsupported duel rules.',
     );
   }
 
   return createWordDuelActiveDemoHandoff({
     gameLanguage: lobby.invitePreview.gameLanguage,
+    maxAttempts: lobby.invitePreview.maxAttempts,
     source: 'local_lobby_demo',
+    wordLength: lobby.invitePreview.wordLength,
   });
 }

@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
 import {
   acceptRematchProposal,
   cancelRematchProposal,
@@ -17,7 +16,13 @@ import {
 const NOW_MS = Date.parse('2026-07-05T09:30:00.000Z');
 
 function createSentProposal() {
-  const idle = createIdleRematchProposal({ gameLanguage: 'en', viewerRole: 'owner', viewerSide: 'a' });
+  const idle = createIdleRematchProposal({
+    gameLanguage: 'en',
+    maxAttempts: 8,
+    viewerRole: 'owner',
+    viewerSide: 'a',
+    wordLength: 7,
+  });
   const draft = draftRematchProposal(idle, { gameLanguage: 'es' });
 
   return sendRematchProposal({
@@ -29,9 +34,9 @@ function createSentProposal() {
 }
 
 describe('word duel rematch proposal', () => {
-  it('lets the owner draft and send fixed v1 settings', () => {
+  it('lets the owner configure and send supported settings', () => {
     const idle = createIdleRematchProposal({ gameLanguage: 'en', viewerRole: 'owner', viewerSide: 'a' });
-    const draft = draftRematchProposal(idle, { gameLanguage: 'es', maxAttempts: 9, wordLength: 7 });
+    const draft = draftRematchProposal(idle, { gameLanguage: 'es', maxAttempts: 8, wordLength: 7 });
     const sent = sendRematchProposal({ nowMs: NOW_MS, proposal: draft, ttlMs: 60_000 });
 
     expect(draft.status).toBe('draft');
@@ -41,8 +46,8 @@ describe('word duel rematch proposal', () => {
     expect(draft.recipientSide).toBe('b');
     expect(draft.settings).toEqual({
       gameLanguage: 'es',
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      maxAttempts: 8,
+      wordLength: 7,
     });
 
     expect(sent.status).toBe('sent');
@@ -68,14 +73,20 @@ describe('word duel rematch proposal', () => {
     expect(rematchCanStart(accepted)).toBe(true);
     expect(accepted.startRequest).toEqual({
       acceptedBySide: 'b',
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+      maxAttempts: 8,
       ownerSide: 'a',
       previousResultRef: 'result-preview',
       selectedLanguage: 'es',
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      wordLength: 7,
     });
     expect(JSON.stringify(accepted).toLowerCase()).not.toContain('newgameid');
     expect(JSON.stringify(accepted).toLowerCase()).not.toContain('new_game_id');
+  });
+
+  it('rejects unsupported rematch settings', () => {
+    const idle = createIdleRematchProposal({ gameLanguage: 'en' });
+    expect(() => draftRematchProposal(idle, { maxAttempts: 9 })).toThrow(WordDuelRematchError);
+    expect(() => createIdleRematchProposal({ gameLanguage: 'en', wordLength: 9 })).toThrow(WordDuelRematchError);
   });
 
   it('does not let the owner accept their own proposal', () => {

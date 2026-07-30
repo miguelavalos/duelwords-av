@@ -4,6 +4,7 @@ import { Linking, StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { t } from '@/i18n/locales';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { useDuelWordsProPurchase } from '@/subscriptions/use-duelwords-pro-purchase';
 import { AppScreen } from '@/ui/app-screen';
@@ -18,6 +19,7 @@ export function ProScreen() {
   const account = useDuelWordsAccount();
   const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const styles = useStyles();
+  const copy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const isPro = account.access.planTier === 'pro';
   const signedIn = account.user !== null;
   const subscription = useDuelWordsProPurchase({
@@ -71,28 +73,28 @@ export function ProScreen() {
         <AviArtwork size={150} source={isPro ? aviAssets.onboarding : aviAssets.neutral} />
         <View style={styles.heroCopy}>
           <InkEyebrow>DuelWords Pro</InkEyebrow>
-          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{isPro ? 'Pro is active.' : 'More of your story. None of the unfair stuff.'}</Text>
-          <Text style={styles.subtitle}>Pro keeps more private history. It never changes the word, timer, attempts, or feedback.</Text>
+          <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy(isPro ? 'Pro is active.' : 'More history. The same fair game.')}</Text>
+          <Text style={styles.subtitle}>{copy('Pro keeps more private history without changing the rules of a duel.')}</Text>
         </View>
       </View>
 
       <PaperCard emphasized>
-        <SectionHeading title="Designed around fair play" detail="Every player keeps the same rules." />
-        <Benefit title="Daily in every language" detail="Play the Official Daily once per language each day." />
-        <Benefit title="1,000 history records" detail="Keep a private 365-day statistics window on this device." />
-        <Benefit title="100 challenges per day" detail="Create more human challenges without changing duel rules." />
-        <Benefit title="Account-backed access" detail="Your Apps AV account keeps Pro access with you." />
+        <SectionHeading title={copy('Fair play')} detail={copy('No hints, extra time, attempts, or feedback.')} />
+        <Benefit title={copy('Daily in every language')} detail={copy('Play once per language each day.')} />
+        <Benefit title={copy('1,000 history records')} detail={copy('Keep a 365-day private statistics window on this device.')} />
+        <Benefit title={copy('100 challenges per day')} detail={copy('Create more human challenges without changing duel rules.')} />
+        <Benefit title={copy('Account-backed access')} detail={copy('Your Apps AV account keeps Pro access with you.')} />
       </PaperCard>
 
       <PaperCard emphasized>
         <SectionHeading
-          title={isPro ? 'Your access' : signedIn ? 'Monthly subscription' : 'Account AV required'}
-          detail={isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Cancel anytime in your Apple subscription settings.' : 'Sign in first so Pro access stays with your Apps AV account.'}
+          title={copy(isPro ? 'Your access' : signedIn ? 'Monthly subscription' : 'Account AV required')}
+          detail={copy(isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Cancel anytime in your Apple subscription settings.' : 'Sign in to continue')}
         />
         {isPro ? (
           <>
-            <AppButton onPress={() => router.back()}>Done</AppButton>
-            <AppButton tone="quiet" onPress={() => void Linking.openURL('https://apps.apple.com/account/subscriptions')}>Manage Apple subscriptions</AppButton>
+            <AppButton onPress={() => router.back()}>{copy('Done')}</AppButton>
+            <AppButton tone="quiet" onPress={() => void Linking.openURL('https://apps.apple.com/account/subscriptions')}>{copy('Manage Apple subscription')}</AppButton>
           </>
         ) : signedIn ? (
           <>
@@ -100,33 +102,33 @@ export function ProScreen() {
               disabled={subscription.state !== 'ready'}
               onPress={() => void subscription.purchase()}>
               {subscription.state === 'loading'
-                ? 'Loading subscription…'
+                ? copy('Please wait…')
                 : subscription.price
-                  ? `Subscribe · ${subscription.price} per month`
-                  : 'Subscription unavailable'}
+                  ? `${copy('Subscribe')} · ${subscription.price} ${copy('per month')}`
+                  : copy('Subscription unavailable')}
             </AppButton>
             <AppButton
               disabled={subscription.state === 'loading'}
               tone="quiet"
               onPress={() => void subscription.restore()}>
-              Restore purchases
+              {copy('Restore purchases')}
             </AppButton>
             {subscription.state === 'pending_reconciliation' ? (
-              <Text style={styles.status}>Purchase received. Confirming Pro access with Apps AV…</Text>
+              <Text style={styles.status}>{copy('Purchase received. Confirming Pro access with Apps AV…')}</Text>
             ) : null}
             {subscription.error ? <Text style={styles.error}>{subscription.error}</Text> : null}
           </>
         ) : (
-          <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>Sign in to continue</AppButton>
+          <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>{copy('Sign in to continue')}</AppButton>
         )}
       </PaperCard>
 
       <View style={styles.legalActions}>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>Terms</AppButton>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy</AppButton>
-        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>Support</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>{copy('Terms')}</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>{copy('Privacy')}</AppButton>
+        <AppButton tone="quiet" style={styles.legalButton} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/support/')}>{copy('Support')}</AppButton>
       </View>
-      <Text style={styles.legal}>Payment renews monthly through Apple until cancelled. Pro never changes the rules of a duel.</Text>
+      <Text style={styles.legal}>{copy('DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.').replace('%@', subscription.price ?? '—')}</Text>
     </AppScreen>
   );
 }

@@ -46,8 +46,11 @@ describe('Word Duel lobby controller', () => {
 
     const host = await controller.createHostInvite({
       gameLanguage: 'en',
+      maxAttempts: 8,
       nowMs: NOW_MS,
+      wordLength: 7,
     });
+    expect(host.lobby.invitePreview).toMatchObject({ maxAttempts: 8, wordLength: 7 });
     const review = await controller.viewInviteReview({
       nowMs: NOW_MS + 1_000,
       state: host,

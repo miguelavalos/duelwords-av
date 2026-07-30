@@ -11,4 +11,5 @@ export type {
   LocalPracticeSummary,
   LocalWordDuelState,
 } from './types';
-export { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from './types';
+export { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH, WORD_DUEL_WORD_LENGTHS } from './types';
+export type { DuelWordLength } from './types';

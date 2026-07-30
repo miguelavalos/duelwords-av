@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { DEFAULT_DUEL_RULES, type DuelRules } from '@/game/duel-rules';
 import type { GameLanguage } from '@/game/word-duel-engine';
 import type { WordDuelActiveController } from '@/game/word-duel-active/controller';
 import { startActiveDuelPresenceHeartbeat } from '@/game/word-duel-active/presence-heartbeat';
@@ -56,6 +57,7 @@ import {
 import { accountRoomDisplayName } from './account-room-name';
 import { showAbandonChallengeConfirmation } from './confirm-abandon-challenge';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { DuelRulesCard } from './components/duel-rules-card';
 import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
 import { LobbyFeedbackOverlay } from './lobby-feedback-overlay';
 import {
@@ -75,6 +77,7 @@ import {
   createWordDuelResultLocalPayloadFromApiFinalResult,
   finalizeApiWordDuelResult,
 } from './result-finalization';
+import { buildLocalizedSafeShareText, wordDuelResultCopy } from './result-copy';
 import { publicDuelT } from './public-duel-copy';
 import {
   canRequestRematch,
@@ -131,6 +134,7 @@ export function PublicWordDuelChallengeScreen({
   );
   const [gameLanguage, setGameLanguage] = useState<GameLanguage>(() =>
     connectedGameLanguage(initialGameLanguage ?? preferences.gameLanguage));
+  const [duelRules, setDuelRules] = useState<DuelRules>(DEFAULT_DUEL_RULES);
   const [roomCodeFirst, setRoomCodeFirst] = useState(
     () => splitWordDuelRoomCode(initialRoomCode).first,
   );
@@ -624,7 +628,9 @@ export function PublicWordDuelChallengeScreen({
       const nextState = await controller.createHostInvite({
         gameLanguage,
         host,
+        maxAttempts: duelRules.maxAttempts,
         nowMs: Date.now(),
+        wordLength: duelRules.wordLength,
       });
       if (!mountedRef.current) return;
       setLobbyState(nextState);
@@ -886,6 +892,12 @@ export function PublicWordDuelChallengeScreen({
                 options={CONNECTED_GAME_LANGUAGES}
                 value={gameLanguage}
               />
+              <DuelRulesCard
+                editable
+                interfaceLocale={interfaceLocale}
+                onChange={setDuelRules}
+                rules={duelRules}
+              />
               <AppButton disabled={!runtime.ok || isBusy} onPress={createInvite}>
                 {busyAction === 'create' ? copy('creating') : copy('createChallenge')}
               </AppButton>
@@ -978,7 +990,7 @@ function ConnectedResultPanel({
   const rivalIsWinner = result.outcome === 'loss';
 
   function shareResult() {
-    void Share.share({ message: result.safeSharePreview.text });
+    void Share.share({ message: buildLocalizedSafeShareText(result, wordDuelResultCopy(interfaceLocale)) });
   }
 
   return (
@@ -1011,6 +1023,7 @@ function ConnectedResultPanel({
         onRespond={onRespond}
         onShare={shareResult}
         proposal={proposal}
+        rules={{ maxAttempts: finalResult.game.maxAttempts, wordLength: finalResult.game.wordLength }}
       />
 
       <View style={[styles.resultBoards, usesWideResultLayout && styles.resultBoardsWide]}>
@@ -1047,6 +1060,7 @@ function ConnectedRematchActions({
   onRespond,
   onShare,
   proposal,
+  rules,
 }: {
   busyAction: string | null;
   interfaceLocale: InterfaceLocale;
@@ -1054,6 +1068,7 @@ function ConnectedRematchActions({
   onRespond: (action: 'accept' | 'cancel' | 'decline') => void;
   onShare: () => void;
   proposal: DuelWordsApiRematchProposal | null;
+  rules: DuelRules;
 }) {
   const styles = usePublicChallengeStyles();
   const { colors } = useAppTheme();
@@ -1107,6 +1122,12 @@ function ConnectedRematchActions({
         </View>
         <AppButton disabled={busy} tone="quiet" onPress={onShare} style={styles.shareResultButton}>{copy('shareResult')}</AppButton>
       </View>
+      <DuelRulesCard
+        compact
+        interfaceLocale={interfaceLocale}
+        rules={rules}
+        title={copy('sameRulesTitle')}
+      />
       <View style={styles.actionRow}>
         {canRequestRematch(proposal) ? (
           <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>
@@ -1169,12 +1190,18 @@ function PublicLobbyPanel({
       </View>
 
       <View style={styles.summaryRow}>
-        <Summary label={copy('letters')} value={String(lobby.invitePreview.wordLength)} />
-        <Summary label={copy('attempts')} value={String(lobby.invitePreview.maxAttempts)} />
         {lobby.invitePreview.roomCode !== null ? (
           <Summary label={copy('roomCode')} value={lobby.invitePreview.roomCode} selectable wide />
         ) : null}
       </View>
+
+      <DuelRulesCard
+        interfaceLocale={interfaceLocale}
+        rules={{
+          maxAttempts: lobby.invitePreview.maxAttempts,
+          wordLength: lobby.invitePreview.wordLength,
+        }}
+      />
 
       <View style={styles.playersBox}>
         {lobby.players.map((player) => <PlayerRow interfaceLocale={interfaceLocale} key={player.side} player={player} />)}

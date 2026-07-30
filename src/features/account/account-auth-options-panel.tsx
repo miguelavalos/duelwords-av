@@ -3,6 +3,8 @@ import { ActivityIndicator, Alert, Animated, Linking, PanResponder, Pressable, S
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { isAccountAuthCancellation } from '@/account/account-auth-errors';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, useAppTheme } from '@/ui/theme';
 
@@ -18,6 +20,8 @@ export function AccountAuthOptionsPanel({
   onSkip: () => void;
 }) {
   const account = useDuelWordsAccount();
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const styles = useStyles();
   const [activeProvider, setActiveProvider] = useState<AuthProvider | null>(null);
   const [translateY] = useState(() => new Animated.Value(520));
@@ -47,9 +51,9 @@ export function AccountAuthOptionsPanel({
       .catch((error: unknown) => {
         if (!isAccountAuthCancellation(error)) {
           Alert.alert(
-            'Could not continue',
-            'Account AV could not complete sign-in. Please try again.',
-            [{ text: 'Close', style: 'cancel' }],
+            copy('Account AV could not continue'),
+            copy('Account AV could not complete sign-in. Please try again.'),
+            [{ text: copy('Close'), style: 'cancel' }],
           );
         }
       })
@@ -61,8 +65,8 @@ export function AccountAuthOptionsPanel({
       <View style={styles.handle} />
       <View pointerEvents="none" style={styles.avi}><AviArtwork size={126} source={aviAssets.loginPeek} /></View>
       <View style={styles.copyGroup}>
-        <Text accessibilityRole="header" aria-level={2} style={styles.title}>Connect your account</Text>
-        <Text style={styles.subtitle}>Use your Account AV account to continue across devices.</Text>
+        <Text accessibilityRole="header" aria-level={2} style={styles.title}>{copy('Connect your account')}</Text>
+        <Text style={styles.subtitle}>{copy('Use your Account AV account to continue across devices.')}</Text>
       </View>
 
       <View style={styles.providerStack}>
@@ -71,7 +75,8 @@ export function AccountAuthOptionsPanel({
           loading={activeProvider === 'apple'}
           mark=""
           onPress={() => void startSignIn('apple')}
-          title="Continue with Apple"
+          connectingLabel={copy('Please wait…')}
+          title={copy('Continue with Apple')}
           tone="apple"
         />
         <ProviderButton
@@ -79,27 +84,23 @@ export function AccountAuthOptionsPanel({
           loading={activeProvider === 'google'}
           mark="google"
           onPress={() => void startSignIn('google')}
-          title="Continue with Google"
+          connectingLabel={copy('Please wait…')}
+          title={copy('Continue with Google')}
           tone="google"
         />
       </View>
 
-      {!account.available ? <Text style={styles.message}>Local play remains available on this device.</Text> : null}
+      {!account.available ? <Text style={styles.message}>{copy('Local play remains available on this device.')}</Text> : null}
       <Pressable accessibilityRole="button" disabled={activeProvider !== null} onPress={onSkip} style={styles.skipButton}>
-        <Text style={styles.skipLabel}>Skip for now</Text>
+        <Text style={styles.skipLabel}>{copy('Skip for now')}</Text>
       </Pressable>
-      <Text style={styles.legal}>
-        By continuing, you agree to the{' '}
-        <Text accessibilityRole="link" style={styles.link} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/terms/')}>Terms</Text>
-        {' '}and{' '}
-        <Text accessibilityRole="link" style={styles.link} onPress={() => void Linking.openURL('https://duelwords-av.avalsys.com/privacy/')}>Privacy Policy</Text>
-        {' '}of DuelWords AV.
-      </Text>
+      <LocalizedLegalText markdown={copy('By continuing, you agree to the [Terms](https://duelwords-av.avalsys.com/terms/) and [Privacy Policy](https://duelwords-av.avalsys.com/privacy/) of DuelWords AV.')} />
     </Animated.View>
   );
 }
 
-function ProviderButton({ disabled, loading, mark, onPress, title, tone }: {
+function ProviderButton({ connectingLabel, disabled, loading, mark, onPress, title, tone }: {
+  connectingLabel: string;
   disabled: boolean;
   loading: boolean;
   mark: string;
@@ -125,8 +126,28 @@ function ProviderButton({ disabled, loading, mark, onPress, title, tone }: {
         : tone === 'google'
           ? <GoogleBadge />
           : <Text style={[styles.providerMark, styles.appleLabel]}>{mark}</Text>}
-      <Text style={[styles.providerLabel, tone === 'apple' && styles.appleLabel]}>{loading ? 'Connecting…' : title}</Text>
+      <Text style={[styles.providerLabel, tone === 'apple' && styles.appleLabel]}>{loading ? connectingLabel : title}</Text>
     </Pressable>
+  );
+}
+
+function LocalizedLegalText({ markdown }: { markdown: string }) {
+  const styles = useStyles();
+  const parts = [...markdown.matchAll(/\[([^\]]+)\]\((https:\/\/[^)]+)\)/gu)];
+  let cursor = 0;
+  return (
+    <Text style={styles.legal}>
+      {parts.flatMap((match, index) => {
+        const start = match.index ?? cursor;
+        const before = markdown.slice(cursor, start);
+        cursor = start + match[0].length;
+        return [
+          before,
+          <Text accessibilityRole="link" key={`${match[2]}-${match.index ?? start}`} onPress={() => void Linking.openURL(match[2])} style={styles.link}>{match[1]}</Text>,
+          index === parts.length - 1 ? markdown.slice(cursor) : '',
+        ];
+      })}
+    </Text>
   );
 }
 

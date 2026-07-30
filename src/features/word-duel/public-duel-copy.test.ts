@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import type { InterfaceLocale } from '@/i18n/locales';
 
-import { publicDuelT } from './public-duel-copy';
+import { PUBLIC_DUEL_COPY_KEYS, publicDuelT } from './public-duel-copy';
 
 const locales: InterfaceLocale[] = ['en', 'es', 'ca', 'fr', 'de'];
 
@@ -36,6 +36,15 @@ describe('public duel copy', () => {
     expect(publicDuelT('de', 'wordLength', { count: 5 })).toBe('5 Buchstaben');
     expect(publicDuelT('ca', 'wordNotInDictionary', { language: 'Català', word: 'TAPES' }))
       .toContain('TAPES');
+  });
+
+  it('preserves every interpolation placeholder in every translation', () => {
+    for (const key of PUBLIC_DUEL_COPY_KEYS) {
+      const englishTokens = templateTokens(publicDuelT('en', key));
+      for (const locale of locales.filter((value) => value !== 'en')) {
+        expect(templateTokens(publicDuelT(locale, key)), `${locale}.${key}`).toEqual(englishTokens);
+      }
+    }
   });
 
   it('does not silently fall back to English for the core localized labels', () => {
@@ -84,3 +93,7 @@ describe('public duel copy', () => {
     }
   });
 });
+
+function templateTokens(value: string): string[] {
+  return [...value.matchAll(/\{[^}]+\}/gu)].map(([token]) => token).sort();
+}

@@ -2,7 +2,8 @@ import { useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
-import type { GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
+import { DEFAULT_DUEL_RULES, type DuelRules } from '@/game/duel-rules';
+import type { DuelWordLength, GameLanguage, GuessRejection, LocalWordDuelState } from '@/game/word-duel-engine';
 import { getLocalTargetCount } from '@/game/dictionaries/local-fixtures';
 import {
   advanceTargetSelection,
@@ -40,9 +41,11 @@ import {
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
+import { publicDuelT } from './public-duel-copy';
 
 type PlayAviScreenProps = {
   initialAviDifficulty?: AviDifficulty;
+  initialDuelRules?: DuelRules;
   initialGameLanguage?: GameLanguage;
 };
 
@@ -86,7 +89,11 @@ const AVI_DUEL_COPY: Record<InterfaceLocale, AviDuelCopy> = {
   de: { botDuel: 'Lokales Duell', cluesReady: 'Hinweise bereit', close: 'Schließen', correctPosition: 'Richtige Position', couldNotOpenResult: 'Ergebnis konnte nicht geöffnet werden', draw: 'Unentschieden', home: 'Start', issue: 'Problem', lost: 'Verloren', newChallenge: 'Neues Duell', noWinner: 'Kein Gewinner', normal: 'Normal', offlineDuel: 'Offline-Duell', openResult: 'Ergebnis öffnen', opening: 'Wird geöffnet…', opponent: 'Gegner', playAvi: 'Gegen Avi spielen', resultReady: 'Ergebnis bereit', round: 'Runde', roundLocked: 'Runde beendet', solved: 'Gelöst', submitted: 'Gesendet', thinking: 'Denkt nach', unavailable: 'Nicht verfügbar', validLetters: 'Gültige Buchstaben', waitingForAvi: 'Warten auf Avi', won: 'Gewonnen', yourTurn: 'Du bist dran', reactions: { gg: 'GG', nice: 'Gut', no_pressure: 'Kein Druck', tick_tock: 'Zeit', your_turn: 'Du bist dran' } },
 };
 
-export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, initialGameLanguage = 'en' }: PlayAviScreenProps) {
+export function PlayAviScreen({
+  initialAviDifficulty = DEFAULT_AVI_DIFFICULTY,
+  initialDuelRules = DEFAULT_DUEL_RULES,
+  initialGameLanguage = 'en',
+}: PlayAviScreenProps) {
   const router = useRouter();
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
@@ -96,11 +103,14 @@ export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, i
   const duelCopy = AVI_DUEL_COPY[interfaceLocale];
   const styles = usePlayAviStyles();
   const isOpeningResultRef = useRef(false);
+  const duelRules = initialDuelRules;
+  const aviDifficulty = initialAviDifficulty;
   const [targetSelection, setTargetSelection] = useState(() =>
     planTargetSelection({
       language: initialGameLanguage,
       mode: 'play_avi',
-      targetCount: getLocalTargetCount(initialGameLanguage),
+      targetCount: getLocalTargetCount(initialGameLanguage, initialDuelRules.wordLength as DuelWordLength),
+      wordLength: initialDuelRules.wordLength as DuelWordLength,
     }));
   const [gameLanguage] = useState<GameLanguage>(initialGameLanguage);
   const inputBuffer = useWordDuelInputBuffer();
@@ -113,10 +123,12 @@ export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, i
       aviDifficulty: initialAviDifficulty,
       gameLanguage: initialGameLanguage,
       gameSeed: targetSelection.index,
+      maxAttempts: initialDuelRules.maxAttempts,
       nowMs: Date.now(),
+      wordLength: initialDuelRules.wordLength as DuelWordLength,
     }),
   );
-  const viewModel = createAviBotDuelViewModel(session);
+  const viewModel = createAviBotDuelViewModel(session, interfaceLocale);
   const boardRows = fillEditingRow(viewModel.ownBoardRows, input);
   const boardWidth = Math.min(width - spacing.lg * 2, tabletViewport ? 420 : 338);
   const regularTileSize = Math.max(
@@ -149,10 +161,12 @@ export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, i
     setTargetSelection(selection);
     setSession(
       createAviBotDuelSession({
-        aviDifficulty: initialAviDifficulty,
+        aviDifficulty,
         gameLanguage: selection.language,
         gameSeed: selection.index,
+        maxAttempts: duelRules.maxAttempts,
         nowMs: Date.now(),
+        wordLength: duelRules.wordLength as DuelWordLength,
       }),
     );
     setActiveReaction(null);
@@ -194,12 +208,12 @@ export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, i
   function submit() {
     const result = submitAviBotDuelGuess({
       input: inputBuffer.read(),
-      nowMs: Date.now(),
+      nowMs: currentTimeMs(),
       session,
     });
 
     if (!result.accepted) {
-      setMessage(rejectionMessage(result.rejection, interfaceLocale, duelCopy));
+      setMessage(rejectionMessage(result.rejection, interfaceLocale, duelCopy, viewModel.wordLength));
       return;
     }
 
@@ -359,6 +373,10 @@ export function PlayAviScreen({ initialAviDifficulty = DEFAULT_AVI_DIFFICULTY, i
   );
 }
 
+function currentTimeMs(): number {
+  return Date.now();
+}
+
 function OpponentSummary({
   activeReaction,
   attempts,
@@ -469,12 +487,9 @@ function ReactionTray({
   );
 }
 
-function rejectionMessage(rejection: GuessRejection, locale: InterfaceLocale, copy: AviDuelCopy): string {
-  if (rejection === 'not_enough_letters') {
-    return t(locale, 'notEnoughLetters');
-  }
-  if (rejection === 'too_many_letters') {
-    return t(locale, 'tooManyLetters');
+function rejectionMessage(rejection: GuessRejection, locale: InterfaceLocale, copy: AviDuelCopy, wordLength: number): string {
+  if (rejection === 'not_enough_letters' || rejection === 'too_many_letters') {
+    return publicDuelT(locale, 'wordLength', { count: wordLength });
   }
   if (rejection === 'game_over') {
     return copy.roundLocked;

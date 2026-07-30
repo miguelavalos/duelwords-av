@@ -3,6 +3,9 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
+import { experienceCopy } from '@/i18n/experience-copy';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
+import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
 import { PaperCard } from '@/ui/brand';
@@ -14,15 +17,18 @@ export function AuthScreen() {
   const mode = Array.isArray(modeParam) ? modeParam[0] : modeParam;
   const { colors } = useAppTheme();
   const account = useDuelWordsAccount();
+  const [{ interfaceLocale }] = useAppPreferences();
+  const copy = experienceCopy(interfaceLocale);
+  const surfaceCopy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const isSignUp = mode === 'signUp';
   return (
     <AppScreen bottomInset={spacing.xxl}>
       <View style={styles.heading}>
         <Text accessibilityRole="header" aria-level={1} style={[styles.title, { color: colors.text }]}>
-          {isSignUp ? 'Create your Account AV account' : 'Sign in to Account AV'}
+          {isSignUp ? copy.onboardingCreate : copy.onboardingSignIn}
         </Text>
         <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-          One private identity for DuelWords access across your devices. Guest play remains available without an account.
+          {surfaceCopy('Use your Account AV account to continue across devices.')}
         </Text>
       </View>
 
@@ -48,13 +54,13 @@ export function AuthScreen() {
       ) : (
         <PaperCard emphasized>
           <Text accessibilityRole="alert" style={[styles.subtitle, { color: colors.textMuted }]}>
-            Account AV is temporarily unavailable. No account changes were made.
+            {surfaceCopy('No account changes were made. Retry or open the public support page.')}
           </Text>
         </PaperCard>
       )}
 
       <View style={styles.guestActions}>
-        <AppButton tone="secondary" onPress={() => router.replace('/play')}>Continue as guest</AppButton>
+        <AppButton tone="secondary" onPress={() => router.replace('/play')}>{copy.onboardingGuest}</AppButton>
       </View>
     </AppScreen>
   );

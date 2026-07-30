@@ -1,7 +1,13 @@
 import type { Href } from 'expo-router';
 
-import type { GameLanguage } from '../../game/word-duel-engine';
+import type { DuelWordLength, GameLanguage } from '../../game/word-duel-engine';
 import { isAviDifficulty, type AviDifficulty } from '../../game/word-duel-bot/difficulty';
+import {
+  DEFAULT_DUEL_RULES,
+  isDuelMaxAttempts,
+  isDuelWordLength,
+  type DuelMaxAttempts,
+} from '../../game/duel-rules';
 import type { InterfaceLocale } from '../../i18n/locales';
 import {
   createWordDuelActiveDemoHandoff,
@@ -68,6 +74,16 @@ export function parseGameLanguageParam(value: WordDuelSearchParamValue): GameLan
 export function parseAviDifficultyParam(value: WordDuelSearchParamValue): AviDifficulty | null {
   const difficulty = firstParam(value);
   return isAviDifficulty(difficulty) ? difficulty : null;
+}
+
+export function parseDuelWordLengthParam(value: WordDuelSearchParamValue): DuelWordLength {
+  const wordLength = Number(firstParam(value));
+  return isDuelWordLength(wordLength) ? wordLength : DEFAULT_DUEL_RULES.wordLength as DuelWordLength;
+}
+
+export function parseDuelMaxAttemptsParam(value: WordDuelSearchParamValue): DuelMaxAttempts {
+  const maxAttempts = Number(firstParam(value));
+  return isDuelMaxAttempts(maxAttempts) ? maxAttempts : DEFAULT_DUEL_RULES.maxAttempts as DuelMaxAttempts;
 }
 
 export function parseInterfaceLocaleParam(value: WordDuelSearchParamValue): InterfaceLocale | null {
@@ -161,7 +177,9 @@ export function parseWordDuelActiveHandoffParams(
 ): WordDuelActiveHandoff {
   return createWordDuelActiveDemoHandoff({
     gameLanguage: parseGameLanguageParam(params.lang),
+    maxAttempts: parseDuelMaxAttemptsParam(params.maxAttempts),
     source: parseWordDuelActiveHandoffSourceParam(params.source),
+    wordLength: parseDuelWordLengthParam(params.wordLength),
   });
 }
 
@@ -173,9 +191,11 @@ export function buildWordDuelHref(
     interfaceLocale?: InterfaceLocale;
     localResult?: WordDuelResultLocalPayload;
     mode?: WordDuelRouteMode;
+    maxAttempts?: number;
     outcome?: WordDuelResultOutcome;
     reason?: WordDuelResultReason;
     resultId?: string;
+    wordLength?: number;
   } = {},
 ): Href {
   const searchParams = new URLSearchParams();
@@ -194,6 +214,14 @@ export function buildWordDuelHref(
 
   if (params.mode) {
     searchParams.set('mode', params.mode);
+  }
+
+  if (params.wordLength) {
+    searchParams.set('wordLength', String(params.wordLength));
+  }
+
+  if (params.maxAttempts) {
+    searchParams.set('maxAttempts', String(params.maxAttempts));
   }
 
   if (params.outcome) {

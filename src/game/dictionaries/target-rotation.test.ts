@@ -82,6 +82,21 @@ describe('local target rotation', () => {
     expect(spanishPractice.position).toBe(0);
   });
 
+  it('keeps a separate cursor for each word length', () => {
+    const storage = memoryStorage();
+    const fiveLetters = planTargetSelection({
+      language: 'en', mode: 'play_avi', random: () => 0.1, storage, targetCount: 10, wordLength: 5,
+    });
+    expect(commitTargetSelection(fiveLetters, storage)).toBe(true);
+
+    expect(planTargetSelection({
+      language: 'en', mode: 'play_avi', random: () => 0.2, storage, targetCount: 10, wordLength: 5,
+    }).position).toBe(1);
+    expect(planTargetSelection({
+      language: 'en', mode: 'play_avi', random: () => 0.3, storage, targetCount: 10, wordLength: 7,
+    }).position).toBe(0);
+  });
+
   it('recovers safely from malformed persisted state', () => {
     const selection = planTargetSelection({
       language: 'fr',
@@ -96,7 +111,7 @@ describe('local target rotation', () => {
     expect(selection.index).toBeLessThan(20);
   });
 
-  it('migrates a persisted cursor when a dictionary target count changes', () => {
+  it('safely starts a length-specific cursor when legacy state has no length', () => {
     const storage = memoryStorage(JSON.stringify({
       streams: {
         'local:en': { nextPosition: 37, seed: 123, targetCount: 589 },

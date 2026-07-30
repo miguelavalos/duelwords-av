@@ -10,6 +10,7 @@ import { type GameLanguage } from '@/game/word-duel-engine';
 import { resetTargetRotation } from '@/game/dictionaries/target-rotation';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { INTERFACE_LOCALES, t } from '@/i18n/locales';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppChromeHeader, PaperCard, SectionHeading } from '@/ui/brand';
@@ -32,6 +33,7 @@ export function SettingsScreen() {
   const [preferences, setPreferences] = useAppPreferences();
   const { appearance, aviDifficulty, gameLanguage, hapticsEnabled, interfaceLocale, playerDisplayName } = preferences;
   const copy = experienceCopy(interfaceLocale);
+  const surfaceCopy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
 
@@ -97,21 +99,21 @@ export function SettingsScreen() {
       </View>
 
       <PaperCard>
-        <SectionHeading title="Game preferences" detail="Defaults for new practice, Avi, and human games. You can change them before each game." />
+        <SectionHeading title={surfaceCopy('Game preferences')} detail={surfaceCopy('Defaults for new practice, Avi, and human games. You can change them before each game.')} />
         <GameLanguagePicker dismissLabel={t(interfaceLocale, 'done')} label={copy.gameLanguage} onChange={(nextGameLanguage) => setPreferences((current) => ({ ...current, gameLanguage: nextGameLanguage }))} value={gameLanguage} />
-        <Text style={styles.settingLabel}>Avi difficulty</Text>
+        <Text style={styles.settingLabel}>{surfaceCopy('Avi difficulty')}</Text>
         <View style={styles.optionList}>
-          {AVI_DIFFICULTIES.map((difficulty) => <Option key={difficulty} label={difficultyLabel(difficulty)} selected={aviDifficulty === difficulty} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, aviDifficulty: difficulty }))} />)}
+          {AVI_DIFFICULTIES.map((difficulty) => <Option key={difficulty} label={difficultyLabel(difficulty, surfaceCopy)} selected={aviDifficulty === difficulty} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, aviDifficulty: difficulty }))} />)}
         </View>
         <View style={styles.settingCopy}>
-          <Text style={styles.settingLabel}>DuelWords player name</Text>
-          <Text style={styles.settingDetail}>Used for human challenges from this device. It does not change your Account AV profile.</Text>
+          <Text style={styles.settingLabel}>{surfaceCopy('DuelWords player name')}</Text>
+          <Text style={styles.settingDetail}>{surfaceCopy('Used for human challenges from this device. It does not change your Account AV profile.')}</Text>
         </View>
-        <TextInput accessibilityLabel="DuelWords player name" maxLength={32} onChangeText={(value) => setPreferences((current) => ({ ...current, playerDisplayName: value }))} placeholder="Optional" placeholderTextColor={styles.placeholder.color} style={styles.textInput} value={playerDisplayName} />
+        <TextInput accessibilityLabel={surfaceCopy('DuelWords player name')} maxLength={32} onChangeText={(value) => setPreferences((current) => ({ ...current, playerDisplayName: value }))} placeholder={surfaceCopy('Optional')} placeholderTextColor={styles.placeholder.color} style={styles.textInput} value={playerDisplayName} />
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title={t(interfaceLocale, 'interfaceLanguage')} detail="Language used by navigation, help, account, and game messages." />
+        <SectionHeading title={t(interfaceLocale, 'interfaceLanguage')} detail={surfaceCopy('Choose the language used by navigation, help, account, and game messages.')} />
         <View style={styles.optionList}>
           {INTERFACE_LOCALES.map((locale) => (
             <Option key={locale.code} label={locale.label} selected={locale.code === interfaceLocale} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, interfaceLocale: locale.code }))} />
@@ -120,33 +122,33 @@ export function SettingsScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title={t(interfaceLocale, 'appearance')} detail="The paper, ink, boards, and chrome follow this choice." />
+        <SectionHeading title={t(interfaceLocale, 'appearance')} detail={surfaceCopy('Choose whether DuelWords AV follows the system or always uses a fixed appearance.')} />
         <View style={styles.optionList}>
           {(['system', 'light', 'dark'] as const).map((option) => (
             <Option key={option} label={t(interfaceLocale, option)} selected={appearance === option} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, appearance: option }))} />
           ))}
         </View>
         <SettingToggle
-          detail="Short feedback for selections and accepted local actions. System accessibility settings still apply."
-          label="Haptics"
+          detail={surfaceCopy('Short feedback for selections and accepted local actions.')}
+          label={surfaceCopy('Haptics')}
           onValueChange={(value) => { void setHaptics(value); }}
           value={hapticsEnabled}
         />
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Privacy, help & legal" detail="Public information and help open in your browser." />
-        <ExternalRow label="Privacy policy" onPress={() => openLink(links.privacy)} />
-        <ExternalRow label="Terms of use" onPress={() => openLink(links.terms)} />
-        <ExternalRow label="Support" onPress={() => openLink(links.support)} />
-        <ExternalRow label="Dictionary notices & licenses" onPress={() => openLink(links.notices)} />
+        <SectionHeading title={surfaceCopy('Privacy, help & legal')} detail={surfaceCopy('Find support, privacy, terms, and notices below.')} />
+        <ExternalRow label={surfaceCopy('Privacy policy')} onPress={() => openLink(links.privacy)} />
+        <ExternalRow label={surfaceCopy('Terms of use')} onPress={() => openLink(links.terms)} />
+        <ExternalRow label={surfaceCopy('Support')} onPress={() => openLink(links.support)} />
+        <ExternalRow label={surfaceCopy('Open-source notices')} onPress={() => openLink(links.notices)} />
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="About DuelWords AV" detail="Word duels with friends, or Avi." />
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Version</Text><Text selectable style={styles.aboutValue}>{version} ({build})</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Word lists</Text><Text style={styles.aboutValue}>Bundled EN / ES / CA / FR / DE</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>Daily word</Text><Text style={styles.aboutValue}>One official word for everyone</Text></View>
+        <SectionHeading title="DuelWords AV" detail={surfaceCopy('Challenge a friend. Or play Avi.')} />
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Version')}</Text><Text selectable style={styles.aboutValue}>{version} ({build})</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Word lists')}</Text><Text style={styles.aboutValue}>{surfaceCopy('Bundled EN, ES, CA, FR, and DE')}</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Daily word')}</Text><Text style={styles.aboutValue}>{surfaceCopy('One official word for everyone')}</Text></View>
       </PaperCard>
     </AppScreen>
   );
@@ -187,8 +189,13 @@ function isGameLanguage(value: string | undefined): value is GameLanguage {
   return value === 'ca' || value === 'de' || value === 'en' || value === 'es' || value === 'fr';
 }
 
-function difficultyLabel(value: (typeof AVI_DIFFICULTIES)[number]): string {
-  return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
+function difficultyLabel(
+  value: (typeof AVI_DIFFICULTIES)[number],
+  copy: (key: Parameters<typeof sharedSurfaceT>[1]) => string,
+): string {
+  if (value === 'friendly') return copy('Friendly');
+  if (value === 'balanced') return copy('Balanced');
+  return copy('Expert');
 }
 
 function openLink(url: string) {

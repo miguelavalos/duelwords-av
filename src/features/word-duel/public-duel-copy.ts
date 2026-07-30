@@ -128,6 +128,7 @@ const englishCopy = {
   roundTimedOut: 'Round timed out',
   runtimeDescription: 'Practice and Play Avi still work offline. Check your connection and try the live challenge again.',
   safeRealtimeUnavailable: 'Live updates are not ready',
+  sameRulesTitle: 'Rematch with the same rules',
   shareInvite: 'Share invite',
   shareResult: 'Share result',
   side: 'Side',
@@ -165,6 +166,7 @@ const englishCopy = {
 } as const;
 
 export type PublicDuelCopyKey = keyof typeof englishCopy;
+export const PUBLIC_DUEL_COPY_KEYS = Object.keys(englishCopy) as PublicDuelCopyKey[];
 
 const spanishCopyDraft: Partial<Record<PublicDuelCopyKey, string>> = {
   accept: 'Aceptar', activeDuel: 'Duelo activo', almost: 'Casi', apiDisabled: 'Juego en directo no disponible', attempts: 'Intentos', back: 'Volver', bothReady: 'Ambos jugadores están listos.', cancelRequest: 'Cancelar solicitud', challengeClosed: 'Reto cerrado', challengeCreated: 'Reto creado. Compártelo con tu rival.', challengeSubtitle: 'Crea un reto en directo o revisa una invitación antes de unirte.', chooseLetters: 'Elige letras', close: 'Cerrar', code: 'Código', countdownHelp: 'La ronda 1 se abre al terminar la cuenta atrás.', createChallenge: 'Crear reto', creating: 'Creando…', decline: 'Rechazar', displayNameLabel: 'Nombre en la sala', displayNamePlaceholder: 'Cómo te verá tu rival', draw: 'Empate', duel: 'Duelo', duelComplete: 'Duelo terminado', feedbackReady: 'Pistas disponibles', finalResult: 'Resultado final', findRoom: 'Buscar sala', guestChallenge: 'Reto como invitado', host: 'Anfitrión', inviteLabel: 'Enlace de invitación', invitePlaceholder: 'Pega el enlace de invitación', inviteReview: 'Revisar invitación', inviteShareOpened: 'Se abrió el menú para compartir.', joinChallenge: 'Unirse al reto', joinChallengeQuestion: '¿Unirte a este reto?', joinHelp: 'Al unirte ocuparás la plaza rival. La partida solo empieza cuando ambos pulsan Listo.', joined: 'Dentro', joinedChallenge: 'Te has unido al reto.', letters: 'Letras', lobby: 'Sala', lobbyUpdated: 'Sala actualizada.', locked: 'Bloqueado', mute: 'Silenciar', muted: 'Silenciado', nextRound: 'Siguiente ronda', nextRoundReady: 'Siguiente ronda lista', nice: 'Bien', noRematch: 'Todavía no hay solicitud de revancha.', offline: 'Sin conexión', online: 'En línea', onlineUnavailable: 'Los retos en directo tardan un poco más', openFinalResult: 'Abrir resultado final', opening: 'Abriendo…', openingResult: 'Abriendo resultado', opponentAttempt: 'Intento rival {number}: {state}', ownBoard: 'Tu tablero de Word Duel', playAgain: 'Jugar de nuevo', ready: 'Listo', readyLocked: 'Listo queda bloqueado.', realtimeDisabled: 'Actualizaciones en directo no disponibles', reconnecting: 'Reconectando', refresh: 'Actualizar', refreshLobby: 'Actualizar sala', rematchAcceptedOpening: 'Revancha aceptada. Abriendo la siguiente sala…', rematchAcceptedReady: 'Revancha aceptada. Prepárate para el siguiente duelo.', rematchCancelled: 'La solicitud de revancha se canceló.', rematchDeclined: 'La revancha fue rechazada.', rematchExpired: 'La solicitud de revancha caducó.', rematchSent: 'Revancha enviada. Tu rival puede aceptarla desde su resultado.', rematchStatus: 'Revancha: {status}.', rematchUpdated: 'Estado de revancha actualizado.', requestRematch: 'Pedir revancha', requestRematchHelp: 'Pide otro duelo con el mismo rival.', resolving: 'Resolviendo', reviewBeforeJoin: 'Revisa el reto antes de unirte.', reviewInvite: 'Revisar invitación', rival: 'Rival', rivalReady: 'Rival listo', rivalRequestedRematch: 'Tu rival ha pedido una revancha.', rivalSubmitted: 'El rival envió su palabra', rivalWon: 'Ganó tu rival', roomCode: 'Código de sala', roomCodeInvalid: 'Introduce el código de sala de ocho caracteres.', roomName: 'Tu nombre en la sala', roomNameHelp: 'Solo se usa para este reto. No necesitas cuenta.', roomNameInvalid: 'Introduce el nombre que verá tu rival.', roomNameTooLong: 'Usa un nombre de 32 caracteres o menos.', roomNameUnsupported: 'Elimina los caracteres no admitidos.', round: 'Ronda', roundChanged: 'La ronda cambió', roundReady: 'La ronda 1 está lista', roundReadyTitle: 'La ronda 1 está lista', roundResolving: 'La ronda sigue resolviéndose', roundTimedOut: 'Tiempo de ronda agotado', runtimeDescription: 'Práctica y Jugar con Avi siguen disponibles sin conexión. Revisa tu conexión y vuelve a intentar el reto en directo.', shareInvite: 'Compartir invitación', shareResult: 'Compartir resultado', side: 'Lado', slowDown: 'Más despacio', solved: 'Resuelto', starting: 'Empezando', submitted: 'Enviado', submitting: 'Enviando', syncRound: 'Sincronizar ronda', target: 'Palabra: {word}', timedOut: 'Sin tiempo', time: 'Tiempo', tryAgain: 'Inténtalo de nuevo', unavailable: 'No disponible', unsupportedInvite: 'Usa un enlace de invitación de DuelWords AV.', validInviteRequired: 'Introduce un enlace de invitación válido.', waiting: 'Esperando', waitingForAnswer: 'Esperando la respuesta de tu rival.', waitingForRival: 'Esperando rival', waitingRound: 'Esperando la ronda 1.', wordLength: '{count} letras', you: 'Tú', youWon: 'Has ganado', yourFinalBoard: 'Tu tablero final', yourTurn: 'Tu turno', actionUnavailable: 'Esa acción no está disponible ahora. Inténtalo de nuevo.', safeRealtimeRequired: 'Se necesita una conexión segura para jugar en línea.', rivalFinalBoard: 'Tablero final del rival',
@@ -223,6 +225,7 @@ Object.assign(spanishCopyDraft, {
   rematchSending: 'Enviando revancha…',
   rematchSyncing: 'Sincronizando a ambos jugadores…',
   rivalRematchTitle: 'Tu rival quiere otro duelo',
+  sameRulesTitle: 'Revancha con las mismas reglas',
   startGame: 'Iniciar partida',
   stayInGame: 'Seguir jugando',
   waitingForHost: 'Esperando a que el anfitrión inicie la partida.',
@@ -258,6 +261,7 @@ Object.assign(catalanCopyDraft, {
   validLetters: 'Lletres vàlides',
   wordNotInDictionary: '“{word}” no és al diccionari de {language} del duel. Revisa l’ortografia o prova una altra paraula.',
   wordDuel: 'Duel de paraules',
+  sameRulesTitle: 'Revenja amb les mateixes regles',
 });
 
 Object.assign(frenchCopyDraft, {
@@ -287,6 +291,7 @@ Object.assign(frenchCopyDraft, {
   validLetters: 'Lettres valides',
   wordNotInDictionary: '« {word} » ne figure pas dans le dictionnaire {language} du duel. Vérifiez l’orthographe ou essayez un autre mot.',
   wordDuel: 'Duel de mots',
+  sameRulesTitle: 'Revanche avec les mêmes règles',
 });
 
 Object.assign(germanCopyDraft, {
@@ -316,6 +321,7 @@ Object.assign(germanCopyDraft, {
   validLetters: 'Gültige Buchstaben',
   wordNotInDictionary: '„{word}“ steht nicht im {language}-Wörterbuch des Duells. Prüfe die Schreibweise oder versuche ein anderes Wort.',
   wordDuel: 'Wortduell',
+  sameRulesTitle: 'Revanche mit denselben Regeln',
 });
 
 Object.assign(catalanCopyDraft, {
@@ -562,7 +568,7 @@ function requireCompleteLocaleCopy(
   locale: Exclude<InterfaceLocale, 'en'>,
   draft: Partial<Record<PublicDuelCopyKey, string>>,
 ): Record<PublicDuelCopyKey, string> {
-  const missingKeys = (Object.keys(englishCopy) as PublicDuelCopyKey[])
+  const missingKeys = PUBLIC_DUEL_COPY_KEYS
     .filter((key) => typeof draft[key] !== 'string' || draft[key]?.length === 0);
 
   if (missingKeys.length > 0) {

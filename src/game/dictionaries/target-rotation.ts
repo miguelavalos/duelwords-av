@@ -1,4 +1,4 @@
-import type { GameLanguage } from '../word-duel-engine/types';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine/types';
 
 export type LocalTargetMode = 'play_avi' | 'practice' | 'solo_practice';
 
@@ -9,6 +9,7 @@ export type TargetRotationSelection = Readonly<{
   position: number;
   seed: number;
   targetCount: number;
+  wordLength: DuelWordLength;
 }>;
 
 type TargetRotationStream = {
@@ -33,15 +34,17 @@ export function planTargetSelection({
   random = Math.random,
   storage = deviceStorage(),
   targetCount,
+  wordLength = 5,
 }: {
   language: GameLanguage;
   mode: LocalTargetMode;
   random?: () => number;
   storage?: TargetRotationStorage | null;
   targetCount: number;
+  wordLength?: DuelWordLength;
 }): TargetRotationSelection {
   assertTargetCount(targetCount);
-  const stored = readState(storage).streams[streamKey(language, mode)];
+  const stored = readState(storage).streams[streamKey(language, mode, wordLength)];
   const stream = stored && stored.targetCount === targetCount
     ? stored
     : {
@@ -56,6 +59,7 @@ export function planTargetSelection({
     position: stream.nextPosition,
     seed: stream.seed,
     targetCount,
+    wordLength,
   });
 }
 
@@ -73,7 +77,7 @@ export function commitTargetSelection(
   if (!storage) return false;
 
   const state = readState(storage);
-  const key = streamKey(selection.language, selection.mode);
+  const key = streamKey(selection.language, selection.mode, selection.wordLength);
   const current = state.streams[key];
 
   // React development mode can run effects more than once. Only the plan for
@@ -115,6 +119,7 @@ function selectionAt({
   position,
   seed,
   targetCount,
+  wordLength,
 }: Omit<TargetRotationSelection, 'index'>): TargetRotationSelection {
   assertTargetCount(targetCount);
   if (!Number.isSafeInteger(position) || position < 0) {
@@ -139,6 +144,7 @@ function selectionAt({
     position,
     seed,
     targetCount,
+    wordLength,
   };
 }
 
@@ -177,11 +183,11 @@ function randomSeed(random: () => number): number {
   return Math.floor(value * 4_294_967_296) >>> 0;
 }
 
-function streamKey(language: GameLanguage, mode: LocalTargetMode): string {
+function streamKey(language: GameLanguage, mode: LocalTargetMode, wordLength: DuelWordLength): string {
   // All non-Daily local modes share one device-local deck so switching modes
   // does not surface a word that the player has just seen elsewhere.
   void mode;
-  return `local:${language}`;
+  return `local:${language}:${wordLength}`;
 }
 
 function readState(storage: TargetRotationStorage | null): TargetRotationState {

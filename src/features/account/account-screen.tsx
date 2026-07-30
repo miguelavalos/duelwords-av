@@ -4,6 +4,7 @@ import { StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import { experienceCopy } from '@/i18n/experience-copy';
+import { sharedSurfaceT } from '@/i18n/shared-surface-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -18,6 +19,7 @@ export function AccountScreen() {
   const refreshAccount = account.refresh;
   const [{ appearance, hapticsEnabled, interfaceLocale }] = useAppPreferences();
   const copy = experienceCopy(interfaceLocale);
+  const surfaceCopy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const styles = useStyles();
   const signedIn = account.user !== null;
 
@@ -67,36 +69,36 @@ export function AccountScreen() {
       ) : null}
       <View style={styles.headerCopy}>
         <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{copy.account}</Text>
-        <Text style={styles.subtitle}>{signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.'}</Text>
+        <Text style={styles.subtitle}>{surfaceCopy(signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.')}</Text>
       </View>
 
       <PaperCard emphasized>
         <View style={styles.identityRow}>
           <View style={styles.avatar}><Text style={styles.avatarText}>{signedIn ? initials(account.user?.displayName) : 'G'}</Text></View>
           <View style={styles.identityCopy}>
-            <Text style={styles.identityName}>{account.user?.displayName ?? 'Guest player'}</Text>
-            <Text selectable={signedIn} style={styles.identityDetail}>{account.user?.email ?? accountStatusDetail(account.status, account.available)}</Text>
+            <Text style={styles.identityName}>{account.user?.displayName ?? surfaceCopy('Guest player')}</Text>
+            <Text selectable={signedIn} style={styles.identityDetail}>{account.user?.email ?? accountStatusDetail(account.status, account.available, surfaceCopy)}</Text>
           </View>
-          <View style={styles.badge}><Text style={styles.badgeText}>{account.access.planTier === 'pro' ? 'PRO' : signedIn ? 'FREE' : 'GUEST'}</Text></View>
+          <View style={styles.badge}><Text style={styles.badgeText}>{account.access.planTier === 'pro' ? 'PRO' : signedIn ? surfaceCopy('Free').toUpperCase() : surfaceCopy('Guest').toUpperCase()}</Text></View>
         </View>
         {!signedIn ? (
           <View style={styles.buttonRow}>
-            <AppButton disabled={!account.available} style={styles.flexButton} onPress={() => router.push('/auth?mode=signUp' as Href)}>Create account</AppButton>
-            <AppButton disabled={!account.available} tone="secondary" style={styles.flexButton} onPress={() => router.push('/auth?mode=signIn' as Href)}>Sign in</AppButton>
+            <AppButton disabled={!account.available} style={styles.flexButton} onPress={() => router.push('/auth?mode=signUp' as Href)}>{copy.onboardingCreate}</AppButton>
+            <AppButton disabled={!account.available} tone="secondary" style={styles.flexButton} onPress={() => router.push('/auth?mode=signIn' as Href)}>{copy.onboardingSignIn}</AppButton>
           </View>
         ) : (
           <View style={styles.buttonRow}>
-            <AppButton tone="secondary" style={styles.flexButton} onPress={() => void account.refresh()}>Refresh access</AppButton>
-            <AppButton tone="quiet" style={styles.flexButton} onPress={() => void account.signOut()}>Sign out</AppButton>
+            <AppButton tone="secondary" style={styles.flexButton} onPress={() => void account.refresh()}>{surfaceCopy('Refresh Apps AV access')}</AppButton>
+            <AppButton tone="quiet" style={styles.flexButton} onPress={() => void account.signOut()}>{surfaceCopy('Sign out')}</AppButton>
           </View>
         )}
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Across your devices" detail={signedIn ? 'You are signed in with Account AV.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.'} />
-        <InfoRow label="Identity" value={signedIn ? (account.status === 'signed_in_offline' ? 'Available offline' : 'Connected') : 'Guest · local'} />
-        <InfoRow label="Game history" value={signedIn ? 'Stored on this device' : 'Local only'} />
-        <InfoRow label="Rivals" value="Stored on this device" />
+        <SectionHeading title={surfaceCopy('Across your devices')} detail={surfaceCopy(signedIn ? 'You are signed in with Account AV.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.')} />
+        <InfoRow label={surfaceCopy('Identity')} value={signedIn ? (account.status === 'signed_in_offline' ? surfaceCopy('Local play remains available on this device.') : surfaceCopy('Connected')) : surfaceCopy('Guest · local')} />
+        <InfoRow label={surfaceCopy('Game history')} value={surfaceCopy('Stored on this device')} />
+        <InfoRow label={surfaceCopy('Rivals')} value={surfaceCopy('Stored on this device')} />
       </PaperCard>
 
       <PaperCard emphasized>
@@ -104,18 +106,18 @@ export function AccountScreen() {
           <AviArtwork size={84} />
           <View style={styles.aviPlanCopy}>
             <InkEyebrow>DuelWords Pro</InkEyebrow>
-            <Text style={styles.cardTitle}>{account.access.planTier === 'pro' ? 'Pro is active' : 'More history. Same fair game.'}</Text>
-            <Text style={styles.cardDetail}>Deeper private limits and history. Never hints, extra time, or extra attempts.</Text>
+            <Text style={styles.cardTitle}>{surfaceCopy(account.access.planTier === 'pro' ? 'Pro is active.' : 'More history. The same fair game.')}</Text>
+            <Text style={styles.cardDetail}>{surfaceCopy('Pro never adds hints, time, attempts, or different feedback.')}</Text>
           </View>
         </View>
-        <AppButton onPress={() => router.push('/pro' as Href)}>{account.access.planTier === 'pro' ? 'View Pro access' : 'Explore DuelWords Pro'}</AppButton>
+        <AppButton onPress={() => router.push('/pro' as Href)}>{surfaceCopy(account.access.planTier === 'pro' ? 'View Pro access' : 'Explore DuelWords Pro')}</AppButton>
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title="Preferences & account safety" detail="Settings stay device-local. Account deletion follows the secure Account AV workflow." />
+        <SectionHeading title={surfaceCopy('Account safety')} detail={surfaceCopy('Account deletion follows the guarded Account AV workflow.')} />
         <View style={styles.buttonRow}>
           <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.replace('/(tabs)/settings' as Href)}>{copy.settings}</AppButton>
-          {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>Delete Apps AV account</AppButton> : null}
+          {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>{surfaceCopy('Delete Apps AV account')}</AppButton> : null}
         </View>
       </PaperCard>
     </AppScreen>
@@ -127,11 +129,15 @@ function InfoRow({ label, value }: { label: string; value: string }) {
   return <View style={styles.infoRow}><Text style={styles.infoLabel}>{label}</Text><Text style={styles.infoValue}>{value}</Text></View>;
 }
 
-function accountStatusDetail(status: string, available: boolean) {
-  if (!available) return 'Account AV temporarily unavailable';
-  if (status === 'account_error') return 'Account needs a secure refresh';
-  if (status === 'loading') return 'Checking Account AV…';
-  return 'No account required for local play';
+function accountStatusDetail(
+  status: string,
+  available: boolean,
+  copy: (key: Parameters<typeof sharedSurfaceT>[1]) => string,
+) {
+  if (!available) return copy('Account AV unavailable');
+  if (status === 'account_error') return copy('Account AV needs your review');
+  if (status === 'loading') return copy('Checking Account AV…');
+  return copy('No account is required for local play.');
 }
 
 function initials(name: string | null | undefined) {

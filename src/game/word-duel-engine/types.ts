@@ -1,5 +1,8 @@
 export const WORD_DUEL_WORD_LENGTH = 5;
 export const WORD_DUEL_MAX_ATTEMPTS = 6;
+export const WORD_DUEL_WORD_LENGTHS = [5, 6, 7] as const;
+
+export type DuelWordLength = (typeof WORD_DUEL_WORD_LENGTHS)[number];
 
 export type GameLanguage = 'en' | 'es' | 'ca' | 'fr' | 'de';
 

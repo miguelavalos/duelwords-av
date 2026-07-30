@@ -1,4 +1,6 @@
-import type { GameLanguage } from '../word-duel-engine';
+import type { DuelMaxAttempts } from '../duel-rules';
+import { isDuelMaxAttempts, isDuelWordLength } from '../duel-rules';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine';
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
 
 export type WordDuelRematchSide = 'a' | 'b';
@@ -14,8 +16,8 @@ export type WordDuelRematchProposalStatus =
 
 export type WordDuelRematchSettings = {
   gameLanguage: GameLanguage;
-  maxAttempts: number;
-  wordLength: number;
+  maxAttempts: DuelMaxAttempts;
+  wordLength: DuelWordLength;
 };
 
 export type WordDuelRematchStartRequest = {
@@ -53,7 +55,8 @@ export type WordDuelRematchErrorCode =
   | 'proposal_not_acceptable'
   | 'proposal_not_declinable'
   | 'proposal_not_cancellable'
-  | 'proposal_not_expirable';
+  | 'proposal_not_expirable'
+  | 'proposal_invalid_settings';
 
 export class WordDuelRematchError extends Error {
   readonly code: WordDuelRematchErrorCode;
@@ -67,10 +70,16 @@ export class WordDuelRematchError extends Error {
 
 export function createIdleRematchProposal(input: {
   gameLanguage: GameLanguage;
+  maxAttempts?: number;
   viewerRole?: WordDuelRematchViewerRole;
   viewerSide?: WordDuelRematchSide;
+  wordLength?: number;
 }): WordDuelRematchProposal {
   const viewerSide = input.viewerSide ?? 'a';
+  const rules = validatedRules(
+    input.maxAttempts ?? WORD_DUEL_MAX_ATTEMPTS,
+    input.wordLength ?? WORD_DUEL_WORD_LENGTH,
+  );
 
   return withDerivedControls({
     createdAtMs: null,
@@ -81,8 +90,7 @@ export function createIdleRematchProposal(input: {
     remainingSeconds: null,
     settings: {
       gameLanguage: input.gameLanguage,
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      ...rules,
     },
     startRequest: null,
     status: 'idle',
@@ -93,7 +101,10 @@ export function createIdleRematchProposal(input: {
 
 export function draftRematchProposal(
   proposal: WordDuelRematchProposal,
-  settings: Partial<WordDuelRematchSettings> = {},
+  settings: Partial<Pick<WordDuelRematchSettings, 'gameLanguage'>> & {
+    maxAttempts?: number;
+    wordLength?: number;
+  } = {},
 ): WordDuelRematchProposal {
   const editableProposal = withDerivedControls(proposal);
   if (!editableProposal.canEditSettings) {
@@ -101,6 +112,10 @@ export function draftRematchProposal(
   }
 
   const ownerSide = editableProposal.ownerSide ?? editableProposal.viewerSide;
+  const rules = validatedRules(
+    settings.maxAttempts ?? editableProposal.settings.maxAttempts,
+    settings.wordLength ?? editableProposal.settings.wordLength,
+  );
   return withDerivedControls({
     ...editableProposal,
     ownerSide,
@@ -108,8 +123,7 @@ export function draftRematchProposal(
     settings: {
       ...editableProposal.settings,
       ...settings,
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      ...rules,
     },
     startRequest: null,
     status: 'draft',
@@ -184,11 +198,11 @@ export function acceptRematchProposal(input: {
     remainingSeconds: null,
     startRequest: {
       acceptedBySide: proposal.viewerSide,
-      maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
+      maxAttempts: proposal.settings.maxAttempts,
       ownerSide: proposal.ownerSide,
       previousResultRef: input.previousResultRef,
       selectedLanguage: proposal.settings.gameLanguage,
-      wordLength: WORD_DUEL_WORD_LENGTH,
+      wordLength: proposal.settings.wordLength,
     },
     status: 'accepted',
   }, input.nowMs);
@@ -247,6 +261,19 @@ export function expireRematchProposal(input: {
 
 export function rematchCanStart(proposal: WordDuelRematchProposal): boolean {
   return proposal.status === 'accepted' && proposal.startRequest !== null;
+}
+
+function validatedRules(maxAttempts: number, wordLength: number): {
+  maxAttempts: DuelMaxAttempts;
+  wordLength: DuelWordLength;
+} {
+  if (!isDuelMaxAttempts(maxAttempts) || !isDuelWordLength(wordLength)) {
+    throw new WordDuelRematchError(
+      'proposal_invalid_settings',
+      'Rematch rules must use 5, 6, or 7 letters and 4, 6, or 8 attempts.',
+    );
+  }
+  return { maxAttempts, wordLength };
 }
 
 function withDerivedControls(

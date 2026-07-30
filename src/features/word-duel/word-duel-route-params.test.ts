@@ -5,6 +5,8 @@ import {
   buildWordDuelHref,
   buildWordDuelResultHandoffHref,
   parseGameLanguageParam,
+  parseDuelMaxAttemptsParam,
+  parseDuelWordLengthParam,
   parseInterfaceLocaleParam,
   parseLocalResultParam,
   parseResultOutcomeParam,
@@ -34,6 +36,17 @@ describe('word duel route params', () => {
     expect(parseInterfaceLocaleParam(['ca', 'en'])).toBe('ca');
     expect(parseInterfaceLocaleParam('it')).toBeNull();
     expect(parseInterfaceLocaleParam(undefined)).toBeNull();
+  });
+
+  it('parses configurable duel rules with classic fallbacks', () => {
+    expect(parseDuelWordLengthParam('7')).toBe(7);
+    expect(parseDuelWordLengthParam(['6', '5'])).toBe(6);
+    expect(parseDuelWordLengthParam('9')).toBe(5);
+    expect(parseDuelWordLengthParam(undefined)).toBe(5);
+    expect(parseDuelMaxAttemptsParam('8')).toBe(8);
+    expect(parseDuelMaxAttemptsParam(['4', '6'])).toBe(4);
+    expect(parseDuelMaxAttemptsParam('12')).toBe(6);
+    expect(parseDuelMaxAttemptsParam(undefined)).toBe(6);
   });
 
   it('parses solo and daily modes with a stable fallback', () => {
@@ -72,6 +85,14 @@ describe('word duel route params', () => {
       gameLanguage: 'es',
       interfaceLocale: 'ca',
     })).toBe('/word-duel/challenge?lang=es&ui=ca');
+
+    expect(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.playAvi, {
+      aviDifficulty: 'expert',
+      gameLanguage: 'ca',
+      maxAttempts: 8,
+      mode: 'bot_duel',
+      wordLength: 7,
+    })).toBe('/word-duel/play-avi?lang=ca&difficulty=expert&mode=bot_duel&wordLength=7&maxAttempts=8');
   });
 
   it('builds persisted result hrefs with a resultId', () => {
@@ -83,7 +104,9 @@ describe('word duel route params', () => {
   it('roundtrips active handoff hrefs without private gameplay fields', () => {
     const handoff = createWordDuelActiveDemoHandoff({
       gameLanguage: 'es',
+      maxAttempts: 8,
       source: 'local_lobby_demo',
+      wordLength: 7,
     });
     const href = String(buildWordDuelActiveHandoffHref(handoff));
     const params = new URLSearchParams(href.split('?')[1] ?? '');
@@ -95,7 +118,7 @@ describe('word duel route params', () => {
       wordLength: params.get('wordLength') ?? undefined,
     });
 
-    expect(href).toBe('/word-duel/active-demo?lang=es&mode=human_duel&source=local_lobby_demo&wordLength=5&maxAttempts=6');
+    expect(href).toBe('/word-duel/active-demo?lang=es&mode=human_duel&source=local_lobby_demo&wordLength=7&maxAttempts=8');
     expect(parsed).toEqual(handoff);
     expect(href.toLowerCase()).not.toContain('target');
     expect(href.toLowerCase()).not.toContain('dictionary');
@@ -118,7 +141,7 @@ describe('word duel route params', () => {
       maxAttempts: 6,
       mode: 'human_duel',
       source: 'direct_active_demo',
-      wordLength: 5,
+      wordLength: 7,
     });
   });
 

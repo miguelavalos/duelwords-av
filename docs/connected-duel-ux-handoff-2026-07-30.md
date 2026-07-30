@@ -284,3 +284,94 @@ now preserves the native Alert path and uses browser `window.confirm` on web.
 Focused web regressions require cancellation to retain the journey and explicit
 confirmation to invoke the destructive exit callback. No backend, runtime
 credential, room-state, or persistence contract changes with this parity fix.
+
+## Configurable duel rules follow-up
+
+The next local source candidate adds host-selectable duel rules without changing
+Daily, Practice, or Solo Practice: human Challenge and Play Avi can use five,
+six, or seven letters with four, six, or eight attempts. Four explained presets
+(Classic, Quick, Strategic, and Epic) give both the host and recipient a simple
+summary. The host edits the card before creating the room; the joined player
+sees the same rules in a locked card, and the completed result identifies that a
+rematch keeps those rules. Selection changes use short layout/fade animation,
+iOS haptics, accessible radio semantics, and Reduce Motion fallbacks.
+
+Play Avi uses the existing common game-setup route for language, rules, and Avi
+difficulty, then starts directly. This intentionally avoids two consecutive
+settings screens. Its engine, bot solver, board, target rotation, and bundled
+dictionaries all derive their length and attempt count from the validated
+rules. Target rotation persists independently by language, mode, and word
+length so changing from five to seven letters cannot skip or repeat the other
+deck.
+
+The connected backend source is prepared but not deployed. Migration `0076`
+expands the D1 dictionary, word, game, and rematch constraints to 5/6/7 while
+preserving existing rows; the API validates 5/6/7 on create and copies both
+`word_length` and `max_attempts` from the completed game into a rematch. The
+deterministic local import contract contains all 15 dictionaries (five
+languages × three lengths), 157,017 valid-word rows and 9,000 targets, with
+contract SHA-256
+`9278ffc4c5be8f3970983c2ce159f842faf0ca3afb9d56857a519421ae303b34`.
+
+Connected 6/7-letter play must remain unshipped until the reviewed migration
+and import are applied together to the intended backend and a real two-client
+create-to-accepted-rematch smoke passes. No backend, production runtime,
+TestFlight, App Store Connect, provider, or Infisical state was changed by this
+follow-up. The six- and seven-letter Gaia target decks are source-frequency
+ranked with explicit target exclusions but still need deeper human editorial
+curation; that is the principal content-quality risk.
+
+Final local verification used Node `22.23.2`. TypeScript and Expo lint pass;
+the full public suite passes 87 files / 478 tests; a second deterministic Gaia
+generation reports the expected counts for all 15 language/length decks and
+leaves diff hygiene clean. React Doctor exits successfully with 29 non-blocking
+structural advisories across the changed surfaces (score 73), with no runtime
+gate failure. The private Apps API suite passes
+39 files / 554 tests, its focused configurable-rule suites pass 42 tests, and
+the in-memory migration/import replay passes its foreign-key and exact-count
+assertions.
+
+Fresh development-bundle evidence on dedicated iPhone 17 (dark) and iPad Pro 13
+(light) simulators confirms one unified Play Avi setup, readable preset/help
+copy, adaptive controls, and direct entry into an Epic 7-column / 8-round board
+on both device classes. The recipient-side rules card is sourced from the safe
+invite/lobby projection and is non-editable. A connected iPhone↔iPad 6/7-letter
+smoke remains deliberately blocked on the undeployed backend migration/import.
+
+## Interface-language and corpus follow-up
+
+The public fallback screens now use the same canonical English-key catalog as
+the shared Apple surfaces. Settings, Account, Pro, authentication, account
+deletion, product splash, not-found, local lobby/result, and local Daily/Solo
+fallbacks no longer carry independent raw English JSX. The generated catalog
+contains 193 keys with complete EN/ES/CA/FR/DE maps. Tests enforce source drift,
+equal non-empty key sets, format-placeholder and legal-link parity, absence of
+implementation vocabulary, and a public JSX literal-copy contract. Known
+account-deletion service labels are localized when they match the catalog;
+unknown future service text remains visible instead of being discarded.
+Safe result/share summaries are also localized instead of retaining an English
+fallback for Catalan, French, or German game sessions.
+
+Fresh simulator acceptance covered English plus the complete Spanish, Catalan,
+French, and German setup/rule copy across a dark compact iPhone and a light
+adaptive iPad. The longest French and German labels wrap without clipping, and
+direct 7-letter / 8-attempt Play Avi starts render a complete localized board
+and keyboard at both sizes. The interface locale and game language remain
+separate by design: changing the word language does not silently change app
+navigation or help text.
+
+The English source review also removed the obsolete claim that every duel is
+fixed to five letters and aligned the legacy result/rematch preview with the
+configurable rule model. Local rematches now preserve language, word length,
+and attempts through proposal, acceptance, and the next active handoff, while
+both roles see the same localized rule explanation.
+
+The five-letter EN and ES valid-guess lists are now deterministic unions of the
+reviewed bases and every eligible pinned Gaia row: EN grows from 8,734 to 9,354
+and ES from 7,571 to 8,365. Their existing 750 target decks are preserved. CA,
+FR, and DE already contained every eligible Gaia row, and all 6/7 lists remain
+complete under that same pinned-source policy. “Complete” means every eligible
+entry from the documented, licensed inputs after normalization, not every word
+that may exist in a living language. The unresolved editorial risk remains the
+6/7 target decks, which are frequency-filtered but not yet reviewed word by
+word.

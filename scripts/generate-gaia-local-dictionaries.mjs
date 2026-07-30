@@ -5,6 +5,7 @@ import path from 'node:path';
 const GAIA_COMMIT = '975a35c0f5010df341e96d6c5ec60217f5347412';
 const GAIA_DICTIONARY_ROOT = 'apps/keyboard/js/imes/latin/dictionaries';
 const TARGET_COUNTS = Object.freeze({ en: 750, es: 750, ca: 500, fr: 500, de: 500 });
+const SUPPORTED_WORD_LENGTHS = Object.freeze([5, 6, 7]);
 const TARGET_EXCLUSIONS = Object.freeze({
   en: new Set(['kikes', 'nazis', 'sluts']),
   es: new Set([
@@ -76,12 +77,22 @@ const requestedLanguages = (args.get('--languages') ?? 'en,es,ca,fr,de')
   .split(',')
   .map((language) => language.trim())
   .filter(Boolean);
+const requestedWordLengths = (args.get('--word-lengths') ?? '5,6,7')
+  .split(',')
+  .map((value) => Number.parseInt(value.trim(), 10))
+  .filter((value) => Number.isInteger(value));
 
 if (
   requestedLanguages.length === 0
   || requestedLanguages.some((language) => !(language in SOURCES))
 ) {
   throw new Error('Languages must be a non-empty comma-separated subset of en,es,ca,fr,de.');
+}
+if (
+  requestedWordLengths.length === 0
+  || requestedWordLengths.some((wordLength) => !SUPPORTED_WORD_LENGTHS.includes(wordLength))
+) {
+  throw new Error('Word lengths must be a non-empty comma-separated subset of 5,6,7.');
 }
 
 await mkdir(outputRoot, { recursive: true });
@@ -94,45 +105,53 @@ for (const language of requestedLanguages) {
     : await fetchPinnedSource(fileName);
 
   assertSha256(xml, source.sha256, `${language} Gaia source`);
-  const sourceCandidates = parseCandidates(xml, language);
-  const existingDictionary = source.rankExistingAllowlist
-    ? JSON.parse(await readFile(path.join(outputRoot, `${language}.json`), 'utf8'))
-    : null;
-  const validGuesses = source.rankExistingAllowlist
-    ? existingDictionary.validGuesses
-    : sourceCandidates.map((candidate) => candidate.normalizedWord);
-  const validGuessSet = new Set(validGuesses);
-  const targetCount = TARGET_COUNTS[language];
-  const targetCandidates = source.rankExistingAllowlist
-    ? sourceCandidates.filter((candidate) => validGuessSet.has(candidate.normalizedWord))
-    : sourceCandidates;
-  const targets = targetCandidates
-    .filter((candidate) => !TARGET_EXCLUSIONS[language].has(candidate.normalizedWord))
-    .slice(0, targetCount)
-    .map((candidate) => [candidate.displayWord, candidate.normalizedWord]);
+  for (const wordLength of requestedWordLengths) {
+    const sourceCandidates = parseCandidates(xml, language, wordLength);
+    const usesReviewedAllowlist = source.rankExistingAllowlist && wordLength === 5;
+    const existingDictionary = usesReviewedAllowlist
+      ? JSON.parse(await readFile(path.join(outputRoot, `${language}.json`), 'utf8'))
+      : null;
+    const sourceValidGuesses = sourceCandidates.map((candidate) => candidate.normalizedWord);
+    const validGuesses = usesReviewedAllowlist
+      ? [...new Set([...existingDictionary.validGuesses, ...sourceValidGuesses])]
+        .sort((left, right) => left.localeCompare(right, language))
+      : sourceValidGuesses;
+    const targetCount = TARGET_COUNTS[language];
+    const targetCandidates = usesReviewedAllowlist
+      ? existingDictionary.targets.map(([displayWord, normalizedWord]) => ({ displayWord, normalizedWord }))
+      : sourceCandidates;
+    const targets = targetCandidates
+      .filter((candidate) => !TARGET_EXCLUSIONS[language].has(candidate.normalizedWord))
+      .slice(0, targetCount)
+      .map((candidate) => [candidate.displayWord, candidate.normalizedWord]);
 
-  if (targets.length !== targetCount) {
-    throw new Error(`${language} has only ${targets.length} eligible targets; expected ${targetCount}.`);
+    if (targets.length !== targetCount) {
+      throw new Error(`${language}/${wordLength} has only ${targets.length} eligible targets; expected ${targetCount}.`);
+    }
+    assertUnique(validGuesses, `${language}/${wordLength} valid guesses`);
+    assertUnique(targets.map((target) => target[1]), `${language}/${wordLength} targets`);
+
+    const payload = {
+      source: {
+        commit: GAIA_COMMIT,
+        license: 'Apache-2.0',
+        path: `${GAIA_DICTIONARY_ROOT}/${fileName}`,
+        sha256: source.sha256,
+        wordLength,
+        allowlistSource: usesReviewedAllowlist ? 'reviewed-allowlist-plus-complete-eligible-gaia-union' : 'gaia-source',
+        targetPolicy: usesReviewedAllowlist
+          ? `preserved-${targetCount}-reviewed-frequency-targets`
+          : `top-${targetCount}-eligible-by-source-frequency`,
+        targetExclusions: [...TARGET_EXCLUSIONS[language]],
+      },
+      validGuesses,
+      targets,
+    };
+
+    const outputName = wordLength === 5 ? `${language}.json` : `${language}-${wordLength}.json`;
+    await writeFile(path.join(outputRoot, outputName), `${JSON.stringify(payload)}\n`);
+    console.log(`${language}/${wordLength}: ${validGuesses.length} valid guesses, ${targets.length} targets`);
   }
-  assertUnique(validGuesses, `${language} valid guesses`);
-  assertUnique(targets.map((target) => target[1]), `${language} targets`);
-
-  const payload = {
-    source: {
-      commit: GAIA_COMMIT,
-      license: 'Apache-2.0',
-      path: `${GAIA_DICTIONARY_ROOT}/${fileName}`,
-      sha256: source.sha256,
-      allowlistSource: source.rankExistingAllowlist ? 'existing-reviewed-bundled-allowlist' : 'gaia-source',
-      targetPolicy: `top-${targetCount}-eligible-by-source-frequency`,
-      targetExclusions: [...TARGET_EXCLUSIONS[language]],
-    },
-    validGuesses,
-    targets,
-  };
-
-  await writeFile(path.join(outputRoot, `${language}.json`), `${JSON.stringify(payload)}\n`);
-  console.log(`${language}: ${validGuesses.length} valid guesses, ${targets.length} targets`);
 }
 
 async function fetchPinnedSource(fileName) {
@@ -144,7 +163,7 @@ async function fetchPinnedSource(fileName) {
   return response.text();
 }
 
-function parseCandidates(xml, language) {
+function parseCandidates(xml, language, wordLength) {
   const candidatesByNormalizedWord = new Map();
   const rowPattern = /<w f="(\d+)" flags="([^"]*)">(.*?)<\/w>/gu;
 
@@ -153,10 +172,10 @@ function parseCandidates(xml, language) {
     if (flags !== '') continue;
 
     const displayWord = decodeXml(encodedWord).normalize('NFC');
-    if (!isEligibleDisplayWord(displayWord, language)) continue;
+    if (!isEligibleDisplayWord(displayWord, language, wordLength)) continue;
 
-    const normalizedWord = normalizeFiveLetterWord(displayWord, language);
-    if (Array.from(normalizedWord).length !== 5) continue;
+    const normalizedWord = normalizeWord(displayWord, language);
+    if (Array.from(normalizedWord).length !== wordLength) continue;
 
     const frequency = Number.parseInt(frequencyText, 10);
     const previous = candidatesByNormalizedWord.get(normalizedWord);
@@ -174,8 +193,8 @@ function parseCandidates(xml, language) {
     || left.displayWord.localeCompare(right.displayWord, language));
 }
 
-function isEligibleDisplayWord(word, language) {
-  if (Array.from(word).length !== 5 || !/^\p{Script=Latin}+$/u.test(word)) return false;
+function isEligibleDisplayWord(word, language, wordLength) {
+  if (Array.from(word).length !== wordLength || !/^\p{Script=Latin}+$/u.test(word)) return false;
   if (word.includes('ß') || word.includes('ẞ')) return false;
 
   // Gaia does not mark proper names separately. Catalan and French title-case
@@ -183,7 +202,7 @@ function isEligibleDisplayWord(word, language) {
   return language === 'de' || word === word.toLocaleLowerCase(language);
 }
 
-function normalizeFiveLetterWord(word, language) {
+function normalizeWord(word, language) {
   const decomposed = word.toLocaleLowerCase(language).normalize('NFD');
   const enyePreserved = language === 'es'
     ? decomposed.replaceAll('n\u0303', '__enye__')

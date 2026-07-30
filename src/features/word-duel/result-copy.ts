@@ -17,7 +17,6 @@ export type WordDuelResultCopy = {
   decline: string;
   done: string;
   expire: string;
-  fiveLetters: string;
   hidden: string;
   home: string;
   language: string;
@@ -57,7 +56,7 @@ const copies: Record<InterfaceLocale, WordDuelResultCopy> = {
   en: {
     accept: 'Accept', answer: 'Answer', cancel: 'Cancel', challengeMe: 'Challenge me',
     completedBoard: (label) => `${label} completed board`, decline: 'Decline', done: 'Done', expire: 'Expire',
-    fiveLetters: 'five letters', hidden: 'Hidden', home: 'Home', language: 'Language', mode: 'Mode',
+    hidden: 'Hidden', home: 'Home', language: 'Language', mode: 'Mode',
     newSetup: 'New setup', nextDuelReady: 'next duel ready', noNextDuelOpened: 'no next duel opened',
     notSolved: 'Not solved', openAcceptedDuel: 'Open accepted duel', openDuel: 'Open duel',
     openShareSheet: 'Open share sheet', opponentPath: (name) => `${name}'s path`, rematch: 'Rematch',
@@ -80,7 +79,7 @@ const copies: Record<InterfaceLocale, WordDuelResultCopy> = {
   es: {
     accept: 'Aceptar', answer: 'Palabra', cancel: 'Cancelar', challengeMe: 'Rétame',
     completedBoard: (label) => `Tablero final: ${label}`, decline: 'Rechazar', done: 'Listo', expire: 'Caducar',
-    fiveLetters: 'cinco letras', hidden: 'Oculta', home: 'Inicio', language: 'Idioma', mode: 'Modo',
+    hidden: 'Oculta', home: 'Inicio', language: 'Idioma', mode: 'Modo',
     newSetup: 'Nueva configuración', nextDuelReady: 'siguiente duelo listo', noNextDuelOpened: 'no se ha abierto otro duelo',
     notSolved: 'Sin resolver', openAcceptedDuel: 'Abrir revancha aceptada', openDuel: 'Abrir duelo',
     openShareSheet: 'Abrir menú para compartir', opponentPath: (name) => `Recorrido de ${name}`, rematch: 'Revancha',
@@ -103,7 +102,7 @@ const copies: Record<InterfaceLocale, WordDuelResultCopy> = {
   ca: {
     accept: 'Acceptar', answer: 'Paraula', cancel: 'Cancel·lar', challengeMe: 'Repta’m',
     completedBoard: (label) => `Tauler final: ${label}`, decline: 'Rebutjar', done: 'Fet', expire: 'Fer caducar',
-    fiveLetters: 'cinc lletres', hidden: 'Oculta', home: 'Inici', language: 'Idioma', mode: 'Mode',
+    hidden: 'Oculta', home: 'Inici', language: 'Idioma', mode: 'Mode',
     newSetup: 'Configuració nova', nextDuelReady: 'duel següent preparat', noNextDuelOpened: 'no s’ha obert cap altre duel',
     notSolved: 'Sense resoldre', openAcceptedDuel: 'Obrir revenja acceptada', openDuel: 'Obrir duel',
     openShareSheet: 'Obrir el menú per compartir', opponentPath: (name) => `Camí de ${name}`, rematch: 'Revenja',
@@ -126,7 +125,7 @@ const copies: Record<InterfaceLocale, WordDuelResultCopy> = {
   fr: {
     accept: 'Accepter', answer: 'Mot', cancel: 'Annuler', challengeMe: 'Défiez-moi',
     completedBoard: (label) => `Grille terminée : ${label}`, decline: 'Refuser', done: 'Terminé', expire: 'Faire expirer',
-    fiveLetters: 'cinq lettres', hidden: 'Masqué', home: 'Accueil', language: 'Langue', mode: 'Mode',
+    hidden: 'Masqué', home: 'Accueil', language: 'Langue', mode: 'Mode',
     newSetup: 'Nouvelle configuration', nextDuelReady: 'prochain duel prêt', noNextDuelOpened: 'aucun autre duel ouvert',
     notSolved: 'Non résolu', openAcceptedDuel: 'Ouvrir la revanche acceptée', openDuel: 'Ouvrir le duel',
     openShareSheet: 'Ouvrir le menu de partage', opponentPath: (name) => `Parcours de ${name}`, rematch: 'Revanche',
@@ -149,7 +148,7 @@ const copies: Record<InterfaceLocale, WordDuelResultCopy> = {
   de: {
     accept: 'Annehmen', answer: 'Lösung', cancel: 'Abbrechen', challengeMe: 'Fordere mich heraus',
     completedBoard: (label) => `Abgeschlossenes Brett: ${label}`, decline: 'Ablehnen', done: 'Fertig', expire: 'Ablaufen lassen',
-    fiveLetters: 'fünf Buchstaben', hidden: 'Verdeckt', home: 'Start', language: 'Sprache', mode: 'Modus',
+    hidden: 'Verdeckt', home: 'Start', language: 'Sprache', mode: 'Modus',
     newSetup: 'Neue Einstellungen', nextDuelReady: 'nächstes Duell bereit', noNextDuelOpened: 'kein weiteres Duell geöffnet',
     notSolved: 'Nicht gelöst', openAcceptedDuel: 'Angenommene Revanche öffnen', openDuel: 'Duell öffnen',
     openShareSheet: 'Teilen-Menü öffnen', opponentPath: (name) => `Weg von ${name}`, rematch: 'Revanche',

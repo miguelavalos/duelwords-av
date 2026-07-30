@@ -37,7 +37,7 @@ enum DuelWordsAppExperience {
             splashTagline: copy.text("A fair word duel, whenever you are ready."),
             splashStatus: copy.text("Preparing the board…"),
             onboardingTitle: copy.text("Challenge a friend. Or play Avi."),
-            onboardingSubtitle: copy.text("Five letters, six tries, and the same fair rules for everyone."),
+            onboardingSubtitle: copy.text("Choose five, six, or seven letters. Both players always share the same rules."),
             onboardingPrimaryTitle: copy.text("Continue"),
             onboardingSecondaryTitle: copy.text("Skip for now"),
             onboardingBackgroundStart: Color(red: 0.97, green: 0.94, blue: 0.86),

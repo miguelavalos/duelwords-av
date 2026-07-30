@@ -1,5 +1,6 @@
 import { getLocalDictionary, getPracticeTarget, type WordEntry } from '../dictionaries/local-fixtures';
-import { gameLanguageLabel } from '../../i18n/locales';
+import { gameLanguageLabel, type InterfaceLocale } from '../../i18n/locales';
+import { SHARE_COPY } from '../../i18n/share-copy';
 import {
   applyGuess,
   createLocalGame,
@@ -49,7 +50,7 @@ export type WordDuelSoloDailyViewModel = {
 };
 
 export type WordDuelSoloDailySharePreview = {
-  ctaLabel: 'Challenge me';
+  ctaLabel: string;
   text: string;
 };
 
@@ -144,6 +145,7 @@ export function applySoloDailyGuess({
 
 export function createSoloDailyViewModel(
   session: WordDuelSoloDailySession,
+  interfaceLocale: InterfaceLocale = 'en',
 ): WordDuelSoloDailyViewModel {
   const isFinal = session.state.status !== 'playing';
 
@@ -155,9 +157,9 @@ export function createSoloDailyViewModel(
     isLocalPreviewOnly: true,
     maxAttempts: WORD_DUEL_MAX_ATTEMPTS,
     mode: session.mode,
-    modeLabel: modeLabel(session.mode),
+    modeLabel: modeLabel(session.mode, interfaceLocale),
     official: false,
-    safeSharePreview: isFinal ? createSafeSoloDailySharePreview(session) : null,
+    safeSharePreview: isFinal ? createSafeSoloDailySharePreview(session, interfaceLocale) : null,
     status: session.state.status,
     targetReveal: {
       displayWord: isFinal ? session.target.displayWord.toUpperCase() : null,
@@ -170,17 +172,19 @@ export function createSoloDailyViewModel(
 
 export function createSafeSoloDailySharePreview(
   session: WordDuelSoloDailySession,
+  interfaceLocale: InterfaceLocale = 'en',
 ): WordDuelSoloDailySharePreview {
+  const copy = SHARE_COPY[interfaceLocale];
   const languageLabel = gameLanguageLabel(session.state.language);
   const attempts =
     session.state.status === 'won'
       ? `${session.state.guesses.length}/${WORD_DUEL_MAX_ATTEMPTS}`
       : `X/${WORD_DUEL_MAX_ATTEMPTS}`;
-  const mode = modeLabel(session.mode);
+  const mode = session.mode === 'daily_preview' ? copy.dailyPreview : copy.soloPractice;
 
   return {
-    ctaLabel: 'Challenge me',
-    text: `DuelWords AV - Word Duel\n${mode} - ${languageLabel} - ${attempts}\nChallenge me: <link>`,
+    ctaLabel: copy.challengeMe,
+    text: `DuelWords AV · ${copy.wordDuel}\n${mode} · ${languageLabel} · ${attempts}\n${copy.challengeMe}: <link>`,
   };
 }
 
@@ -197,8 +201,9 @@ export function normalizeSoloDailyInput(input: string, language: GameLanguage): 
   return normalizeGuess(input, language);
 }
 
-function modeLabel(mode: WordDuelSoloDailyMode): string {
-  return mode === 'daily_preview' ? 'Daily preview' : 'Solo practice';
+function modeLabel(mode: WordDuelSoloDailyMode, interfaceLocale: InterfaceLocale): string {
+  const copy = SHARE_COPY[interfaceLocale];
+  return mode === 'daily_preview' ? copy.dailyPreview : copy.soloPractice;
 }
 
 function stableHash(value: string): number {

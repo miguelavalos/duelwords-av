@@ -1,10 +1,11 @@
 import type { DuelWordsActorIdentity } from '../word-duel-active/api-adapter';
+import { isDuelMaxAttempts, isDuelWordLength, type DuelMaxAttempts } from '../duel-rules';
 import {
   readDuelWordsRealtimeSessionFromApiPayload,
   type DuelWordsBackendRealtimeSession,
   type DuelWordsRealtimeSessionParseErrorCode,
 } from '../word-duel-active/realtime-session';
-import type { GameLanguage } from '../word-duel-engine';
+import type { DuelWordLength, GameLanguage } from '../word-duel-engine';
 import type {
   WordDuelLobbyJoinAvailability,
   WordDuelLobbySide,
@@ -40,13 +41,13 @@ export type DuelWordsApiSafeGame = {
   currentRound: number;
   gameId: string;
   language: GameLanguage;
-  maxAttempts: number;
+  maxAttempts: DuelMaxAttempts;
   mode: 'human_duel';
   players: DuelWordsApiSafePlayer[];
   roomToken: string;
   roundDeadlineAt: string | null;
   status: DuelWordsApiRoomStatus;
-  wordLength: number;
+  wordLength: DuelWordLength;
 };
 
 export type DuelWordsApiRoomStatus =
@@ -70,14 +71,14 @@ export type DuelWordsApiInvitePreview = {
   hostSafeDisplayName: string;
   inviteToken: string;
   joinAvailability: DuelWordsApiInviteAvailability;
-  maxAttempts: number;
+  maxAttempts: DuelMaxAttempts;
   mode: 'human_duel';
   playerCount: number;
   roomCode: string;
   roomState: DuelWordsApiRoomStatus | 'waiting_for_opponent';
   settingsLocked: true;
   solutionSelected: boolean;
-  wordLength: number;
+  wordLength: DuelWordLength;
 };
 
 export type DuelWordsApiLobbyView = {
@@ -227,8 +228,8 @@ export type DuelWordsApiRematchProposal = {
   respondedAt: string | null;
   settings: {
     language: GameLanguage;
-    maxAttempts: number;
-    wordLength: number;
+    maxAttempts: DuelMaxAttempts;
+    wordLength: DuelWordLength;
   };
   status: DuelWordsApiRematchProposalStatus;
   viewer: {
@@ -277,7 +278,8 @@ export type DuelWordsApiClient = {
     dictionaryRelease?: string;
     host: DuelWordsApiActor;
     language: GameLanguage;
-    maxAttempts?: number;
+    maxAttempts?: DuelMaxAttempts;
+    wordLength?: DuelWordLength;
   }): Promise<DuelWordsApiLobbyResponse>;
   getDailyTarget(input: {
     actor: DuelWordsActorIdentity;
@@ -480,6 +482,7 @@ export function createDuelWordsApiClient(config: DuelWordsApiClientConfig): Duel
           host: input.host,
           language: input.language,
           maxAttempts: input.maxAttempts,
+          wordLength: input.wordLength,
         }),
         method: 'POST',
       });
@@ -804,14 +807,14 @@ function readInvitePreview(value: unknown): DuelWordsApiInvitePreview {
     hostSafeDisplayName: requireString(input.hostSafeDisplayName),
     inviteToken: requireString(input.inviteToken),
     joinAvailability: readInviteAvailability(input.joinAvailability),
-    maxAttempts: requireNumber(input.maxAttempts),
+    maxAttempts: readDuelMaxAttempts(input.maxAttempts),
     mode: requireLiteral(input.mode, 'human_duel'),
     playerCount: requireNumber(input.playerCount),
     roomCode: requireString(input.roomCode),
     roomState: readRoomState(input.roomState),
     settingsLocked: requireLiteral(input.settingsLocked, true),
     solutionSelected: requireBoolean(input.solutionSelected),
-    wordLength: requireNumber(input.wordLength),
+    wordLength: readDuelWordLength(input.wordLength),
   };
 }
 
@@ -822,13 +825,13 @@ function readSafeGame(value: unknown): DuelWordsApiSafeGame {
     currentRound: requireNumber(input.currentRound),
     gameId: requireString(input.gameId),
     language: readLanguage(input.language),
-    maxAttempts: requireNumber(input.maxAttempts),
+    maxAttempts: readDuelMaxAttempts(input.maxAttempts),
     mode: requireLiteral(input.mode, 'human_duel'),
     players: requireArray(input.players).slice(0, 2).map(readSafePlayer),
     roomToken: requireString(input.roomToken),
     roundDeadlineAt: optionalString(input.roundDeadlineAt),
     status: readRoomStatus(input.status),
-    wordLength: requireNumber(input.wordLength),
+    wordLength: readDuelWordLength(input.wordLength),
   };
 }
 
@@ -957,8 +960,8 @@ function readRematchProposalSettings(value: unknown): DuelWordsApiRematchProposa
   const input = requireRecord(value);
   return {
     language: readLanguage(input.language),
-    maxAttempts: requireNumber(input.maxAttempts),
-    wordLength: requireNumber(input.wordLength),
+    maxAttempts: readDuelMaxAttempts(input.maxAttempts),
+    wordLength: readDuelWordLength(input.wordLength),
   };
 }
 
@@ -1203,6 +1206,22 @@ function requireNumber(value: unknown): number {
   }
 
   return value;
+}
+
+function readDuelMaxAttempts(value: unknown): DuelMaxAttempts {
+  const attempts = requireNumber(value);
+  if (!isDuelMaxAttempts(attempts)) {
+    throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API response attempts are unsupported.');
+  }
+  return attempts;
+}
+
+function readDuelWordLength(value: unknown): DuelWordLength {
+  const wordLength = requireNumber(value);
+  if (!isDuelWordLength(wordLength)) {
+    throw new DuelWordsApiError(0, 'invalid_response', 'DuelWords API response word length is unsupported.');
+  }
+  return wordLength;
 }
 
 function requireBoolean(value: unknown): boolean {

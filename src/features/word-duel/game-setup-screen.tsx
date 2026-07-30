@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AVI_DIFFICULTIES, type AviDifficulty } from '@/game/word-duel-bot/difficulty';
+import { DEFAULT_DUEL_RULES, type DuelRules } from '@/game/duel-rules';
 import type { GameLanguage } from '@/game/word-duel-engine';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { t, type InterfaceLocale } from '@/i18n/locales';
@@ -13,6 +14,7 @@ import { PaperCard } from '@/ui/brand';
 import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { GameLanguagePicker } from './components/game-language-picker';
+import { DuelRulesCard } from './components/duel-rules-card';
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS, type WordDuelRouteMode } from './word-duel-route-params';
 
 type SetupMode = Extract<WordDuelRouteMode, 'bot_duel' | 'human_duel' | 'practice'>;
@@ -47,6 +49,7 @@ export function GameSetupScreen({ initialGameLanguage, mode }: { initialGameLang
   const copy = SETUP_COPY[locale];
   const [gameLanguage, setGameLanguage] = useState(initialGameLanguage ?? preferences.gameLanguage);
   const [aviDifficulty, setAviDifficulty] = useState<AviDifficulty>(preferences.aviDifficulty);
+  const [duelRules, setDuelRules] = useState<DuelRules>(DEFAULT_DUEL_RULES);
   const styles = useStyles();
 
   const destination = mode === 'bot_duel'
@@ -60,7 +63,9 @@ export function GameSetupScreen({ initialGameLanguage, mode }: { initialGameLang
       aviDifficulty: mode === 'bot_duel' ? aviDifficulty : undefined,
       gameLanguage,
       interfaceLocale: locale,
+      maxAttempts: mode === 'bot_duel' ? duelRules.maxAttempts : undefined,
       mode,
+      wordLength: mode === 'bot_duel' ? duelRules.wordLength : undefined,
     }));
   }
 
@@ -70,20 +75,23 @@ export function GameSetupScreen({ initialGameLanguage, mode }: { initialGameLang
       <Text style={styles.subtitle}>{copy.subtitle}</Text>
       <GameLanguagePicker dismissLabel={t(locale, 'done')} label={copy.languageHelp} onChange={setGameLanguage} value={gameLanguage} />
       {mode === 'bot_duel' ? (
-        <PaperCard style={styles.card}>
-          <Text style={styles.sectionLabel}>{copy.difficulty}</Text>
-          <View style={styles.options}>
-            {AVI_DIFFICULTIES.map((difficulty) => (
-              <DifficultyOption
-                detail={copy[`${difficulty}Detail`]}
-                key={difficulty}
-                label={copy[difficulty]}
-                onPress={() => setAviDifficulty(difficulty)}
-                selected={aviDifficulty === difficulty}
-              />
-            ))}
-          </View>
-        </PaperCard>
+        <>
+          <DuelRulesCard editable interfaceLocale={locale} onChange={setDuelRules} rules={duelRules} />
+          <PaperCard style={styles.card}>
+            <Text style={styles.sectionLabel}>{copy.difficulty}</Text>
+            <View style={styles.options}>
+              {AVI_DIFFICULTIES.map((difficulty) => (
+                <DifficultyOption
+                  detail={copy[`${difficulty}Detail`]}
+                  key={difficulty}
+                  label={copy[difficulty]}
+                  onPress={() => setAviDifficulty(difficulty)}
+                  selected={aviDifficulty === difficulty}
+                />
+              ))}
+            </View>
+          </PaperCard>
+        </>
       ) : null}
       <AppButton onPress={startGame}>{copy.start}</AppButton>
     </AppScreen>

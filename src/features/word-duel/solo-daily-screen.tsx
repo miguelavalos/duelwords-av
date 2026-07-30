@@ -36,6 +36,8 @@ import {
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
+import { wordDuelResultCopy } from './result-copy';
+import { publicDuelT } from './public-duel-copy';
 
 type WordDuelSoloDailyScreenProps = {
   initialGameLanguage?: GameLanguage;
@@ -50,6 +52,8 @@ export function WordDuelSoloDailyScreen({
   const { height, width } = useWindowDimensions();
   const compactViewport = width <= 480 && height <= 900;
   const [{ interfaceLocale }] = useAppPreferences();
+  const copy = wordDuelResultCopy(interfaceLocale);
+  const duelCopy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
   const styles = useSoloDailyStyles();
   const isOpeningResultRef = useRef(false);
   const [targetSelection, setTargetSelection] = useState(() =>
@@ -73,7 +77,7 @@ export function WordDuelSoloDailyScreen({
   const [isOpeningResult, setIsOpeningResult] = useState(false);
   const [message, setMessage] = useState('');
 
-  const viewModel = createSoloDailyViewModel(session);
+  const viewModel = createSoloDailyViewModel(session, interfaceLocale);
   const rows = createRowsFromLocalWordDuelState(session.state, input);
   const keyFeedback = createKeyboardFeedbackFromGuesses(session.state.guesses);
   const boardWidth = Math.min(width - spacing.lg * 2, 340);
@@ -165,7 +169,7 @@ export function WordDuelSoloDailyScreen({
     });
 
     if (!result.accepted) {
-      setMessage(rejectionMessage(result.rejection));
+      setMessage(rejectionMessage(result.rejection, interfaceLocale));
       return;
     }
 
@@ -211,7 +215,7 @@ export function WordDuelSoloDailyScreen({
           mode: viewModel.mode,
           routeGroup: 'play',
         });
-        setMessage('Could not open result');
+        setMessage(duelCopy('couldNotOpenResult'));
       })
       .finally(() => {
         isOpeningResultRef.current = false;
@@ -225,19 +229,19 @@ export function WordDuelSoloDailyScreen({
       contentGap={compactViewport ? spacing.md : spacing.lg}>
       <InteriorScreenHeader
         backLabel={t(interfaceLocale, 'back')}
-        detail={viewModel.isLocalPreviewOnly ? 'Local preview' : undefined}
+        detail={viewModel.isLocalPreviewOnly ? t(interfaceLocale, 'localOnly') : undefined}
         onBack={() => router.back()}
-        title="Solo / Daily"
+        title={`${copy.modeLabels.solo_practice} / ${copy.modeLabels.daily_preview}`}
       />
 
       <View style={styles.modeRow}>
         <SegmentButton
-          label="Solo"
+          label={copy.modeLabels.solo_practice}
           selected={mode === 'solo_practice'}
           onPress={() => changeMode('solo_practice')}
         />
         <SegmentButton
-          label="Daily preview"
+          label={copy.modeLabels.daily_preview}
           selected={mode === 'daily_preview'}
           onPress={() => changeMode('daily_preview')}
         />
@@ -252,21 +256,21 @@ export function WordDuelSoloDailyScreen({
 
       <View style={styles.statusRow}>
         <View>
-          <Text style={styles.statusLabel}>{viewModel.modeLabel}</Text>
+          <Text style={styles.statusLabel}>{copy.modeLabels[viewModel.mode]}</Text>
           <Text style={styles.statusValue}>
             {viewModel.attemptsUsed}/{viewModel.maxAttempts}
           </Text>
         </View>
         <View style={styles.statusRight}>
           <Text style={styles.statusLabel}>
-            {viewModel.dailyDate ? viewModel.dailyDate : t('en', 'gameLanguage')}
+            {viewModel.dailyDate ? viewModel.dailyDate : t(interfaceLocale, 'gameLanguage')}
           </Text>
           <Text style={styles.statusValue}>{viewModel.gameLanguage.toUpperCase()}</Text>
         </View>
       </View>
 
       <WordDuelBoard
-        accessibilityLabel="Solo Daily local board"
+        accessibilityLabel={copy.completedBoard(copy.yourPath)}
         density={compactViewport ? 'compact' : 'regular'}
         rows={rows}
         tileSize={tileSize}
@@ -275,10 +279,10 @@ export function WordDuelSoloDailyScreen({
       <View style={[styles.messageArea, compactViewport && styles.messageAreaCompact]}>
         {message ? <Text style={styles.errorText}>{message}</Text> : null}
         {viewModel.status === 'won' && viewModel.targetReveal.displayWord ? (
-          <ResultLine label={t('en', 'won')} target={viewModel.targetReveal.displayWord} />
+          <ResultLine label={t(interfaceLocale, 'won')} target={viewModel.targetReveal.displayWord} />
         ) : null}
         {viewModel.status === 'lost' && viewModel.targetReveal.displayWord ? (
-          <ResultLine label={t('en', 'lost')} target={viewModel.targetReveal.displayWord} />
+          <ResultLine label={t(interfaceLocale, 'lost')} target={viewModel.targetReveal.displayWord} />
         ) : null}
       </View>
 
@@ -299,13 +303,13 @@ export function WordDuelSoloDailyScreen({
               void openResult();
             }}
             style={styles.actionButton}>
-            {isOpeningResult ? 'Opening...' : 'Open result'}
+            {isOpeningResult ? t(interfaceLocale, 'opening') : t(interfaceLocale, 'openResult')}
           </AppButton>
           <AppButton onPress={newSoloGame} style={styles.actionButton}>
-            Practice again
+            {copy.replayLabels.solo_practice}
           </AppButton>
           <AppButton tone="quiet" onPress={() => changeMode('daily_preview')} style={styles.actionButton}>
-            Daily today
+            {copy.modeLabels.daily_preview}
           </AppButton>
         </View>
       ) : null}
@@ -341,17 +345,17 @@ function SegmentButton({
   );
 }
 
-function rejectionMessage(rejection: GuessRejection): string {
+function rejectionMessage(rejection: GuessRejection, locale: Parameters<typeof t>[0]): string {
   if (rejection === 'not_enough_letters') {
-    return t('en', 'notEnoughLetters');
+    return t(locale, 'notEnoughLetters');
   }
   if (rejection === 'too_many_letters') {
-    return t('en', 'tooManyLetters');
+    return t(locale, 'tooManyLetters');
   }
   if (rejection === 'game_over') {
-    return 'This local game is finished';
+    return t(locale, 'gameFinished');
   }
-  return t('en', 'invalidWord');
+  return t(locale, 'invalidWord');
 }
 
 function ResultLine({ label, target }: { label: string; target: string }) {

@@ -35,8 +35,10 @@ shared Account AV profile.
 
 Avi difficulty is available to every tier and never changes word rules:
 Friendly retains fewer prior clues and cannot solve before its fourth attempt;
-Balanced may solve from its third; Expert may solve from its second. All modes
-keep five letters, six attempts, the same dictionaries, and the same feedback.
+Balanced may solve from its third; Expert may solve from its second. Challenge
+and Play Avi offer 5, 6, or 7 letters and 4, 6, or 8 attempts to every tier.
+Daily, Practice, and Solo Practice keep their original five-letter rules. Pro
+never changes dictionaries, feedback, attempts, or competitive rules.
 
 ## Subscription identity
 

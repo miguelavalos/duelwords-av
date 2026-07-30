@@ -163,7 +163,8 @@ describe('DuelWords Apps AV API client', () => {
     const result = await client.createInvite({
       host: GUEST_ACTOR,
       language: 'en',
-      maxAttempts: 6,
+      maxAttempts: 8,
+      wordLength: 7,
     });
 
     expect(recorder.calls).toHaveLength(1);
@@ -171,7 +172,8 @@ describe('DuelWords Apps AV API client', () => {
       body: {
         host: GUEST_ACTOR,
         language: 'en',
-        maxAttempts: 6,
+        maxAttempts: 8,
+        wordLength: 7,
       },
       method: 'POST',
       url: 'https://api-account-av-preview.avalsys.com/v1/apps/duelwords/invites',
@@ -190,6 +192,21 @@ describe('DuelWords Apps AV API client', () => {
     });
     expect(JSON.stringify(result).toLowerCase()).not.toContain('forbidden-target');
     expect(JSON.stringify(result).toLowerCase()).not.toContain('dictionaryversionid');
+  });
+
+  it('fails closed when invite rules are outside the supported duel options', async () => {
+    for (const overrides of [{ wordLength: 8 }, { maxAttempts: 5 }]) {
+      const client = createDuelWordsApiClient({
+        baseUrl: 'https://api.test',
+        fetchImpl: createFetchRecorder([
+          jsonResponse({ invite: { ...invitePayload(), ...overrides } }),
+        ]).fetch,
+      });
+
+      await expect(client.getInvitePreview({ inviteToken: 'invalid-rules' })).rejects.toMatchObject({
+        code: 'invalid_response',
+      });
+    }
   });
 
   it('joins invites explicitly and parses an optional backend-issued realtime session', async () => {

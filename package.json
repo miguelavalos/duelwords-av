@@ -40,6 +40,7 @@
     "config:ios:built-account": "node scripts/ios/check-built-account-config.mjs",
     "dictionary:generate": "node scripts/generate-local-dictionaries.mjs",
     "dictionary:generate:gaia": "node scripts/generate-gaia-local-dictionaries.mjs",
+    "copy:generate:shared": "node scripts/generate-shared-surface-copy.mjs",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
     "verify": "pnpm run config:ios:check && pnpm run typecheck && pnpm run test",

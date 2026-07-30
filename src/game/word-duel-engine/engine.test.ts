@@ -65,6 +65,17 @@ describe('scoreGuess', () => {
 });
 
 describe('applyGuess', () => {
+  it('derives seven-letter boards and custom attempts from the selected rules', () => {
+    const dictionary = getLocalDictionary('es', 7);
+    const target = dictionary.targetWords[0];
+    const state = createLocalGame({ dictionary, language: 'es', maxAttempts: 4, target });
+    const result = applyGuess(state, target, dictionary);
+
+    expect(state).toMatchObject({ maxAttempts: 4, wordLength: 7 });
+    expect(result.accepted).toBe(true);
+    expect(result.state.guesses[0].letters).toHaveLength(7);
+  });
+
   it('does not consume an attempt for an invalid local fixture word', () => {
     const state = game('en', ENGLISH_TEST_TARGET);
     const result = applyGuess(state, 'xxxxx', getLocalDictionary('en'));
@@ -145,8 +156,8 @@ describe('applyGuess', () => {
 describe('local fixtures and safe summaries', () => {
   it('bundles the expected valid-guess and target profiles', () => {
     const expectedCounts = {
-      en: { targets: 750, validGuesses: 8_734 },
-      es: { targets: 750, validGuesses: 7_571 },
+      en: { targets: 750, validGuesses: 9_354 },
+      es: { targets: 750, validGuesses: 8_365 },
       ca: { targets: 500, validGuesses: 5_481 },
       fr: { targets: 500, validGuesses: 5_654 },
       de: { targets: 500, validGuesses: 6_299 },

@@ -1,6 +1,7 @@
 import type { GameLanguage, GuessRow, LetterFeedback } from '../word-duel-engine';
 import { WORD_DUEL_MAX_ATTEMPTS, WORD_DUEL_WORD_LENGTH } from '../word-duel-engine';
-import { gameLanguageLabel } from '../../i18n/locales';
+import { gameLanguageLabel, type InterfaceLocale } from '../../i18n/locales';
+import { SHARE_COPY, type ShareOutcome } from '../../i18n/share-copy';
 import { createIdleRematchProposal, type WordDuelRematchProposal } from './rematch-proposal';
 
 export type WordDuelResultOutcome = 'win' | 'loss' | 'draw' | 'no_winner' | 'technical';
@@ -139,8 +140,10 @@ export function createWordDuelResultViewModelFromLocalPayload(
   const isFinalized = true;
   const rematch = createIdleRematchProposal({
     gameLanguage: payload.gameLanguage,
+    maxAttempts: payload.maxAttempts,
     viewerRole: 'owner',
     viewerSide: payload.own.side,
+    wordLength: payload.wordLength,
   });
   const viewModelWithoutShare: Omit<WordDuelResultViewModel, 'safeSharePreview'> = {
     gameLabel: 'Word Duel',
@@ -271,14 +274,16 @@ export function createDemoWordDuelResultViewModel(input: {
 
 export function createSafeResultSharePreview(
   result: Omit<WordDuelResultViewModel, 'safeSharePreview'>,
+  interfaceLocale: InterfaceLocale = 'en',
 ): WordDuelResultSharePreview {
+  const copy = SHARE_COPY[interfaceLocale];
   const languageLabel = gameLanguageLabel(result.gameLanguage);
   const attempts = `${result.own.attemptsUsed}/${result.maxAttempts}`;
-  const outcome = shareOutcomeLabel(result.outcome, result.opponent.safeDisplayName);
+  const outcome = shareOutcomeLabel(result.outcome, result.opponent.safeDisplayName, interfaceLocale);
 
   return {
-    ctaLabel: 'Challenge me',
-    text: `DuelWords AV · Word Duel\n${outcome} · ${languageLabel} · ${attempts}\nChallenge me: <link>`,
+    ctaLabel: copy.challengeMe,
+    text: `DuelWords AV · ${copy.wordDuel}\n${outcome} · ${languageLabel} · ${attempts}\n${copy.challengeMe}: <link>`,
   };
 }
 
@@ -354,22 +359,12 @@ function emptyRowForLength(wordLength: number): WordDuelResultBoardRow {
   };
 }
 
-function shareOutcomeLabel(outcome: WordDuelResultOutcome, opponentName: string): string {
+function shareOutcomeLabel(outcome: WordDuelResultOutcome, opponentName: string, interfaceLocale: InterfaceLocale): string {
   const hasOpponent = opponentName && opponentName !== 'Solo';
-
-  if (outcome === 'win') {
-    return hasOpponent ? `Won vs ${opponentName}` : 'Won';
-  }
-  if (outcome === 'loss') {
-    return hasOpponent ? `Lost vs ${opponentName}` : 'Lost';
-  }
-  if (outcome === 'draw') {
-    return hasOpponent ? `Draw vs ${opponentName}` : 'Draw';
-  }
-  if (outcome === 'technical') {
-    return 'Result saved';
-  }
-  return 'No winner';
+  const copy = SHARE_COPY[interfaceLocale];
+  const shareOutcome: ShareOutcome = outcome;
+  if (!hasOpponent || outcome === 'technical') return copy.outcomeSolo[shareOutcome];
+  return `${copy.outcomeAgainst[shareOutcome]} ${opponentName}`;
 }
 
 function feedbackToCode(feedback: LetterFeedback): string {

@@ -848,7 +848,7 @@ participant-scoped, rejected before backend finalization, and parsed into only
 safe game summary, viewer outcome, target display word, and completed own/
 opponent result boards. Malformed final-result feedback fails closed instead of
 being rendered. Rematch proposal responses parse only safe owner/recipient
-display summaries, locked V1 settings, viewer permissions, expiry, status, and
+display summaries, locked shared settings, viewer permissions, expiry, status, and
 the accepted safe next-game lobby summary; unexpected target, dictionary,
 feedback-storage, actor, or provider fields are not retained.
 Current rematch proposal discovery returns `null` or the same safe proposal
@@ -868,7 +868,7 @@ source only, so the app still makes no real Apps AV API calls by default.
 `src/game/word-duel-active/handoff.ts` defines the local-safe handoff from
 the lobby preview to the active duel preview. `/word-duel/lobby-demo` can only
 open `/word-duel/active-demo` after the lobby reaches `active_round`, and the
-handoff route params contain only public V1 settings: language, `human_duel`,
+handoff route params contain only public duel settings: language, `human_duel`,
 word length, max attempts, and local demo source. They never carry game ids,
 player ids, targets, dictionary metadata, guesses, feedback, realtime tokens,
 sessions, account state, or provider state.
@@ -1031,6 +1031,9 @@ game id; it only creates a start request after recipient acceptance.
 ## Current Game Rules
 
 - Word Duel practice uses 5-letter words and 6 attempts.
+- Human Challenge and Play Avi allow 5, 6, or 7 letters with 4, 6, or 8
+  attempts. The host chooses human-duel rules; both players see the same locked
+  explanation, and rematches preserve those rules.
 - Local game languages are English, Spanish, Catalan, French, and German.
 - Connected Challenge source supports English, Spanish, Catalan, French, and
   German, and live production accepts all five through rematch and next lobby.
@@ -1041,8 +1044,9 @@ game id; it only creates a start request after recipient acceptance.
   corresponding five-key Latin spelling; German sharp s is excluded because it
   expands when normalized.
 - Invalid guesses do not consume attempts.
-- Practice, Solo Practice, and Play Avi share one persistent shuffled target deck per language;
-  no target repeats until that language's full deck has been used.
+- Practice and Solo Practice keep their five-letter rotations. Play Avi keeps a
+  separate persistent shuffled target deck for each language and word length;
+  no target repeats until that deck has been used.
 - Play Avi resolves the opponent turn automatically and exposes only aggregate
   valid-letter/correct-position counts for Avi's completed attempts.
 - New non-Daily games start from a setup screen. Settings stores this device's

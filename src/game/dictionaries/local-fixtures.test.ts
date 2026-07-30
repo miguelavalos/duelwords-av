@@ -10,8 +10,8 @@ import {
 const EXPECTED_VALID_GUESSES = {
   ca: 5_481,
   de: 6_299,
-  en: 8_734,
-  es: 7_571,
+  en: 9_354,
+  es: 8_365,
   fr: 5_654,
 } as const;
 
@@ -33,6 +33,17 @@ const PROHIBITED_TARGETS: Partial<Record<GameLanguage, ReadonlySet<string>>> = {
 };
 
 describe('bundled local dictionaries', () => {
+  it.each(GAME_LANGUAGES)('%s bundles separate six and seven-letter decks', (language) => {
+    for (const wordLength of [6, 7] as const) {
+      const dictionary = getLocalDictionary(language, wordLength);
+      expect(getLocalTargetCount(language, wordLength)).toBe(EXPECTED_TARGETS[language]);
+      expect(dictionary.validGuesses.length).toBeGreaterThan(9_000);
+      expect(dictionary.validGuesses.every((word) => Array.from(word).length === wordLength)).toBe(true);
+      expect(dictionary.targetWords).toHaveLength(EXPECTED_TARGETS[language]);
+      expect(dictionary.targetWords.every((word) => dictionary.validGuesses.includes(word))).toBe(true);
+    }
+  });
+
   it.each(GAME_LANGUAGES)('%s keeps a broad allowlist and a V1-sized target deck', (language) => {
     const dictionary = getLocalDictionary(language);
     const targets = LOCAL_WORD_FIXTURES[language];

@@ -17,13 +17,13 @@ import {
 const NOW_MS = Date.parse('2026-07-05T09:30:00.000Z');
 
 describe('Word Duel active handoff', () => {
-  it('creates a direct local demo handoff with the fixed V1 shape', () => {
-    expect(createWordDuelActiveDemoHandoff({ gameLanguage: 'es' })).toEqual({
+  it('creates a direct local demo handoff with configurable rules', () => {
+    expect(createWordDuelActiveDemoHandoff({ gameLanguage: 'es', maxAttempts: 8, wordLength: 7 })).toEqual({
       gameLanguage: 'es',
-      maxAttempts: 6,
+      maxAttempts: 8,
       mode: 'human_duel',
       source: 'direct_active_demo',
-      wordLength: 5,
+      wordLength: 7,
     });
   });
 
@@ -32,10 +32,10 @@ describe('Word Duel active handoff', () => {
 
     expect(handoff).toEqual({
       gameLanguage: 'es',
-      maxAttempts: 6,
+      maxAttempts: 8,
       mode: 'human_duel',
       source: 'local_lobby_demo',
-      wordLength: 5,
+      wordLength: 7,
     });
     expect(serialized(handoff)).not.toContain('target');
     expect(serialized(handoff)).not.toContain('dictionary');
@@ -66,7 +66,9 @@ describe('Word Duel active handoff', () => {
 function createActiveLobby() {
   const invite = createLocalInviteLobbyViewModel({
     gameLanguage: 'es',
+    maxAttempts: 8,
     nowMs: NOW_MS,
+    wordLength: 7,
   });
   const review = viewInviteReview(invite, NOW_MS + 1_000);
   const joined = joinInvite({

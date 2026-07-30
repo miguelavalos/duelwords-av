@@ -26,12 +26,15 @@ import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import {
   buildWordDuelActiveHandoffHref,
 } from './word-duel-route-params';
+import { publicDuelT, type PublicDuelCopyKey } from './public-duel-copy';
 
 const LOCAL_LOBBY_NOW_MS = Date.parse('2026-07-05T09:30:00.000Z');
 
 type WordDuelLobbyScreenProps = {
   initialGameLanguage?: GameLanguage;
 };
+
+type Copy = (key: PublicDuelCopyKey, values?: Record<string, string | number>) => string;
 
 export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobbyScreenProps) {
   const router = useRouter();
@@ -46,6 +49,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
   );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lobby = controllerState.lobby;
+  const copy = (key: PublicDuelCopyKey, values?: Record<string, string | number>) => publicDuelT(interfaceLocale, key, values);
 
   async function applyControllerAction(
     action: (current: WordDuelLobbyControllerState) => Promise<WordDuelLobbyControllerState>,
@@ -54,8 +58,8 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
       const nextState = await action(controllerState);
       setControllerState(nextState);
       setErrorMessage(null);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Action unavailable.');
+    } catch {
+      setErrorMessage(copy('actionUnavailable'));
     }
   }
 
@@ -67,8 +71,8 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
       });
       setControllerState(nextState);
       setErrorMessage(null);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Action unavailable.');
+    } catch {
+      setErrorMessage(copy('actionUnavailable'));
     }
   }
 
@@ -77,43 +81,43 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
       const handoff = createWordDuelActiveHandoffFromLobby(lobby);
       router.push(buildWordDuelActiveHandoffHref(handoff));
       setErrorMessage(null);
-    } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Active duel unavailable.');
+    } catch {
+      setErrorMessage(copy('unavailable'));
     }
   }
 
   return (
     <AppScreen bottomInset={spacing.md} contentGap={spacing.md}>
-      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} detail="Word Duel" onBack={() => router.back()} title="Invite lobby" />
+      <InteriorScreenHeader backLabel={t(interfaceLocale, 'back')} detail={copy('wordDuel')} onBack={() => router.back()} title={copy('lobby')} />
 
       <View style={[styles.statusBand, statusBandStyle(lobby.status, styles)]}>
         <View>
-          <Text style={styles.statusLabel}>{statusEyebrow(lobby.status)}</Text>
-          <Text style={styles.statusTitle}>{statusTitle(lobby)}</Text>
+          <Text style={styles.statusLabel}>{statusEyebrow(lobby.status, copy)}</Text>
+          <Text style={styles.statusTitle}>{statusTitle(lobby, copy)}</Text>
         </View>
         <View style={styles.languagePill}>
-          <Text style={styles.languageLabel}>Language</Text>
+          <Text style={styles.languageLabel}>{copy('language')}</Text>
           <Text style={styles.languageValue}>{languageLabel(lobby.invitePreview.gameLanguage)}</Text>
         </View>
       </View>
 
       <View style={styles.summaryGrid}>
-        <SummaryPill label="Mode" value="1v1" />
-        <SummaryPill label="Letters" value={`${lobby.invitePreview.wordLength}`} />
-        <SummaryPill label="Attempts" value={`${lobby.invitePreview.maxAttempts}`} />
+        <SummaryPill label={copy('duel')} value="1v1" />
+        <SummaryPill label={copy('letters')} value={`${lobby.invitePreview.wordLength}`} />
+        <SummaryPill label={copy('attempts')} value={`${lobby.invitePreview.maxAttempts}`} />
       </View>
 
-      <PlayersPanel players={lobby.players} />
+      <PlayersPanel copy={copy} players={lobby.players} />
 
-      {lobby.status === 'invite_review' ? <JoinReviewPanel lobby={lobby} /> : null}
+      {lobby.status === 'invite_review' ? <JoinReviewPanel copy={copy} lobby={lobby} /> : null}
 
-      {lobby.status === 'waiting_for_player' || lobby.status === 'lobby' ? <InvitePanel lobby={lobby} /> : null}
+      {lobby.status === 'waiting_for_player' || lobby.status === 'lobby' ? <InvitePanel copy={copy} lobby={lobby} /> : null}
 
-      {lobby.status === 'countdown' ? <CountdownPanel lobby={lobby} /> : null}
+      {lobby.status === 'countdown' ? <CountdownPanel copy={copy} lobby={lobby} /> : null}
 
-      {lobby.status === 'active_round' ? <ActiveReadyPanel lobby={lobby} /> : null}
+      {lobby.status === 'active_round' ? <ActiveReadyPanel copy={copy} lobby={lobby} /> : null}
 
-      {isTerminalStatus(lobby.status) ? <TerminalPanel status={lobby.status} /> : null}
+      {isTerminalStatus(lobby.status) ? <TerminalPanel copy={copy} /> : null}
 
       {errorMessage ? (
         <View style={styles.errorBox}>
@@ -129,17 +133,17 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
             nowMs: LOCAL_LOBBY_NOW_MS + 1_000,
             state,
           }))}>
-            Open join review
+            {copy('reviewInvite')}
           </AppButton>
         ) : null}
 
         {lobby.status === 'invite_review' ? (
           <AppButton onPress={() => applyControllerAction((state) => controller.joinInvite({
             nowMs: LOCAL_LOBBY_NOW_MS + 2_000,
-            safeDisplayName: 'Rival',
+            safeDisplayName: copy('rival'),
             state,
           }))}>
-            Join challenge
+            {copy('joinChallenge')}
           </AppButton>
         ) : null}
 
@@ -148,7 +152,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
             nowMs: LOCAL_LOBBY_NOW_MS + 3_000,
             state,
           }))}>
-            Ready
+            {copy('ready')}
           </AppButton>
         ) : null}
 
@@ -160,7 +164,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
               state,
             }),
           )}>
-            Rival ready
+            {copy('rivalReady')}
           </AppButton>
         ) : null}
 
@@ -172,7 +176,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
               state,
             }),
           )}>
-            Rival ready
+            {copy('rivalReady')}
           </AppButton>
         ) : null}
 
@@ -181,13 +185,13 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
             nowMs: LOCAL_LOBBY_NOW_MS + 7_000,
             state,
           }))}>
-            Open round 1
+            {copy('roundReadyTitle')}
           </AppButton>
         ) : null}
 
         {lobby.canOpenActiveDuel ? (
           <AppButton onPress={openActiveDuel}>
-            Open active duel
+            {copy('activeDuel')}
           </AppButton>
         ) : null}
 
@@ -200,7 +204,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
                 state,
               }))}
               style={styles.controlButton}>
-              View host
+              {copy('host')}
             </AppButton>
             <AppButton
               tone="quiet"
@@ -209,7 +213,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
                 state,
               }))}
               style={styles.controlButton}>
-              View rival
+              {copy('rival')}
             </AppButton>
           </View>
         ) : null}
@@ -223,7 +227,7 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
                 state,
               }))}
               style={styles.controlButton}>
-              Cancel
+              {copy('cancelRequest')}
             </AppButton>
           ) : null}
           {lobby.canExpire ? (
@@ -234,12 +238,12 @@ export function WordDuelLobbyScreen({ initialGameLanguage = 'en' }: WordDuelLobb
                 state,
               }))}
               style={styles.controlButton}>
-              Expire
+              {copy('close')}
             </AppButton>
           ) : null}
           {isTerminalStatus(lobby.status) ? (
             <AppButton tone="secondary" onPress={resetLocalInvite} style={styles.controlButton}>
-              New invite
+              {copy('createChallenge')}
             </AppButton>
           ) : null}
         </View>
@@ -309,11 +313,11 @@ function SummaryPill({ label, value }: { label: string; value: string }) {
   );
 }
 
-function PlayersPanel({ players }: { players: WordDuelLobbyPlayer[] }) {
+function PlayersPanel({ copy, players }: { copy: Copy; players: WordDuelLobbyPlayer[] }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Players</Text>
+      <Text style={styles.panelTitle}>{copy('lobby')}</Text>
       {players.map((player) => (
         <View key={player.side} style={styles.playerRow}>
           <View style={styles.playerSide}>
@@ -321,12 +325,12 @@ function PlayersPanel({ players }: { players: WordDuelLobbyPlayer[] }) {
           </View>
           <View style={styles.playerText}>
             <Text style={styles.playerName}>
-              {player.safeDisplayName}{player.isViewer ? ' (you)' : ''}
+              {player.safeDisplayName}{player.isViewer ? ` (${copy('you')})` : ''}
             </Text>
-            <Text style={styles.playerMeta}>{player.role} - {playerStateLabel(player.state)}</Text>
+            <Text style={styles.playerMeta}>{player.role === 'host' ? copy('host') : copy('rival')} · {playerStateLabel(player.state, copy)}</Text>
           </View>
           <Text style={[styles.readyBadge, player.state === 'ready' && styles.readyBadgeOn]}>
-            {player.state === 'ready' ? 'Ready' : player.state === 'joined' ? 'Joined' : 'Waiting'}
+            {player.state === 'ready' ? copy('ready') : player.state === 'joined' ? copy('joined') : copy('waiting')}
           </Text>
         </View>
       ))}
@@ -334,18 +338,18 @@ function PlayersPanel({ players }: { players: WordDuelLobbyPlayer[] }) {
   );
 }
 
-function InvitePanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+function InvitePanel({ copy, lobby }: { copy: Copy; lobby: WordDuelLobbyViewModel }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Invite</Text>
+      <Text style={styles.panelTitle}>{copy('shareInvite')}</Text>
       <View style={styles.codeRow}>
         <View style={styles.codeBlock}>
-          <Text style={styles.metaLabel}>Room code</Text>
+          <Text style={styles.metaLabel}>{copy('roomCode')}</Text>
           <Text selectable style={styles.codeText}>{lobby.invitePreview.roomCode}</Text>
         </View>
         <View style={styles.codeBlock}>
-          <Text style={styles.metaLabel}>Link</Text>
+          <Text style={styles.metaLabel}>{copy('inviteLabel')}</Text>
           <Text selectable numberOfLines={1} style={styles.linkText}>{lobby.invitePreview.inviteUrl}</Text>
         </View>
       </View>
@@ -354,95 +358,92 @@ function InvitePanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
   );
 }
 
-function JoinReviewPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+function JoinReviewPanel({ copy, lobby }: { copy: Copy; lobby: WordDuelLobbyViewModel }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Join challenge</Text>
+      <Text style={styles.panelTitle}>{copy('joinChallenge')}</Text>
       <Text style={styles.panelText}>
-        {languageLabel(lobby.invitePreview.gameLanguage)} word duel from {lobby.players[0]?.safeDisplayName ?? 'Host'}.
+        {languageLabel(lobby.invitePreview.gameLanguage)} · {lobby.players[0]?.safeDisplayName ?? copy('host')}
       </Text>
-      <Text style={styles.panelText}>Joining is explicit and does not mark Ready.</Text>
+      <Text style={styles.panelText}>{copy('joinHelp')}</Text>
     </View>
   );
 }
 
-function CountdownPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+function CountdownPanel({ copy, lobby }: { copy: Copy; lobby: WordDuelLobbyViewModel }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.countdownPanel}>
       <Text style={styles.countdownNumber}>{lobby.countdown?.remainingSeconds ?? 0}</Text>
-      <Text style={styles.countdownText}>Round opens only after the authority says it is due.</Text>
+      <Text style={styles.countdownText}>{copy('countdownHelp')}</Text>
     </View>
   );
 }
 
-function ActiveReadyPanel({ lobby }: { lobby: WordDuelLobbyViewModel }) {
+function ActiveReadyPanel({ copy, lobby }: { copy: Copy; lobby: WordDuelLobbyViewModel }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>Round {lobby.activeRound?.roundNumber ?? 1} ready</Text>
-      <Text style={styles.panelText}>The active board can open now. No target or feedback was exposed in lobby.</Text>
+      <Text style={styles.panelTitle}>{copy('roundStarted', { number: lobby.activeRound?.roundNumber ?? 1 })}</Text>
+      <Text style={styles.panelText}>{copy('roundLive')}</Text>
     </View>
   );
 }
 
-function TerminalPanel({ status }: { status: WordDuelLobbyStatus }) {
+function TerminalPanel({ copy }: { copy: Copy }) {
   const styles = useLobbyStyles();
   return (
     <View style={styles.panel}>
-      <Text style={styles.panelTitle}>{status === 'expired' ? 'Invite expired' : 'Invite cancelled'}</Text>
-      <Text style={styles.panelText}>No round, stats, result, or target reveal is created.</Text>
+      <Text style={styles.panelTitle}>{copy('challengeClosed')}</Text>
+      <Text style={styles.panelText}>{copy('actionUnavailable')}</Text>
     </View>
   );
 }
 
-function playerStateLabel(state: WordDuelLobbyPlayer['state']): string {
+function playerStateLabel(state: WordDuelLobbyPlayer['state'], copy: Copy): string {
   if (state === 'ready') {
-    return 'ready locked';
+    return copy('readyLocked');
   }
   if (state === 'joined') {
-    return 'in lobby';
+    return copy('joined');
   }
-  return 'waiting to join';
+  return copy('waiting');
 }
 
-function statusEyebrow(status: WordDuelLobbyStatus): string {
+function statusEyebrow(status: WordDuelLobbyStatus, copy: Copy): string {
   if (status === 'invite_review') {
-    return 'Review';
+    return copy('inviteReview');
   }
   if (status === 'countdown') {
-    return 'Countdown';
+    return copy('starting');
   }
   if (status === 'active_round') {
-    return 'Round open';
+    return copy('roundLive');
   }
   if (isTerminalStatus(status)) {
-    return 'Closed';
+    return copy('challengeClosed');
   }
-  return 'Lobby';
+  return copy('lobby');
 }
 
-function statusTitle(lobby: WordDuelLobbyViewModel): string {
+function statusTitle(lobby: WordDuelLobbyViewModel, copy: Copy): string {
   if (lobby.status === 'invite_review') {
-    return 'Accept before joining';
+    return copy('reviewBeforeJoin');
   }
   if (lobby.status === 'waiting_for_player') {
-    return 'Waiting for rival';
+    return copy('waitingForRival');
   }
   if (lobby.status === 'lobby') {
-    return lobby.readyBySide.a || lobby.readyBySide.b ? 'Ready is locked' : 'Both players joined';
+    return lobby.readyBySide.a || lobby.readyBySide.b ? copy('readyLocked') : copy('bothReady');
   }
   if (lobby.status === 'countdown') {
-    return 'Starting soon';
+    return copy('starting');
   }
   if (lobby.status === 'active_round') {
-    return 'Round 1 is ready';
+    return copy('roundReadyTitle');
   }
-  if (lobby.status === 'expired') {
-    return 'Room expired';
-  }
-  return 'Room cancelled';
+  return copy('challengeClosed');
 }
 
 function isTerminalStatus(status: WordDuelLobbyStatus): boolean {

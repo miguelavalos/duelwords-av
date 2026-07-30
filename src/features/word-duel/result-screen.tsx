@@ -2,6 +2,7 @@ import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, Share, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
+import type { DuelRules } from '@/game/duel-rules';
 import type { GameLanguage } from '@/game/word-duel-engine';
 import {
   acceptRematchProposal,
@@ -26,7 +27,7 @@ import {
   type WordDuelResultOutcome,
   type WordDuelResultViewModel,
 } from '@/game/word-duel-result/view-model';
-import { GAME_LANGUAGES, gameLanguageLabel as languageLabel, t } from '@/i18n/locales';
+import { GAME_LANGUAGES, gameLanguageLabel as languageLabel, t, type InterfaceLocale } from '@/i18n/locales';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { AppScreen } from '@/ui/app-screen';
 import { AppButton } from '@/ui/buttons';
@@ -34,6 +35,7 @@ import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard, type WordDuelBoardRow } from './components/word-duel-board';
+import { DuelRulesCard } from './components/duel-rules-card';
 import {
   buildLocalizedSafeShareText,
   wordDuelResultCopy,
@@ -87,8 +89,10 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 
       const idle = createIdleRematchProposal({
         gameLanguage: current.rematch.settings.gameLanguage,
+        maxAttempts: current.rematch.settings.maxAttempts,
         viewerRole: 'owner',
         viewerSide: current.own.side,
+        wordLength: current.rematch.settings.wordLength,
       });
 
       return {
@@ -102,8 +106,10 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
     setResult((current) => {
       const idle = createIdleRematchProposal({
         gameLanguage: current.rematch.settings.gameLanguage,
+        maxAttempts: current.rematch.settings.maxAttempts,
         viewerRole: 'owner',
         viewerSide: current.own.side,
+        wordLength: current.rematch.settings.wordLength,
       });
 
       return {
@@ -115,6 +121,10 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
 
   function changeRematchLanguage(language: GameLanguage) {
     updateRematch((proposal) => draftRematchProposal(proposal, { gameLanguage: language }));
+  }
+
+  function changeRematchRules(rules: DuelRules) {
+    updateRematch((proposal) => draftRematchProposal(proposal, rules));
   }
 
   function sendRematch() {
@@ -228,16 +238,20 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
       {sourceMode === 'human_duel' ? (
         <RematchPanel
           copy={copy}
+          interfaceLocale={interfaceLocale}
           result={result}
           onAccept={acceptRematch}
           onCancel={cancelRematch}
           onDecline={declineRematch}
           onExpire={expireRematch}
           onLanguageChange={changeRematchLanguage}
+          onRulesChange={changeRematchRules}
           onNewSetup={beginNewRematchSetup}
           onOpenAcceptedDuel={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.active, {
             gameLanguage: result.rematch.settings.gameLanguage,
+            maxAttempts: result.rematch.settings.maxAttempts,
             mode: 'human_duel',
+            wordLength: result.rematch.settings.wordLength,
           }))}
           onSend={sendRematch}
           onViewAsOwner={viewAsOwner}
@@ -264,7 +278,9 @@ export function WordDuelResultScreen({ resultSource = createDefaultWordDuelResul
               tone="quiet"
               onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.active, {
                 gameLanguage: result.rematch.settings.gameLanguage,
+                maxAttempts: result.rematch.settings.maxAttempts,
                 mode: 'human_duel',
+                wordLength: result.rematch.settings.wordLength,
               }))}
               style={compactActions ? styles.actionButtonCompact : styles.actionButton}>
               {copy.openAcceptedDuel}
@@ -363,11 +379,13 @@ function SharePreview({ copy, result }: { copy: WordDuelResultCopy; result: Word
 
 function RematchPanel({
   copy,
+  interfaceLocale,
   onAccept,
   onCancel,
   onDecline,
   onExpire,
   onLanguageChange,
+  onRulesChange,
   onNewSetup,
   onOpenAcceptedDuel,
   onSend,
@@ -376,11 +394,13 @@ function RematchPanel({
   result,
 }: {
   copy: WordDuelResultCopy;
+  interfaceLocale: InterfaceLocale;
   onAccept: () => void;
   onCancel: () => void;
   onDecline: () => void;
   onExpire: () => void;
   onLanguageChange: (language: GameLanguage) => void;
+  onRulesChange: (rules: DuelRules) => void;
   onNewSetup: () => void;
   onOpenAcceptedDuel: () => void;
   onSend: () => void;
@@ -406,6 +426,7 @@ function RematchPanel({
             {languageLabel(proposal.settings.gameLanguage)} · {copy.secondsLeft(proposal.remainingSeconds ?? 0)}
           </Text>
         </View>
+        <DuelRulesCard compact interfaceLocale={interfaceLocale} rules={proposal.settings} />
         <View style={styles.panelButtonRow}>
           {isOwner ? (
             <>
@@ -446,6 +467,7 @@ function RematchPanel({
             {languageLabel(proposal.settings.gameLanguage)} · {copy.nextDuelReady}
           </Text>
         </View>
+        <DuelRulesCard compact interfaceLocale={interfaceLocale} rules={proposal.settings} />
         <AppButton onPress={onOpenAcceptedDuel}>{copy.openDuel}</AppButton>
       </View>
     );
@@ -458,6 +480,7 @@ function RematchPanel({
           <Text style={styles.rematchTitle}>{copy.rematchTerminalTitles[proposal.status]}</Text>
           <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · {copy.noNextDuelOpened}</Text>
         </View>
+        <DuelRulesCard compact interfaceLocale={interfaceLocale} rules={proposal.settings} />
         <AppButton tone="secondary" onPress={onNewSetup}>{copy.newSetup}</AppButton>
       </View>
     );
@@ -468,12 +491,18 @@ function RematchPanel({
       <View style={styles.rematchHeader}>
         <View>
           <Text style={styles.rematchTitle}>{copy.rematchSetup}</Text>
-          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)} · {copy.fiveLetters}</Text>
+          <Text style={styles.rematchText}>{languageLabel(proposal.settings.gameLanguage)}</Text>
         </View>
         <AppButton disabled={!proposal.canCancel} tone="quiet" onPress={onCancel} style={styles.panelButton}>
           {copy.cancel}
         </AppButton>
       </View>
+      <DuelRulesCard
+        editable={proposal.canEditSettings}
+        interfaceLocale={interfaceLocale}
+        onChange={onRulesChange}
+        rules={proposal.settings}
+      />
       <View style={styles.segmented}>
         {GAME_LANGUAGES.map((language) => {
           const selected = language.code === proposal.settings.gameLanguage;

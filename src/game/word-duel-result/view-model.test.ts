@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { draftRematchProposal } from './rematch-proposal';
 import {
   createDemoWordDuelResultViewModel,
+  createSafeResultSharePreview,
   createWordDuelResultLocalPayload,
   createWordDuelResultViewModelFromLocalPayload,
   parseWordDuelResultLocalPayload,
@@ -182,9 +183,12 @@ describe('word duel result view model', () => {
       targetDisplayWord: 'crane',
     });
     const result = createWordDuelResultViewModelFromLocalPayload(payload);
+    const spanishShare = createSafeResultSharePreview(result, 'es');
 
     expect(result.safeSharePreview.text).toContain('Won');
     expect(result.safeSharePreview.text).not.toContain('vs Solo');
+    expect(spanishShare.ctaLabel).toBe('Réteme');
+    expect(spanishShare.text).toContain('Victoria');
   });
 });
 
