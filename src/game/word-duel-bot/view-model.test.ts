@@ -143,7 +143,7 @@ describe('Avi bot duel local view model', () => {
     const session = createAviBotDuelSession({ gameLanguage: 'ca', gameSeed: 0, nowMs: NOW_MS });
     const submitted = submitAviBotDuelGuess({ input: 'sobre', nowMs: NOW_MS + 1_000, session });
 
-    expect(session.target.normalizedWord).toBe('tambe');
+    expect(getLocalDictionary('ca').targetWords).toContain(session.target.normalizedWord);
     if (!submitted.accepted) {
       throw new Error('Expected human fixture guess to be accepted.');
     }
@@ -221,11 +221,12 @@ describe('Avi bot duel local view model', () => {
 
     const resolved = resolveAviBotRound({ nowMs: NOW_MS + 12_000, session: submitted.session });
     const resolvedView = createAviBotDuelViewModel(resolved);
+    const botFeedback = resolved.botState.guesses[0]?.feedback ?? [];
     expect(resolvedView.opponent.attemptSummaries[0]).toEqual({
       attemptNumber: 1,
-      exactCount: 0,
+      exactCount: botFeedback.filter((value) => value === 'exact').length,
       state: 'scored',
-      validCount: 1,
+      validCount: botFeedback.filter((value) => value === 'exact' || value === 'present').length,
     });
     expect(JSON.stringify(resolvedView.opponent.attemptSummaries).toLowerCase()).not.toMatch(
       /crane|guess|feedback|letter|target/,

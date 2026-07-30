@@ -36,20 +36,20 @@ describe('word duel shared UI model helpers', () => {
     const initial = createLocalGame({
       dictionary: getLocalDictionary('en'),
       language: 'en',
-      target: LOCAL_WORD_FIXTURES.en[0].displayWord,
+      target: 'crane',
     });
     const first = applyGuess(initial, 'flame', getLocalDictionary('en'));
     if (!first.accepted) {
       throw new Error('Expected fixture guess to be accepted.');
     }
-    const second = applyGuess(first.state, LOCAL_WORD_FIXTURES.en[0].displayWord, getLocalDictionary('en'));
+    const second = applyGuess(first.state, 'crane', getLocalDictionary('en'));
     if (!second.accepted) {
       throw new Error('Expected target guess to be accepted.');
     }
 
     const feedback = createKeyboardFeedbackFromGuesses(second.state.guesses);
 
-    for (const letter of new Set(Array.from(LOCAL_WORD_FIXTURES.en[0].normalizedWord))) {
+    for (const letter of new Set(Array.from('crane'))) {
       expect(feedback.get(letter)).toBe('exact');
     }
     expect(feedback.get('f')).toBe('absent');

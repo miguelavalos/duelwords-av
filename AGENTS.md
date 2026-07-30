@@ -185,7 +185,13 @@ Current implementation slice:
   official `DW-013` implementation, while Play Avi remains device-local.
 - Sentry diagnostics facade backed by `@sentry/react-native`, disabled in debug
   builds or without a DSN and scrubbed against game/account secrets.
-- Bundled offline EN/ES/CA/FR/DE allowlists and frequency-ranked target decks.
+- Bundled offline EN/ES/CA/FR/DE allowlists and versioned curated target decks.
+  Every language has exactly 750 solutions at each supported 5/6/7-letter
+  length. Keep accepted guesses broader than solutions; edit the authoritative
+  `src/game/dictionaries/curated-targets/` deck instead of allowing the Gaia
+  generator to re-rank targets. Preserve the common-noun/adjective policy,
+  proper-name/verbal-form exclusions, embedded deck SHA, and
+  `curated-targets.test.ts` parity gate.
   Practice, Solo Practice, and Play Avi share a persistent shuffled deck per language and must
   not repeat a target before exhausting that deck. Keep target selection local;
   only official Daily may obtain its chosen word from the server, and only

@@ -158,9 +158,9 @@ describe('local fixtures and safe summaries', () => {
     const expectedCounts = {
       en: { targets: 750, validGuesses: 9_354 },
       es: { targets: 750, validGuesses: 8_365 },
-      ca: { targets: 500, validGuesses: 5_481 },
-      fr: { targets: 500, validGuesses: 5_654 },
-      de: { targets: 500, validGuesses: 6_299 },
+      ca: { targets: 750, validGuesses: 5_481 },
+      fr: { targets: 750, validGuesses: 5_654 },
+      de: { targets: 750, validGuesses: 6_299 },
     } as const;
     for (const language of ['en', 'es', 'ca', 'fr', 'de'] as const) {
       const entries = LOCAL_WORD_FIXTURES[language];

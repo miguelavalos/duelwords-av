@@ -4,8 +4,8 @@ DuelWords AV bundles compact five-, six-, and seven-letter word data for
 offline native duel play. Daily and the original solo modes remain five-letter
 games.
 Generated app assets contain display/normalized words and auditable source
-metadata. The CA/FR/DE generator is public in this repository; the reviewed
-EN/ES curation pipeline remains in the private AVALSYS workspace.
+metadata. Broad accepted-guess lists remain separate from the stricter,
+checked-in editorial solution decks.
 
 ## English — ESDB / SCOWL
 
@@ -53,11 +53,11 @@ contains the generated dictionary assets.
   - Spanish: 8,365 five-letter, 11,216 six-letter, and 18,761 seven-letter
     normalized valid guesses. Each length has 750 targets.
   - Catalan: 5,481 five-letter, 9,501 six-letter, and 13,134 seven-letter
-    normalized valid guesses. Each length has 500 frequency-ranked targets.
+    normalized valid guesses. Each length has 750 curated targets.
   - French: 5,654 five-letter, 9,802 six-letter, and 14,035 seven-letter
-    normalized valid guesses. Each length has 500 frequency-ranked targets.
+    normalized valid guesses. Each length has 750 curated targets.
   - German: 6,299 five-letter, 9,225 six-letter, and 11,661 seven-letter
-    normalized valid guesses. Each length has 500 frequency-ranked targets.
+    normalized valid guesses. Each length has 750 curated targets.
 
 The reproducible generator accepts only unflagged XML entries made of exactly
 the requested five, six, or seven Latin-script letters. Catalan and French title-case entries are excluded
@@ -66,21 +66,54 @@ retained because standard German capitalizes nouns. Accents and umlauts are
 folded for keyboard-tolerant lookup. German sharp-s entries are excluded because
 uppercasing or transliterating `ß` can expand one tile into two letters.
 Normalized collisions retain the highest-frequency source spelling, with a
-locale-aware lexical tie-break. The configured 750 EN/ES or 500 CA/FR/DE rows
-by source frequency are targets after an auditable target-only exclusion set
-removes explicit profanity and particularly sensitive identity/name
-combinations; excluded rows remain valid guesses. Every remaining eligible row
-is accepted only as a guess.
-
-The five-letter English and Spanish target decks remain unchanged while their
-valid-guess allowlists gain the complete eligible Gaia union. The six- and
-seven-letter decks for all languages are deterministic Gaia frequency
-selections with the same explicit target-only exclusion policy, but they have
-not yet received equivalent word-by-word human editorial review. Across the 15
+locale-aware lexical tie-break. Gaia frequency orders candidates but does not
+grant solution status. Every generated target is read from the versioned
+editorial decks under `src/game/dictionaries/curated-targets/`, and each
+generated asset records that deck's path and SHA-256. Across the 15
 language/length combinations the app bundles 157,017 valid normalized words
-and 9,000 targets. “Complete” here means every eligible entry from the pinned,
-licensed inputs after documented normalization—not every word that could exist
-in a language. That curation distinction remains a known product risk.
+and 11,250 targets. “Complete” here means every eligible accepted guess from
+the pinned inputs after documented normalization—not every word that could
+exist in a living language.
+
+## Lexical sources used to curate solution decks
+
+The following sources supplied lemma/category evidence for selecting common
+nouns and adjectives. The app bundles only the resulting compact solution
+decks, not these complete lexical databases.
+
+- Open Multilingual Wordnet data commit
+  `406bf83b3c507a3d1f26e88252d5d66893fd36bf`:
+  - Princeton WordNet English data, SHA-256
+    `d1409d88addcdb890b1606dd280b558cca4258b1f33bd580d54ed949daad1ede`,
+    under the WordNet license reproduced in
+    `licenses/Princeton-WordNet-License.txt`.
+  - Multilingual Central Repository Spanish data, SHA-256
+    `0ec37ce94ee2acc63ad6b120e1051f9841d172778cc24adc0023fb8dccf0a7cd`,
+    and Catalan data, SHA-256
+    `3c83c0c5298ed700a56dff9e9ea85dad2032162825778fec2c3df99fbccd3060`,
+    by Aitor Gonzalez-Agirre, Egoitz Laparra, and German Rigau, under CC BY
+    3.0; notice reproduced in `licenses/MCR-CC-BY-3.0.txt`.
+  - WOLF French data, SHA-256
+    `6effab15723bbb482f2922d42eb1db37c8586984ce7735ebfe0a096000b69f86`,
+    by Benoît Sagot and Darja Fišer, under CeCILL-C; license reproduced in
+    `licenses/WOLF-CeCILL-C.txt`.
+- OdeNet commit `8ba741223048c28f67d4c38560ea4c0ee89568bb`, German
+  WordNet SHA-256
+  `7cd70a901b1104c084a398798981514cd0acdd0cc9824436d0b563cbdeb3bef4`,
+  by Melanie Siegel and Francis Bond, under CC BY-SA 4.0; license reproduced in
+  `licenses/OdeNet-CC-BY-SA-4.0.txt`.
+- Wikidata lexicographical proper-noun data was consulted under CC0, and
+  Apertium morphological analysis was used as a non-bundled editorial check.
+Neither service is a runtime dependency.
+
+To the extent the German curated target decks are adapted OdeNet material,
+those data files are offered under CC BY-SA 4.0. The other source-specific
+license and attribution obligations above continue to apply to their
+respective lexical contributions; they do not replace the repository's license
+for original application code.
+
+The full selection policy and connected-runtime boundary are documented in
+`docs/dictionary-solution-policy.md`.
 
 `wordfreq` was evaluated but is not a source for these assets. Its code is
 Apache-2.0, while its bundled frequency data is CC BY-SA 4.0 and upstream

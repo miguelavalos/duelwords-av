@@ -436,6 +436,34 @@ symbolication risk. The other remaining product risk is editorial: the 6/7
 target decks are deterministic and frequency-filtered but have not been
 reviewed word by word.
 
+## Standardized curated solution decks
+
+The next source candidate separates broad accepted guesses from authoritative
+editorial solution decks. Every EN/ES/CA/FR/DE × 5/6/7 combination now has
+exactly 750 solutions: 2,250 per language and 11,250 total, while the accepted
+guess total remains 157,017. The checked-in decks prioritize common nouns and
+adjectives and exclude known proper names, verbal forms, profanity, slurs, and
+poor-fit sensitive terms. Gaia remains the accepted-word/frequency source;
+WordNet-family lexical data supplies part-of-speech evidence.
+
+The generator now reads `src/game/dictionaries/curated-targets/`, rejects any
+entry that is not an exact eligible Gaia row or appears in the explicit
+exclusion set, and embeds the deck path and SHA-256 into each generated asset.
+`curated-targets.test.ts` prevents generated/editorial drift, while the local
+fixture suite holds representative conjugation/name regressions. Full policy,
+source hashes, and licenses are in `docs/dictionary-solution-policy.md` and
+`THIRD_PARTY_NOTICES.md`.
+
+The matching private immutable D1 import candidate is
+`curated-5-7-20260730-003`: 15 versions, 157,017 word rows, 11,250 targets, and
+contract SHA-256
+`fb4c23234615a6597d160f094874aa39b2e799bc4905d6816e818e106f4eac6c`.
+It passed local in-memory migration/import verification but has not been
+applied to preview or production. Production therefore correctly remains on
+the previously activated 9,000-target release until a separate deploy
+preflight, explicit authorization, ordered import verification, and lifecycle
+smoke.
+
 ## Web physical-keyboard parity
 
 The shared on-screen keyboard remains the visual and touch target on every

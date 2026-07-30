@@ -16,20 +16,21 @@ const EXPECTED_VALID_GUESSES = {
 } as const;
 
 const EXPECTED_TARGETS = {
-  ca: 500,
-  de: 500,
+  ca: 750,
+  de: 750,
   en: 750,
   es: 750,
-  fr: 500,
+  fr: 750,
 } as const;
 
 const GAME_LANGUAGES = ['en', 'es', 'ca', 'fr', 'de'] as const satisfies readonly GameLanguage[];
 
 const PROHIBITED_TARGETS: Partial<Record<GameLanguage, ReadonlySet<string>>> = {
-  ca: new Set(['barca', 'jesus', 'lluis', 'maria', 'marta', 'merce', 'paris', 'pujol']),
-  de: new Set(['adolf', 'chris', 'david', 'james', 'jesus', 'juden', 'maria', 'meyer', 'paris', 'peter', 'tokio']),
-  en: new Set(['blabs', 'kikes', 'nazis', 'sluts']),
-  es: new Set(['arabe', 'judia', 'judio', 'nazis', 'rusos', 'sexos']),
+  ca: new Set(['acabem', 'barca', 'haver', 'jesus', 'lluis', 'maria', 'marta', 'merce', 'paris', 'passa', 'pujol', 'serem', 'tenia', 'trobes']),
+  de: new Set(['adolf', 'chris', 'david', 'geboren', 'gesetzt', 'haben', 'james', 'jesus', 'juden', 'maria', 'meyer', 'paris', 'peter', 'spielen', 'tokio', 'waren', 'wurde']),
+  en: new Set(['being', 'blabs', 'going', 'kikes', 'nazis', 'playing', 'sluts', 'working']),
+  es: new Set(['emplean', 'existio', 'habrian', 'judia', 'judio', 'llamada', 'llamado', 'nazis', 'pinto', 'rusos', 'sexos', 'tenia']),
+  fr: new Set(['appele', 'avoir', 'compose', 'connu', 'ecrit', 'etaient', 'furent', 'passe', 'possede', 'rendit', 'venait']),
 };
 
 describe('bundled local dictionaries', () => {
@@ -41,10 +42,11 @@ describe('bundled local dictionaries', () => {
       expect(dictionary.validGuesses.every((word) => Array.from(word).length === wordLength)).toBe(true);
       expect(dictionary.targetWords).toHaveLength(EXPECTED_TARGETS[language]);
       expect(dictionary.targetWords.every((word) => dictionary.validGuesses.includes(word))).toBe(true);
+      expect(dictionary.targetWords.every((word) => !(PROHIBITED_TARGETS[language]?.has(word) ?? false))).toBe(true);
     }
   });
 
-  it.each(GAME_LANGUAGES)('%s keeps a broad allowlist and a V1-sized target deck', (language) => {
+  it.each(GAME_LANGUAGES)('%s keeps a broad allowlist and a standardized target deck', (language) => {
     const dictionary = getLocalDictionary(language);
     const targets = LOCAL_WORD_FIXTURES[language];
     const valid = new Set(dictionary.validGuesses);

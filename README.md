@@ -546,17 +546,19 @@ pnpm run doctor:react:diff
 pnpm run doctor:react
 ```
 
-Reproduce the checked-in Gaia-derived target ranking and CA/FR/DE allowlists:
+Reproduce the checked-in Gaia-derived allowlists and the 15 editorial solution
+decks:
 
 ```bash
 pnpm run dictionary:generate:gaia
 ```
 
-The command verifies the five pinned source hashes before writing. For EN/ES
-it preserves the checked-in reviewed allowlists and only rebuilds the
-frequency-ranked target decks; for CA/FR/DE it rebuilds both allowlists and
-targets. Regenerating the reviewed EN/ES allowlists themselves remains a
-private fixture-pipeline operation.
+The command verifies the five pinned Gaia hashes before writing. For EN/ES
+five-letter data it preserves the reviewed accepted-word base and rebuilds its
+complete Gaia union; for every language and length it validates the exact
+versioned deck in `src/game/dictionaries/curated-targets/`. Every generated
+asset records the editorial deck path and SHA-256. See
+[`docs/dictionary-solution-policy.md`](docs/dictionary-solution-policy.md).
 
 The web dev server uses port `8098`. The deployable web architecture, host
 separation, immutable artifact checks, and rollback rules are documented in
@@ -1031,10 +1033,9 @@ game id; it only creates a start request after recipient acceptance.
 - Keep DuelWords Pro explicitly non-purchasing until StoreKit products,
   Account AV entitlement reconciliation, store/legal metadata, purchase,
   restore, and physical-device gates receive separate approval and pass.
-- Complete final launch curation for all five target decks. Their bundled
-  allowlists and 500/750-word target pools are reproducible from pinned,
-  license-reviewed sources, but the current frequency ranking and auditable
-  exclusions are internal-candidate evidence rather than final human approval.
+- Continue handling player/editorial reports through the versioned solution
+  decks and exclusion regressions. All five languages now use the same 750
+  solutions per length; accepted guesses remain broader by design.
 - The five-language connected backend gate is closed: migrations `0071` and
   `0072`, the pinned CA/FR/DE dictionaries, matching Convex/API validators, and
   one bounded CA/FR/DE production lifecycle smoke are complete. Do not repeat
@@ -1078,12 +1079,15 @@ game id; it only creates a start request after recipient acceptance.
 - Feedback uses a duplicate-letter-safe two-pass algorithm.
 
 The bundled dictionaries are the offline native candidate. English and Spanish
-use reviewed internal MVP allowlists; their 750-target decks are ranked by the
-pinned Gaia frequency source after intersection with those allowlists. Catalan,
-French, and German use pinned Gaia-derived allowlists and 500-target decks. All
-target decks still require a final human launch-curation pass. Connected
-gameplay continues to use Apps AV API/D1 as dictionary and game authority, with
-Convex only as a safe realtime projection.
+five-letter accepted guesses retain their reviewed internal MVP bases plus the
+complete eligible Gaia union; the other accepted-guess lists come from the
+pinned Gaia sources. All languages now have an explicit 750-solution deck for
+each of 5, 6, and 7 letters (2,250 per language; 11,250 total), selected under
+the common noun/adjective policy in
+[`docs/dictionary-solution-policy.md`](docs/dictionary-solution-policy.md).
+Connected gameplay continues to use Apps AV API/D1 as dictionary and game
+authority, with Convex only as a safe realtime projection. The matching
+immutable server import is prepared but not deployed.
 
 The diagnostics runtime installs the native Sentry SDK with native crash
 handling, zero tracing, no default PII, an allowlisted breadcrumb vocabulary,

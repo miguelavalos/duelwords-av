@@ -4,31 +4,39 @@ import path from 'node:path';
 
 const GAIA_COMMIT = '975a35c0f5010df341e96d6c5ec60217f5347412';
 const GAIA_DICTIONARY_ROOT = 'apps/keyboard/js/imes/latin/dictionaries';
-const TARGET_COUNTS = Object.freeze({ en: 750, es: 750, ca: 500, fr: 500, de: 500 });
+const TARGET_COUNTS = Object.freeze({ en: 750, es: 750, ca: 750, fr: 750, de: 750 });
 const SUPPORTED_WORD_LENGTHS = Object.freeze([5, 6, 7]);
+const DEFAULT_TARGET_ROOT = 'src/game/dictionaries/curated-targets';
 const TARGET_EXCLUSIONS = Object.freeze({
-  en: new Set(['kikes', 'nazis', 'sluts']),
+  en: new Set(['kikes', 'nazis', 'sluts', 'suicide']),
   es: new Set([
-    'arabe', 'checo', 'china', 'danes', 'etnia', 'gales', 'india', 'indio',
+    'arabe', 'asirio', 'bereber', 'checo', 'china', 'danes', 'etnia', 'gales', 'ibero', 'india', 'indio',
     'irani', 'islam', 'judia', 'judio', 'mayas', 'moros', 'nazis', 'persa',
-    'porno', 'rusas', 'rusos', 'sexos', 'sueca', 'sueco', 'suiza', 'turca',
+    'libio', 'negro', 'porno', 'rusas', 'rusos', 'sexos', 'sueca', 'sueco', 'suiza', 'turca',
     'turco', 'vasca', 'vasco',
   ]),
   ca: new Set([
-    'barca', 'jesus', 'jueus', 'joana', 'lluis', 'maria', 'marta', 'merce',
-    'merda', 'paris', 'pujol', 'xviii',
+    'barca', 'croat', 'genital', 'iraquia', 'jesus', 'jueus', 'joana', 'lluis',
+    'maria', 'marta', 'merce', 'merda', 'orgia', 'paris', 'porno', 'pujol', 'xviii',
   ]),
   fr: new Set(['arabe', 'belge', 'grecs', 'juifs', 'juive', 'russe', 'serbe']),
   de: new Set([
-    'adolf', 'aires', 'alpen', 'andre', 'asien', 'athen', 'anton', 'basel',
+    'abuja', 'adolf', 'adria', 'aires', 'albion', 'alpen', 'alster', 'andre',
+    'apollon', 'araber', 'asien', 'athen', 'athene', 'anton', 'badener', 'bafin', 'basel',
     'beach', 'bernd', 'billy', 'brian', 'brown', 'bruno', 'chile', 'china', 'chris', 'david',
-    'davis', 'della', 'donau', 'erich', 'eugen', 'facto', 'felix', 'frank',
-    'fritz', 'georg', 'hagen', 'harry', 'heinz', 'henri', 'henry', 'horst',
+    'beijing', 'beirut', 'birma', 'bloch', 'bruhl', 'burma', 'casar', 'dakar', 'davis',
+    'delhi', 'della', 'donau', 'dracula', 'emden', 'erich', 'eugen', 'facto',
+    'felix', 'figaro', 'fontane', 'frank', 'fritz', 'gdynia', 'gemini', 'georg',
+    'gorki', 'hagen', 'harry', 'heinz', 'henri', 'henry', 'herbie', 'hermes', 'horst', 'husch',
     'islam', 'jacob', 'jakob', 'james', 'japan', 'jesus', 'jimmy', 'jones',
-    'josef', 'juden', 'klaus', 'lewis', 'louis', 'mainz', 'maria', 'marie',
-    'meyer', 'mount', 'oscar', 'paris', 'peter', 'pfalz', 'polen', 'rhein',
-    'roger', 'saale', 'santa', 'scott', 'simon', 'steve', 'texas', 'tirol',
-    'tokio', 'trier', 'turin', 'wales',
+    'irkutsk', 'josef', 'juden', 'kanaren', 'klaus', 'krupp', 'levante', 'lewis', 'louis',
+    'lusaka', 'mahren', 'mainz', 'maria', 'marie', 'merlin', 'meyer', 'minerva',
+    'mosel', 'motown', 'mount', 'mulheim', 'muslim', 'nairobi', 'neger', 'neptun',
+    'olympia', 'oscar', 'ostrom', 'paris', 'pariser', 'peter', 'pfalz', 'playboy',
+    'polen', 'praha', 'praia', 'proll', 'quito', 'rambo', 'ravenna', 'rhein',
+    'roger', 'sachs', 'saale', 'santa', 'satan', 'scott', 'simon', 'skopje',
+    'steve', 'sucre', 'telekom', 'texas', 'tirol', 'tokio', 'trier', 'turin',
+    'turke', 'vogesen', 'wales', 'werder', 'zaire', 'zurcher',
   ]),
 });
 
@@ -73,6 +81,7 @@ for (let index = 0; index < argv.length; index += 2) {
 
 const outputRoot = args.get('--output') ?? 'src/game/dictionaries/generated';
 const sourceRoot = args.get('--source-root');
+const targetRoot = args.get('--target-root') ?? DEFAULT_TARGET_ROOT;
 const requestedLanguages = (args.get('--languages') ?? 'en,es,ca,fr,de')
   .split(',')
   .map((language) => language.trim())
@@ -107,6 +116,9 @@ for (const language of requestedLanguages) {
   assertSha256(xml, source.sha256, `${language} Gaia source`);
   for (const wordLength of requestedWordLengths) {
     const sourceCandidates = parseCandidates(xml, language, wordLength);
+    const sourceCandidatesByNormalizedWord = new Map(
+      sourceCandidates.map((candidate) => [candidate.normalizedWord, candidate]),
+    );
     const usesReviewedAllowlist = source.rankExistingAllowlist && wordLength === 5;
     const existingDictionary = usesReviewedAllowlist
       ? JSON.parse(await readFile(path.join(outputRoot, `${language}.json`), 'utf8'))
@@ -117,13 +129,24 @@ for (const language of requestedLanguages) {
         .sort((left, right) => left.localeCompare(right, language))
       : sourceValidGuesses;
     const targetCount = TARGET_COUNTS[language];
-    const targetCandidates = usesReviewedAllowlist
-      ? existingDictionary.targets.map(([displayWord, normalizedWord]) => ({ displayWord, normalizedWord }))
-      : sourceCandidates;
-    const targets = targetCandidates
-      .filter((candidate) => !TARGET_EXCLUSIONS[language].has(candidate.normalizedWord))
-      .slice(0, targetCount)
-      .map((candidate) => [candidate.displayWord, candidate.normalizedWord]);
+    const targetDeckName = `${language}-${wordLength}.json`;
+    const targetDeckPath = path.join(targetRoot, targetDeckName);
+    const targetDeckSource = await readFile(targetDeckPath, 'utf8');
+    const curatedDisplayWords = JSON.parse(targetDeckSource);
+    const targets = curatedDisplayWords.map((displayWord) => {
+      if (typeof displayWord !== 'string') {
+        throw new Error(`${language}/${wordLength} curated targets must contain strings only.`);
+      }
+      const normalizedWord = normalizeWord(displayWord, language);
+      const candidate = sourceCandidatesByNormalizedWord.get(normalizedWord);
+      if (candidate === undefined || candidate.displayWord !== displayWord) {
+        throw new Error(`${language}/${wordLength} curated target is not an exact eligible Gaia row: ${displayWord}.`);
+      }
+      if (TARGET_EXCLUSIONS[language].has(normalizedWord)) {
+        throw new Error(`${language}/${wordLength} curated target is explicitly prohibited: ${displayWord}.`);
+      }
+      return [displayWord, normalizedWord];
+    });
 
     if (targets.length !== targetCount) {
       throw new Error(`${language}/${wordLength} has only ${targets.length} eligible targets; expected ${targetCount}.`);
@@ -139,9 +162,9 @@ for (const language of requestedLanguages) {
         sha256: source.sha256,
         wordLength,
         allowlistSource: usesReviewedAllowlist ? 'reviewed-allowlist-plus-complete-eligible-gaia-union' : 'gaia-source',
-        targetPolicy: usesReviewedAllowlist
-          ? `preserved-${targetCount}-reviewed-frequency-targets`
-          : `top-${targetCount}-eligible-by-source-frequency`,
+        targetPolicy: `curated-${targetCount}-common-noun-adjective-solutions`,
+        targetDeckPath: `${DEFAULT_TARGET_ROOT}/${targetDeckName}`,
+        targetDeckSha256: sha256(targetDeckSource),
         targetExclusions: [...TARGET_EXCLUSIONS[language]],
       },
       validGuesses,
@@ -227,8 +250,12 @@ function decodeXml(value) {
 }
 
 function assertSha256(value, expected, label) {
-  const actual = createHash('sha256').update(value).digest('hex');
+  const actual = sha256(value);
   if (actual !== expected) throw new Error(`${label} SHA-256 mismatch: expected ${expected}, got ${actual}.`);
+}
+
+function sha256(value) {
+  return createHash('sha256').update(value).digest('hex');
 }
 
 function assertUnique(values, label) {
