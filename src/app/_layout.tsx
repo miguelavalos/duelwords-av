@@ -16,6 +16,13 @@ const duelWordsFlowScreenOptions = {
   gestureDirection: 'horizontal' as const,
 };
 
+const protectedChallengeScreenOptions = {
+  ...duelWordsFlowScreenOptions,
+  fullScreenGestureEnabled: false,
+  gestureEnabled: false,
+  title: 'Word Duel — DuelWords AV',
+};
+
 function RootLayout() {
   const appTheme = useResolvedAppTheme();
 
@@ -38,7 +45,7 @@ function RootLayout() {
               <Stack.Screen name="onboarding" />
               <Stack.Screen name="pro" options={{ presentation: 'modal' }} />
               <Stack.Screen name="word-duel/active-demo" options={duelWordsFlowScreenOptions} />
-              <Stack.Screen name="word-duel/challenge" options={{ ...duelWordsFlowScreenOptions, title: 'Word Duel — DuelWords AV' }} />
+              <Stack.Screen name="word-duel/challenge" options={protectedChallengeScreenOptions} />
               <Stack.Screen name="word-duel/connected-runtime" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="word-duel/lobby-demo" options={duelWordsFlowScreenOptions} />
               <Stack.Screen name="word-duel/play-avi" options={duelWordsFlowScreenOptions} />

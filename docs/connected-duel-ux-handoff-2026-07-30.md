@@ -185,3 +185,61 @@ production-runtime change, paid provider call, or Infisical write ran.
   state or moving the board.
 - The existing React Doctor advisories in the large Challenge and active-duel
   screens remain structural follow-up; they are not runtime or gate failures.
+
+## Active-journey navigation recovery follow-up
+
+A later source follow-up closes an iOS navigation-loss defect observed during
+an active game. The Challenge route inherited Expo Router's native back gesture;
+an edge swipe could pop the route, dispose its component-local controller and
+runtime clients, and leave the player on Home with no visible way back.
+
+The route now disables both edge and full-screen back gestures. Its header Back,
+active-game Back, lobby Back, and Android hardware Back paths require an
+explicit localized abandon confirmation whenever the player owns a live lobby
+seat. The completed connected result uses a distinct warning because leaving it
+discards the current rematch opportunity or request. Accidental navigation
+therefore cannot silently destroy either the journey or its rematch handoff.
+
+As a second recovery layer, the latest participant lobby state is retained only
+in process memory while its status is waiting, lobby, countdown, or active. The
+snapshot deliberately removes its realtime session before storage. If the
+Challenge screen is recreated, it requests a fresh backend-issued realtime
+session and reconstructs the active controller; Home exposes a prominent
+localized “Return to active duel” action until the journey ends or the player
+explicitly abandons it. Invite previews and terminal lobbies are never retained,
+and no game/session value is written to device persistence.
+
+The reported rematch delay had a separate concrete cause. Result screens poll a
+participant-scoped Apps API endpoint because rematch proposals are intentionally
+absent from the safe realtime room projection. The poller previously backed off
+from two seconds to five seconds while no request existed, so both request
+detection and accepted-game handoff could appear inert. Result-only polling is
+now immediate and remains capped at one second. Request and Accept lock on the
+first tap and expose prominent sending/accepting/synchronizing progress; sent,
+received, and accepted states use a thick highlighted panel, spinner where
+applicable, assertive accessibility announcement for received requests, and iOS
+haptic confirmation.
+
+The focused regression suites first failed against the inherited gesture,
+missing recovery store, unprotected result, and five-second rematch backoff,
+then passed with 31 tests. The complete local gate passes 83 Vitest files / 456
+tests, TypeScript, changed-file Expo lint, and `git diff --check`.
+
+A fresh preview-connected Release build was installed on dedicated iPhone 17
+and iPad Pro 13 simulators after resetting only their disposable DuelWords test
+containers to obtain fresh guest quotas. One room completed join, Ready/start,
+six `APPLE` submissions per player, final result, one-tap rematch request,
+one-tap acceptance, next lobby, and next active round. The host observed the
+iPad join in 1.27 seconds including automation overhead; accepted rematch moved
+both players to the coordinated next lobby in 1.24 seconds, and one Start tap
+opened both next-round keyboards in 1.89 seconds. The rematch request appeared
+as a prominent received request on iPad without a second tap. Edge-swipe was
+attempted on both devices in lobby, active play, and result without leaving the
+route. iPad header Back showed the active-duel warning and the distinct result
+warning. A forced alternate navigation to Home exposed “Return to active duel”;
+one tap recovered the active keyboard through a fresh realtime session in 1.56
+seconds. Recent simulator logs contain no fatal/uncaught/crash signature.
+
+This source follow-up is reserved for internal TestFlight build `0.1.0 (9)`.
+Until the exact archive is uploaded, processed, and checked in App Store
+Connect, build `0.1.0 (8)` remains the latest delivered internal binary.

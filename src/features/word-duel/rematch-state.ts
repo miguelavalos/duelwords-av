@@ -1,7 +1,7 @@
 import type { DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-client';
 
-export const REMATCH_PROPOSAL_POLL_INTERVAL_MS = 2_000;
-export const REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS = 5_000;
+export const REMATCH_PROPOSAL_POLL_INTERVAL_MS = 1_000;
+export const REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS = 1_000;
 
 type RematchProposalPollingInput = {
   load: () => Promise<DuelWordsApiRematchProposal | null>;

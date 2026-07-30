@@ -21,6 +21,12 @@ describe('public duel copy', () => {
     expect(publicDuelT(locale, 'validLetters')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'correctPosition')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'rivalRounds')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'leaveGameTitle')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'stayInGame')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'resumeGame')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'leaveResultTitle')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'leaveResultDetail')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'rematchSending')).not.toHaveLength(0);
   });
 
   it('interpolates all public runtime values', () => {

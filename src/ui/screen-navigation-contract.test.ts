@@ -95,14 +95,13 @@ describe('interior screen navigation contract', () => {
     expect(source('src/features/onboarding/onboarding-screen.tsx')).toContain('DuelWordsWordmark');
   });
 
-  it('pushes every DuelWords flow from the right and reverses on Back', () => {
+  it('pushes DuelWords flows from the right and protects the live challenge from swipe-back', () => {
     const rootLayout = source('src/app/_layout.tsx');
     expect(rootLayout).toContain("animation: 'slide_from_right'");
     expect(rootLayout).toContain("gestureDirection: 'horizontal'");
 
     for (const route of [
       'word-duel/active-demo',
-      'word-duel/challenge',
       'word-duel/connected-runtime',
       'word-duel/lobby-demo',
       'word-duel/play-avi',
@@ -116,10 +115,26 @@ describe('interior screen navigation contract', () => {
       expect(declaration, route).toContain('duelWordsFlowScreenOptions');
     }
 
+    const challengeRoute = rootLayout.slice(
+      rootLayout.indexOf('name="word-duel/challenge"'),
+      rootLayout.indexOf('name="word-duel/challenge"') + 220,
+    );
+    expect(challengeRoute).toContain('protectedChallengeScreenOptions');
+    expect(rootLayout).toContain('gestureEnabled: false');
+    expect(rootLayout).toContain('fullScreenGestureEnabled: false');
+
     const challenge = source('src/features/word-duel/public-challenge-screen.tsx');
     const challengeHeader = challenge.slice(challenge.indexOf('<InteriorScreenHeader'), challenge.indexOf('<InteriorScreenHeader') + 520);
-    expect(challengeHeader).toContain('router.canGoBack()');
-    expect(challengeHeader).toContain('router.back()');
+    expect(challengeHeader).toContain('requestExitChallenge');
+    expect(challenge).toContain("BackHandler.addEventListener('hardwareBackPress'");
+    expect(challenge).toContain('Alert.alert(');
+  });
+
+  it('offers a direct return to a volatile active challenge from Home', () => {
+    const home = source('src/features/play/play-screen.tsx');
+    expect(home).toContain('useActiveChallengeSession');
+    expect(home).toContain("publicDuelT(interfaceLocale, 'resumeGame')");
+    expect(home).toContain('activeChallenge !== null');
   });
 
   it('orders Home by product priority before secondary modes and Avi help', () => {
@@ -149,8 +164,13 @@ describe('interior screen navigation contract', () => {
 
   it('uses the shared back header for the in-flow live duel result', () => {
     const challenge = source('src/features/word-duel/public-challenge-screen.tsx');
+    const resultCall = challenge.slice(
+      challenge.indexOf('<ConnectedResultPanel'),
+      challenge.indexOf('<ConnectedResultPanel') + 520,
+    );
     const resultSource = challenge.slice(challenge.indexOf('function ConnectedResultPanel'));
     expect(resultSource).toContain('<InteriorScreenHeader');
+    expect(resultCall).toContain('onClose={requestExitChallenge}');
     expect(resultSource).not.toContain('style={styles.closeButton}');
   });
 });

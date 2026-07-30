@@ -4,6 +4,8 @@ import type { DuelWordsApiRematchProposal } from '@/game/word-duel-lobby/api-cli
 
 import {
   canRequestRematch,
+  REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS,
+  REMATCH_PROPOSAL_POLL_INTERVAL_MS,
   rematchProposalRevisionKey,
   startRematchProposalPolling,
 } from './rematch-state';
@@ -30,7 +32,7 @@ describe('canRequestRematch', () => {
 });
 
 describe('startRematchProposalPolling', () => {
-  test('loads immediately, backs off while unchanged, and stops cleanly', async () => {
+  test('loads immediately, stays responsive while unchanged, and stops cleanly', async () => {
     vi.useFakeTimers();
     const proposal = proposalWithStatus('sent');
     const load = vi.fn().mockResolvedValue(proposal);
@@ -41,15 +43,20 @@ describe('startRematchProposalPolling', () => {
     expect(load).toHaveBeenCalledTimes(1);
     expect(onProposal).toHaveBeenLastCalledWith(proposal);
 
-    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(load).toHaveBeenCalledTimes(2);
 
-    await vi.advanceTimersByTimeAsync(4_000);
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(load).toHaveBeenCalledTimes(3);
 
     stop();
     await vi.advanceTimersByTimeAsync(10_000);
     expect(load).toHaveBeenCalledTimes(3);
+  });
+
+  test('caps result-screen rematch detection at one second', () => {
+    expect(REMATCH_PROPOSAL_POLL_INTERVAL_MS).toBe(1_000);
+    expect(REMATCH_PROPOSAL_MAX_POLL_INTERVAL_MS).toBe(1_000);
   });
 
   test('returns to the responsive interval when the proposal revision changes', async () => {
@@ -67,11 +74,11 @@ describe('startRematchProposalPolling', () => {
 
     const stop = startRematchProposalPolling({ load, onProposal: vi.fn() });
     await vi.runAllTicks();
-    await vi.advanceTimersByTimeAsync(2_000);
-    await vi.advanceTimersByTimeAsync(4_000);
+    await vi.advanceTimersByTimeAsync(1_000);
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(load).toHaveBeenCalledTimes(3);
 
-    await vi.advanceTimersByTimeAsync(2_000);
+    await vi.advanceTimersByTimeAsync(1_000);
     expect(load).toHaveBeenCalledTimes(4);
     stop();
   });

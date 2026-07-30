@@ -3,6 +3,8 @@ import { useMemo } from 'react';
 import { Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 
 import { buildWordDuelHref, WORD_DUEL_ROUTE_PATHS } from '@/features/word-duel/word-duel-route-params';
+import { useActiveChallengeSession } from '@/features/word-duel/active-challenge-session';
+import { publicDuelT } from '@/features/word-duel/public-duel-copy';
 import { experienceCopy } from '@/i18n/experience-copy';
 import { useAppPreferences } from '@/preferences/use-app-preferences';
 import { localDateForTimeZone, readOfficialDailySessionsForDate } from '@/game/word-duel-daily/official-daily';
@@ -24,6 +26,7 @@ export function PlayScreen() {
     dailyDate: localDateForTimeZone(new Date(), timeZone),
     timeZone,
   })[0];
+  const activeChallenge = useActiveChallengeSession();
 
   return (
     <AppScreen bottomInset={tablet ? spacing.xxl : layout.phoneShellBottomInset}>
@@ -41,6 +44,21 @@ export function PlayScreen() {
         <Text accessibilityRole="header" aria-level={1} style={styles.title}>{copy.homeTitle}</Text>
         {tablet ? <Text style={styles.headerDetail}>{copy.homeDetail}</Text> : null}
       </View>
+
+      {activeChallenge !== null ? (
+        <ModeCard
+          eyebrow={copy.liveOneToOne}
+          title={publicDuelT(interfaceLocale, 'resumeGame')}
+          detail={publicDuelT(interfaceLocale, 'resumeGameDetail')}
+          primary
+          mark="↩"
+          onPress={() => router.push(buildWordDuelHref(WORD_DUEL_ROUTE_PATHS.challenge, {
+            gameLanguage,
+            interfaceLocale,
+            mode: 'human_duel',
+          }))}
+        />
+      ) : null}
 
       <ModeCard
         title={copy.daily}

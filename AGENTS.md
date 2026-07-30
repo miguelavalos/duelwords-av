@@ -33,6 +33,11 @@ Current implementation slice:
   recipient cannot observe the host's countdown/start transition and remains
   stranded in the lobby. Keep the recovery helper shared with active-duel
   opening and cover lobby-time recovery in `connected-runtime.test.ts`.
+  Rematch state is participant-scoped API state rather than part of the safe
+  realtime room projection. While both players remain on the result, keep its
+  detection interval bounded to one second instead of backing off, make the
+  first request/accept tap visibly busy, and keep sent/received/accepted sync
+  state prominent until both players enter the next lobby.
 
 - Expo Router SDK 57 shell.
 - Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
@@ -59,6 +64,13 @@ Current implementation slice:
   the board plus complete keyboard priority. Secondary Daily metadata belongs
   behind its information disclosure. Keep
   `src/ui/screen-navigation-contract.test.ts` green when adding routes.
+  The connected Challenge route is additionally protected from native
+  swipe-back while a player may be in a live journey. Keep iOS back gestures
+  disabled for that route, confirm every explicit exit from a joined/created
+  lobby or active round, and retain only a volatile resumable lobby snapshot.
+  Never persist or reuse realtime credentials; recovery must request a fresh
+  backend-issued session before resubscribing. Home must expose a direct return
+  action while that volatile session exists.
 - Local invite/lobby/Ready/countdown preview wired through the lobby
   controller's `local_mock` source, with no real links, share sheet, API, or
   Convex runtime.

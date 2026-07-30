@@ -1,7 +1,8 @@
 import { randomUUID } from 'expo-crypto';
+import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, BackHandler, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -46,6 +47,12 @@ import { AviArtwork, aviAssets } from '@/ui/brand';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { ActiveDuelScreen } from './active-duel-screen';
+import {
+  clearActiveChallengeSession,
+  isActiveChallengeSessionProtected,
+  readActiveChallengeSession,
+  rememberActiveChallengeSession,
+} from './active-challenge-session';
 import { accountRoomDisplayName } from './account-room-name';
 import { GameLanguagePicker } from './components/game-language-picker';
 import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
@@ -109,7 +116,10 @@ export function PublicWordDuelChallengeScreen({
   const initialPreviewKeyRef = useRef<string | null>(null);
   const recordedFinalGameIdRef = useRef<string | null>(null);
   const activeOpeningStartedRef = useRef(false);
+  const initialActiveChallengeRef = useRef(readActiveChallengeSession());
   const lobbyRealtimeRefreshInFlightRef = useRef(false);
+  const rematchProposalRevisionRef = useRef('none');
+  const resumeRecoveryStartedRef = useRef(false);
   const lobbyVisualSnapshotRef = useRef<LobbyVisualSnapshot | null>(null);
   const mountedRef = useRef(true);
   const [actionGate] = useState(createExclusiveActionGate);
@@ -126,7 +136,9 @@ export function PublicWordDuelChallengeScreen({
   const [roomCodeSecond, setRoomCodeSecond] = useState(
     () => splitWordDuelRoomCode(initialRoomCode).second,
   );
-  const [lobbyState, setLobbyState] = useState<WordDuelLobbyControllerState | null>(null);
+  const [lobbyState, setLobbyState] = useState<WordDuelLobbyControllerState | null>(
+    () => initialActiveChallengeRef.current,
+  );
   const [activeController, setActiveController] = useState<WordDuelActiveController | null>(null);
   const [finalResult, setFinalResult] = useState<DuelWordsApiFinalResult | null>(null);
   const [rematchProposal, setRematchProposal] = useState<DuelWordsApiRematchProposal | null>(null);
@@ -141,6 +153,69 @@ export function PublicWordDuelChallengeScreen({
   const configuredDisplayNameResult = normalizeWordDuelGuestDisplayName(preferences.playerDisplayName);
   const configuredDisplayName = configuredDisplayNameResult.ok ? configuredDisplayNameResult.value : null;
   const effectiveDisplayName = configuredDisplayName ?? accountDisplayName ?? displayName;
+  const activeChallengeSessionIsProtected = isActiveChallengeSessionProtected(lobbyState)
+    && finalResult === null;
+  const challengeJourneyIsProtected = activeChallengeSessionIsProtected
+    || finalResult !== null;
+
+  const resetJourney = useCallback(() => {
+    clearActiveChallengeSession();
+    initialActiveChallengeRef.current = null;
+    activeOpeningStartedRef.current = false;
+    resumeRecoveryStartedRef.current = false;
+    setActiveController(null);
+    setFinalResult(null);
+    setLobbyState(null);
+    setRematchProposal(null);
+    setEntryMode('join');
+    setRoomCodeFirst('');
+    setRoomCodeSecond('');
+    setStatusMessage(null);
+    setLobbyVisualFeedback(null);
+  }, []);
+
+  const navigateAway = useCallback(() => {
+    if (router.canGoBack()) router.back();
+    else router.replace('/(tabs)/play');
+  }, [router]);
+
+  const confirmAbandonChallenge = useCallback((onConfirm: () => void) => {
+    const resultVisible = finalResult !== null;
+    Alert.alert(
+      publicDuelT(interfaceLocale, resultVisible ? 'leaveResultTitle' : 'leaveGameTitle'),
+      publicDuelT(interfaceLocale, resultVisible ? 'leaveResultDetail' : 'leaveGameDetail'),
+      [
+        {
+          style: 'cancel',
+          text: publicDuelT(interfaceLocale, 'stayInGame'),
+        },
+        {
+          onPress: onConfirm,
+          style: 'destructive',
+          text: publicDuelT(interfaceLocale, 'leaveGame'),
+        },
+      ],
+    );
+  }, [finalResult, interfaceLocale]);
+
+  const requestExitChallenge = useCallback(() => {
+    if (!challengeJourneyIsProtected) {
+      navigateAway();
+      return;
+    }
+    confirmAbandonChallenge(() => {
+      resetJourney();
+      navigateAway();
+    });
+  }, [challengeJourneyIsProtected, confirmAbandonChallenge, navigateAway, resetJourney]);
+
+  const requestResetChallenge = useCallback(() => {
+    if (!activeChallengeSessionIsProtected) {
+      resetJourney();
+      return;
+    }
+    confirmAbandonChallenge(resetJourney);
+  }, [activeChallengeSessionIsProtected, confirmAbandonChallenge, resetJourney]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -148,6 +223,58 @@ export function PublicWordDuelChallengeScreen({
       mountedRef.current = false;
     };
   }, []);
+
+  useEffect(() => {
+    rememberActiveChallengeSession(finalResult === null ? lobbyState : null);
+  }, [finalResult, lobbyState]);
+
+  useEffect(() => {
+    if (finalResult !== null) clearActiveChallengeSession();
+  }, [finalResult]);
+
+  useEffect(() => {
+    if (!challengeJourneyIsProtected) return undefined;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      requestExitChallenge();
+      return true;
+    });
+    return () => subscription.remove();
+  }, [challengeJourneyIsProtected, requestExitChallenge]);
+
+  useEffect(() => {
+    if (
+      !runtime.ok
+      || !lobbyState
+      || lobbyState.realtime !== null
+      || !isActiveChallengeSessionProtected(lobbyState)
+      || lobbyState.lobby.status === 'active_round'
+      || resumeRecoveryStartedRef.current
+    ) {
+      return undefined;
+    }
+
+    resumeRecoveryStartedRef.current = true;
+    let cancelled = false;
+    setStatusMessage(publicDuelT(interfaceLocale, 'reconnecting'));
+    void recoverWordDuelConnectedRealtimeSessionIfNeeded({ lobbyState, runtime })
+      .then((recovered) => {
+        if (cancelled || !mountedRef.current) return;
+        if (recovered.realtimeSessionSource === 'missing') {
+          setStatusMessage(publicDuelT(interfaceLocale, 'safeRealtimeUnavailable'));
+          return;
+        }
+        setLobbyState(recovered.lobbyState);
+        setStatusMessage(publicDuelT(interfaceLocale, 'lobbyUpdated'));
+      })
+      .finally(() => {
+        resumeRecoveryStartedRef.current = false;
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [interfaceLocale, lobbyState, runtime]);
 
   useEffect(() => {
     if (!lobbyState) {
@@ -180,14 +307,21 @@ export function PublicWordDuelChallengeScreen({
       load: () => activeController.getCurrentRematchProposal(),
       onProposal: (proposal) => {
         if (!mountedRef.current) return;
-        setRematchProposal((current) => (
-          rematchProposalRevisionKey(current) === rematchProposalRevisionKey(proposal)
-            ? current
-            : proposal
-        ));
+        const revision = rematchProposalRevisionKey(proposal);
+        if (rematchProposalRevisionRef.current === revision) return;
+        rematchProposalRevisionRef.current = revision;
+        setRematchProposal(proposal);
+        if (proposal?.status === 'sent') {
+          setStatusMessage(publicDuelT(
+            interfaceLocale,
+            proposal.viewer.role === 'recipient' ? 'rivalRequestedRematch' : 'rematchSent',
+          ));
+        } else if (proposal?.status === 'accepted') {
+          setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedOpening'));
+        }
       },
     });
-  }, [activeController, finalResult]);
+  }, [activeController, finalResult, interfaceLocale]);
 
   useEffect(() => {
     const actor = lobbyState?.session.actor;
@@ -226,6 +360,7 @@ export function PublicWordDuelChallengeScreen({
       setActiveController(null);
       setFinalResult(null);
       setRematchProposal(null);
+      rematchProposalRevisionRef.current = 'none';
       setStatusMessage(publicDuelT(interfaceLocale, 'rematchAcceptedReady'));
     }).catch(() => {
       if (cancelled || !mountedRef.current) return;
@@ -290,7 +425,7 @@ export function PublicWordDuelChallengeScreen({
   }, [controller, lobbyState, runtime]);
 
   useEffect(() => {
-    if (!runtime.ok) {
+    if (!runtime.ok || initialActiveChallengeRef.current !== null) {
       return;
     }
 
@@ -574,19 +709,6 @@ export function PublicWordDuelChallengeScreen({
     });
   }
 
-  function resetJourney() {
-    activeOpeningStartedRef.current = false;
-    setActiveController(null);
-    setFinalResult(null);
-    setLobbyState(null);
-    setRematchProposal(null);
-    setEntryMode('join');
-    setRoomCodeFirst('');
-    setRoomCodeSecond('');
-    setStatusMessage(null);
-    setLobbyVisualFeedback(null);
-  }
-
   const dismissLobbyVisualFeedback = useCallback((eventId: string) => {
     setLobbyVisualFeedback((current) => current?.id === eventId ? null : current);
   }, []);
@@ -594,8 +716,10 @@ export function PublicWordDuelChallengeScreen({
   function createRematch() {
     if (!activeController || !finalResult) return;
     void runAction('rematch-create', async () => {
+      setStatusMessage(copy('rematchSending'));
       const proposal = await activeController.createRematchProposal({ language: finalResult.game.language });
       if (!mountedRef.current) return;
+      rematchProposalRevisionRef.current = rematchProposalRevisionKey(proposal);
       setRematchProposal(proposal);
       setStatusMessage(copy('rematchSent'));
     });
@@ -604,14 +728,18 @@ export function PublicWordDuelChallengeScreen({
   function respondToRematch(action: 'accept' | 'cancel' | 'decline') {
     if (!activeController || !rematchProposal) return;
     void runAction(`rematch-${action}`, async () => {
+      if (action === 'accept') setStatusMessage(copy('rematchAccepting'));
       const proposal = action === 'accept'
         ? await activeController.acceptRematchProposal({ proposalId: rematchProposal.proposalId })
         : action === 'decline'
           ? await activeController.declineRematchProposal({ proposalId: rematchProposal.proposalId })
           : await activeController.cancelRematchProposal({ proposalId: rematchProposal.proposalId });
       if (!mountedRef.current) return;
+      rematchProposalRevisionRef.current = rematchProposalRevisionKey(proposal);
       setRematchProposal(proposal);
-      setStatusMessage(copy('rematchStatus', { status: proposal.status }));
+      setStatusMessage(action === 'accept'
+        ? copy('rematchAcceptedOpening')
+        : copy('rematchStatus', { status: proposal.status }));
     });
   }
 
@@ -622,7 +750,7 @@ export function PublicWordDuelChallengeScreen({
           controller={activeController}
           interfaceLocale={interfaceLocale}
           onFinalResult={setFinalResult}
-          onLeave={resetJourney}
+          onLeave={requestExitChallenge}
         />
         <LobbyFeedbackOverlay
           event={lobbyVisualFeedback}
@@ -636,10 +764,10 @@ export function PublicWordDuelChallengeScreen({
   if (activeController && finalResult) {
     return (
       <ConnectedResultPanel
-        busy={isBusy}
+        busyAction={busyAction}
         finalResult={finalResult}
         interfaceLocale={interfaceLocale}
-        onClose={resetJourney}
+        onClose={requestExitChallenge}
         onCreateRematch={createRematch}
         onRespond={respondToRematch}
         proposal={rematchProposal}
@@ -654,10 +782,7 @@ export function PublicWordDuelChallengeScreen({
       <InteriorScreenHeader
         backLabel={copy('back')}
         detail={copy(account.user ? 'accountChallenge' : 'guestChallenge')}
-        onBack={() => {
-          if (router.canGoBack()) router.back();
-          else router.replace('/(tabs)/play');
-        }}
+        onBack={requestExitChallenge}
         title={copy('wordDuel')}
       />
       {lobbyState === null ? <Text style={styles.subtitle}>{copy('challengeSubtitle')}</Text> : null}
@@ -779,7 +904,7 @@ export function PublicWordDuelChallengeScreen({
           busy={isBusy}
           onJoin={joinInvite}
           onStart={startGame}
-          onReset={resetJourney}
+          onReset={requestResetChallenge}
           onShare={shareInvite}
           interfaceLocale={interfaceLocale}
           state={lobbyState}
@@ -829,7 +954,7 @@ function actionErrorMessage(
 }
 
 function ConnectedResultPanel({
-  busy,
+  busyAction,
   finalResult,
   interfaceLocale,
   onClose,
@@ -838,7 +963,7 @@ function ConnectedResultPanel({
   proposal,
   statusMessage,
 }: {
-  busy: boolean;
+  busyAction: string | null;
   finalResult: DuelWordsApiFinalResult;
   interfaceLocale: InterfaceLocale;
   onClose: () => void;
@@ -887,7 +1012,7 @@ function ConnectedResultPanel({
       </View>
 
       <ConnectedRematchActions
-        busy={busy}
+        busyAction={busyAction}
         interfaceLocale={interfaceLocale}
         onCreateRematch={onCreateRematch}
         onRespond={onRespond}
@@ -923,14 +1048,14 @@ function ConnectedResultPanel({
 }
 
 function ConnectedRematchActions({
-  busy,
+  busyAction,
   interfaceLocale,
   onCreateRematch,
   onRespond,
   onShare,
   proposal,
 }: {
-  busy: boolean;
+  busyAction: string | null;
   interfaceLocale: InterfaceLocale;
   onCreateRematch: () => void;
   onRespond: (action: 'accept' | 'cancel' | 'decline') => void;
@@ -938,23 +1063,67 @@ function ConnectedRematchActions({
   proposal: DuelWordsApiRematchProposal | null;
 }) {
   const styles = usePublicChallengeStyles();
+  const { colors } = useAppTheme();
   const copy = (key: Parameters<typeof publicDuelT>[1]) => publicDuelT(interfaceLocale, key);
+  const busy = busyAction !== null;
+  const rematchBusy = busyAction?.startsWith('rematch-') ?? false;
+  const receivedRequest = proposal?.status === 'sent' && proposal.viewer.canAccept;
+  const waitingForPeer = proposal?.status === 'sent' && !proposal.viewer.canAccept;
+  const synchronizing = rematchBusy || waitingForPeer || proposal?.status === 'accepted';
+  const previousRevisionRef = useRef('none');
+
+  useEffect(() => {
+    const revision = rematchProposalRevisionKey(proposal);
+    if (previousRevisionRef.current === revision) return;
+    const previousRevision = previousRevisionRef.current;
+    previousRevisionRef.current = revision;
+    if (previousRevision === 'none' && proposal === null) return;
+
+    if (process.env.EXPO_OS === 'ios' && (receivedRequest || proposal?.status === 'accepted')) {
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+    }
+  }, [proposal, receivedRequest]);
+
+  const visibleStatus = busyAction === 'rematch-create'
+    ? copy('rematchSending')
+    : busyAction === 'rematch-accept'
+      ? copy('rematchAccepting')
+      : proposal?.status === 'accepted'
+        ? copy('rematchSyncing')
+        : rematchLabel(interfaceLocale, proposal);
 
   return (
-    <View accessibilityLiveRegion="polite" style={styles.rematchActionPanel}>
+    <View
+      accessibilityLiveRegion={receivedRequest ? 'assertive' : 'polite'}
+      accessibilityRole={receivedRequest ? 'alert' : undefined}
+      style={[
+        styles.rematchActionPanel,
+        (receivedRequest || synchronizing) && styles.rematchActionPanelAttention,
+      ]}>
       <View style={styles.rematchActionHeader}>
         <View style={styles.rematchActionText}>
-          <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>{copy('playAgain')}</Text>
-          <Text style={styles.helper}>{rematchLabel(interfaceLocale, proposal)}</Text>
+          <Text aria-level={2} accessibilityRole="header" style={styles.panelTitle}>
+            {receivedRequest ? copy('rivalRematchTitle') : copy('playAgain')}
+          </Text>
+          <View style={styles.rematchSyncRow}>
+            {synchronizing ? <ActivityIndicator color={colors.accent} size="small" /> : null}
+            <Text style={[styles.helper, (receivedRequest || synchronizing) && styles.rematchStatusStrong]}>
+              {visibleStatus}
+            </Text>
+          </View>
         </View>
         <AppButton disabled={busy} tone="quiet" onPress={onShare} style={styles.shareResultButton}>{copy('shareResult')}</AppButton>
       </View>
       <View style={styles.actionRow}>
         {canRequestRematch(proposal) ? (
-          <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>{copy('requestRematch')}</AppButton>
+          <AppButton disabled={busy} onPress={onCreateRematch} style={styles.actionButton}>
+            {busyAction === 'rematch-create' ? copy('rematchSending') : copy('requestRematch')}
+          </AppButton>
         ) : null}
         {proposal?.viewer.canAccept ? (
-          <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>{copy('accept')}</AppButton>
+          <AppButton disabled={busy} onPress={() => onRespond('accept')} style={styles.actionButton}>
+            {busyAction === 'rematch-accept' ? copy('rematchAccepting') : copy('accept')}
+          </AppButton>
         ) : null}
         {proposal?.viewer.canDecline ? (
           <AppButton disabled={busy} tone="quiet" onPress={() => onRespond('decline')} style={styles.actionButton}>{copy('decline')}</AppButton>
@@ -1224,8 +1393,11 @@ function usePublicChallengeStyles() {
   resultBoardPanelWide: { flex: 1, minWidth: 0 },
   resultBoardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.md },
   rematchActionPanel: { gap: spacing.md, borderRadius: radii.lg, borderWidth: 1, borderColor: colors.secondary, backgroundColor: colors.secondarySoft, padding: spacing.md },
+  rematchActionPanelAttention: { borderWidth: 3, borderColor: colors.accent, backgroundColor: colors.surfaceStrong, boxShadow: '0 12px 28px rgba(0, 0, 0, 0.20)' },
   rematchActionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
   rematchActionText: { flex: 1, minWidth: 0, gap: 2 },
+  rematchSyncRow: { minHeight: 24, flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  rematchStatusStrong: { flex: 1, color: colors.text, fontWeight: '900' },
   shareResultButton: { minWidth: 100, minHeight: 38 },
   compactPanel: { gap: spacing.sm, borderRadius: radii.md, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: spacing.md },
   entryModeRow: { flexDirection: 'row', gap: spacing.sm },

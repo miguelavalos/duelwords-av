@@ -3,7 +3,7 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 archive_path=""
-expected_build="8"
+expected_build="9"
 expected_version="0.1.0"
 expected_bundle_id="com.avalsys.duelwordsav"
 expected_team_id="935PM55U6R"
