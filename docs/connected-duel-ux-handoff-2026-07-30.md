@@ -10,9 +10,9 @@ testing, change a backend, call a paid provider, or write Infisical.
 A later source follow-up adds the pre-game lobby interruption layer described
 below. TestFlight build `0.1.0 (7)` contains the active-duel/reaction feedback
 and rematch correction, but it does **not** contain this later lobby feedback;
-internal build `0.1.0 (8)` is reserved for that exact follow-up. Its delivery
-evidence remains pending until the committed source is archived, exported,
-uploaded, processed, and exposed to the internal group.
+internal build `0.1.0 (8)` was archived from exact source `0ca2169`, uploaded,
+processed, and exposed only to the internal `avalsys` group with two testers on
+2026-07-30.
 
 ## Visual feedback
 
@@ -143,14 +143,41 @@ Eight known vendor-framework dSYM warnings remain a third-party symbolication
 risk; the application dSYM is present and matches exactly. Sentry upload was
 disabled for the archive. No external testing or App Review action ran.
 
+## Lobby-feedback TestFlight delivery
+
+The canonical production archive for the later lobby-feedback follow-up is
+`.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-8-2026-07-30-0ca2169.xcarchive`,
+created from exact public source
+`0ca216976c94d0097a2f8f8cbc705ec64f682cef`. Its app UUID is
+`C32A3278-E43D-3928-A1F6-9B22807B99BE`; application/dSYM parity is exact. The
+locally exported App Store IPA is
+`.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-8-2026-07-30-0ca2169-local/DuelWordsAV.ipa`
+(41,097,292 bytes; SHA-256
+`a16a94a40585d83e22fce25847aaef59688ddd35dd50ce281bd6e8c3df9d4f69`).
+
+The clean prebuild and CocoaPods install used Xcode's bundle phase pinned to
+Node `22.23.2`. Version/build `0.1.0 (8)`, bundle
+`com.avalsys.duelwordsav`, team `935PM55U6R`, the exact `DuelWords AV App
+Store` profile, Apple Distribution, production Account AV and DuelWords
+runtime, privacy manifest, iPhone/iPad device families, arm64, entitlements,
+`get-task-allow=false`, and deep signature all passed. Sentry upload remained
+disabled.
+
+App Store Connect build ID `8300a0d6-945c-4eee-bfd0-c6e80174a115` finished
+processing as binary `Validado` and `Lista para enviar`. Apple reports symbols
+included, non-exempt encryption `No`, iOS minimum `18.0`, iPhone and iPad
+support, and a 90-day TestFlight window. The build is assigned to exactly one
+group, the internal `avalsys` group with two testers; it has no individual or
+external testers. Eight known vendor-framework dSYM upload warnings remain a
+third-party symbolication risk, while the application dSYM is present and
+matches exactly. No App Review submission, external testing, backend deploy,
+production-runtime change, paid provider call, or Infisical write ran.
+
 ## Remaining risk
 
-- The animation and repaired rematch were accepted on simulators against the
-  preview-connected runtime and delivered in TestFlight, but still require the
-  owner's signed-device replay from build `0.1.0 (7)`.
-- Build `0.1.0 (7)` predates the stronger lobby join/Ready/countdown/start
-  interruptions. That follow-up is source- and simulator-validated only until a
-  newer TestFlight build is explicitly archived and uploaded.
+- The active-duel animation, reactions, rematch correction, and stronger lobby
+  join/Ready/countdown/start interruptions are now all present in build
+  `0.1.0 (8)`, but still require the owner's signed-device replay.
 - There is no physical iPad acceptance for this source; the processed universal
   binary and the simulator matrix are the current iPhone/iPad evidence.
 - Transient overlays intentionally serialize to one visible event; a newer
