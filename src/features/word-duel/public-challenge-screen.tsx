@@ -2,7 +2,7 @@ import { randomUUID } from 'expo-crypto';
 import * as Haptics from 'expo-haptics';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, BackHandler, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Share, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { useDuelWordsAccount } from '@/account/account-av-provider';
 import type { GameLanguage } from '@/game/word-duel-engine';
@@ -54,6 +54,7 @@ import {
   rememberActiveChallengeSession,
 } from './active-challenge-session';
 import { accountRoomDisplayName } from './account-room-name';
+import { showAbandonChallengeConfirmation } from './confirm-abandon-challenge';
 import { GameLanguagePicker } from './components/game-language-picker';
 import { CONNECTED_GAME_LANGUAGES, connectedGameLanguage } from './connected-languages';
 import { LobbyFeedbackOverlay } from './lobby-feedback-overlay';
@@ -181,21 +182,13 @@ export function PublicWordDuelChallengeScreen({
 
   const confirmAbandonChallenge = useCallback((onConfirm: () => void) => {
     const resultVisible = finalResult !== null;
-    Alert.alert(
-      publicDuelT(interfaceLocale, resultVisible ? 'leaveResultTitle' : 'leaveGameTitle'),
-      publicDuelT(interfaceLocale, resultVisible ? 'leaveResultDetail' : 'leaveGameDetail'),
-      [
-        {
-          style: 'cancel',
-          text: publicDuelT(interfaceLocale, 'stayInGame'),
-        },
-        {
-          onPress: onConfirm,
-          style: 'destructive',
-          text: publicDuelT(interfaceLocale, 'leaveGame'),
-        },
-      ],
-    );
+    showAbandonChallengeConfirmation({
+      cancelLabel: publicDuelT(interfaceLocale, 'stayInGame'),
+      confirmLabel: publicDuelT(interfaceLocale, 'leaveGame'),
+      detail: publicDuelT(interfaceLocale, resultVisible ? 'leaveResultDetail' : 'leaveGameDetail'),
+      onConfirm,
+      title: publicDuelT(interfaceLocale, resultVisible ? 'leaveResultTitle' : 'leaveGameTitle'),
+    });
   }, [finalResult, interfaceLocale]);
 
   const requestExitChallenge = useCallback(() => {

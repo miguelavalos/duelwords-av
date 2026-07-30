@@ -25,7 +25,7 @@ follow-up was archived from public source `0ca2169` as internal TestFlight build
 `0.1.0 (8)`, processed by Apple, and exposed only to the internal `avalsys`
 group with two testers on 2026-07-30.
 The later current source protects that connected journey from accidental iOS
-swipe-back, confirms intentional abandonment, retains a credential-free active
+swipe-back, confirms intentional abandonment on native and web, retains a credential-free active
 session snapshot only in process memory, and offers “Return to active duel” on
 Home. It requests fresh realtime credentials whenever that screen is recreated.
 The same follow-up protects the completed result so Back cannot silently discard

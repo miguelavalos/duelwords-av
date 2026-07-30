@@ -127,7 +127,9 @@ describe('interior screen navigation contract', () => {
     const challengeHeader = challenge.slice(challenge.indexOf('<InteriorScreenHeader'), challenge.indexOf('<InteriorScreenHeader') + 520);
     expect(challengeHeader).toContain('requestExitChallenge');
     expect(challenge).toContain("BackHandler.addEventListener('hardwareBackPress'");
-    expect(challenge).toContain('Alert.alert(');
+    expect(challenge).toContain('showAbandonChallengeConfirmation');
+    expect(source('src/features/word-duel/confirm-abandon-challenge.ts')).toContain('Alert.alert(');
+    expect(source('src/features/word-duel/confirm-abandon-challenge.web.ts')).toContain('window.confirm(');
   });
 
   it('offers a direct return to a volatile active challenge from Home', () => {

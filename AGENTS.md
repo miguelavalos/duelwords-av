@@ -68,6 +68,9 @@ Current implementation slice:
   swipe-back while a player may be in a live journey. Keep iOS back gestures
   disabled for that route, confirm every explicit exit from a joined/created
   lobby or active round, and retain only a volatile resumable lobby snapshot.
+  React Native Web's `Alert.alert` is a no-op, so browser confirmation must use
+  the platform-specific web confirmation boundary and retain its cancel/confirm
+  regression. Never infer web protection from the native Alert path.
   Never persist or reuse realtime credentials; recovery must request a fresh
   backend-issued session before resubscribing. Home must expose a direct return
   action while that volatile session exists.

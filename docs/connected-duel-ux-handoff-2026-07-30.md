@@ -273,3 +273,14 @@ swipe protection, the two distinct leave warnings, Home recovery, one-tap
 rematch, and coordinated next-lobby/start timing. The complete functional
 iPhone 17/iPad Pro 13 Release simulator battery described above is the current
 source-level evidence; there is still no physical iPad acceptance.
+
+## Web abandonment-confirmation parity
+
+The shared challenge screen originally called React Native `Alert.alert` for
+the active-game and result/rematch exit guards. React Native Web implements that
+API as a no-op, so the deployed browser could remain on the route without ever
+showing the promised warning or offering a confirmed exit. The platform boundary
+now preserves the native Alert path and uses browser `window.confirm` on web.
+Focused web regressions require cancellation to retain the journey and explicit
+confirmation to invoke the destructive exit callback. No backend, runtime
+credential, room-state, or persistence contract changes with this parity fix.
