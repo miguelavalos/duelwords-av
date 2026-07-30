@@ -420,10 +420,12 @@ It embeds provisioning profile `DuelWords AV App Store`, UUID
 The canonical Xcode App Store upload completed at 21:48 Europe/Madrid on
 2026-07-30 with `Upload succeeded`, `Uploaded DuelWordsAV`, and
 `EXPORT SUCCEEDED`. Apple's delivery build ID is
-`30880a8a-8767-4a47-800d-b0a8805d61fb`. App Store Connect processing and the
-expected automatic `avalsys` internal-group exposure remain a separate readback
-gate; no external group, App Review submission, production runtime, paid
-provider, Sentry, or Infisical mutation ran during this delivery.
+`30880a8a-8767-4a47-800d-b0a8805d61fb`. An authenticated App Store Connect
+readback then confirmed build 10 under version `0.1.0`, state `Lista para
+enviar`, upload time 21:49, expiry in 90 days, and assignment to the internal
+`avalsys` group with two invitations. No external group, App Review submission,
+production runtime, paid provider, Sentry, or Infisical mutation ran during
+this delivery.
 
 Xcode again warned that eight vendor frameworks do not include matching dSYMs:
 ExpoImage, React, ReactNativeDependencies, SDWebImage,
