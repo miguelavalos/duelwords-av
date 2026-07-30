@@ -11,11 +11,12 @@ smokes, observability, and rollback.
 ## Current Status
 
 Current as of 2026-07-30: this repository has a public, guest-first Word Duel
-V1 branding and hardening candidate. TestFlight build `0.1.0 (6)` was uploaded
-before the current connected-duel UX commits. Build `0.1.0 (7)` is reserved for
-the current source, which adds animated, spoiler-safe connected-duel feedback
-and repairs accepted-rematch realtime handoff. Its implementation, simulator
-evidence, gates, and remaining risks are recorded in
+V1 branding and hardening candidate. TestFlight build `0.1.0 (7)` was archived
+from public source `64678d3`, uploaded, processed, and assigned only to the
+internal `avalsys` group on 2026-07-30. It adds animated, spoiler-safe
+connected-duel feedback and repairs accepted-rematch realtime handoff. Its
+implementation, simulator evidence, release gates, delivery evidence, and
+remaining risks are recorded in
 [the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md).
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
@@ -74,7 +75,7 @@ Practice, Solo/Daily, or Play Avi; it applies only to that game and Challenge
 locks it when the room is created. Local modes and connected Challenge offer
 EN/ES/CA/FR/DE. Matching API/D1 dictionaries, validators, and rematch
 constraints are deployed; signed physical iPhone+iPad acceptance remains
-required before the replacement TestFlight build.
+open after the internal TestFlight delivery.
 The picker is list-based rather than a segmented control so all choices remain
 clear on phones and iPads. The shell, Settings, and public
 challenge/lobby/game/result/rematch path react to their applicable choices.

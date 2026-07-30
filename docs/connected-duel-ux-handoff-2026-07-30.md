@@ -2,9 +2,10 @@
 
 This record covers the iPhone/iPad connected-duel UX correction. TestFlight
 build `0.1.0 (6)` was uploaded before these source commits and therefore does
-not contain this correction. Build `0.1.0 (7)` is reserved for the exact current
-candidate. The implementation work itself did not deploy, change a backend,
-call a paid provider, or write Infisical.
+not contain this correction. Build `0.1.0 (7)` was archived from exact source
+`64678d3`, uploaded, processed, and assigned only to the internal `avalsys`
+group on 2026-07-30. The delivery did not submit App Review, enable external
+testing, change a backend, call a paid provider, or write Infisical.
 
 ## Visual feedback
 
@@ -77,11 +78,36 @@ existing large screens; the async effect findings were reviewed and retain
 their cancellation guards. Exact commit hashes are recorded in the private
 living handoff after the public commits are created.
 
+## Internal TestFlight delivery
+
+The canonical production archive is
+`.DerivedData-duelwords-testflight/Archives/DuelWordsAV-0.1.0-7-2026-07-30-64678d3.xcarchive`.
+Its app UUID is `BEC1C27D-406F-310D-9072-FC7A0348740E`; app/dSYM parity is
+exact. The locally exported App Store IPA is
+`.DerivedData-duelwords-testflight/Exports/DuelWordsAV-0.1.0-7-2026-07-30-64678d3-local/DuelWordsAV.ipa`
+(41,091,861 bytes; SHA-256
+`55082857529db51376cd7ce1cac4e7959b07c49a0604f362004deee43bb9b76b`).
+Version/build `0.1.0 (7)`, bundle `com.avalsys.duelwordsav`, team
+`935PM55U6R`, the exact `DuelWords AV App Store` profile, Apple Distribution,
+production Account AV runtime, privacy manifest, entitlements,
+`get-task-allow=false`, and deep signature all passed.
+
+App Store Connect build ID `3cc2bd08-498d-404a-a33e-a26357f489fa` finished
+processing as binary `Validado` and `Lista para enviar`, with symbols included,
+non-exempt encryption `No`, iPhone and iPad device families, and a 90-day
+internal-testing window. It is assigned to the existing internal `avalsys`
+group with two testers; there are no external groups or individual testers.
+Eight known vendor-framework dSYM warnings remain a third-party symbolication
+risk; the application dSYM is present and matches exactly. Sentry upload was
+disabled for the archive. No external testing or App Review action ran.
+
 ## Remaining risk
 
 - The animation and repaired rematch were accepted on simulators against the
-  preview-connected runtime, not a newly uploaded TestFlight binary.
-- There is no physical iPad acceptance for this source.
+  preview-connected runtime and delivered in TestFlight, but still require the
+  owner's signed-device replay from build `0.1.0 (7)`.
+- There is no physical iPad acceptance for this source; the processed universal
+  binary and the simulator matrix are the current iPhone/iPad evidence.
 - Transient overlays intentionally serialize to one visible event; a newer
   higher-priority projection can replace an earlier card without delaying game
   state or moving the board.
