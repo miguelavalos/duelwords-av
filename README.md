@@ -1,6 +1,6 @@
 # DuelWords AV
 
-Mobile-first Expo client for DuelWords AV.
+Expo client for the playable DuelWords AV experience on web, iPhone, and iPad.
 
 Future game/interface language additions must follow the client-safe
 [language expansion guide](docs/game-language-expansion.md) together with the
@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-29: this repository has a public, guest-first Word Duel
+Current as of 2026-07-30: this repository has a public, guest-first Word Duel
 V1 branding and hardening candidate. Build `0.1.0 (4)` is reserved at public
 commit `2487f9f`; it has not been archived, exported, installed, or uploaded
 from Openspace. The exact Home continuation, including its mandatory release
@@ -23,6 +23,15 @@ recover the finalized result, share a no-spoiler summary, and create or answer
 a participant-scoped rematch. Room-code lookup and canonical invite-token
 parsing are included. With runtime disabled—the repository default—the same
 surface fails closed and performs no network calls.
+
+The same product is now prepared as an environment-neutral static web artifact
+for `play.duelwords-av-preview.avalsys.com` and
+`play.duelwords-av.avalsys.com`. It retains responsive phone/tablet/desktop
+layouts, guest local modes, connected Challenge, and full browser Account AV
+sign-in while keeping Pro non-purchasing on web. Commercial/legal pages remain
+at the existing `duelwords-av` hosts and AASA/invitation handoff remains at the
+existing `app.duelwords-av` hosts. See the
+[web application deployment contract](docs/web-app-deployment.md).
 
 The public Play catalog contains Challenge a Friend, Play Avi, offline
 Practice, and official Daily.
@@ -152,10 +161,11 @@ lobby polling loop, preserved backend-issued realtime sessions across explicit
 lobby refreshes, allowed the safe Convex pre-round projection (`roundNumber: 0`),
 and began presence heartbeats while participants are still in the lobby. The
 repository-owned preview flow smoke also passed timeout/open-next, rematch, and
-both passive-abandonment paths. Canonical web `/i/c/:token` edge handling,
-the matching native route, AASA, and Associated Domains are implemented and
-locally verified. The dedicated edge Worker is not deployed yet, so TLS/AASA
-production proof, physical replacement-build validation on iPhone/iPad, and a
+both passive-abandonment paths. Canonical web `/i/c/:token` edge handling, the
+matching native route, AASA, and Associated Domains are implemented and
+deployed. The neutral fallback also offers the matching playable web route
+without reading challenge state. Fresh signed physical Universal Link
+acceptance, physical replacement-build validation on iPhone/iPad, and a
 replacement TestFlight build remain open; local Simulator signing is already
 covered separately below.
 
@@ -486,6 +496,9 @@ pnpm run test
 pnpm run verify
 pnpm run lint
 pnpm run web
+pnpm run web:artifact
+pnpm run web:app:check:preview
+pnpm run web:app:check:production
 pnpm run doctor:react:diff
 # Use the full scan for a baseline or broad cleanup:
 pnpm run doctor:react
@@ -503,7 +516,9 @@ frequency-ranked target decks; for CA/FR/DE it rebuilds both allowlists and
 targets. Regenerating the reviewed EN/ES allowlists themselves remains a
 private fixture-pipeline operation.
 
-The web dev server uses port `8098`.
+The web dev server uses port `8098`. The deployable web architecture, host
+separation, immutable artifact checks, and rollback rules are documented in
+[`docs/web-app-deployment.md`](docs/web-app-deployment.md).
 
 ## Home and Office Openspace boundary
 
@@ -528,9 +543,16 @@ Expo Router uses `https://app.duelwords-av.avalsys.com` as its native handoff
 origin. `web-edge` serves only the bounded AASA file and a neutral invitation
 fallback; it has no bindings and never contacts Apps AV API, D1, Convex, or
 Account AV. The app owns `/i/c/[token]` and opens the existing review-before-join
-Challenge surface. Production TLS, Worker deployment, AASA retrieval, and a
-fresh signed-device reinstall remain release gates. Android App Links remain
+Challenge surface. The fallback provides a native-open action plus the exact
+matching `play.duelwords-av` web route. It does not fetch room data or log the
+token. Production TLS, Worker deployment, and AASA retrieval are closed; a
+fresh signed-device reinstall remains a release gate. Android App Links remain
 outside this iOS candidate.
+
+The playable web application is a third isolated Worker surface at
+`play.duelwords-av[-preview].avalsys.com`. It serves one immutable Expo export
+with environment-specific client-safe runtime config, strict response headers,
+and no backend bindings or logs. It does not replace either host above.
 
 The separate `legal-edge` Worker owns the public commercial and legal site at
 `duelwords-av.avalsys.com`. The commercial home is available in English,

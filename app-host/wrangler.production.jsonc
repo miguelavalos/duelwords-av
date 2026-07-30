@@ -1,0 +1,27 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "duelwordsav-app-production",
+  "main": "./src/index.ts",
+  "compatibility_date": "2026-07-07",
+  "workers_dev": false,
+  "preview_urls": false,
+  "routes": [
+    {
+      "pattern": "play.duelwords-av.avalsys.com",
+      "custom_domain": true
+    }
+  ],
+  "vars": {
+    "ENVIRONMENT": "production",
+    "ACCOUNTAV_PUBLISHABLE_KEY": "",
+    "ACCOUNTAV_API_BASE_URL": "",
+    "DUELWORDSAV_API_BASE_URL": "",
+    "DUELWORDSAV_CONVEX_URL": ""
+  },
+  "assets": {
+    "binding": "ASSETS",
+    "directory": "../dist",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/*"]
+  }
+}

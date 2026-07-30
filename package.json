@@ -20,6 +20,14 @@
     "android": "expo run:android",
     "ios": "pnpm run config:ios:check:dev && DUELWORDSAV_IOS_BUILD_VARIANT=development expo run:ios",
     "web": "expo start --web --port 8098",
+    "web:artifact": "bash scripts/web/build-artifact.sh",
+    "web:artifact:verify": "node scripts/web/web-artifact.mjs --verify",
+    "web:types": "wrangler types --strict-vars=false --config app-host/wrangler.preview.jsonc",
+    "web:app:check": "pnpm run web:app:check:production",
+    "web:app:check:preview": "bash scripts/web/deploy-artifact.sh preview --dry-run",
+    "web:app:check:production": "bash scripts/web/deploy-artifact.sh production --dry-run",
+    "web:deploy:preview": "bash scripts/web/deploy-artifact.sh preview",
+    "web:deploy:production": "bash scripts/web/deploy-artifact.sh production",
     "config:ios:check": "node scripts/check-ios-release-config.mjs",
     "config:ios:check:dev": "DUELWORDSAV_IOS_BUILD_VARIANT=development node scripts/check-ios-release-config.mjs --development",
     "config:ios:check:preview": "node scripts/check-ios-release-config.mjs --require-preview-runtime",
@@ -43,7 +51,7 @@
     "web:edge:check:preview": "wrangler deploy --dry-run --config web-edge/wrangler.preview.jsonc",
     "legal:edge:check": "wrangler deploy --dry-run --config legal-edge/wrangler.production.jsonc",
     "legal:edge:check:preview": "wrangler deploy --dry-run --config legal-edge/wrangler.preview.jsonc",
-    "deploy:preview": "node -e \"throw new Error('DuelWords AV preview deploy is blocked until an approved deploy runbook exists.')\"",
+    "deploy:preview": "pnpm run web:deploy:preview",
     "testflight": "node -e \"throw new Error('DuelWords AV TestFlight upload requires the private internal-TestFlight runbook and explicit approval for the exact build.')\""
   },
   "dependencies": {

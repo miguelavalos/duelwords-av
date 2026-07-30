@@ -23,7 +23,18 @@ describe('DuelWords invite edge', () => {
     expect(response.status).toBe(200);
     expect(response.headers.get('cache-control')).toBe('private, no-store');
     expect(body).toContain('com.avalsys.duelwordsav://i/c/dwr_1234567890abcdef');
-    expect(body).toContain('review the challenge before joining');
+    expect(body).toContain('https://play.duelwords-av.avalsys.com/i/c/dwr_1234567890abcdef');
+    expect(body).toContain('Review the challenge before joining');
+  });
+
+  it('keeps preview invitations on the isolated preview app host', async () => {
+    const response = await worker.fetch(new Request(
+      'https://app.duelwords-av-preview.avalsys.com/i/c/dwr_1234567890abcdef',
+    ));
+
+    expect(await response.text()).toContain(
+      'https://play.duelwords-av-preview.avalsys.com/i/c/dwr_1234567890abcdef',
+    );
   });
 
   it('does not expose arbitrary paths or malformed tokens', async () => {
@@ -33,9 +44,13 @@ describe('DuelWords invite edge', () => {
     const unrelated = await worker.fetch(new Request(
       'https://app.duelwords-av.avalsys.com/account',
     ));
+    const foreignHost = await worker.fetch(new Request(
+      'https://unrelated.example/i/c/dwr_1234567890abcdef',
+    ));
 
     expect(invalid.status).toBe(404);
     expect(unrelated.status).toBe(404);
+    expect(foreignHost.status).toBe(404);
   });
 
   it('supports HEAD and rejects mutations', async () => {

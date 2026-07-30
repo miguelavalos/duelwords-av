@@ -50,15 +50,20 @@ export default {
 
     const inviteMatch = invitePathPattern.exec(url.pathname);
     if (inviteMatch) {
-      return htmlResponse(invitePage(inviteMatch[1]), 200, isHead);
+      const playHostname = playHostnameForInviteHost(url.hostname);
+      if (!playHostname) {
+        return textResponse('Not found.', 404, isHead, { 'cache-control': 'no-store' });
+      }
+      return htmlResponse(invitePage(inviteMatch[1], playHostname), 200, isHead);
     }
 
     return textResponse('Not found.', 404, isHead, { 'cache-control': 'no-store' });
   },
 };
 
-function invitePage(inviteToken: string): string {
+function invitePage(inviteToken: string, playHostname: string): string {
   const nativeUrl = `com.avalsys.duelwordsav://i/c/${encodeURIComponent(inviteToken)}`;
+  const webUrl = `https://${playHostname}/i/c/${encodeURIComponent(inviteToken)}`;
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -72,11 +77,22 @@ function invitePage(inviteToken: string): string {
     p{line-height:1.55;color:#53605a}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#4f8f31}
     h1{font-family:Georgia,serif;font-size:36px;line-height:1.05;margin:10px 0 14px}
     a{display:block;margin-top:24px;padding:15px 20px;border-radius:16px;background:#58bd35;color:#102311;text-align:center;text-decoration:none;font-weight:800}
+    a.secondary{margin-top:12px;background:transparent;border:1px solid #75827b;color:inherit}
     @media(prefers-color-scheme:dark){:root{background:#101615;color:#f7f0df}main{background:#18211f;border-color:#46534e}p{color:#bec7c2}a{color:#102311}}
   </style>
 </head>
-<body><main><div class="eyebrow">DuelWords AV</div><h1>You have a Word Duel invitation.</h1><p>Open DuelWords AV on this device to review the challenge before joining.</p><a href="${nativeUrl}">Open DuelWords AV</a></main></body>
+<body><main><div class="eyebrow">DuelWords AV</div><h1>You have a Word Duel invitation.</h1><p>Review the challenge before joining. You can use the iPhone or iPad app, or play safely in this browser.</p><a href="${nativeUrl}">Open DuelWords AV</a><a class="secondary" href="${webUrl}">Play on the web</a></main></body>
 </html>`;
+}
+
+function playHostnameForInviteHost(hostname: string): string | null {
+  if (hostname === 'app.duelwords-av-preview.avalsys.com') {
+    return 'play.duelwords-av-preview.avalsys.com';
+  }
+  if (hostname === 'app.duelwords-av.avalsys.com') {
+    return 'play.duelwords-av.avalsys.com';
+  }
+  return null;
 }
 
 function htmlResponse(body: string, status: number, head: boolean): Response {

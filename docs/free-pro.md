@@ -57,3 +57,9 @@ Privacy`; Manage Apple subscriptions remains available to active Pro users.
 Guest redemption routes to sign-in. Signed-in redemption uses the authenticated
 app-scoped Apps AV promo endpoint, and the resulting grant still has to
 reconcile through the Apps AV entitlement before Pro becomes active.
+
+On web, Account AV sign-in and entitlement display are available, but Pro is
+informational only. The browser does not initialize StoreKit/RevenueCat, sell
+or restore a subscription, or redeem a code. Purchase, restore, and redemption
+remain native release gates until the complete provider, legal, and physical-
+device acceptance path is approved.
