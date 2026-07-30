@@ -33,7 +33,7 @@ varlock_bin="$suite_root/node_modules/.bin/varlock"
 bootstrap="$suite_root/scripts/resolve-infisical-bootstrap-env.sh"
 wrangler_account="$suite_root/scripts/wrangler-account.sh"
 
-if [ ! -x "$varlock_bin" ] || [ ! -x "$bootstrap" ] || [ ! -x "$wrangler_account" ]; then
+if [ ! -x "$varlock_bin" ] || [ ! -x "$bootstrap" ] || [ ! -f "$wrangler_account" ]; then
   echo "Private read-only Infisical and Cloudflare wrappers are unavailable." >&2
   exit 1
 fi
@@ -83,4 +83,4 @@ args=(deploy --config "$runtime_config")
 if [ "$mode" = "--dry-run" ]; then
   args+=(--dry-run)
 fi
-"$wrangler_account" "${args[@]}"
+bash "$wrangler_account" "${args[@]}"
