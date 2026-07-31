@@ -56,7 +56,7 @@ expectEqual('expo.slug', expoConfig.slug, 'duelwords-av');
 expectEqual('expo.version', expoConfig.version, '0.1.0');
 expectEqual('expo.orientation', expoConfig.orientation, 'portrait');
 expectEqual('expo.ios.bundleIdentifier', expoConfig.ios?.bundleIdentifier, expectedBundleIdentifier);
-expectEqual('expo.ios.buildNumber', expoConfig.ios?.buildNumber, '11');
+expectEqual('expo.ios.buildNumber', expoConfig.ios?.buildNumber, '12');
 expectEqual('expo.ios.supportsTablet', expoConfig.ios?.supportsTablet, true);
 expectEqual('expo.ios.requireFullScreen', expoConfig.ios?.requireFullScreen, true);
 expectEqual(
