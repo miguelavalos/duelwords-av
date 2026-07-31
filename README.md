@@ -10,64 +10,25 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-30: this repository has a public, guest-first Word Duel
-V1 branding and hardening candidate. TestFlight build `0.1.0 (7)` was archived
-from public source `64678d3`, uploaded, processed, and assigned only to the
-internal `avalsys` group on 2026-07-30. It adds animated, spoiler-safe
-connected-duel feedback and repairs accepted-rematch realtime handoff. Its
-implementation, simulator evidence, release gates, delivery evidence, and
-remaining risks are recorded in
-[the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md).
-Current source also makes pre-game synchronization deliberately interruptive:
-rival join, rival Ready, authoritative countdown, and active-round opening use
-large timed cards, iOS haptics, and persistent high-contrast lobby states. This
-follow-up was archived from public source `0ca2169` as internal TestFlight build
-`0.1.0 (8)`, processed by Apple, and exposed only to the internal `avalsys`
-group with two testers on 2026-07-30.
-The later current source protects that connected journey from accidental iOS
-swipe-back, confirms intentional abandonment on native and web, retains a credential-free active
-session snapshot only in process memory, and offers “Return to active duel” on
-Home. It requests fresh realtime credentials whenever that screen is recreated.
-The same follow-up protects the completed result so Back cannot silently discard
-a rematch, keeps result-screen rematch discovery bounded to one second, and
-shows explicit sending, waiting, received, accepting, and synchronizing states.
-On web, the game keyboard also accepts physical letter keys plus Enter and
-Backspace/Delete while a board is active; editable fields retain their normal
-browser keyboard behavior.
-This navigation-recovery follow-up was archived from exact public source
-`084e67a` as internal TestFlight build `0.1.0 (9)`. Apple processed it as
-`VALID` / `IN_BETA_TESTING` and exposed it through the automatic internal
-`avalsys` group with two testers on 2026-07-30.
-The current configurable-duel candidate is build `0.1.0 (10)`, archived from
-exact public source `a89dec1` after the 5/6/7-letter backend rollout and
-two-client production lifecycle gates passed. Apple accepted the upload on
-2026-07-30 as build ID `30880a8a-8767-4a47-800d-b0a8805d61fb`. App Store
-Connect completed processing, reports `Lista para enviar`, and exposes the
-build through the internal `avalsys` group with two invitations. No external
-testing or App Review submission was requested.
-Build `0.1.0 (10)` has a confirmed client rendering defect: connected 6/7-letter
-rooms retain the correct rules in the lobby and backend, but its active screen
-constructs a fixed 5-column/6-row board. Current source fixes the shared
-web/iOS active model so the initial board, later rows, opponent markers, local
-mock, and safe-game projection all preserve the selected word length and
-attempt count. The correction is verified as an Epic 7-column/8-row board in
-web, iPhone 17, and iPad Pro 13. Production web now serves the corrected
-artifact from public commit `865e7a0`; internal iOS build `0.1.0 (11)` is the
-first uploaded TestFlight candidate that includes it. App Store Connect
-accepted the package at 23:14 CEST on 2026-07-30; processing/internal-group
-readback remains required before calling it test-ready.
-Current reaction-polish source adds eight localized reactions, animated receipt,
-compact invalid-word feedback, and a shared recipient mute enforced by Convex.
-The same web artifact is live in preview and production, and the reviewed
-Convex bundle is active in production with crons disabled and no index
-deletion. A bounded two-client production smoke proved mute, blocked send,
-resume, reaction delivery, timeout/open-next, and accepted rematch into the next
-lobby. Internal iOS build `0.1.0 (12)` was archived from exact release commit
-`53e01dd` and accepted by Apple at 10:23 CEST on 2026-07-31. It remains uploaded
-but not test-ready until authenticated App Store Connect readback confirms
-processing and internal-only group membership.
-Current source keeps the tablet/desktop left navigation visually stable on
-every Home, Rivals, Stats, Avi, Settings, and Account route. On iPad the logo
+Current as of 2026-07-31: the authoritative internal iOS candidate is
+`0.1.0 (13)` from functional commit
+`18f543e639781125a62062e40864de9b06433904`. Apple reports build id
+`7c4e46be-4c00-4f4f-83ab-876a74b40dd0` as `VALID`, encryption exempt,
+unexpired through 2026-10-29, and `IN_BETA_TESTING` only through the automatic
+internal `avalsys` group. Builds 7–12 are historical checkpoints and are not
+the current acceptance target.
+
+The current client includes configurable 5/6/7-letter human Challenge and
+Play Avi, eight localized reactions, animated receipt, compact invalid-word
+feedback, server-enforced recipient mute, prominent lobby synchronization,
+protected active/result navigation, bounded rematch discovery, fresh realtime
+session recovery, and physical-keyboard input on web. Production Convex
+`blissful-shark-434` contains the matching reaction-preference contract; the
+bounded two-client production smoke passed mute, blocked send, resume,
+reaction, timeout/open-next, accepted rematch, and next lobby.
+
+The current source also keeps the tablet/desktop left navigation visually
+stable on every Home, Rivals, Stats, Avi, Settings, and Account route. On iPad the logo
 is now a persistent React overlay above a fixed Swift sidebar slot, so native
 surface-prop updates cannot make the brand disappear during a route change;
 the shared SwiftUI host also updates an observable model instead of replacing
@@ -76,11 +37,15 @@ web Settings screen no longer offers a misleading Haptics switch because
 browser vibration is not part of the product contract; iPhone and iPad keep
 their real native Haptics setting. The exact client-only correction shipped
 from public commit `18f543e`: web preview and production received one identical
-artifact, while internal iOS build `0.1.0 (13)` passed the canonical production
-archive and Distribution export and was accepted by Apple's upload service.
+artifact. Preview Worker `b76242fb-0367-448d-a931-b8f64bde1776` and production
+Worker `55e36bdf-f6cc-4831-80dd-a10fd05d50bb` serve the same stamped bytes.
+Internal build 13 passed canonical Production archive, Distribution export,
+upload, processing, and internal-group readback.
 No API, Convex, D1, dictionary, or invite change was required.
-Historical store evidence remains in
-[the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
+Historical build progression and release evidence remain in
+[the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md)
+and [the earlier TestFlight handoff](docs/testflight-handoff-2026-07-29.md).
+**Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime
 enabled, that route can create a room-scoped guest, create or review an invite
 without auto-joining, join explicitly, Ready, start, play connected rounds,
@@ -198,7 +163,8 @@ language detail, and local-privacy copy expand only on request.
 Home, Settings, and Account now follow Tune AV's common-screen ordering as
 well as its shared shell. Home puts Avi's brief directly below the title.
 Settings begins with one compact App preferences card (app language,
-appearance, haptics), followed by on-device data and help/legal; Account and
+appearance, and native haptics where supported); web intentionally omits the
+haptics control. On-device data and help/legal follow; Account and
 Pro no longer appear as duplicate Settings destinations. Account orders the
 identity summary, product access, continuity, and signed-in-only safety, and a
 guest has one canonical `Connect Account AV` entry into the Apple/Google
@@ -206,8 +172,8 @@ provider sheet. Both size classes use the same hierarchy; iPad adapts it to the
 shared utility sidebar.
 
 The native Settings version row reads `CFBundleShortVersionString` and
-`CFBundleVersion` from the installed app instead of hard-coding candidate `1`,
-so a future build `2` cannot continue to identify itself as the first upload.
+`CFBundleVersion` from the installed app instead of hard-coding a candidate,
+so every installed build reports its exact identity.
 The React fallback and the shared Apple surface both describe the complete
 bundled EN/ES/CA/FR/DE word-list set.
 

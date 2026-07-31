@@ -77,8 +77,11 @@ Current implementation slice:
   feedback, resume state, completion, participation streak, and safe sharing
   on the device. Keep Daily free of Convex, polling, heartbeat, per-guess API
   calls, account identifiers, and automatic fetches on render.
-- Navigation contract: the full product wordmark belongs only to Home chrome,
-  splash, and onboarding. Every product-facing interior route must use
+- Navigation contract: the full product lockup remains persistent in the wide
+  web/iPad sidebar across Home, Rivals, Stats, Avi, Settings, and Account; it
+  also belongs to splash and onboarding. Keep the React overlay above the fixed
+  Swift sidebar slot so native selection updates cannot remove it. Every
+  product-facing interior route must use
   `InteriorScreenHeader` with the icon-only 44-point Back control; never add a
   visible top `Done`/`Close` label. Active games hide shell navigation and give
   the board plus complete keyboard priority. Secondary Daily metadata belongs
@@ -222,8 +225,9 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Signed physical iPhone+iPad acceptance, post-V1 advertising, real Pro purchase, push, a
-  replacement TestFlight build, or any further production deploy still
+  Internal TestFlight build `0.1.0 (13)` is the current processed iPhone/iPad
+  candidate. Physical owner acceptance of that exact build, post-V1
+  advertising, real Pro purchase, push, or any further production deploy still
   requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google

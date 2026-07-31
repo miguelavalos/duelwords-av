@@ -1,5 +1,10 @@
 # TestFlight handoff — 2026-07-29
 
+Status: historical build-4 handoff. It is superseded by processed internal
+build `0.1.0 (13)` from public functional commit `18f543e`; use the current
+README and connected-duel UX handoff for present release state. Every statement
+below applies only to its dated checkpoint.
+
 This handoff records the state left on Office Openspace for continuation on
 Home. It is documentation only: no signed archive, IPA export, physical-device
 install, App Store Connect upload, production deployment, or provider mutation

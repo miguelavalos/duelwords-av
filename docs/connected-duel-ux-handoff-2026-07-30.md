@@ -1,5 +1,11 @@
 # Connected-duel visual feedback and rematch handoff — 2026-07-30
 
+Status: living chronological evidence through the 2026-07-31 build-13
+delivery. The **Persistent wide navigation and honest web Haptics** and **Web
+and TestFlight delivery** sections contain the latest release record. Earlier
+uses of “next”, “unreleased”, or a numbered build's open gate describe their
+dated checkpoint and are superseded by processed internal build `0.1.0 (13)`.
+
 This record covers the iPhone/iPad connected-duel UX correction. TestFlight
 build `0.1.0 (6)` was uploaded before these source commits and therefore does
 not contain this correction. Build `0.1.0 (7)` was archived from exact source
@@ -16,7 +22,7 @@ processed, and exposed only to the internal `avalsys` group with two testers on
 
 ## 2026-07-31 reaction palette and shared pause source follow-up
 
-The next unreleased source slice expands the active-duel tray to the stable
+This source slice, later included in build 13, expands the active-duel tray to the stable
 eight reactions `gg`, `nice`, `close`, `almost`, `your_turn`, `tick_tock`,
 `no_pressure`, and `wow`. All eight have distinct emoji and localized labels in
 EN/ES/CA/FR/DE. The tray is a 4×2 floating panel: it remains legible on compact
@@ -551,7 +557,7 @@ horizontal overflow. The same artifact was then promoted without a rebuild to
 production Worker version `37360667-8728-492f-85b3-b967585883eb`; the
 production route returned HTTP 200 and referenced the expected bundle.
 
-Internal iOS build `0.1.0 (11)` is the first uploaded TestFlight candidate
+Internal iOS build `0.1.0 (11)` was the first uploaded TestFlight candidate
 containing this correction. It was archived from exact public source
 `ea2ddfdfaab50ea8d5488a7f1d0d886ef4372acc` with Xcode 26.6 and production
 runtime. Archive verification passed version/build, bundle/team, arm64,
@@ -571,9 +577,8 @@ The canonical Xcode upload completed at 23:14:35 CEST on 2026-07-30 with
 reported that the package had begun processing. The same eight known missing
 vendor-framework dSYM warnings remain for ExpoImage, React,
 ReactNativeDependencies, SDWebImage and its AVIF/SVG/WebP coders, and hermesvm;
-application/dSYM parity is exact. App Store Connect processing and assignment
-only to the internal `avalsys` group still require readback before build 11 is
-called test-ready. No external testing, App Review, backend, Convex, D1,
+application/dSYM parity is exact. That checkpoint did not capture processing or
+internal-group readback; build 11 is now superseded by processed build 13. No external testing, App Review, backend, Convex, D1,
 Infisical, paid-provider, or Sentry mutation accompanied this delivery.
 
 ## Reaction preference rollout and build 12 — 2026-07-31
@@ -629,9 +634,9 @@ it proved the shared mute projection, rejection of a blocked sender with
 accepted rematch, and the next lobby. Production shared-mute parity is closed
 without an API, D1, dictionary, or client redeploy.
 
-Do not call build 12 test-ready yet. App Store Connect processing and the
-internal-only group still require authenticated readback; the available browser
-session redirected to Apple's unauthenticated login. No invite/AASA, DNS, App
+That checkpoint did not capture a separate authenticated processing/group
+readback for build 12. It is superseded by processed internal build 13 and is
+not a current release gate. No invite/AASA, DNS, App
 Review, external testing, Sentry, paid-provider, or Infisical mutation
 accompanied this Convex closure.
 
@@ -666,18 +671,18 @@ on web, the browser-specific settings explanation, and zero console warnings or
 errors. The in-app-browser screenshot renderer tiled the wide frame, so DOM,
 route, locator, and console evidence—not the tiled bitmap—is authoritative.
 
-Internal build `0.1.0 (13)` is reserved for this client-only correction. The
-release must use the canonical production archive, archive validation, local
-App Store export, Distribution-signature check, and Xcode upload path. No API,
-Convex, D1, dictionary, invite/AASA, DNS, or paid-provider change is needed.
+Internal build `0.1.0 (13)` was reserved for this client-only correction and
+then completed the canonical delivery recorded below. No API, Convex, D1,
+dictionary, invite/AASA, DNS, or paid-provider change was needed.
 
 ### Web and TestFlight delivery
 
 Public release commit `18f543e639781125a62062e40864de9b06433904`
 passed the complete 91-file / 505-test suite, TypeScript, Expo lint, iOS release
 configuration, focused native-surface contracts, web types, preview/production
-dry-runs, artifact verification, and diff hygiene. React Doctor 0.9.2 reported
-84/100 with zero errors and six pre-existing/static structural advisories.
+dry-runs, artifact verification, and diff hygiene. The release changed-scope
+React Doctor 0.9.2 pass reported 84/100 with zero errors and six
+pre-existing/static structural advisories.
 
 One environment-neutral web artifact, SHA-256
 `4e06fe8a53b4446958b7afe359bc96e059685cf0b5e0e93ba02b6ed47569c8fd`,
@@ -708,6 +713,25 @@ readback then confirmed build id `7c4e46be-4c00-4f4f-83ab-876a74b40dd0` as
 `IN_BETA_TESTING` only through the automatic internal `avalsys` group. Build 13
 is therefore ready for internal testing. Eight known vendor-framework dSYM
 warnings remain non-blocking; application/dSYM parity is exact.
+
+### Documentation and code audit — 2026-07-31
+
+The post-release audit reran the complete public gate: 91 test files / 505
+tests, TypeScript, Expo lint, iOS configuration, and diff hygiene all pass. A
+full-source React Doctor 0.9.2 baseline reports 64/100, zero errors, and 98
+advisory warnings. This full baseline is intentionally distinct from the
+84/100 release changed-scope result above.
+
+The highest-risk advisories were inspected against the implementation. Active
+round recovery must refresh the caller's private snapshot before attempting the
+idempotent next-round transition; the sequential awaits are therefore ordered
+by protocol. Public-challenge async effects have cancellation or mounted-state
+guards. The blocking `/runtime-config.js` script is required so production
+configuration loads before the Expo bundle. The reported array-index keys are
+fixed, non-reordering icon strokes, and the app-config fallback still applies
+when a partial argument is passed. The remaining findings are non-blocking
+architecture, animation, memoization, and dependency-hardening debt; this audit
+does not hide a functional fix inside a documentation-only delivery.
 
 No API, Convex, D1, dictionary, invite/AASA, DNS, Sentry, App Review, external
 testing, paid-provider, or Infisical mutation accompanied this delivery.
