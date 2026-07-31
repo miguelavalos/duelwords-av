@@ -47,8 +47,18 @@ never changes dictionaries, feedback, attempts, or competitive rules.
 - Offering: `default`
 - Package: `$rc_monthly`
 - Billing period: one month
-- Base storefront price: EUR 5.99
+- Launch base storefront price: EUR 2.99 in Spain
+- Storefront coverage: all 175 current territories using Apple's automatic
+  equivalents; verify the localized StoreKit price on the signed candidate
 - Family Sharing: off
+
+V1 is ad-free. The planned V2 Google AdMob model does not change the EUR 2.99
+recommendation: Pro may become ad-free only when V2 actually ships ads, while
+Free placements must stay outside active gameplay, lobby synchronization,
+reactions, results, and rematch decisions. Do not raise the subscription price
+at the V2 launch; review it only after representative conversion, retention,
+churn, and realized ad-revenue data exists. A possible EUR 24.99 annual option
+is a separate future product, not part of V1.
 
 RevenueCat is configured only after Apps AV resolves an internal signed-in
 user. Guest use never initializes the purchase SDK. Purchase and restore

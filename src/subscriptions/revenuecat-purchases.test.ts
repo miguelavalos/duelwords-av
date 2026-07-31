@@ -10,7 +10,7 @@ import {
 function fixture() {
   const monthlyPackage = {
     identifier: '$rc_monthly',
-    product: { identifier: 'duelwordsav_pro_monthly', priceString: '€5.99' },
+    product: { identifier: 'duelwordsav_pro_monthly', priceString: '€2.99' },
   };
   const sdk = {
     configure: vi.fn(),

@@ -55,7 +55,7 @@ export function ProScreen() {
         onAction={handleSharedAction}
         planTier={account.access.planTier}
         signedIn={signedIn}
-        subscriptionBusy={subscription.state === 'loading'}
+        subscriptionBusy={subscription.state === 'loading' || subscription.state === 'pending_reconciliation'}
         subscriptionError={subscription.error ?? ''}
         subscriptionPrice={subscription.price ?? ''}
         subscriptionState={subscription.state}
@@ -108,7 +108,7 @@ export function ProScreen() {
                   : copy('Subscription unavailable')}
             </AppButton>
             <AppButton
-              disabled={subscription.state === 'loading'}
+              disabled={subscription.state === 'loading' || subscription.state === 'pending_reconciliation'}
               tone="quiet"
               onPress={() => void subscription.restore()}>
               {copy('Restore purchases')}
@@ -116,7 +116,7 @@ export function ProScreen() {
             {subscription.state === 'pending_reconciliation' ? (
               <Text style={styles.status}>{copy('Purchase received. Confirming Pro access with Apps AV…')}</Text>
             ) : null}
-            {subscription.error ? <Text style={styles.error}>{subscription.error}</Text> : null}
+            {subscription.error ? <Text style={styles.error}>{copy(subscription.error)}</Text> : null}
           </>
         ) : (
           <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>{copy('Sign in to continue')}</AppButton>

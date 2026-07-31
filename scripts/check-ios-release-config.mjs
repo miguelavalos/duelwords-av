@@ -53,10 +53,10 @@ function expoPluginOptions(name) {
 
 expectEqual('expo.name', expoConfig.name, 'DuelWords AV');
 expectEqual('expo.slug', expoConfig.slug, 'duelwords-av');
-expectEqual('expo.version', expoConfig.version, '0.1.0');
+expectEqual('expo.version', expoConfig.version, '1.0.0');
 expectEqual('expo.orientation', expoConfig.orientation, 'portrait');
 expectEqual('expo.ios.bundleIdentifier', expoConfig.ios?.bundleIdentifier, expectedBundleIdentifier);
-expectEqual('expo.ios.buildNumber', expoConfig.ios?.buildNumber, '13');
+expectEqual('expo.ios.buildNumber', expoConfig.ios?.buildNumber, '14');
 expectEqual('expo.ios.supportsTablet', expoConfig.ios?.supportsTablet, true);
 expectEqual('expo.ios.requireFullScreen', expoConfig.ios?.requireFullScreen, true);
 expectEqual(

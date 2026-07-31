@@ -1001,21 +1001,23 @@ game id; it only creates a start request after recipient acceptance.
 
 ## Remaining V1 release gates
 
-- Keep RC11 binary source `1ced3327` frozen. Apple processed build `0.1.0 (3)`
-  as `Validado` / `Lista para enviar` on 2026-07-28 and exposed it only to the
-  existing internal `avalsys` group. RC8 build `2` remains immutable historical
-  evidence. Do not expire either build, broaden RC11 beyond internal testing,
-  attach it to App Review, or submit it without new exact authorization.
-- Treat `2487f9f` as the source reservation for the next candidate,
-  `0.1.0 (4)`, not as signed-build evidence. Home must first synchronize both
-  repositories, run the signed-runtime preflight and archive/export validators,
-  and obtain current approval for the exact public/private commits before any
-  App Store Connect mutation. The handoff is intentionally upload-silent.
-- RC11 was installed over the existing physical iPhone app without uninstalling
-  or clearing data and launched successfully. Visual owner confirmation that
-  the prior Account AV session and local data remain present is still open. No
-  physical iPad exists; iPad acceptance is the dedicated Release simulator
-  matrix above, and that limitation must remain explicit.
+- Internal TestFlight `0.1.0 (13)` remains immutable historical acceptance.
+  The first public-review candidate is now reserved locally as `1.0.0 (14)`
+  because the purchase-reconciliation repair changes the binary. It has not
+  been archived, uploaded, attached to App Review, or submitted.
+- Native iPhone/iPad V1 is subscription-first: it must ship the real localized
+  StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
+  management, Apps AV entitlement reconciliation, legal links, and in-app
+  account deletion. Web remains informational and does not sell subscriptions.
+- App Store Connect now uses EUR 2.99 as the Spain base-storefront price for
+  `duelwordsav_pro_monthly`, with Apple's automatic equivalents across all 175
+  territories. Verify that the processed build displays the propagated real
+  localized StoreKit price. RevenueCat product, entitlement, offering, package,
+  and product id do not change.
+- Run signed sandbox purchase, delayed-webhook reconciliation, restore on a
+  second device, cancellation/expiry, redeem code, and account-deletion checks
+  on the exact candidate. Capture new iPhone and iPad screenshots and the
+  subscription review screenshot only after those gates pass.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android
@@ -1025,10 +1027,14 @@ game id; it only creates a start request after recipient acceptance.
   their public journeys are localized in EN/ES/CA/FR/DE.
 - Keep advertising outside V1. Any later monetization experiment requires a
   new product decision, provider/privacy review, implementation, and signed
-  acceptance gate; the V1 client must remain SDK- and placement-free.
-- Keep DuelWords Pro explicitly non-purchasing until StoreKit products,
-  Account AV entitlement reconciliation, store/legal metadata, purchase,
-  restore, and physical-device gates receive separate approval and pass.
+  acceptance gate; the V1 client must remain SDK- and placement-free. The V2
+  Google AdMob plan retains the EUR 2.99 monthly target, keeps ads away from
+  gameplay/lobby/reactions/result/rematch, and must use actual 90-day product
+  data before any price change.
+- Do not submit while purchase, restore, redeem-code, entitlement
+  reconciliation, subscription management, or account deletion has an open
+  failure. The current source includes those paths; the remaining gate is
+  exact-candidate end-to-end acceptance, not removal of purchasing.
 - Continue handling player/editorial reports through the versioned solution
   decks and exclusion regressions. All five languages now use the same 750
   solutions per length; accepted guesses remain broader by design.
