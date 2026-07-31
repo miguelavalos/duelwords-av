@@ -25,6 +25,8 @@ describe('active duel realtime projection adapter', () => {
     expect(view?.room.status).toBe('active_round');
     expect(view?.opponent?.hasSubmittedCurrentRound).toBe(true);
     expect(view?.opponent?.presenceState).toBe('online');
+    expect(view?.own?.acceptsReactions).toBe(true);
+    expect(view?.opponent?.acceptsReactions).toBe(true);
 
     const serialized = JSON.stringify(view).toLowerCase();
     for (const forbidden of [
@@ -198,6 +200,49 @@ describe('active duel realtime projection adapter', () => {
       createDemoActiveDuelViewModel({ gameLanguage: 'en' }),
       view!,
     ).activeReaction).toBe('tick_tock');
+  });
+
+  it('supports all eight reactions and blocks sends when the opponent pauses them', async () => {
+    expect(([
+      'gg',
+      'nice',
+      'close',
+      'almost',
+      'your_turn',
+      'tick_tock',
+      'no_pressure',
+      'wow',
+    ] as const).map(activeDuelReactionToRealtimeKey)).toEqual([
+      'good_duel',
+      'nice',
+      'close_one',
+      'almost_there',
+      'your_turn',
+      'tick_tock',
+      'no_pressure',
+      'wow',
+    ]);
+
+    const blockedClient = createLocalDuelWordsRealtimeProjectionClient({
+      opponentAcceptsReactions: false,
+    });
+    await expect(blockedClient.sendReaction({
+      clientRequestId: 'blocked-1',
+      reactionKey: 'wow',
+      realtimeSessionId: 'local-realtime-session',
+      roomToken: 'local-active-room',
+    })).resolves.toEqual({ ok: false, reason: 'opponent_reactions_disabled' });
+
+    await expect(blockedClient.setReactionPreference({
+      acceptsReactions: false,
+      realtimeSessionId: 'local-realtime-session',
+      roomToken: 'local-active-room',
+    })).resolves.toEqual({ ok: true });
+    const view = await blockedClient.getActiveRoomView({
+      realtimeSessionId: 'local-realtime-session',
+      roomToken: 'local-active-room',
+    });
+    expect(view?.own?.acceptsReactions).toBe(false);
   });
 
   it('rejects invalid local realtime sessions without leaking session details', async () => {

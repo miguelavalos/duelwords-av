@@ -90,6 +90,9 @@ export function createDisabledDuelWordsRealtimeProjectionClient(): DuelWordsReal
     async sendReaction() {
       return { ok: false, reason: 'room_unavailable' };
     },
+    async setReactionPreference() {
+      return { ok: false, reason: 'room_unavailable' };
+    },
     subscribeActiveRoomView(_input, listener) {
       listener(null);
       return () => undefined;

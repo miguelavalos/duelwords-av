@@ -33,6 +33,7 @@ import { AviArtwork } from '@/ui/brand';
 import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 import { WordDuelBoard } from './components/word-duel-board';
+import { CompactDuelStatusRow } from './components/compact-duel-status-row';
 import { useWordDuelInputBuffer } from './components/use-word-duel-input-buffer';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import { fillEditingRow } from './components/word-duel-ui-model';
@@ -322,10 +323,11 @@ export function PlayAviScreen({
         tileSize={tileSize}
       />
 
-      <View style={[styles.stateRow, compactViewport && styles.stateRowCompact]}>
-        <Text style={styles.stateLabel}>{stateLabel(viewModel.phase, viewModel.status, duelCopy)}</Text>
-        <Text style={styles.stateDetail}>{message || detailLabel(viewModel.phase, viewModel.status, duelCopy)}</Text>
-      </View>
+      <CompactDuelStatusRow
+        compact={compactViewport}
+        detail={message || detailLabel(viewModel.phase, viewModel.status, duelCopy)}
+        label={stateLabel(viewModel.phase, viewModel.status, duelCopy)}
+      />
 
       {viewModel.targetReveal.visible && viewModel.targetReveal.displayWord ? (
         <View style={styles.resultLine}>
@@ -795,27 +797,6 @@ function usePlayAviStyles() {
   reactionBubbleText: {
     color: colors.pressure,
     fontWeight: '900',
-  },
-  stateRow: {
-    minHeight: 42,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-    borderRadius: radii.md,
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: spacing.md,
-  },
-  stateRowCompact: {
-    minHeight: 36,
-  },
-  stateLabel: {
-    color: colors.text,
-    fontWeight: '900',
-  },
-  stateDetail: {
-    color: colors.textMuted,
-    fontWeight: '800',
   },
   resultLine: {
     minHeight: 42,

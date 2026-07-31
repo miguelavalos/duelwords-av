@@ -290,7 +290,13 @@ export function DailyScreen({ initialGameLanguage = 'en' }: DailyScreenProps) {
             tileSize={tileSize}
           />
 
-          {message ? <View style={styles.messageArea}><Text style={styles.errorText}>{message}</Text></View> : null}
+          <View style={styles.messageArea}>
+            {message ? (
+              <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={styles.errorText}>
+                {message}
+              </Text>
+            ) : null}
+          </View>
 
           {finished ? (
             <PaperCard emphasized>
@@ -393,7 +399,7 @@ function useStyles() {
     infoLanguage: { flex: 1, alignItems: 'flex-end' },
     statusLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },
     statusValue: { color: colors.text, fontSize: typeScale.body, fontWeight: '900', fontVariant: ['tabular-nums'] },
-    messageArea: { minHeight: 24, justifyContent: 'center' },
+    messageArea: { height: 24, justifyContent: 'center', overflow: 'hidden' },
     errorText: { color: colors.danger, fontSize: typeScale.body, fontWeight: '800', textAlign: 'center' },
     resultDetail: { color: colors.textMuted, fontSize: typeScale.body, lineHeight: 22 },
     targetLabel: { color: colors.textMuted, fontSize: typeScale.tiny, fontWeight: '900', textTransform: 'uppercase' },

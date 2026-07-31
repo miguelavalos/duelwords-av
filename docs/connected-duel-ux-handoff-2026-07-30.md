@@ -14,6 +14,41 @@ internal build `0.1.0 (8)` was archived from exact source `0ca2169`, uploaded,
 processed, and exposed only to the internal `avalsys` group with two testers on
 2026-07-30.
 
+## 2026-07-31 reaction palette and shared pause source follow-up
+
+The next unreleased source slice expands the active-duel tray to the stable
+eight reactions `gg`, `nice`, `close`, `almost`, `your_turn`, `tick_tock`,
+`no_pressure`, and `wow`. All eight have distinct emoji and localized labels in
+EN/ES/CA/FR/DE. The tray is a 4×2 floating panel: it remains legible on compact
+iPhone and stays small in the lower-right corner on iPad without moving the
+board or keyboard.
+
+The former local-only mute has become a current-match receive preference in the
+safe per-player Convex projection. Both participants observe the preference,
+and the server rejects `sendReaction` when the recipient has paused reactions;
+a stale or modified client therefore cannot bypass the control. Existing
+players and rolling old projections default to receiving. The preference adds
+no table or subscription and resets naturally with the next match's player
+rows.
+
+Reaction events now include authoritative `roundNumber` and `createdAt`.
+Initial subscription, reconnect, and prior-round events stay visually quiet,
+while fresh current-round rival reactions retain the existing non-interactive
+animated overlay and Reduce Motion fallback. Source validation passes 91 test
+files / 503 tests, TypeScript, Expo lint, iOS release config, diff hygiene, and
+the 15-test private Convex architecture contract. React Doctor reports no
+errors and 20 non-blocking advisories in the existing active/solo screen
+structure.
+
+Local native layout acceptance used the dedicated iPhone 17 and iPad Pro 13
+simulators with a seven-letter/eight-attempt active demo. It verified the 4×2
+palette, distinct labels, local send acknowledgement, and visible pause/resume
+state on both sizes. No Convex environment, API, web deployment, TestFlight, or
+Infisical state changed. A true two-device assertion that the paused recipient
+blocks the rival is intentionally pending the separately authorized preview
+Convex deployment of `setReactionPreference`; deterministic client and server
+tests already cover that rule.
+
 ## Visual feedback
 
 The active duel now derives transient presentation events only from the safe

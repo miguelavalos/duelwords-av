@@ -37,6 +37,7 @@ import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import { WordDuelBoard } from './components/word-duel-board';
+import { CompactDuelStatusRow } from './components/compact-duel-status-row';
 import { WordDuelKeyboard, WORD_DUEL_KEY_ROWS } from './components/word-duel-keyboard';
 import {
   ACTIVE_DUEL_AUTO_ADVANCE_DELAY_MS,
@@ -59,10 +60,8 @@ import {
   finalizeActiveWordDuelResult,
   reportWordDuelResultFinalizationError,
 } from './result-finalization';
-import {
-  ActiveDuelFeedbackOverlay,
-  reactionEmoji,
-} from './active-duel-feedback-overlay';
+import { ActiveDuelFeedbackOverlay } from './active-duel-feedback-overlay';
+import { reactionEmoji, reactionLabel } from './active-duel-reactions';
 import {
   activeDuelVisualFeedbackFromProjection,
   createOwnSubmittedVisualFeedback,
@@ -71,15 +70,6 @@ import {
 } from './active-duel-visual-feedback';
 import { buildWordDuelResultHandoffHref } from './word-duel-route-params';
 import { publicDuelT, type PublicDuelCopyKey } from './public-duel-copy';
-
-const REACTION_LABELS: Record<ActiveDuelReactionId, string> = {
-  gg: 'GG',
-  nice: 'Nice',
-  close: 'Close',
-  almost: 'Almost',
-  your_turn: 'Turn',
-  tick_tock: 'Time',
-};
 
 type ActiveDuelScreenProps = {
   controller?: WordDuelActiveController;
@@ -122,9 +112,10 @@ export function ActiveDuelScreen({
     () => initialHandoff ?? createWordDuelActiveDemoHandoff({ gameLanguage: initialGameLanguage ?? 'en' }),
     [initialGameLanguage, initialHandoff],
   );
-  const [muted, setMuted] = useState(false);
-  const mutedRef = useRef(muted);
+  const mutedRef = useRef(false);
   const [reactionsOpen, setReactionsOpen] = useState(false);
+  const [reactionPreferencePending, setReactionPreferencePending] = useState(false);
+  const [sendingReaction, setSendingReaction] = useState<ActiveDuelReactionId | null>(null);
   const [showRecoveryAction, setShowRecoveryAction] = useState(false);
   const [submissionInFlight, setSubmissionInFlight] = useState(false);
   const [activeReaction, setActiveReaction] = useState<ActiveDuelReactionEvent | null>(null);
@@ -137,7 +128,9 @@ export function ActiveDuelScreen({
     [activeHandoff, controller],
   );
   const [statusDetail, setStatusDetail] = useState(() => copy('roundLive'));
+  const [inputError, setInputError] = useState<string | null>(null);
   const [viewModel, setViewModel] = useState(() => activeDuelController.getViewModel());
+  const muted = !viewModel.acceptsReactions;
   const [clockNowMs, setClockNowMs] = useState(() => Date.now());
   const [realtimeRound, setRealtimeRound] = useState<{
     clock: ActiveDuelRoundClock | null;
@@ -169,12 +162,16 @@ export function ActiveDuelScreen({
     timedOutRoundRef.current = null;
     visualSnapshotRef.current = null;
     setReactionsOpen(false);
+    setReactionPreferencePending(false);
+    setSendingReaction(null);
     setShowRecoveryAction(false);
     setSubmissionInFlight(false);
     setRealtimeRound(null);
     setStatusDetail(copy('roundLive'));
     setVisualFeedback(null);
-    setViewModel(activeDuelController.getViewModel());
+    const nextViewModel = activeDuelController.getViewModel();
+    mutedRef.current = !nextViewModel.acceptsReactions;
+    setViewModel(nextViewModel);
   }, [activeDuelController, copy]);
 
   const recoverResolvedRoundSnapshot = useCallback(async (roundNumber: number) => {
@@ -325,9 +322,11 @@ export function ActiveDuelScreen({
         projection,
       );
       visualSnapshotRef.current = visualUpdate.snapshot;
+      const projectionMuted = projection.own?.acceptsReactions === false;
+      mutedRef.current = projectionMuted;
       if (
         visualUpdate.feedback
-        && !(mutedRef.current && visualUpdate.feedback.kind === 'opponent_reaction')
+        && !(projectionMuted && visualUpdate.feedback.kind === 'opponent_reaction')
       ) {
         setVisualFeedback(visualUpdate.feedback);
       }
@@ -369,6 +368,7 @@ export function ActiveDuelScreen({
   }, [activeDuelController, copy, onFinalResult, recoverResolvedRoundSnapshot]);
 
   function updateDraft(nextDraft: string) {
+    setInputError(null);
     const clampedDraft = Array.from(nextDraft).slice(0, viewModel.wordLength).join('');
     draftRef.current = clampedDraft;
     setViewModel((current) => updateActiveDuelEditingLetters(current, Array.from(clampedDraft)));
@@ -377,6 +377,7 @@ export function ActiveDuelScreen({
 
   function clearDraft() {
     draftRef.current = '';
+    setInputError(null);
   }
 
   function handleKeyPress(key: string) {
@@ -405,13 +406,14 @@ export function ActiveDuelScreen({
     const currentDraft = draftRef.current;
     const letters = Array.from(currentDraft);
     if (letters.length !== viewModel.wordLength) {
-      setStatusDetail(copy('wordLength', { count: viewModel.wordLength }));
+      setInputError(copy('wordLength', { count: viewModel.wordLength }));
       return;
     }
 
     clientRequestNumber.current += 1;
     submissionInFlightRef.current = true;
     setSubmissionInFlight(true);
+    setInputError(null);
     setStatusDetail(copy('submitting'));
 
     try {
@@ -434,13 +436,12 @@ export function ActiveDuelScreen({
       }
     } catch (error) {
       const failure = classifyActiveDuelSubmitFailure(error);
-      setStatusDetail(activeDuelSubmitFailureLabel(
-        interfaceLocale,
-        failure,
-        gameLanguageLabel,
-        currentDraft,
-        viewModel.wordLength,
-      ));
+      const failureLabel = activeDuelSubmitFailureLabel(interfaceLocale, failure, viewModel.wordLength);
+      if (failure === 'invalid_word' || failure === 'word_length') {
+        setInputError(failureLabel);
+      } else {
+        setStatusDetail(failureLabel);
+      }
       if (failure === 'round_changed') {
         setShowRecoveryAction(true);
       }
@@ -451,18 +452,41 @@ export function ActiveDuelScreen({
   }
 
   async function sendReaction(reaction: ActiveDuelReactionId) {
-    reactionRequestNumber.current += 1;
-    const result = await activeDuelController.sendReaction({
-      clientRequestId: `active-demo-reaction-${reactionRequestNumber.current}`,
-      reaction,
-    });
-
-    if (!result.ok) {
-      setStatusDetail(result.reason === 'rate_limited' ? copy('slowDown') : copy('unavailable'));
+    if (sendingReaction !== null || !viewModel.opponentAcceptsReactions) {
+      setStatusDetail(copy('reactionBlocked'));
+      setReactionsOpen(false);
       return;
     }
-    setReactionsOpen(false);
-    setStatusDetail(copy('reactionSent', { reaction: reactionLabel(interfaceLocale, reaction) }));
+
+    reactionRequestNumber.current += 1;
+    setSendingReaction(reaction);
+    try {
+      const result = await activeDuelController.sendReaction({
+        clientRequestId: `active-demo-reaction-${reactionRequestNumber.current}`,
+        reaction,
+      });
+
+      if (!result.ok) {
+        setStatusDetail(
+          result.reason === 'rate_limited'
+            ? copy('slowDown')
+            : result.reason === 'opponent_reactions_disabled'
+              ? copy('reactionBlocked')
+              : copy('unavailable'),
+        );
+        if (result.reason === 'opponent_reactions_disabled') {
+          setViewModel((current) => ({ ...current, opponentAcceptsReactions: false }));
+          setReactionsOpen(false);
+        }
+        return;
+      }
+      setReactionsOpen(false);
+      setStatusDetail(copy('reactionSent', { reaction: reactionLabel(interfaceLocale, reaction) }));
+    } catch {
+      setStatusDetail(copy('unavailable'));
+    } finally {
+      setSendingReaction(null);
+    }
   }
 
   const openFinalResult = useCallback(async () => {
@@ -525,16 +549,37 @@ export function ActiveDuelScreen({
     setVisualFeedback((current) => current?.id === eventId ? null : current);
   }, []);
 
-  const toggleMuted = useCallback(() => {
-    const nextMuted = !mutedRef.current;
-    mutedRef.current = nextMuted;
-    setMuted(nextMuted);
-    if (nextMuted) {
+  const toggleMuted = useCallback(async () => {
+    if (reactionPreferencePending) return;
+
+    const previousAcceptsReactions = viewModelRef.current.acceptsReactions;
+    const acceptsReactions = !previousAcceptsReactions;
+    mutedRef.current = !acceptsReactions;
+    setReactionPreferencePending(true);
+    setViewModel((current) => ({ ...current, acceptsReactions }));
+    if (!acceptsReactions) {
       setVisualFeedback((current) => (
         current?.kind === 'opponent_reaction' ? null : current
       ));
     }
-  }, []);
+
+    try {
+      const result = await activeDuelController.setReactionPreference({ acceptsReactions });
+      if (!result.ok) {
+        mutedRef.current = !previousAcceptsReactions;
+        setViewModel((current) => ({ ...current, acceptsReactions: previousAcceptsReactions }));
+        setStatusDetail(copy('unavailable'));
+        return;
+      }
+      setStatusDetail(copy(acceptsReactions ? 'roundLive' : 'reactionsPaused'));
+    } catch {
+      mutedRef.current = !previousAcceptsReactions;
+      setViewModel((current) => ({ ...current, acceptsReactions: previousAcceptsReactions }));
+      setStatusDetail(copy('unavailable'));
+    } finally {
+      setReactionPreferencePending(false);
+    }
+  }, [activeDuelController, copy, reactionPreferencePending]);
 
   useEffect(() => {
     if (
@@ -597,10 +642,12 @@ export function ActiveDuelScreen({
         tileSize={tileSize}
       />
 
-      <View style={styles.stateRow}>
-        <Text style={styles.stateLabel}>{ownRoundStateLabel(interfaceLocale, viewModel)}</Text>
-        <Text accessibilityLiveRegion="polite" style={styles.stateDetail}>{statusDetail}</Text>
-      </View>
+      <CompactDuelStatusRow
+        compact={compactViewport}
+        detail={inputError ?? statusDetail}
+        error={inputError !== null}
+        label={ownRoundStateLabel(interfaceLocale, viewModel)}
+      />
 
       <WordDuelKeyboard
         density={compactViewport ? 'compact' : 'regular'}
@@ -628,15 +675,19 @@ export function ActiveDuelScreen({
           reactionsOpen && styles.floatingReactionDockOpen,
         ]}>
         <ReactionTray
+          compact={compactViewport}
           interfaceLocale={interfaceLocale}
           muted={muted}
+          opponentAcceptsReactions={viewModel.opponentAcceptsReactions}
           onMuteToggle={toggleMuted}
           onOpenToggle={() => setReactionsOpen((current) => !current)}
           onReactionPress={(reaction) => {
             void sendReaction(reaction);
           }}
           open={reactionsOpen}
+          preferencePending={reactionPreferencePending}
           reactions={viewModel.availableReactions}
+          sendingReaction={sendingReaction}
         />
       </View>
 
@@ -737,69 +788,131 @@ function OpponentSummary({
 }
 
 function ReactionTray({
+  compact,
   interfaceLocale,
   muted,
+  opponentAcceptsReactions,
   onMuteToggle,
   onOpenToggle,
   onReactionPress,
   open,
+  preferencePending,
   reactions,
+  sendingReaction,
 }: {
+  compact: boolean;
   interfaceLocale: InterfaceLocale;
   muted: boolean;
+  opponentAcceptsReactions: boolean;
   onMuteToggle: () => void;
   onOpenToggle: () => void;
   onReactionPress: (reaction: ActiveDuelReactionId) => void;
   open: boolean;
+  preferencePending: boolean;
   reactions: ActiveDuelReactionId[];
+  sendingReaction: ActiveDuelReactionId | null;
 }) {
   const styles = useActiveDuelStyles();
-  const compactReactions = reactions.filter((reaction) =>
-    ['gg', 'nice', 'tick_tock', 'almost'].includes(reaction),
-  );
+  const reactDisabled = !opponentAcceptsReactions;
 
   return (
     <View style={styles.reactionTray}>
       {open ? (
         <View style={styles.reactionButtons}>
-          {compactReactions.map((reaction) => (
-            <Pressable
-              key={reaction}
-              accessibilityLabel={reactionLabel(interfaceLocale, reaction)}
-              accessibilityRole="button"
-              onPress={() => onReactionPress(reaction)}
-              style={({ pressed }) => [styles.reactionButton, pressed && styles.pressed]}>
-              <Text style={styles.reactionButtonEmoji}>{reactionEmoji(reaction)}</Text>
-              <Text adjustsFontSizeToFit numberOfLines={1} style={styles.reactionButtonText}>
-                {reactionLabel(interfaceLocale, reaction)}
+          <View style={styles.reactionPanelHeader}>
+            <View style={styles.reactionPanelTitleBlock}>
+              <Text style={styles.reactionPanelTitle}>{publicDuelT(interfaceLocale, 'reactionPanel')}</Text>
+              <Text numberOfLines={1} style={styles.reactionPanelDetail}>
+                {muted
+                  ? publicDuelT(interfaceLocale, 'reactionsPaused')
+                  : publicDuelT(interfaceLocale, 'quickReaction')}
               </Text>
+            </View>
+            <Pressable
+              accessibilityLabel={publicDuelT(interfaceLocale, muted ? 'resumeReactions' : 'pauseReactions')}
+              accessibilityRole="button"
+              accessibilityState={{ busy: preferencePending, checked: muted }}
+              disabled={preferencePending}
+              onPress={onMuteToggle}
+              style={({ pressed }) => [
+                styles.reactionPanelMuteButton,
+                muted && styles.reactionPanelMuteButtonActive,
+                pressed && styles.pressed,
+                preferencePending && styles.disabled,
+              ]}>
+              <Text style={styles.muteText}>{muted ? '🔕' : '🔔'}</Text>
             </Pressable>
-          ))}
-          <Pressable
-            accessibilityLabel={publicDuelT(interfaceLocale, 'close')}
-            accessibilityRole="button"
-            onPress={onOpenToggle}
-            style={({ pressed }) => [styles.reactionCloseButton, pressed && styles.pressed]}>
-            <Text style={styles.reactionCloseText}>×</Text>
-          </Pressable>
+            <Pressable
+              accessibilityLabel={publicDuelT(interfaceLocale, 'close')}
+              accessibilityRole="button"
+              onPress={onOpenToggle}
+              style={({ pressed }) => [styles.reactionCloseButton, pressed && styles.pressed]}>
+              <Text style={styles.reactionCloseText}>×</Text>
+            </Pressable>
+          </View>
+          <View style={styles.reactionGrid}>
+            {reactions.map((reaction) => (
+              <Pressable
+                key={reaction}
+                accessibilityLabel={reactionLabel(interfaceLocale, reaction)}
+                accessibilityRole="button"
+                accessibilityState={{ busy: sendingReaction === reaction, disabled: reactDisabled }}
+                disabled={reactDisabled || sendingReaction !== null}
+                onPress={() => onReactionPress(reaction)}
+                style={({ pressed }) => [
+                  styles.reactionButton,
+                  compact && styles.reactionButtonCompact,
+                  sendingReaction === reaction && styles.reactionButtonSending,
+                  reactDisabled && styles.disabled,
+                  pressed && styles.pressed,
+                ]}>
+                <Text style={styles.reactionButtonEmoji}>{reactionEmoji(reaction)}</Text>
+                <Text adjustsFontSizeToFit numberOfLines={1} style={styles.reactionButtonText}>
+                  {reactionLabel(interfaceLocale, reaction)}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          {reactDisabled ? (
+            <Text accessibilityLiveRegion="polite" style={styles.reactionBlockedText}>
+              {publicDuelT(interfaceLocale, 'rivalPausedReactions')}
+            </Text>
+          ) : null}
         </View>
       ) : (
         <View style={styles.reactionHeader}>
           <Pressable
-            accessibilityLabel={publicDuelT(interfaceLocale, 'react')}
+            accessibilityLabel={publicDuelT(
+              interfaceLocale,
+              reactDisabled ? 'rivalPausedReactions' : 'react',
+            )}
             accessibilityRole="button"
-            accessibilityState={{ expanded: open }}
+            accessibilityState={{ disabled: reactDisabled, expanded: open }}
+            disabled={reactDisabled}
             onPress={onOpenToggle}
-            style={({ pressed }) => [styles.reactTrigger, pressed && styles.pressed]}>
+            style={({ pressed }) => [
+              styles.reactTrigger,
+              reactDisabled && styles.disabled,
+              pressed && styles.pressed,
+            ]}>
             <Text style={styles.reactTriggerEmoji}>⚡</Text>
-            <Text style={styles.reactTriggerText}>{publicDuelT(interfaceLocale, 'react')}</Text>
+            <Text style={styles.reactTriggerText}>
+              {publicDuelT(interfaceLocale, reactDisabled ? 'reactionsPaused' : 'react')}
+            </Text>
           </Pressable>
           <Pressable
-            accessibilityLabel={publicDuelT(interfaceLocale, muted ? 'muted' : 'mute')}
+            accessibilityLabel={publicDuelT(interfaceLocale, muted ? 'resumeReactions' : 'pauseReactions')}
             accessibilityRole="button"
+            accessibilityState={{ busy: preferencePending, checked: muted }}
+            disabled={preferencePending}
             onPress={onMuteToggle}
-            style={({ pressed }) => [styles.muteButton, pressed && styles.pressed]}>
-            <Text style={styles.muteText}>{muted ? '🔇' : '🔊'}</Text>
+            style={({ pressed }) => [
+              styles.muteButton,
+              muted && styles.muteButtonActive,
+              preferencePending && styles.disabled,
+              pressed && styles.pressed,
+            ]}>
+            <Text style={styles.muteText}>{muted ? '🔕' : '🔔'}</Text>
           </Pressable>
         </View>
       )}
@@ -829,12 +942,10 @@ function ownRoundStateLabel(locale: InterfaceLocale, viewModel: ActiveDuelViewMo
 function activeDuelSubmitFailureLabel(
   locale: InterfaceLocale,
   failure: ActiveDuelSubmitFailure,
-  language: string,
-  word: string,
   wordLength: number,
 ): string {
   if (failure === 'invalid_word') {
-    return publicDuelT(locale, 'wordNotInDictionary', { language, word });
+    return publicDuelT(locale, 'wordNotAccepted');
   }
   if (failure === 'word_length') {
     return publicDuelT(locale, 'wordLength', { count: wordLength });
@@ -890,14 +1001,6 @@ function presenceLabel(locale: InterfaceLocale, presence: string): string {
   return publicDuelT(locale, 'offline');
 }
 
-function reactionLabel(locale: InterfaceLocale, reaction: ActiveDuelReactionId): string {
-  if (reaction === 'nice') return publicDuelT(locale, 'nice');
-  if (reaction === 'almost') return publicDuelT(locale, 'almost');
-  if (reaction === 'your_turn') return publicDuelT(locale, 'yourTurn');
-  if (reaction === 'tick_tock') return publicDuelT(locale, 'time');
-  return REACTION_LABELS[reaction];
-}
-
 function markerStyle(
   marker: ActiveDuelOpponentMarkerState,
   styles: ReturnType<typeof useActiveDuelStyles>,
@@ -933,7 +1036,7 @@ function useActiveDuelStyles() {
   },
   floatingReactionDockOpen: {
     width: '92%',
-    maxWidth: 380,
+    maxWidth: 430,
   },
   header: {
     minHeight: 48,
@@ -1153,32 +1256,6 @@ function useActiveDuelStyles() {
   reactionBubbleTextOpponent: {
     color: colors.pressure,
   },
-  stateRow: {
-    minHeight: 40,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: spacing.md,
-    borderRadius: radii.md,
-    backgroundColor: colors.surfaceSoft,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
-  },
-  stateLabel: {
-    flex: 1,
-    color: colors.text,
-    fontSize: typeScale.body,
-    fontWeight: '900',
-  },
-  stateDetail: {
-    flex: 1,
-    flexShrink: 1,
-    color: colors.accent,
-    fontSize: typeScale.small,
-    fontWeight: '900',
-    textAlign: 'right',
-    textTransform: 'uppercase',
-  },
   reactionTray: {
     alignItems: 'flex-end',
     gap: spacing.sm,
@@ -1212,17 +1289,56 @@ function useActiveDuelStyles() {
   },
   reactionButtons: {
     width: '100%',
-    flexDirection: 'row',
-    gap: spacing.xs,
+    gap: spacing.sm,
     borderRadius: radii.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.border,
+    borderWidth: 2,
+    borderColor: colors.secondary,
     backgroundColor: colors.surface,
-    padding: spacing.xs,
+    padding: spacing.sm,
     boxShadow: '0 10px 18px rgba(0, 0, 0, 0.20)',
   },
-  reactionButton: {
+  reactionPanelHeader: {
+    minHeight: 46,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  reactionPanelTitleBlock: {
     flex: 1,
+  },
+  reactionPanelTitle: {
+    color: colors.text,
+    fontSize: typeScale.body,
+    fontWeight: '900',
+  },
+  reactionPanelDetail: {
+    color: colors.textMuted,
+    fontSize: typeScale.tiny,
+    fontWeight: '800',
+  },
+  reactionPanelMuteButton: {
+    width: 44,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
+    backgroundColor: colors.surfaceSoft,
+  },
+  reactionPanelMuteButtonActive: {
+    borderColor: colors.pressure,
+    backgroundColor: colors.pressureSoft,
+  },
+  reactionGrid: {
+    width: '100%',
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: spacing.xs,
+  },
+  reactionButton: {
+    width: '23.5%',
     minHeight: 64,
     alignItems: 'center',
     justifyContent: 'center',
@@ -1233,6 +1349,13 @@ function useActiveDuelStyles() {
     backgroundColor: colors.surfaceSoft,
     paddingHorizontal: spacing.xs,
   },
+  reactionButtonCompact: {
+    minHeight: 56,
+  },
+  reactionButtonSending: {
+    borderColor: colors.secondary,
+    backgroundColor: colors.secondarySoft,
+  },
   reactionButtonEmoji: {
     fontSize: typeScale.lead,
   },
@@ -1242,8 +1365,8 @@ function useActiveDuelStyles() {
     fontWeight: '900',
   },
   reactionCloseButton: {
-    width: 46,
-    minHeight: 64,
+    width: 44,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: radii.sm,
@@ -1265,8 +1388,18 @@ function useActiveDuelStyles() {
     backgroundColor: colors.surface,
     boxShadow: '0 6px 10px rgba(0, 0, 0, 0.12)',
   },
+  muteButtonActive: {
+    borderColor: colors.pressure,
+    backgroundColor: colors.pressureSoft,
+  },
   muteText: {
     fontSize: typeScale.lead,
+  },
+  reactionBlockedText: {
+    color: colors.pressure,
+    fontSize: typeScale.small,
+    fontWeight: '900',
+    textAlign: 'center',
   },
   pressed: {
     opacity: 0.76,

@@ -277,7 +277,7 @@ export function WordDuelSoloDailyScreen({
       />
 
       <View style={[styles.messageArea, compactViewport && styles.messageAreaCompact]}>
-        {message ? <Text style={styles.errorText}>{message}</Text> : null}
+        {message ? <Text adjustsFontSizeToFit minimumFontScale={0.8} numberOfLines={1} style={styles.errorText}>{message}</Text> : null}
         {viewModel.status === 'won' && viewModel.targetReveal.displayWord ? (
           <ResultLine label={t(interfaceLocale, 'won')} target={viewModel.targetReveal.displayWord} />
         ) : null}
@@ -438,11 +438,12 @@ function useSoloDailyStyles() {
     fontWeight: '900',
   },
   messageArea: {
-    minHeight: 42,
+    height: 42,
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   messageAreaCompact: {
-    minHeight: 20,
+    height: 24,
   },
   errorText: {
     color: colors.danger,

@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   ACTIVE_DUEL_KEY_ROWS,
   ACTIVE_DUEL_MOBILE_LAYOUT_ORDER,
+  ACTIVE_DUEL_REACTION_IDS,
   createDemoActiveDuelViewModel,
   createRuntimeActiveDuelViewModel,
   markActiveDuelGuessSubmitted,
@@ -60,6 +61,19 @@ describe('active duel safe view model', () => {
   it('keeps keyboard language-specific', () => {
     expect(ACTIVE_DUEL_KEY_ROWS.en.flat()).not.toContain('Ñ');
     expect(ACTIVE_DUEL_KEY_ROWS.es.flat()).toContain('Ñ');
+  });
+
+  it('offers the canonical eight quick reactions', () => {
+    expect(ACTIVE_DUEL_REACTION_IDS).toEqual([
+      'gg',
+      'nice',
+      'close',
+      'almost',
+      'your_turn',
+      'tick_tock',
+      'no_pressure',
+      'wow',
+    ]);
   });
 
   it('keeps mobile layout order away from spoiler and ad placement regressions', () => {

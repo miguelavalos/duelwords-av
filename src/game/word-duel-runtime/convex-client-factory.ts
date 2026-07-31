@@ -17,6 +17,9 @@ export const DUELWORDS_CONVEX_SDK_FUNCTION_REFS = {
   sendReaction: makeFunctionReference<'mutation'>(
     DUELWORDS_CONVEX_FUNCTIONS.sendReaction,
   ),
+  setReactionPreference: makeFunctionReference<'mutation'>(
+    DUELWORDS_CONVEX_FUNCTIONS.setReactionPreference,
+  ),
 } as const;
 
 type DuelWordsConvexQueryFunctionRef = FunctionReference<'query'>;
@@ -88,6 +91,13 @@ function approvedMutationRef(functionRef: unknown): DuelWordsConvexMutationFunct
     || functionRef === DUELWORDS_CONVEX_SDK_FUNCTION_REFS.sendReaction
   ) {
     return DUELWORDS_CONVEX_SDK_FUNCTION_REFS.sendReaction;
+  }
+
+  if (
+    functionRef === DUELWORDS_CONVEX_FUNCTIONS.setReactionPreference
+    || functionRef === DUELWORDS_CONVEX_SDK_FUNCTION_REFS.setReactionPreference
+  ) {
+    return DUELWORDS_CONVEX_SDK_FUNCTION_REFS.setReactionPreference;
   }
 
   throw new Error('duelwords_convex_mutation_not_allowed');

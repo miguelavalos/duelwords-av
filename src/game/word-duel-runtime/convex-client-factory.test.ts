@@ -17,6 +17,7 @@ describe('DuelWords Convex React client bridge', () => {
       'duelwords:getActiveRoomView',
       'duelwords:sendPresenceHeartbeat',
       'duelwords:sendReaction',
+      'duelwords:setReactionPreference',
     ]);
     expect(getFunctionName(DUELWORDS_CONVEX_SDK_FUNCTION_REFS.getActiveRoomView)).toBe(
       'duelwords:getActiveRoomView',
@@ -26,6 +27,9 @@ describe('DuelWords Convex React client bridge', () => {
     );
     expect(getFunctionName(DUELWORDS_CONVEX_SDK_FUNCTION_REFS.sendReaction)).toBe(
       'duelwords:sendReaction',
+    );
+    expect(getFunctionName(DUELWORDS_CONVEX_SDK_FUNCTION_REFS.setReactionPreference)).toBe(
+      'duelwords:setReactionPreference',
     );
   });
 
@@ -49,6 +53,10 @@ describe('DuelWords Convex React client bridge', () => {
       ...sessionArgs,
       clientRequestId: 'reaction-1',
       reactionKey: 'tick_tock',
+    });
+    await client.mutation(DUELWORDS_CONVEX_FUNCTIONS.setReactionPreference, {
+      ...sessionArgs,
+      acceptsReactions: false,
     });
 
     expect(reactClient.queries).toEqual([
@@ -75,6 +83,13 @@ describe('DuelWords Convex React client bridge', () => {
           reactionKey: 'tick_tock',
         },
         functionRef: DUELWORDS_CONVEX_SDK_FUNCTION_REFS.sendReaction,
+      },
+      {
+        args: {
+          ...sessionArgs,
+          acceptsReactions: false,
+        },
+        functionRef: DUELWORDS_CONVEX_SDK_FUNCTION_REFS.setReactionPreference,
       },
     ]);
   });

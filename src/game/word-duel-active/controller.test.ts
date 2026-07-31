@@ -323,6 +323,9 @@ describe('Word Duel active controller', () => {
         });
         return { ok: true };
       },
+      async setReactionPreference() {
+        return { ok: true };
+      },
       subscribeActiveRoomView() {
         return () => undefined;
       },

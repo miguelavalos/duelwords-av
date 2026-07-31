@@ -8,11 +8,11 @@ import {
   View,
 } from 'react-native';
 
-import type { ActiveDuelReactionId } from '@/game/word-duel-active/view-model';
 import type { InterfaceLocale } from '@/i18n/locales';
 import { radii, spacing, typeScale, useAppTheme } from '@/ui/theme';
 
 import type { ActiveDuelVisualFeedback } from './active-duel-visual-feedback';
+import { reactionEmoji, reactionLabel } from './active-duel-reactions';
 import { publicDuelT } from './public-duel-copy';
 
 type ActiveDuelFeedbackOverlayProps = {
@@ -137,15 +137,6 @@ export function ActiveDuelFeedbackOverlay({
   );
 }
 
-export function reactionEmoji(reaction: ActiveDuelReactionId): string {
-  if (reaction === 'nice') return '✨';
-  if (reaction === 'almost') return '🎯';
-  if (reaction === 'tick_tock') return '⏱️';
-  if (reaction === 'your_turn') return '👉';
-  if (reaction === 'close') return '😮';
-  return '🤝';
-}
-
 function visualFeedbackPresentation(
   event: ActiveDuelVisualFeedback,
   locale: InterfaceLocale,
@@ -191,15 +182,6 @@ function visualFeedbackPresentation(
     emoji: '⚔️',
     title: publicDuelT(locale, 'nextRound'),
   };
-}
-
-function reactionLabel(locale: InterfaceLocale, reaction: ActiveDuelReactionId): string {
-  if (reaction === 'nice') return publicDuelT(locale, 'nice');
-  if (reaction === 'almost') return publicDuelT(locale, 'almost');
-  if (reaction === 'your_turn') return publicDuelT(locale, 'yourTurn');
-  if (reaction === 'tick_tock') return publicDuelT(locale, 'time');
-  if (reaction === 'close') return 'Close';
-  return 'GG';
 }
 
 function useActiveDuelFeedbackStyles() {

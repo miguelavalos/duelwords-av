@@ -12,7 +12,15 @@ import {
 
 describe('active duel visual feedback', () => {
   test('does not animate the initial room projection', () => {
-    expect(activeDuelVisualFeedbackFromProjection(null, room()).feedback).toBeNull();
+    expect(activeDuelVisualFeedbackFromProjection(null, room({
+      reactions: [{
+        createdAt: 9_900,
+        expiresAt: 13_900,
+        reactionKey: 'wow',
+        roundNumber: 2,
+        side: 'b',
+      }],
+    })).feedback).toBeNull();
   });
 
   test('announces an opponent submission without exposing their word', () => {
@@ -64,15 +72,18 @@ describe('active duel visual feedback', () => {
     const previous = createActiveDuelVisualSnapshot(room());
     const withReaction = room({
       reactions: [{
-        expiresAt: 20_000,
+        createdAt: 9_000,
+        expiresAt: 13_000,
         reactionKey: 'tick_tock',
+        roundNumber: 2,
         side: 'b',
       }],
     });
     const result = activeDuelVisualFeedbackFromProjection(previous, withReaction);
 
     expect(result.feedback).toEqual({
-      id: 'reaction:b:tick_tock:20000',
+      deliveryDelayMs: 1_000,
+      id: 'reaction:b:tick_tock:9000',
       kind: 'opponent_reaction',
       reaction: 'tick_tock',
     });
@@ -96,6 +107,26 @@ describe('active duel visual feedback', () => {
         side: 'b',
       }],
     })).feedback).toBeNull();
+  });
+
+  test('ignores a delayed reaction from a previous round', () => {
+    const previous = createActiveDuelVisualSnapshot(room({ roundNumber: 2 }));
+    const current = room({
+      reactions: [{
+        createdAt: 10_500,
+        expiresAt: 14_500,
+        reactionKey: 'no_pressure',
+        roundNumber: 2,
+        side: 'b',
+      }],
+      roundNumber: 3,
+    });
+
+    expect(activeDuelVisualFeedbackFromProjection(previous, current).feedback).toEqual({
+      id: 'round:3',
+      kind: 'next_round',
+      roundNumber: 3,
+    });
   });
 
   test('creates a unique immediate confirmation for an own submission', () => {

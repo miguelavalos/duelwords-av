@@ -6,6 +6,7 @@ import type {
   DuelWordsRealtimePresenceState,
   DuelWordsRealtimeProjectionClient,
   DuelWordsRealtimeReactionKey,
+  DuelWordsRealtimeReactionPreferenceRequest,
   DuelWordsRealtimeReactionRequest,
   DuelWordsRealtimeReactionView,
   DuelWordsRealtimeRoomStatus,
@@ -74,18 +75,22 @@ const REACTION_KEYS = new Set<string>([
   'tick_tock',
   'almost_there',
   'good_duel',
+  'no_pressure',
+  'wow',
 ]);
 
 export const DUELWORDS_CONVEX_FUNCTIONS = {
   getActiveRoomView: 'duelwords:getActiveRoomView',
   sendPresenceHeartbeat: 'duelwords:sendPresenceHeartbeat',
   sendReaction: 'duelwords:sendReaction',
+  setReactionPreference: 'duelwords:setReactionPreference',
 } as const;
 
 export type DuelWordsConvexRealtimeFunctionRefs = {
   getActiveRoomView: unknown;
   sendPresenceHeartbeat: unknown;
   sendReaction: unknown;
+  setReactionPreference: unknown;
 };
 
 export type DuelWordsConvexWatch<T> = {
@@ -136,6 +141,15 @@ export function createDuelWordsConvexRealtimeProjectionClient(input: {
       const payload = await input.convexClient.mutation<unknown>(
         functionRefs.sendReaction,
         reactionRequestArgs(request),
+      );
+
+      return readDuelWordsRealtimeMutationResult(payload);
+    },
+
+    async setReactionPreference(request) {
+      const payload = await input.convexClient.mutation<unknown>(
+        functionRefs.setReactionPreference,
+        reactionPreferenceRequestArgs(request),
       );
 
       return readDuelWordsRealtimeMutationResult(payload);
@@ -207,7 +221,13 @@ function readDuelWordsRealtimeMutationResult(payload: unknown): DuelWordsRealtim
     return { ok: false, reason: 'room_unavailable' };
   }
 
-  if (payload.reason === 'invalid_session' || payload.reason === 'rate_limited' || payload.reason === 'room_unavailable') {
+  if (
+    payload.reason === 'invalid_session'
+    || payload.reason === 'opponent_reactions_disabled'
+    || payload.reason === 'player_unavailable'
+    || payload.reason === 'rate_limited'
+    || payload.reason === 'room_unavailable'
+  ) {
     return {
       ok: false,
       reason: payload.reason,
@@ -229,6 +249,15 @@ function reactionRequestArgs(request: DuelWordsRealtimeReactionRequest): Record<
     ...sessionRequestArgs(request),
     clientRequestId: request.clientRequestId,
     reactionKey: request.reactionKey,
+  };
+}
+
+function reactionPreferenceRequestArgs(
+  request: DuelWordsRealtimeReactionPreferenceRequest,
+): Record<string, unknown> {
+  return {
+    ...sessionRequestArgs(request),
+    acceptsReactions: request.acceptsReactions,
   };
 }
 
@@ -321,6 +350,11 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
     return { ok: false };
   }
 
+  const acceptsReactions = payload.acceptsReactions === undefined
+    ? true
+    : typeof payload.acceptsReactions === 'boolean'
+      ? payload.acceptsReactions
+      : null;
   const attemptCount = readNonNegativeInteger(payload.attemptCount);
   const feedbackAvailableRound = readOptionalPositiveInteger(payload.feedbackAvailableRound);
   const safeDisplayName = readDisplayName(payload.safeDisplayName);
@@ -330,7 +364,8 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
   const timeoutCount = readNonNegativeInteger(payload.timeoutCount);
 
   if (
-    attemptCount === null
+    acceptsReactions === null
+    || attemptCount === null
     || !feedbackAvailableRound.ok
     || typeof payload.hasSubmittedCurrentRound !== 'boolean'
     || typeof payload.isReady !== 'boolean'
@@ -346,6 +381,7 @@ function readPlayer(payload: unknown): ReadResult<DuelWordsRealtimePlayerView> {
   return {
     ok: true,
     value: stripUndefined({
+      acceptsReactions,
       attemptCount,
       feedbackAvailableRound: feedbackAvailableRound.value,
       hasSubmittedCurrentRound: payload.hasSubmittedCurrentRound,
@@ -436,21 +472,25 @@ function readReaction(payload: unknown): ReadResult<DuelWordsRealtimeReactionVie
     return { ok: false };
   }
 
+  const createdAt = readOptionalNonNegativeNumber(payload.createdAt);
   const expiresAt = readNonNegativeNumber(payload.expiresAt);
   const reactionKey = readReactionKey(payload.reactionKey);
+  const roundNumber = readOptionalPositiveInteger(payload.roundNumber);
   const side = readSide(payload.side);
 
-  if (expiresAt === null || reactionKey === null || side === null) {
+  if (!createdAt.ok || expiresAt === null || reactionKey === null || !roundNumber.ok || side === null) {
     return { ok: false };
   }
 
   return {
     ok: true,
-    value: {
+    value: stripUndefined({
+      createdAt: createdAt.value,
       expiresAt,
       reactionKey,
+      roundNumber: roundNumber.value,
       side,
-    },
+    }),
   };
 }
 

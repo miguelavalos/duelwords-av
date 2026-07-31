@@ -107,6 +107,9 @@ export type WordDuelActiveController = {
     clientRequestId: string;
     reaction: ActiveDuelReactionId;
   }): Promise<DuelWordsRealtimeMutationResult>;
+  setReactionPreference(input: {
+    acceptsReactions: boolean;
+  }): Promise<DuelWordsRealtimeMutationResult>;
   submitGuess(input: {
     clientRequestId: string;
     guess: string;
@@ -294,6 +297,14 @@ function createLocalMockWordDuelActiveController(input: {
       return realtimeClient.sendReaction({
         clientRequestId,
         reactionKey: activeDuelReactionToRealtimeKey(reaction),
+        realtimeSessionId: LOCAL_ACTIVE_DEMO_REALTIME_SESSION_ID,
+        roomToken: LOCAL_ACTIVE_DEMO_ROOM_TOKEN,
+      });
+    },
+
+    setReactionPreference({ acceptsReactions }) {
+      return realtimeClient.setReactionPreference({
+        acceptsReactions,
         realtimeSessionId: LOCAL_ACTIVE_DEMO_REALTIME_SESSION_ID,
         roomToken: LOCAL_ACTIVE_DEMO_ROOM_TOKEN,
       });
@@ -489,6 +500,13 @@ function createAppsApiWordDuelActiveController(input: {
       }));
     },
 
+    async setReactionPreference({ acceptsReactions }) {
+      return updateFromCurrentRealtimeViewAfter(await realtimeClient.setReactionPreference({
+        ...realtimeRequest,
+        acceptsReactions,
+      }));
+    },
+
     async submitGuess({ clientRequestId, guess, roundNumber }) {
       const response = await apiClient.submitGuess({
         actor: session.actor,
@@ -605,6 +623,10 @@ function createDisabledRuntimeWordDuelActiveController(
     },
 
     async sendReaction() {
+      return { ok: false, reason: 'room_unavailable' };
+    },
+
+    async setReactionPreference() {
       return { ok: false, reason: 'room_unavailable' };
     },
 

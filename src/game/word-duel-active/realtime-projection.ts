@@ -42,7 +42,9 @@ export type DuelWordsRealtimeReactionKey =
   | 'your_turn'
   | 'tick_tock'
   | 'almost_there'
-  | 'good_duel';
+  | 'good_duel'
+  | 'no_pressure'
+  | 'wow';
 
 export type DuelWordsRealtimeRoomView = {
   room: {
@@ -66,6 +68,7 @@ export type DuelWordsRealtimeRoomView = {
 };
 
 export type DuelWordsRealtimePlayerView = {
+  acceptsReactions?: boolean;
   attemptCount: number;
   feedbackAvailableRound?: number;
   hasSubmittedCurrentRound: boolean;
@@ -95,8 +98,10 @@ export type ActiveDuelReactionEvent = {
 };
 
 export type DuelWordsRealtimeReactionView = {
+  createdAt?: number;
   expiresAt: number;
   reactionKey: DuelWordsRealtimeReactionKey;
+  roundNumber?: number;
   side: DuelWordsRealtimeSide;
 };
 
@@ -107,7 +112,12 @@ export type DuelWordsRealtimeMutationResult =
     }
   | {
       ok: false;
-      reason: 'invalid_session' | 'rate_limited' | 'room_unavailable';
+      reason:
+        | 'invalid_session'
+        | 'opponent_reactions_disabled'
+        | 'player_unavailable'
+        | 'rate_limited'
+        | 'room_unavailable';
     };
 
 export type DuelWordsRealtimeSessionRequest = {
@@ -118,6 +128,10 @@ export type DuelWordsRealtimeSessionRequest = {
 export type DuelWordsRealtimeReactionRequest = DuelWordsRealtimeSessionRequest & {
   clientRequestId?: string;
   reactionKey: DuelWordsRealtimeReactionKey;
+};
+
+export type DuelWordsRealtimeReactionPreferenceRequest = DuelWordsRealtimeSessionRequest & {
+  acceptsReactions: boolean;
 };
 
 export type DuelWordsRealtimeSubscription = () => void;
@@ -131,6 +145,7 @@ export type DuelWordsRealtimeProjectionClient = {
   }): void;
   sendPresenceHeartbeat(input: DuelWordsRealtimeSessionRequest): Promise<DuelWordsRealtimeMutationResult>;
   sendReaction(input: DuelWordsRealtimeReactionRequest): Promise<DuelWordsRealtimeMutationResult>;
+  setReactionPreference(input: DuelWordsRealtimeReactionPreferenceRequest): Promise<DuelWordsRealtimeMutationResult>;
   subscribeActiveRoomView(
     input: DuelWordsRealtimeSessionRequest,
     listener: (view: DuelWordsRealtimeRoomView | null) => void,
@@ -146,6 +161,7 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
   gameLanguage?: GameLanguage;
   maxAttempts?: number;
   now?: () => number;
+  opponentAcceptsReactions?: boolean;
   ownSide?: DuelWordsRealtimeSide;
   realtimeSessionId?: string;
   remainingMs?: number;
@@ -172,6 +188,7 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
       wordLength: input.wordLength ?? 5,
     },
     own: {
+      acceptsReactions: true,
       attemptCount: Math.max(0, (input.roundNumber ?? 2) - 1),
       hasSubmittedCurrentRound: false,
       isReady: true,
@@ -184,6 +201,7 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
       timeoutCount: 0,
     },
     opponent: {
+      acceptsReactions: input.opponentAcceptsReactions ?? true,
       attemptCount: input.roundNumber ?? 2,
       hasSubmittedCurrentRound: true,
       isReady: true,
@@ -207,7 +225,7 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
     pruneExpiredReactions();
     return cloneRoomView({
       ...roomView,
-      reactions: reactions.map(({ clientRequestId: _clientRequestId, createdAt: _createdAt, ...reaction }) => reaction),
+      reactions: reactions.map(({ clientRequestId: _clientRequestId, ...reaction }) => reaction),
       room: {
         ...roomView.room,
         serverNow: now(),
@@ -287,6 +305,10 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
         return { ok: false, reason: 'room_unavailable' };
       }
 
+      if (roomView.opponent?.acceptsReactions === false) {
+        return { ok: false, reason: 'opponent_reactions_disabled' };
+      }
+
       pruneExpiredReactions();
       const currentTime = now();
       if (
@@ -313,11 +335,26 @@ export function createLocalDuelWordsRealtimeProjectionClient(input: {
           createdAt: currentTime,
           expiresAt: currentTime + REACTION_TTL_MS,
           reactionKey: request.reactionKey,
+          roundNumber: roomView.room.roundNumber,
           side: ownSide,
         },
       ];
       emit();
 
+      return { ok: true };
+    },
+
+    async setReactionPreference(request) {
+      if (!isValidSession(request)) {
+        return { ok: false, reason: 'invalid_session' };
+      }
+
+      if (!clientWritable(roomView.room.status)) {
+        return { ok: false, reason: 'room_unavailable' };
+      }
+
+      patchPlayer(ownSide, { acceptsReactions: request.acceptsReactions });
+      emit();
       return { ok: true };
     },
 
@@ -354,8 +391,8 @@ export function latestActiveDuelReactionFromRealtimeProjection(
   view: DuelWordsRealtimeRoomView,
 ): ActiveDuelReactionId | null {
   const latestReaction = [...view.reactions]
-    .filter((reaction) => reaction.expiresAt > view.room.serverNow)
-    .sort((left, right) => right.expiresAt - left.expiresAt)[0];
+    .filter((reaction) => isReactionCurrent(view, reaction))
+    .sort(compareReactionsNewestFirst)[0];
   if (!latestReaction) {
     return null;
   }
@@ -367,8 +404,8 @@ export function latestActiveDuelReactionEventFromRealtimeProjection(
   view: DuelWordsRealtimeRoomView,
 ): ActiveDuelReactionEvent | null {
   const latestReaction = [...view.reactions]
-    .filter((reaction) => reaction.expiresAt > view.room.serverNow)
-    .sort((left, right) => right.expiresAt - left.expiresAt)[0];
+    .filter((reaction) => isReactionCurrent(view, reaction))
+    .sort(compareReactionsNewestFirst)[0];
   if (!latestReaction || !view.own) {
     return null;
   }
@@ -395,9 +432,12 @@ export function applyRealtimeProjectionToActiveDuelViewModel(
 
   return {
     ...currentRoundViewModel,
+    acceptsReactions: projection.own?.acceptsReactions ?? currentRoundViewModel.acceptsReactions,
     activeReaction: latestActiveDuelReactionFromRealtimeProjection(projection),
     gameLanguage: projection.room.language,
     maxAttempts: projection.room.maxAttempts,
+    opponentAcceptsReactions: projection.opponent?.acceptsReactions
+      ?? currentRoundViewModel.opponentAcceptsReactions,
     opponent: opponent
       ? {
           attemptMarkers: opponentMarkersFromProjection(opponent, projection.room.roundNumber, projection.room.maxAttempts),
@@ -465,6 +505,21 @@ function realtimeReactionToActiveDuelReaction(reaction: DuelWordsRealtimeReactio
     return 'almost';
   }
   return reaction;
+}
+
+function isReactionCurrent(
+  view: DuelWordsRealtimeRoomView,
+  reaction: DuelWordsRealtimeReactionView,
+): boolean {
+  return reaction.expiresAt > view.room.serverNow
+    && (reaction.roundNumber === undefined || reaction.roundNumber === view.room.roundNumber);
+}
+
+function compareReactionsNewestFirst(
+  left: DuelWordsRealtimeReactionView,
+  right: DuelWordsRealtimeReactionView,
+): number {
+  return (right.createdAt ?? right.expiresAt) - (left.createdAt ?? left.expiresAt);
 }
 
 function presenceFromProjection(presenceState: DuelWordsRealtimePresenceState): ActiveDuelPresenceState {

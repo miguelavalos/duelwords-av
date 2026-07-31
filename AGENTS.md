@@ -48,6 +48,17 @@ Current implementation slice:
   first request/accept tap visibly busy, and keep sent/received/accepted sync
   state prominent until both players enter the next lobby.
 
+- Recurrent reaction rule: the active human duel exposes exactly the stable
+  eight-id palette `gg`, `nice`, `close`, `almost`, `your_turn`, `tick_tock`,
+  `no_pressure`, and `wow`. The current-match receive/pause preference is part
+  of the safe per-player Convex projection, defaults to receiving for legacy
+  projections, and must be enforced by `sendReaction` on the server so a rival
+  cannot bypass it with a stale client. Reaction delivery uses authoritative
+  `roundNumber` and `createdAt`; initial/reconnected or previous-round events
+  must not replay as fresh animation. Keep the 4×2 adaptive tray, localized
+  labels, Reduce Motion behavior, and the reaction/parser/architecture
+  regressions green.
+
 - Expo Router SDK 57 shell.
 - Versioned local preferences for interface locale (EN/ES/CA/FR/DE) and
   system/light/dark appearance. Word language is game-scoped: local modes and
@@ -94,7 +105,8 @@ Current implementation slice:
   Convex room-view, heartbeat, and reaction surface.
 - SDK-shaped Convex realtime projection adapter boundary. It wraps only an
   injected client with `query`, `mutation`, and `watchQuery`, targets only
-  `getActiveRoomView`, `sendPresenceHeartbeat`, and `sendReaction`, parses
+  `getActiveRoomView`, `sendPresenceHeartbeat`, `sendReaction`, and
+  `setReactionPreference`, parses
   only safe room/player/presence/reaction fields, and fails closed on target,
   guess, dictionary, real feedback, identity, provider, deploy-key, auth-token,
   push-token, or email payloads.
@@ -106,7 +118,8 @@ Current implementation slice:
   explicit runtime config is enabled.
 - Real Convex SDK bridge under `src/game/word-duel-runtime/convex-client-factory.ts`.
   It uses `ConvexReactClient` plus `makeFunctionReference`, maps only
-  `getActiveRoomView`, `sendPresenceHeartbeat`, and `sendReaction`, rejects
+  `getActiveRoomView`, `sendPresenceHeartbeat`, `sendReaction`, and
+  `setReactionPreference`, rejects
   unapproved query/mutation refs, imports no generated Convex API files, and
   exposes `close()` for lifecycle cleanup.
 - Composed runtime client factory plus Expo hook under

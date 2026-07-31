@@ -13,6 +13,7 @@ export type ActiveDuelVisualFeedback =
       roundNumber: number;
     }
   | {
+      deliveryDelayMs?: number;
       id: string;
       kind: 'opponent_reaction';
       reaction: ActiveDuelReactionId;
@@ -35,6 +36,7 @@ export type ActiveDuelVisualFeedback =
 
 export type ActiveDuelVisualSnapshot = {
   opponentReaction: {
+    deliveryDelayMs?: number;
     id: string;
     reaction: ActiveDuelReactionId;
   } | null;
@@ -51,16 +53,22 @@ export function createActiveDuelVisualSnapshot(
       reaction.expiresAt > projection.room.serverNow
       && projection.own !== null
       && reaction.side !== projection.own.side
+      && (reaction.roundNumber === undefined || reaction.roundNumber === projection.room.roundNumber)
     ))
-    .sort((left, right) => right.expiresAt - left.expiresAt)[0];
+    .sort((left, right) => (
+      (right.createdAt ?? right.expiresAt) - (left.createdAt ?? left.expiresAt)
+    ))[0];
 
   return {
     opponentReaction: opponentReaction
       ? {
+          deliveryDelayMs: opponentReaction.createdAt === undefined
+            ? undefined
+            : Math.max(0, projection.room.serverNow - opponentReaction.createdAt),
           id: [
             opponentReaction.side,
             opponentReaction.reactionKey,
-            opponentReaction.expiresAt,
+            opponentReaction.createdAt ?? opponentReaction.expiresAt,
           ].join(':'),
           reaction: realtimeReactionToVisualReaction(opponentReaction.reactionKey),
         }
@@ -80,6 +88,10 @@ export function activeDuelVisualFeedbackFromProjection(
 } {
   const snapshot = createActiveDuelVisualSnapshot(projection);
 
+  if (previous === null) {
+    return { feedback: null, snapshot };
+  }
+
   if (
     snapshot.opponentReaction !== null
     && snapshot.opponentReaction.id !== previous?.opponentReaction?.id
@@ -89,13 +101,12 @@ export function activeDuelVisualFeedbackFromProjection(
         id: `reaction:${snapshot.opponentReaction.id}`,
         kind: 'opponent_reaction',
         reaction: snapshot.opponentReaction.reaction,
+        ...(snapshot.opponentReaction.deliveryDelayMs === undefined
+          ? {}
+          : { deliveryDelayMs: snapshot.opponentReaction.deliveryDelayMs }),
       },
       snapshot,
     };
-  }
-
-  if (previous === null) {
-    return { feedback: null, snapshot };
   }
 
   if (snapshot.roundNumber > previous.roundNumber) {

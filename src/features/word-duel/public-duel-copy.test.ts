@@ -27,6 +27,10 @@ describe('public duel copy', () => {
     expect(publicDuelT(locale, 'leaveResultTitle')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'leaveResultDetail')).not.toHaveLength(0);
     expect(publicDuelT(locale, 'rematchSending')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'wordNotAccepted')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'reactionPanel')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'pauseReactions')).not.toHaveLength(0);
+    expect(publicDuelT(locale, 'rivalPausedReactions')).not.toHaveLength(0);
   });
 
   it('interpolates all public runtime values', () => {
@@ -56,6 +60,10 @@ describe('public duel copy', () => {
       expect(publicDuelT(locale, 'runtimeDescription')).not.toBe(publicDuelT('en', 'runtimeDescription'));
       expect(publicDuelT(locale, 'accountRoomNameHelp')).not.toBe(publicDuelT('en', 'accountRoomNameHelp'));
       expect(publicDuelT(locale, 'wordDuel')).not.toBe(publicDuelT('en', 'wordDuel'));
+      expect(publicDuelT(locale, 'wordNotAccepted')).not.toBe(publicDuelT('en', 'wordNotAccepted'));
+      expect(publicDuelT(locale, 'reactionPanel')).not.toBe(publicDuelT('en', 'reactionPanel'));
+      expect(publicDuelT(locale, 'pauseReactions')).not.toBe(publicDuelT('en', 'pauseReactions'));
+      expect(publicDuelT(locale, 'noPressure')).not.toBe(publicDuelT('en', 'noPressure'));
     }
     expect(publicDuelT('es', 'apiDisabled')).not.toBe(publicDuelT('en', 'apiDisabled'));
     expect(publicDuelT('es', 'couldNotCloseTimeout')).not.toBe(publicDuelT('en', 'couldNotCloseTimeout'));

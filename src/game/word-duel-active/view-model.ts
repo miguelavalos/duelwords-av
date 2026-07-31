@@ -33,7 +33,9 @@ export type ActiveDuelReactionId =
   | 'close'
   | 'almost'
   | 'your_turn'
-  | 'tick_tock';
+  | 'tick_tock'
+  | 'no_pressure'
+  | 'wow';
 
 export type ActiveDuelBoardCell = {
   feedback: LetterFeedback | null;
@@ -54,11 +56,12 @@ export type ActiveDuelOpponentSummary = {
 };
 
 export type ActiveDuelViewModel = {
+  acceptsReactions: boolean;
   activeReaction: ActiveDuelReactionId | null;
   availableReactions: ActiveDuelReactionId[];
   gameLanguage: GameLanguage;
   maxAttempts: number;
-  mutedReactions: boolean;
+  opponentAcceptsReactions: boolean;
   opponent: ActiveDuelOpponentSummary;
   ownBoardRows: ActiveDuelBoardRow[];
   ownKeyboardFeedback: Record<string, LetterFeedback>;
@@ -78,6 +81,8 @@ export const ACTIVE_DUEL_REACTION_IDS: readonly ActiveDuelReactionId[] = [
   'almost',
   'your_turn',
   'tick_tock',
+  'no_pressure',
+  'wow',
 ];
 
 export const ACTIVE_DUEL_MOBILE_LAYOUT_ORDER = [
@@ -157,11 +162,12 @@ export function createDemoActiveDuelViewModel(input: {
   ];
 
   return {
+    acceptsReactions: true,
     activeReaction: null,
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
     maxAttempts,
-    mutedReactions: false,
+    opponentAcceptsReactions: true,
     opponent: {
       attemptMarkers: Array.from({ length: maxAttempts }, (_, index) => (
         index === 0 ? 'failed' : index === 1 ? 'submitted' : 'waiting'
@@ -200,11 +206,12 @@ export function createRuntimeActiveDuelViewModel(input: {
   );
 
   return {
+    acceptsReactions: true,
     activeReaction: null,
     availableReactions: [...ACTIVE_DUEL_REACTION_IDS],
     gameLanguage: input.gameLanguage,
     maxAttempts,
-    mutedReactions: false,
+    opponentAcceptsReactions: true,
     opponent: {
       attemptMarkers: Array.from({ length: maxAttempts }, () => 'waiting'),
       presence: 'connected',

@@ -472,7 +472,7 @@ post-finalization result preview with rematch proposal states. It also includes
 a no-spoiler diagnostics facade backed by `@sentry/react-native`. Debug builds
 and builds without a DSN remain disabled and create no provider traffic. A
 client-safe realtime config boundary and backend-issued realtime session
-envelope parser exist, and a closed real Convex SDK bridge can build the three
+envelope parser exist, and a closed real Convex SDK bridge can build the four
 approved function references without generated API imports. Realtime and Apps
 AV API runtime config are still disabled by default. A typed, injected Apps AV
 API client boundary exists for invite, lobby, Ready, start, realtime-session
@@ -775,9 +775,16 @@ realtime functions:
 - `duelwords:getActiveRoomView`
 - `duelwords:sendPresenceHeartbeat`
 - `duelwords:sendReaction`
+- `duelwords:setReactionPreference`
 
 The adapter parses only the safe room summary, own safe player summary,
-opponent safe player summary, presence, and closed-set reactions. If a Convex
+opponent safe player summary, each side's current-match reaction preference,
+presence, and closed-set reactions. The stable palette is `gg`, `nice`,
+`close`, `almost`, `your_turn`, `tick_tock`, `no_pressure`, and `wow`.
+Reactions carry authoritative round/time metadata so reconnects and later
+rounds cannot replay stale animation. Pausing reception is projected to both
+participants and `sendReaction` enforces the recipient preference server-side;
+an absent preference in a rolling legacy projection defaults to receiving. If a Convex
 payload includes target words, guesses, dictionary fields, real feedback,
 identity fields, provider fields, deploy keys, auth tokens, push tokens, or
 emails, the parser fails closed instead of exposing the payload. The adapter
@@ -789,7 +796,7 @@ and realtime projection client for the hidden connected runtime path. It fails c
 unless both runtime configs are explicitly enabled and a Convex client factory
 is present. `src/game/word-duel-runtime/convex-client-factory.ts` imports
 `convex/react` and `convex/server`, creates a `ConvexReactClient`, maps only
-the three approved public function names with `makeFunctionReference`, rejects
+the four approved public function names with `makeFunctionReference`, rejects
 unapproved query/mutation refs, and exposes `close()` through the existing
 SDK-shaped boundary. `src/game/word-duel-runtime/use-runtime-clients.ts` reads
 Expo runtime config for UI code, supplies that real factory by default, and

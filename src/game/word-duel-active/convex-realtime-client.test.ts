@@ -29,6 +29,7 @@ describe('DuelWords Convex realtime projection client', () => {
     ]);
     expect(view).toMatchObject({
       opponent: {
+        acceptsReactions: true,
         hasSubmittedCurrentRound: true,
         presenceState: 'online',
         roundSummaries: [
@@ -37,6 +38,7 @@ describe('DuelWords Convex realtime projection client', () => {
         safeDisplayName: 'Rival',
       },
       own: {
+        acceptsReactions: true,
         feedbackAvailableRound: 1,
         safeDisplayName: 'Host',
       },
@@ -128,6 +130,7 @@ describe('DuelWords Convex realtime projection client', () => {
         { ok: true },
         { duplicate: true, ok: true },
         { ok: false, reason: 'rate_limited' },
+        { ok: false, reason: 'opponent_reactions_disabled' },
         { ok: false, reason: 'player_unavailable' },
       ],
     });
@@ -144,9 +147,14 @@ describe('DuelWords Convex realtime projection client', () => {
       clientRequestId: 'reaction-2',
       reactionKey: 'your_turn',
     })).resolves.toEqual({ ok: false, reason: 'rate_limited' });
+    await expect(client.sendReaction({
+      ...SESSION_REQUEST,
+      clientRequestId: 'reaction-3',
+      reactionKey: 'wow',
+    })).resolves.toEqual({ ok: false, reason: 'opponent_reactions_disabled' });
     await expect(client.sendPresenceHeartbeat(SESSION_REQUEST)).resolves.toEqual({
       ok: false,
-      reason: 'room_unavailable',
+      reason: 'player_unavailable',
     });
 
     expect(convexClient.mutations).toEqual([
@@ -171,10 +179,32 @@ describe('DuelWords Convex realtime projection client', () => {
         functionRef: DUELWORDS_CONVEX_FUNCTIONS.sendReaction,
       },
       {
+        args: {
+          ...SESSION_REQUEST,
+          clientRequestId: 'reaction-3',
+          reactionKey: 'wow',
+        },
+        functionRef: DUELWORDS_CONVEX_FUNCTIONS.sendReaction,
+      },
+      {
         args: SESSION_REQUEST,
         functionRef: DUELWORDS_CONVEX_FUNCTIONS.sendPresenceHeartbeat,
       },
     ]);
+  });
+
+  it('updates the shared reaction preference through its approved mutation', async () => {
+    const convexClient = createFakeConvexClient({ mutationPayloads: [{ ok: true }] });
+    const client = createDuelWordsConvexRealtimeProjectionClient({ convexClient });
+
+    await expect(client.setReactionPreference({
+      ...SESSION_REQUEST,
+      acceptsReactions: false,
+    })).resolves.toEqual({ ok: true });
+    expect(convexClient.mutations).toEqual([{
+      args: { ...SESSION_REQUEST, acceptsReactions: false },
+      functionRef: DUELWORDS_CONVEX_FUNCTIONS.setReactionPreference,
+    }]);
   });
 
   it('fails closed when a Convex payload includes gameplay, dictionary, or identity fields', async () => {
@@ -291,6 +321,7 @@ function safeRoomPayload(overrides: {
 } = {}): Record<string, unknown> {
   return {
     opponent: {
+      acceptsReactions: true,
       attemptCount: 1,
       hasSubmittedCurrentRound: true,
       isReady: true,
@@ -305,6 +336,7 @@ function safeRoomPayload(overrides: {
       ...overrides.opponent,
     },
     own: {
+      acceptsReactions: true,
       attemptCount: 1,
       feedbackAvailableRound: 1,
       hasSubmittedCurrentRound: false,
@@ -317,8 +349,10 @@ function safeRoomPayload(overrides: {
     },
     reactions: overrides.reactions ?? [
       {
+        createdAt: Date.parse('2026-07-05T11:00:00.000Z'),
         expiresAt: Date.parse('2026-07-05T11:00:04.000Z'),
         reactionKey: 'tick_tock',
+        roundNumber: 1,
         side: 'b',
       },
     ],
