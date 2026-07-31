@@ -1008,8 +1008,11 @@ game id; it only creates a start request after recipient acceptance.
 - Internal TestFlight `0.1.0 (13)` remains immutable historical acceptance.
   The first public-review candidate `1.0.0 (14)` was archived and uploaded from
   exact source commit `3a59588`. Apple reports it `VALID` and
-  `IN_BETA_TESTING` only in the internal `avalsys` group. It has not been
-  attached to App Review or submitted.
+  `IN_BETA_TESTING` only in the internal `avalsys` group. It is superseded
+  by `1.0.0 (15)`, archived and uploaded from exact source commit `28e6d6d`.
+  Apple reports build 15 `VALID`, encryption-exempt, and
+  `IN_BETA_TESTING` only in the same internal group. Neither candidate has
+  been attached to App Review or submitted.
 - Native iPhone/iPad V1 is subscription-first: it must ship the real localized
   StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
   management, Apps AV entitlement reconciliation, legal links, and in-app
