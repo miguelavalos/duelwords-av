@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { resolveDuelWordsRevenueCatConfig } from './revenuecat-config';
 import {
   DuelWordsRevenueCatPurchases,
+  hasActiveRevenueCatEntitlement,
   isPurchaseCancellation,
   RevenueCatConfigurationError,
 } from './revenuecat-purchases';
@@ -11,6 +12,13 @@ function fixture() {
   const monthlyPackage = {
     identifier: '$rc_monthly',
     product: { identifier: 'duelwordsav_pro_monthly', priceString: '€2.99' },
+  };
+  const customerInfo = {
+    entitlements: {
+      active: {
+        pro: { identifier: 'pro', isActive: true },
+      },
+    },
   };
   const sdk = {
     configure: vi.fn(),
@@ -23,15 +31,15 @@ function fixture() {
     })),
     isConfigured: vi.fn(async () => false),
     logIn: vi.fn(async () => ({})),
-    purchasePackage: vi.fn(async () => ({})),
-    restorePurchases: vi.fn(async () => ({})),
+    purchasePackage: vi.fn(async () => ({ customerInfo })),
+    restorePurchases: vi.fn(async () => customerInfo),
     setAllowSharingStoreAccount: vi.fn(async () => undefined),
   };
   const purchases = new DuelWordsRevenueCatPurchases(
     resolveDuelWordsRevenueCatConfig({ apiKey: 'appl_public' }),
     async () => sdk as never,
   );
-  return { monthlyPackage, purchases, sdk };
+  return { customerInfo, monthlyPackage, purchases, sdk };
 }
 
 describe('DuelWordsRevenueCatPurchases', () => {
@@ -69,5 +77,20 @@ describe('DuelWordsRevenueCatPurchases', () => {
     expect(isPurchaseCancellation({ code: '1' })).toBe(true);
     expect(isPurchaseCancellation({ userCancelled: true })).toBe(true);
     expect(isPurchaseCancellation({ code: '2' })).toBe(false);
+  });
+
+  it('returns the post-purchase and restored customer information', async () => {
+    const { customerInfo, monthlyPackage, purchases } = fixture();
+
+    await expect(purchases.purchase('apps-av-user', monthlyPackage as never)).resolves.toBe(customerInfo);
+    await expect(purchases.restore('apps-av-user')).resolves.toBe(customerInfo);
+  });
+
+  it('requires the configured entitlement to be explicitly active', () => {
+    const { customerInfo } = fixture();
+
+    expect(hasActiveRevenueCatEntitlement(customerInfo as never, 'pro')).toBe(true);
+    expect(hasActiveRevenueCatEntitlement(customerInfo as never, 'another')).toBe(false);
+    expect(hasActiveRevenueCatEntitlement({ entitlements: { active: {} } } as never, 'pro')).toBe(false);
   });
 });

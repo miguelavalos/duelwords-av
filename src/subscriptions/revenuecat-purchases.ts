@@ -54,14 +54,15 @@ export class DuelWordsRevenueCatPurchases {
     return { package: monthlyPackage, price: monthlyPackage.product.priceString };
   }
 
-  async purchase(appUserId: string, monthlyPackage: PurchasesPackage): Promise<void> {
+  async purchase(appUserId: string, monthlyPackage: PurchasesPackage): Promise<CustomerInfo> {
     const sdk = await this.prepare(appUserId);
-    await sdk.purchasePackage(monthlyPackage);
+    const result = await sdk.purchasePackage(monthlyPackage);
+    return result.customerInfo;
   }
 
-  async restore(appUserId: string): Promise<void> {
+  async restore(appUserId: string): Promise<CustomerInfo> {
     const sdk = await this.prepare(appUserId);
-    await sdk.restorePurchases();
+    return sdk.restorePurchases();
   }
 
   private async prepare(appUserId: string): Promise<PurchasesSdk> {
@@ -103,6 +104,13 @@ export class RevenueCatConfigurationError extends Error {
 export function isPurchaseCancellation(error: unknown): boolean {
   const candidate = error as Partial<PurchasesError> | null;
   return candidate?.userCancelled === true || candidate?.code === '1';
+}
+
+export function hasActiveRevenueCatEntitlement(
+  customerInfo: CustomerInfo,
+  entitlementId: string,
+): boolean {
+  return customerInfo.entitlements.active[entitlementId]?.isActive === true;
 }
 
 async function loadRevenueCatSdk(): Promise<PurchasesSdk> {

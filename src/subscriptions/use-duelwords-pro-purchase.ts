@@ -11,6 +11,7 @@ import { getDuelWordsRevenueCatConfig } from './expo-revenuecat-config';
 import { reconcileDuelWordsProAccess } from './pro-access-reconciliation';
 import {
   DuelWordsRevenueCatPurchases,
+  hasActiveRevenueCatEntitlement,
   isPurchaseCancellation,
   type DuelWordsMonthlyOffer,
 } from './revenuecat-purchases';
@@ -113,18 +114,21 @@ export function useDuelWordsProPurchase(input: {
     setState('loading');
     setError(null);
     try {
-      await purchases.purchase(userId, offer.package);
+      const customerInfo = await purchases.purchase(userId, offer.package);
+      if (!hasActiveRevenueCatEntitlement(customerInfo, config.entitlementId)) {
+        setState('ready');
+        setError('Apple did not confirm active Pro access. Do not purchase again. Check your App Store account, then try Restore Purchases.');
+      } else {
+        await reconcile();
+      }
     } catch (purchaseError: unknown) {
       setState('ready');
       if (!isPurchaseCancellation(purchaseError)) {
         setError('The purchase could not be completed. You were not charged by DuelWords AV.');
       }
-      operationInFlightRef.current = false;
-      return;
     }
-    await reconcile();
     operationInFlightRef.current = false;
-  }, [userId, offer, purchases, reconcile, state]);
+  }, [config.entitlementId, userId, offer, purchases, reconcile, state]);
 
   const restore = useCallback(async () => {
     if (!userId || state === 'loading' || operationInFlightRef.current) return;
@@ -132,16 +136,19 @@ export function useDuelWordsProPurchase(input: {
     setState('loading');
     setError(null);
     try {
-      await purchases.restore(userId);
+      const customerInfo = await purchases.restore(userId);
+      if (!hasActiveRevenueCatEntitlement(customerInfo, config.entitlementId)) {
+        setState(offer ? 'ready' : 'unavailable');
+        setError('Apple did not confirm active Pro access. Do not purchase again. Check your App Store account, then try Restore Purchases.');
+      } else {
+        await reconcile();
+      }
     } catch {
       setState(offer ? 'ready' : 'unavailable');
       setError('Purchases could not be restored right now. No account data was changed.');
-      operationInFlightRef.current = false;
-      return;
     }
-    await reconcile();
     operationInFlightRef.current = false;
-  }, [userId, offer, purchases, reconcile, state]);
+  }, [config.entitlementId, userId, offer, purchases, reconcile, state]);
 
   const redeemCode = useCallback(async (code: string) => {
     if (!userId || !accountConfig.accountApiBaseUrl || state === 'loading' || state === 'pending_reconciliation' || operationInFlightRef.current) return;
@@ -154,13 +161,11 @@ export function useDuelWordsProPurchase(input: {
         code,
         getToken,
       });
+      await reconcile();
     } catch (redemptionError: unknown) {
       setState(offer ? 'ready' : 'unavailable');
       setError(promotionCodeErrorMessage(redemptionError));
-      operationInFlightRef.current = false;
-      return;
     }
-    await reconcile();
     operationInFlightRef.current = false;
   }, [accountConfig.accountApiBaseUrl, getToken, offer, reconcile, state, userId]);
 
