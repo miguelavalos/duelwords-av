@@ -575,3 +575,58 @@ application/dSYM parity is exact. App Store Connect processing and assignment
 only to the internal `avalsys` group still require readback before build 11 is
 called test-ready. No external testing, App Review, backend, Convex, D1,
 Infisical, paid-provider, or Sentry mutation accompanied this delivery.
+
+## Reaction preference rollout and build 12 — 2026-07-31
+
+Public feature source `4169170a8e005f362b53902f0c5a5e4495ec0eed`
+adds the compact invalid-word status, eight localized reactions, an adaptive
+4-by-2 picker, animated opponent-reaction feedback, and a shared reaction
+preference. Private source `c286f7c6fa997d8cc1fb2ad7b5ec6fb78887d973`
+adds the migration-safe projection fields and enforces the recipient's
+preference in the Convex mutation. The public gate passed 91 files / 503 tests,
+TypeScript, Expo lint, iOS release configuration, and diff hygiene.
+
+The Convex development deployment `graceful-ibis-609` received the reviewed
+private bundle with crons disabled and no index deletion. A production-shaped
+Release simulator build from public feature source then completed two connected
+English five-letter duels across a narrow iPhone and an iPad. The first game
+used iPhone host / iPad rival; the accepted rematch swapped the host role. Both
+directions proved that pausing reactions removes the rival's send control and
+that resuming restores it. The picker exposed exactly eight reactions, received
+feedback animated above the board without displacing input, both finals opened,
+and the accepted rematch reached its new lobby and active game without repeated
+button presses. The iPad result Back action showed a leave confirmation and an
+edge swipe did not discard the result. Captured runtime logs contained no
+sensitive markers or fatal/crash markers. Background/reconnect grace and an
+approved Sentry no-spoiler event remain deferred, so this is a conditional
+connected acceptance rather than the complete DW-012 matrix.
+
+The environment-neutral web artifact from the same feature source has SHA-256
+`5bca4a9cfd9d3409825c52473c7a87f42fc76e708d793ce02ee0de884c0d4667`
+and bundle `entry-267e4d975dc5ea59f998faf935855e86.js`. Preview Worker
+version `dbf9484e-5a9d-4581-b17a-4ebc65d4174b` passed 5/6/7 rule selection,
+a selected seven-letter summary, 390-by-844 no-overflow, exact bundle, and
+zero console errors. The identical bytes became production Worker version
+`33a03a13-7d70-43a3-ba58-dafeecaa1781`; production returned HTTP 200 and its
+downloaded bundle matched the local bundle SHA-256 exactly.
+
+Public release commit `53e01dd79934c44f223c31b2d6bb14e72cf6f4b7`
+reserves internal iOS build `0.1.0 (12)`. Xcode 26.6 archived it with the
+production runtime. Version/build, bundle/team, arm64, Account AV, privacy,
+entitlements, Distribution signature, and exact app/dSYM UUID
+`B0EE6C99-8876-398E-AEFC-DA2AD1B1F38D` passed. The verified IPA is 41,981,908
+bytes with SHA-256
+`c12e423195271e6845e8542ad311161037571bb57ff233c5169a32491318b360`.
+Apple accepted the Xcode upload at 10:23:13 CEST on 2026-07-31 with all three
+success markers. The same eight known vendor-framework dSYM warnings remain;
+application/dSYM parity is exact.
+
+Do not call build 12 test-ready yet. App Store Connect processing and the
+internal-only group require authenticated readback. Production Convex parity
+for `setReactionPreference` is also not proven: the production dry-run passed
+schema/index safety but reported that a deploy would change remote state, and
+no production Convex deploy was authorized or executed. The production web
+and TestFlight clients therefore require that backend parity gate before the
+shared mute behavior can be claimed in production. No API, D1, dictionary,
+invite/AASA, DNS, App Review, external testing, Sentry, paid-provider, or
+Infisical mutation accompanied this rollout.
