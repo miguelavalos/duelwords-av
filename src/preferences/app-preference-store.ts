@@ -1,12 +1,16 @@
 import { useSyncExternalStore } from 'react';
 
 import {
+  createInitialAppPreferences,
   DEFAULT_APP_PREFERENCES,
-  parseStoredAppPreferences,
   type AppPreferences,
 } from './preference-schema';
+import { readPreferredDeviceLanguages } from './device-language';
+import {
+  APP_PREFERENCES_STORAGE_KEY,
+  loadAppPreferences,
+} from './app-preference-loader';
 
-const APP_PREFERENCES_STORAGE_KEY = 'duelwords-av:preferences:v1';
 const listeners = new Set<() => void>();
 let cachedPreferences: AppPreferences | null = null;
 
@@ -34,9 +38,9 @@ function readPreferences(): AppPreferences {
   }
 
   try {
-    cachedPreferences = parseStoredAppPreferences(localStorage.getItem(APP_PREFERENCES_STORAGE_KEY));
+    cachedPreferences = loadAppPreferences(localStorage, readPreferredDeviceLanguages());
   } catch {
-    cachedPreferences = DEFAULT_APP_PREFERENCES;
+    cachedPreferences = createInitialAppPreferences(readPreferredDeviceLanguages());
   }
 
   return cachedPreferences;

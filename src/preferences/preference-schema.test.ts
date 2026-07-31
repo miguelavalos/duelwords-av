@@ -1,12 +1,33 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  createInitialAppPreferences,
   DEFAULT_APP_PREFERENCES,
   parseAppPreferences,
   parseStoredAppPreferences,
 } from './preference-schema';
 
 describe('app preference schema', () => {
+  it.each([
+    ['ca', 'ca_ES'],
+    ['de', 'de-DE'],
+    ['en', 'en-US'],
+    ['es', 'es-419'],
+    ['fr', 'fr-CA'],
+  ] as const)('initializes interface and game language as %s for %s', (expected, preferred) => {
+    expect(createInitialAppPreferences([preferred])).toEqual({
+      ...DEFAULT_APP_PREFERENCES,
+      gameLanguage: expected,
+      interfaceLocale: expected,
+    });
+  });
+
+  it('uses only the primary device language and falls back to English', () => {
+    expect(createInitialAppPreferences(['it-IT', 'es-ES'])).toEqual(DEFAULT_APP_PREFERENCES);
+    expect(createInitialAppPreferences([])).toEqual(DEFAULT_APP_PREFERENCES);
+    expect(createInitialAppPreferences(['esoteric'])).toEqual(DEFAULT_APP_PREFERENCES);
+  });
+
   it('accepts the complete versioned preference shape', () => {
     expect(parseAppPreferences({
       appearance: 'dark',

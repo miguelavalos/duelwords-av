@@ -8,7 +8,7 @@
     "icon": "./assets/images/icon.png",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "buildNumber": "14",
+      "buildNumber": "15",
       "bundleIdentifier": "com.avalsys.duelwordsav",
       "config": {
         "usesNonExemptEncryption": false
@@ -31,6 +31,7 @@
     },
     "plugins": [
       "./plugins/with-duelwords-shared-apple",
+      "expo-localization",
       [
         "@clerk/expo",
         {

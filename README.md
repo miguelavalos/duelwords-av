@@ -93,7 +93,11 @@ Solo/Daily demo, Play Avi demo, and connected-runtime engineering previews remai
 available by direct internal route when they are not linked from Play.
 
 Interface language (EN/ES/CA/FR/DE) and appearance (system/light/dark) are
-versioned local preferences. Web uses browser
+versioned local preferences. On first launch, interface and game language both
+use the device/browser's primary supported language, or English when it is not
+supported; that initial choice is persisted and later manual choices always
+win. See the [initial app language contract](docs/initial-app-language.md).
+Web uses browser
 `localStorage`; native uses Expo SQLite's `localStorage` compatibility layer.
 The Home screen deliberately has no word-language selector. Word language is
 selected from a compact, accessible Game settings picker inside Challenge,

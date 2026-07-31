@@ -5,6 +5,7 @@ import {
   type AviDifficulty,
 } from '../game/word-duel-bot/difficulty';
 import type { InterfaceLocale } from '@/i18n/locales';
+import { resolveInitialAppLanguage } from './initial-app-language';
 
 export type AppAppearance = 'dark' | 'light' | 'system';
 
@@ -27,6 +28,17 @@ export const DEFAULT_APP_PREFERENCES: AppPreferences = Object.freeze({
   playerDisplayName: '',
   version: 3,
 });
+
+export function createInitialAppPreferences(
+  preferredLanguages: readonly string[],
+): AppPreferences {
+  const initialLanguage = resolveInitialAppLanguage(preferredLanguages);
+  return {
+    ...DEFAULT_APP_PREFERENCES,
+    gameLanguage: initialLanguage,
+    interfaceLocale: initialLanguage,
+  };
+}
 
 export function parseAppPreferences(value: unknown): AppPreferences {
   if (!isRecord(value) || (value.version !== 1 && value.version !== 2 && value.version !== 3)) {
