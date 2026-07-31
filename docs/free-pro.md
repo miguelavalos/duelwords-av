@@ -62,8 +62,12 @@ is a separate future product, not part of V1.
 
 RevenueCat is configured only after Apps AV resolves an internal signed-in
 user. Guest use never initializes the purchase SDK. Purchase and restore
-results trigger an Apps AV refresh; only the Apps AV entitlement can unlock
-Pro. The native iPhone/iPad paywall follows the Tune AV visual hierarchy with
+return RevenueCat `CustomerInfo`; the client triggers Apps AV reconciliation
+only when that snapshot contains the configured active `pro` entitlement. A
+StoreKit transaction without that confirmation is reported honestly and does
+not claim that Pro is still syncing or ask the user to purchase again. Only
+the Apps AV entitlement can unlock Pro. The native iPhone/iPad paywall follows
+the Tune AV visual hierarchy with
 DuelWords copy and benefits. Its footer is exactly `Redeem code · Terms ·
 Privacy`; Manage Apple subscriptions remains available to active Pro users.
 Guest redemption routes to sign-in. Signed-in redemption uses the authenticated

@@ -11,12 +11,14 @@ smokes, observability, and rollback.
 ## Current Status
 
 Current as of 2026-07-31: the authoritative internal iOS candidate is
-`0.1.0 (13)` from functional commit
-`18f543e639781125a62062e40864de9b06433904`. Apple reports build id
-`7c4e46be-4c00-4f4f-83ab-876a74b40dd0` as `VALID`, encryption exempt,
+`1.0.0 (16)` from exact release commit
+`437a6a52b506090f752b0dfef590fed71f74d346`. Apple reports build id
+`c2528485-55b4-4a2e-8860-724212e09a6e` as `VALID`, encryption exempt,
 unexpired through 2026-10-29, and `IN_BETA_TESTING` only through the automatic
-internal `avalsys` group. Builds 7–12 are historical checkpoints and are not
-the current acceptance target.
+internal `avalsys` group. This candidate preserves the complete V1 purchase
+surface but no longer treats a StoreKit transaction as active Pro until
+RevenueCat returns the configured active `pro` entitlement. Builds 7–15 are
+immutable historical checkpoints and are not the current acceptance target.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
@@ -126,8 +128,9 @@ The native shell now includes the canonical DuelWords icon, the promoted
 engraved light/dark logo and wordmark family, a paper-and-ink branded splash
 without Tune-specific music cues, onboarding
 with guest skip, the canonical Tune AV Account AV provider sheet, Account,
-Settings, an adaptive Apps AV footer/sidebar with Avi, and an honest DuelWords
-Pro preview with no purchase call. The identity boundary is strict: game boards,
+Settings, an adaptive Apps AV footer/sidebar with Avi, and the native
+DuelWords Pro StoreKit purchase, restore, redemption, and management surface.
+The identity boundary is strict: game boards,
 mode copy, icon, wordmark, lockup, and editorial artwork may express the
 DuelWords paper-and-ink product; common splash/onboarding mechanics, auth,
 header controls, footer/sidebar, Settings, Account, paywall, deletion, legal,
@@ -1010,22 +1013,24 @@ game id; it only creates a start request after recipient acceptance.
   exact source commit `3a59588`. Apple reports it `VALID` and
   `IN_BETA_TESTING` only in the internal `avalsys` group. It is superseded
   by `1.0.0 (15)`, archived and uploaded from exact source commit `28e6d6d`.
-  Apple reports build 15 `VALID`, encryption-exempt, and
-  `IN_BETA_TESTING` only in the same internal group. Neither candidate has
-  been attached to App Review or submitted.
+  Build 15 is superseded by `1.0.0 (16)` from exact source commit `437a6a5`.
+  Apple reports build 16 `VALID`, encryption-exempt, and `IN_BETA_TESTING`
+  only in the same internal group. No candidate has been attached to App
+  Review or submitted.
 - Native iPhone/iPad V1 is subscription-first: it must ship the real localized
   StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
   management, Apps AV entitlement reconciliation, legal links, and in-app
   account deletion. Web remains informational and does not sell subscriptions.
 - App Store Connect now uses EUR 2.99 as the Spain base-storefront price for
   `duelwordsav_pro_monthly`, with Apple's automatic equivalents across all 175
-  territories. Verify that the processed build displays the propagated real
-  localized StoreKit price. RevenueCat product, entitlement, offering, package,
-  and product id do not change.
+  territories. RevenueCat now reports the product `Ready to Submit`; product,
+  entitlement, offering, package, and product id do not change. Verify that
+  build 16 displays the propagated real localized StoreKit price.
 - Run signed sandbox purchase, delayed-webhook reconciliation, restore on a
   second device, cancellation/expiry, redeem code, and account-deletion checks
-  on the exact candidate. Capture new iPhone and iPad screenshots and the
-  subscription review screenshot only after those gates pass.
+  on build 16. The required subscription review screenshot is saved in App
+  Store Connect; regenerate the public iPhone/iPad product screenshots from
+  the final accepted candidate after those gates pass.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android
