@@ -49,7 +49,7 @@ never changes dictionaries, feedback, attempts, or competitive rules.
 - Billing period: one month
 - Launch base storefront price: EUR 2.99 in Spain
 - Storefront coverage: all 175 current territories using Apple's automatic
-  equivalents; verify the localized StoreKit price on the signed candidate
+  equivalents; signed build 16 displayed the localized USD 2.99 StoreKit offer
 - Family Sharing: off
 
 V1 is ad-free. The planned V2 Google AdMob model does not change the EUR 2.99
@@ -77,5 +77,7 @@ reconcile through the Apps AV entitlement before Pro becomes active.
 On web, Account AV sign-in and entitlement display are available, but Pro is
 informational only. The browser does not initialize StoreKit/RevenueCat, sell
 or restore a subscription, or redeem a code. Purchase, restore, and redemption
-remain native release gates until the complete provider, legal, and physical-
-device acceptance path is approved.
+remain native-only operations. The physical iPhone build-16 purchase and
+automatic same-account Pro hydration on physical iPad pass. Explicit Restore
+Purchases, cancellation/expiry, and the remaining signed lifecycle matrix are
+still release gates.

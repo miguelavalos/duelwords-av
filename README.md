@@ -1024,13 +1024,15 @@ game id; it only creates a start request after recipient acceptance.
 - App Store Connect now uses EUR 2.99 as the Spain base-storefront price for
   `duelwordsav_pro_monthly`, with Apple's automatic equivalents across all 175
   territories. RevenueCat now reports the product `Ready to Submit`; product,
-  entitlement, offering, package, and product id do not change. Verify that
-  build 16 displays the propagated real localized StoreKit price.
-- Run signed sandbox purchase, delayed-webhook reconciliation, restore on a
-  second device, cancellation/expiry, redeem code, and account-deletion checks
-  on build 16. The required subscription review screenshot is saved in App
-  Store Connect; regenerate the public iPhone/iPad product screenshots from
-  the final accepted candidate after those gates pass.
+  entitlement, offering, package, and product id do not change. Physical build
+  16 displayed the propagated USD 2.99 StoreKit price and completed purchase
+  plus delayed-webhook reconciliation successfully.
+- Automatic same-account Pro hydration passed on a physical iPad without
+  repurchase. Explicit Restore Purchases, cancellation/expiry, redeem code,
+  account deletion, and the remaining signed lifecycle matrix stay open. The
+  required subscription review screenshot is saved in App Store Connect. The
+  exact-candidate package of four iPhone and four iPad product screenshots is
+  complete locally and awaits upload.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android
