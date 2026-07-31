@@ -26,7 +26,7 @@ export const duelWordsBrandAssets = {
   wordmarkDark: require('../../assets/images/brand/duelwords-wordmark-dark.png'),
 } as const;
 
-export function DuelWordsWordmark({ centered = false, compact = false, withIcon = false }: { centered?: boolean; compact?: boolean; withIcon?: boolean }) {
+export function DuelWordsWordmark({ centered = false, compact = false, sidebar = false, withIcon = false }: { centered?: boolean; compact?: boolean; sidebar?: boolean; withIcon?: boolean }) {
   const { isDark } = useAppTheme();
   const source = withIcon
     ? (isDark ? duelWordsBrandAssets.lockupDark : duelWordsBrandAssets.lockup)
@@ -41,6 +41,7 @@ export function DuelWordsWordmark({ centered = false, compact = false, withIcon 
       style={[
         withIcon ? styles.lockup : styles.wordmark,
         compact && (withIcon ? styles.lockupCompact : styles.wordmarkCompact),
+        sidebar && styles.lockupSidebar,
         centered && styles.centered,
       ]}
     />
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   lockupCompact: { width: 246, height: 56 },
+  lockupSidebar: { width: 138, height: 44 },
   centered: { alignSelf: 'center' },
   aviFrame: {
     alignItems: 'center',

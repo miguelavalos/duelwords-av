@@ -201,16 +201,9 @@ private struct DuelWordsSidebarSurface: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            if props.selectedTab == "play" {
-                AVAppShellTabletSidebarBrandHeader(
-                    logoAssetName: "DuelWordsHeaderLogo",
-                    accessibilityLabel: "DuelWords AV",
-                    logoWidth: 138,
-                    logoHeight: 44,
-                    logoLeadingCorrection: -16
-                )
-                .padding(.bottom, 12)
-            }
+            Color.clear
+                .frame(height: 56)
+                .accessibilityHidden(true)
 
             sidebarButton(props.localized("Home"), systemImage: "house.fill", route: "play")
             sidebarButton(props.localized("Rivals"), systemImage: "person.2.fill", route: "rivals")

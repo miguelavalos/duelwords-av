@@ -3,7 +3,7 @@ import * as Haptics from 'expo-haptics';
 import * as WebBrowser from 'expo-web-browser';
 import { type Href, useRouter } from 'expo-router';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from 'react-native';
 
 import { AVI_DIFFICULTIES, isAviDifficulty } from '@/game/word-duel-bot/difficulty';
 import { type GameLanguage } from '@/game/word-duel-engine';
@@ -36,6 +36,7 @@ export function SettingsScreen() {
   const surfaceCopy = (key: Parameters<typeof sharedSurfaceT>[1]) => sharedSurfaceT(interfaceLocale, key);
   const version = Constants.expoConfig?.version ?? '0.1.0';
   const build = Constants.expoConfig?.ios?.buildNumber ?? '1';
+  const supportsHaptics = Platform.OS !== 'web';
 
   async function setHaptics(enabled: boolean) {
     setPreferences((current) => ({ ...current, hapticsEnabled: enabled }));
@@ -95,7 +96,7 @@ export function SettingsScreen() {
       ) : null}
       <View style={styles.headerCopy}>
         <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{t(interfaceLocale, 'settings')}</Text>
-        <Text style={styles.subtitle}>{t(interfaceLocale, 'preferencesLocal')}</Text>
+        <Text style={styles.subtitle}>{t(interfaceLocale, supportsHaptics ? 'preferencesLocal' : 'preferencesLocalWithoutHaptics')}</Text>
       </View>
 
       <PaperCard>
@@ -128,12 +129,14 @@ export function SettingsScreen() {
             <Option key={option} label={t(interfaceLocale, option)} selected={appearance === option} selectedLabel={t(interfaceLocale, 'selected')} onPress={() => setPreferences((current) => ({ ...current, appearance: option }))} />
           ))}
         </View>
-        <SettingToggle
-          detail={surfaceCopy('Short feedback for selections and accepted local actions.')}
-          label={surfaceCopy('Haptics')}
-          onValueChange={(value) => { void setHaptics(value); }}
-          value={hapticsEnabled}
-        />
+        {supportsHaptics ? (
+          <SettingToggle
+            detail={surfaceCopy('Short feedback for selections and accepted local actions.')}
+            label={surfaceCopy('Haptics')}
+            onValueChange={(value) => { void setHaptics(value); }}
+            value={hapticsEnabled}
+          />
+        ) : null}
       </PaperCard>
 
       <PaperCard>

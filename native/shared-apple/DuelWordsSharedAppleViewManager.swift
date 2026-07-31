@@ -61,6 +61,7 @@ final class DuelWordsSharedAppleHostView: UIView {
     var onAction: RCTBubblingEventBlock?
 
     private var hostingController: UIHostingController<AnyView>?
+    private var renderModel: DuelWordsSharedAppleRenderModel?
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -94,6 +95,8 @@ final class DuelWordsSharedAppleHostView: UIView {
     }
 
     private func render() {
+        guard !(surface as String).isEmpty else { return }
+
         let props = DuelWordsSharedSurfaceProps(
             surface: surface as String,
             selectedTab: selectedTab as String,
@@ -122,19 +125,20 @@ final class DuelWordsSharedAppleHostView: UIView {
             subscriptionPrice: subscriptionPrice as String,
             subscriptionState: subscriptionState as String
         ).applyingSimulatorUITestOverrides()
+        if let renderModel {
+            renderModel.props = props
+            return
+        }
+
+        let model = DuelWordsSharedAppleRenderModel(props: props)
         let rootView = AnyView(
-            DuelWordsSharedSurfaceRoot(props: props) { [weak self] action, value in
+            DuelWordsSharedAppleRenderHost(model: model) { [weak self] action, value in
                 guard !DuelWordsSimulatorUITestRuntime.shouldSuppress(action: action) else { return }
                 var payload: [String: Any] = ["action": action]
                 if let value { payload["value"] = value }
                 self?.onAction?(payload)
             }
         )
-
-        if let hostingController {
-            hostingController.rootView = rootView
-            return
-        }
 
         let controller = UIHostingController(rootView: rootView)
         controller.view.backgroundColor = .clear
@@ -143,6 +147,7 @@ final class DuelWordsSharedAppleHostView: UIView {
         controller.view.frame = bounds
         controller.view.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         addSubview(controller.view)
+        renderModel = model
         hostingController = controller
         attachHostingControllerIfNeeded()
     }
@@ -181,6 +186,23 @@ final class DuelWordsSharedAppleHostView: UIView {
             responder = current.next
         }
         return nil
+    }
+}
+
+private final class DuelWordsSharedAppleRenderModel: ObservableObject {
+    @Published var props: DuelWordsSharedSurfaceProps
+
+    init(props: DuelWordsSharedSurfaceProps) {
+        self.props = props
+    }
+}
+
+private struct DuelWordsSharedAppleRenderHost: View {
+    @ObservedObject var model: DuelWordsSharedAppleRenderModel
+    let action: DuelWordsSharedAction
+
+    var body: some View {
+        DuelWordsSharedSurfaceRoot(props: model.props, action: action)
     }
 }
 

@@ -66,6 +66,17 @@ lobby. Internal iOS build `0.1.0 (12)` was archived from exact release commit
 `53e01dd` and accepted by Apple at 10:23 CEST on 2026-07-31. It remains uploaded
 but not test-ready until authenticated App Store Connect readback confirms
 processing and internal-only group membership.
+Current source keeps the tablet/desktop left navigation visually stable on
+every Home, Rivals, Stats, Avi, Settings, and Account route. On iPad the logo
+is now a persistent React overlay above a fixed Swift sidebar slot, so native
+surface-prop updates cannot make the brand disappear during a route change;
+the shared SwiftUI host also updates an observable model instead of replacing
+its entire root hierarchy. Web retains the same wordmark on every route. The
+web Settings screen no longer offers a misleading Haptics switch because
+browser vibration is not part of the product contract; iPhone and iPad keep
+their real native Haptics setting. Build `0.1.0 (13)` is reserved for this
+client-only correction. No API, Convex, D1, dictionary, or invite change is
+required.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

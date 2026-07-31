@@ -83,6 +83,14 @@ describe('shared Apps AV native-surface contract', () => {
     expect(accountSource).toContain("router.replace('/(tabs)/settings' as Href)");
   });
 
+  it('offers haptics only on native settings surfaces', () => {
+    const settingsSource = source('src/features/settings/settings-screen.tsx');
+
+    expect(settingsSource).toContain("const supportsHaptics = Platform.OS !== 'web'");
+    expect(settingsSource).toContain("supportsHaptics ? 'preferencesLocal' : 'preferencesLocalWithoutHaptics'");
+    expect(settingsSource).toContain('{supportsHaptics ? (');
+  });
+
   it('keeps Tune AV common chrome foundations, palette, Avi, and adaptive navigation', () => {
     for (const foundation of [
       'AVAppShellFoundation',
@@ -132,6 +140,14 @@ describe('shared Apps AV native-surface contract', () => {
       'ios/DuelWordsAV/SharedApple/DuelWordsSharedAppleViewManager.swift',
       nativeViewManagerSource,
     );
+  });
+
+  it('updates native surface props without replacing the SwiftUI root hierarchy', () => {
+    expect(nativeViewManagerSource).toContain('private var renderModel: DuelWordsSharedAppleRenderModel?');
+    expect(nativeViewManagerSource).toContain('guard !(surface as String).isEmpty else { return }');
+    expect(nativeViewManagerSource).toContain('renderModel.props = props');
+    expect(nativeViewManagerSource).toContain('DuelWordsSharedAppleRenderHost(model: model)');
+    expect(nativeViewManagerSource).not.toContain('hostingController.rootView = rootView');
   });
 
   it('localizes account-deletion service copy without exposing technical fixture language', () => {

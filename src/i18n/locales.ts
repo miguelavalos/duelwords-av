@@ -60,6 +60,7 @@ type CopyKey =
   | 'light'
   | 'playSubtitle'
   | 'preferencesLocal'
+  | 'preferencesLocalWithoutHaptics'
   | 'practiceDescription'
   | 'selected'
   | 'start'
@@ -104,6 +105,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Light',
     playSubtitle: 'Synchronized word challenges start here.',
     preferencesLocal: 'Interface language, appearance, and haptics stay on this device.',
+    preferencesLocalWithoutHaptics: 'Interface language and appearance stay in this browser.',
     practiceDescription: 'Practice five-letter rounds offline with the local training list.',
     selected: 'Selected',
     start: 'Start',
@@ -147,6 +149,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Claro',
     playSubtitle: 'Aquí empiezan los retos de palabras sincronizados.',
     preferencesLocal: 'El idioma de interfaz, la apariencia y la vibración se guardan en este dispositivo.',
+    preferencesLocalWithoutHaptics: 'El idioma de interfaz y la apariencia se guardan en este navegador.',
     practiceDescription: 'Practica rondas de cinco letras sin conexión con la lista local de entrenamiento.',
     selected: 'Seleccionado',
     start: 'Empezar',
@@ -190,6 +193,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Clar',
     playSubtitle: 'Aquí comencen els reptes de paraules sincronitzats.',
     preferencesLocal: 'L’idioma de la interfície, l’aparença i la vibració es desen en aquest dispositiu.',
+    preferencesLocalWithoutHaptics: 'L’idioma de la interfície i l’aparença es desen en aquest navegador.',
     practiceDescription: 'Practica rondes de cinc lletres sense connexió amb la llista local d’entrenament.',
     selected: 'Seleccionat',
     start: 'Començar',
@@ -233,6 +237,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Clair',
     playSubtitle: 'Les défis de mots synchronisés commencent ici.',
     preferencesLocal: 'Langue de l’interface, apparence et vibrations restent sur cet appareil.',
+    preferencesLocalWithoutHaptics: 'La langue de l’interface et l’apparence restent dans ce navigateur.',
     practiceDescription: 'Entraînez-vous hors ligne avec des manches de cinq lettres et la liste locale.',
     selected: 'Sélectionné',
     start: 'Commencer',
@@ -276,6 +281,7 @@ export const copy: Record<InterfaceLocale, Record<CopyKey, string>> = {
     light: 'Hell',
     playSubtitle: 'Hier beginnen synchronisierte Wortduelle.',
     preferencesLocal: 'App-Sprache, Darstellung und Haptik bleiben auf diesem Gerät.',
+    preferencesLocalWithoutHaptics: 'App-Sprache und Darstellung bleiben in diesem Browser.',
     practiceDescription: 'Übe Fünf-Buchstaben-Runden offline mit der lokalen Trainingsliste.',
     selected: 'Ausgewählt',
     start: 'Starten',

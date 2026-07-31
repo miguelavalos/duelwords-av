@@ -634,3 +634,39 @@ internal-only group still require authenticated readback; the available browser
 session redirected to Apple's unauthenticated login. No invite/AASA, DNS, App
 Review, external testing, Sentry, paid-provider, or Infisical mutation
 accompanied this Convex closure.
+
+## Persistent tablet brand and truthful web settings — 2026-07-31
+
+The left navigation now keeps the DuelWords wordmark on Home, Rivals, Stats,
+Avi, Settings, and Account in both wide web layouts and iPad. The initial Swift
+condition that limited the header to Home was only part of the defect: a clean
+Release simulator replay showed that a SwiftUI sidebar replacement could still
+drop the brand during the immediate route transition. The native bridge now
+publishes prop changes through one observable render model instead of replacing
+the hosting controller's root view. The iPad wordmark itself is rendered as a
+persistent React overlay above a fixed 56-point slot in the native sidebar, so
+selection updates cannot remove or shift it. Web uses the same stable React
+wordmark on every wide route.
+
+Web Settings now omits Haptics and says that interface language and appearance
+remain in the browser. The previous web switch could only store a preference;
+the browser implementation does not provide the physical iOS haptic feedback
+described by the UI. Native Settings remains unchanged and exposes Haptics on
+both iPhone and iPad. The new browser-only explanation is complete in
+EN/ES/CA/FR/DE.
+
+Focused source contracts passed 17 tests and TypeScript. A clean preview-shaped
+Release build with embedded JavaScript compiled and launched on iPad Pro 13.
+Fresh screenshots proved the wordmark present on Home, still present in the
+first frame after Home to Rivals, and present on Settings; Settings exposed the
+native Haptics switch. The same universal binary launched on iPhone 17 with the
+floating footer intact and native Haptics visible. Local web Browser QA proved
+one accessible DuelWords logo on Home, Rivals, and Settings, zero Haptics copy
+on web, the browser-specific settings explanation, and zero console warnings or
+errors. The in-app-browser screenshot renderer tiled the wide frame, so DOM,
+route, locator, and console evidence—not the tiled bitmap—is authoritative.
+
+Internal build `0.1.0 (13)` is reserved for this client-only correction. The
+release must use the canonical production archive, archive validation, local
+App Store export, Distribution-signature check, and Xcode upload path. No API,
+Convex, D1, dictionary, invite/AASA, DNS, or paid-provider change is needed.

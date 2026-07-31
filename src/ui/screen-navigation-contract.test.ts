@@ -82,12 +82,15 @@ describe('interior screen navigation contract', () => {
     expect(nativeSurfaces.match(/showsChrome: !isTabletLayout/g)).toHaveLength(2);
   });
 
-  it('uses the shared product chrome on Home, Account, and Settings', () => {
+  it('keeps the shared product chrome in every tablet sidebar route', () => {
     const tabLayout = source('src/app/(tabs)/_layout.tsx');
     const nativeSurfaces = source('native/shared-apple/DuelWordsSharedSurfaces.swift');
 
-    expect(tabLayout).toContain("selectedRoute === 'play'");
-    expect(nativeSurfaces).toContain('if props.selectedTab == "play"');
+    expect(tabLayout).toContain("<DuelWordsWordmark sidebar withIcon />");
+    expect(tabLayout).toContain('style={styles.sharedSidebarBrandOverlay}');
+    expect(tabLayout).not.toContain("tablet && selectedRoute === 'play'");
+    expect(nativeSurfaces).toContain('Color.clear\n                .frame(height: 56)');
+    expect(nativeSurfaces).not.toContain('if props.selectedTab == "play"');
     expect(source('src/features/play/play-screen.tsx')).toContain('AppChromeHeader');
     expect(source('src/features/account/account-screen.tsx')).toContain('selected="account"');
     expect(source('src/features/settings/settings-screen.tsx')).toContain('selected="settings"');

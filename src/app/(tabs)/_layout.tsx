@@ -155,7 +155,7 @@ function DuelWordsTabBar({
   const selectedRoute = state.routes[state.index]?.name;
 
   if (isSharedAppleSurfaceAvailable) {
-    return (
+    const sharedSurface = (
       <SharedAppleSurface
         appearance={appearance}
         interfaceLocale={interfaceLocale}
@@ -168,6 +168,21 @@ function DuelWordsTabBar({
         style={tablet ? styles.sharedSidebar : styles.sharedFooter}
         surface={tablet ? 'sidebar' : 'footer'}
       />
+    );
+
+    if (tablet) {
+      return (
+        <View style={styles.sharedSidebarContainer}>
+          {sharedSurface}
+          <View pointerEvents="none" style={styles.sharedSidebarBrandOverlay}>
+            <DuelWordsWordmark sidebar withIcon />
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      sharedSurface
     );
   }
 
@@ -220,7 +235,7 @@ function DuelWordsTabBar({
           paddingBottom: tablet ? Math.max(insets.bottom, 18) : Math.max(insets.bottom, 8),
         },
       ]}>
-      {tablet && selectedRoute === 'play' ? (
+      {tablet ? (
         <View style={styles.sidebarBrand}>
           <DuelWordsWordmark compact withIcon />
         </View>
@@ -283,6 +298,17 @@ const styles = StyleSheet.create({
   sharedSidebar: {
     width: 264,
     height: '100%',
+  },
+  sharedSidebarContainer: {
+    width: 264,
+    height: '100%',
+  },
+  sharedSidebarBrandOverlay: {
+    position: 'absolute',
+    top: 22,
+    left: 14,
+    width: 138,
+    height: 44,
   },
   tabLabel: {
     fontSize: 12,
