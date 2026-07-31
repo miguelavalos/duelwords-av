@@ -74,9 +74,11 @@ the shared SwiftUI host also updates an observable model instead of replacing
 its entire root hierarchy. Web retains the same wordmark on every route. The
 web Settings screen no longer offers a misleading Haptics switch because
 browser vibration is not part of the product contract; iPhone and iPad keep
-their real native Haptics setting. Build `0.1.0 (13)` is reserved for this
-client-only correction. No API, Convex, D1, dictionary, or invite change is
-required.
+their real native Haptics setting. The exact client-only correction shipped
+from public commit `18f543e`: web preview and production received one identical
+artifact, while internal iOS build `0.1.0 (13)` passed the canonical production
+archive and Distribution export and was accepted by Apple's upload service.
+No API, Convex, D1, dictionary, or invite change was required.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

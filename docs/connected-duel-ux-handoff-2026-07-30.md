@@ -670,3 +670,44 @@ Internal build `0.1.0 (13)` is reserved for this client-only correction. The
 release must use the canonical production archive, archive validation, local
 App Store export, Distribution-signature check, and Xcode upload path. No API,
 Convex, D1, dictionary, invite/AASA, DNS, or paid-provider change is needed.
+
+### Web and TestFlight delivery
+
+Public release commit `18f543e639781125a62062e40864de9b06433904`
+passed the complete 91-file / 505-test suite, TypeScript, Expo lint, iOS release
+configuration, focused native-surface contracts, web types, preview/production
+dry-runs, artifact verification, and diff hygiene. React Doctor 0.9.2 reported
+84/100 with zero errors and six pre-existing/static structural advisories.
+
+One environment-neutral web artifact, SHA-256
+`4e06fe8a53b4446958b7afe359bc96e059685cf0b5e0e93ba02b6ed47569c8fd`,
+was deployed first to preview Worker version
+`b76242fb-0367-448d-a931-b8f64bde1776` and then unchanged to production Worker
+version `55e36bdf-f6cc-4831-80dd-a10fd05d50bb`. Its immutable bundle is
+`entry-2d77b725a7effd4fed65c37db82573ae.js`, whose local, preview, and production
+SHA-256 is
+`76e44ff8adc4a264674e3091f324352d349309111c5cbac9ecbafa7e8609f7fe`.
+Browser acceptance on both hosts proved one accessible logo on Home, Rivals,
+and Settings, zero web Haptics controls, the browser-only settings explanation,
+and zero production console errors. Routes and runtime config returned 200;
+HTML retained no-cache policy and the versioned bundle retained immutable
+one-year caching. The immediate rollback versions are preview
+`dbf9484e-5a9d-4581-b17a-4ebc65d4174b` and production
+`33a03a13-7d70-43a3-ba58-dafeecaa1781`.
+
+Xcode 26.6 then archived exact build `0.1.0 (13)` with Production runtime and
+Sentry upload disabled. The archive passed Account AV, bundle/team,
+version/build, arm64, privacy manifest, entitlements, signing, and exact app
+dSYM UUID `8C8C5025-CD69-3C31-8E81-6248D2AB047F`. The locally exported
+Distribution IPA is 41,981,724 bytes with SHA-256
+`3a8f25dbcf166f088922ae06424b46582a4fef5e64068471769d908d38ae2778`.
+Apple accepted the canonical upload at 11:49:25 CEST with `Upload succeeded`,
+`Uploaded DuelWordsAV`, and `EXPORT SUCCEEDED`. Official App Store Connect API
+readback then confirmed build id `7c4e46be-4c00-4f4f-83ab-876a74b40dd0` as
+`VALID`, encryption exempt, unexpired through 2026-10-29, and
+`IN_BETA_TESTING` only through the automatic internal `avalsys` group. Build 13
+is therefore ready for internal testing. Eight known vendor-framework dSYM
+warnings remain non-blocking; application/dSYM parity is exact.
+
+No API, Convex, D1, dictionary, invite/AASA, DNS, Sentry, App Review, external
+testing, paid-provider, or Infisical mutation accompanied this delivery.
