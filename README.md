@@ -56,6 +56,16 @@ artifact from public commit `865e7a0`; internal iOS build `0.1.0 (11)` is the
 first uploaded TestFlight candidate that includes it. App Store Connect
 accepted the package at 23:14 CEST on 2026-07-30; processing/internal-group
 readback remains required before calling it test-ready.
+Current reaction-polish source adds eight localized reactions, animated receipt,
+compact invalid-word feedback, and a shared recipient mute enforced by Convex.
+The same web artifact is live in preview and production, and the reviewed
+Convex bundle is active in production with crons disabled and no index
+deletion. A bounded two-client production smoke proved mute, blocked send,
+resume, reaction delivery, timeout/open-next, and accepted rematch into the next
+lobby. Internal iOS build `0.1.0 (12)` was archived from exact release commit
+`53e01dd` and accepted by Apple at 10:23 CEST on 2026-07-31. It remains uploaded
+but not test-ready until authenticated App Store Connect readback confirms
+processing and internal-only group membership.
 Historical store evidence remains in
 [the TestFlight handoff](docs/testflight-handoff-2026-07-29.md). **Challenge a Friend**
 is linked from Play and opens `/word-duel/challenge`. With the safe runtime

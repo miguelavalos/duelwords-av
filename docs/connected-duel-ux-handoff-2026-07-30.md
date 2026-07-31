@@ -621,12 +621,16 @@ Apple accepted the Xcode upload at 10:23:13 CEST on 2026-07-31 with all three
 success markers. The same eight known vendor-framework dSYM warnings remain;
 application/dSYM parity is exact.
 
+After explicit authorization, the reviewed private Convex bundle was deployed
+to production `blissful-shark-434` with crons disabled and no index deletion.
+A bounded production flow used two guest clients and real backend timestamps;
+it proved the shared mute projection, rejection of a blocked sender with
+`opponent_reactions_disabled`, resume, reaction delivery, timeout/open-next,
+accepted rematch, and the next lobby. Production shared-mute parity is closed
+without an API, D1, dictionary, or client redeploy.
+
 Do not call build 12 test-ready yet. App Store Connect processing and the
-internal-only group require authenticated readback. Production Convex parity
-for `setReactionPreference` is also not proven: the production dry-run passed
-schema/index safety but reported that a deploy would change remote state, and
-no production Convex deploy was authorized or executed. The production web
-and TestFlight clients therefore require that backend parity gate before the
-shared mute behavior can be claimed in production. No API, D1, dictionary,
-invite/AASA, DNS, App Review, external testing, Sentry, paid-provider, or
-Infisical mutation accompanied this rollout.
+internal-only group still require authenticated readback; the available browser
+session redirected to Apple's unauthenticated login. No invite/AASA, DNS, App
+Review, external testing, Sentry, paid-provider, or Infisical mutation
+accompanied this Convex closure.
