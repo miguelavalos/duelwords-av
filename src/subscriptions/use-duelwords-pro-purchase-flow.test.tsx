@@ -122,7 +122,7 @@ describe('useDuelWordsProPurchase lifecycle', () => {
     harness.unmount();
   });
 
-  it('does not claim Pro when purchase or Restore lacks the active entitlement', async () => {
+  it('does not claim Pro and distinguishes purchase recovery from an inactive Restore', async () => {
     purchaseMocks.purchase.mockResolvedValueOnce(inactiveCustomerInfo);
     const harness = await renderPurchaseHook();
 
@@ -143,7 +143,7 @@ describe('useDuelWordsProPurchase lifecycle', () => {
 
     expect(harness.current.state).toBe('ready');
     expect(harness.current.error).toBe(
-      'Apple did not confirm active Pro access. Do not purchase again. Check your App Store account, then try Restore Purchases.',
+      'No active DuelWords Pro subscription was found for this App Store account. Subscribe to start Pro.',
     );
     expect(purchaseMocks.reconcile).not.toHaveBeenCalled();
 

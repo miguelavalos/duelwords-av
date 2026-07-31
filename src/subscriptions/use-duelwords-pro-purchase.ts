@@ -139,7 +139,7 @@ export function useDuelWordsProPurchase(input: {
       const customerInfo = await purchases.restore(userId);
       if (!hasActiveRevenueCatEntitlement(customerInfo, config.entitlementId)) {
         setState(offer ? 'ready' : 'unavailable');
-        setError('Apple did not confirm active Pro access. Do not purchase again. Check your App Store account, then try Restore Purchases.');
+        setError('No active DuelWords Pro subscription was found for this App Store account. Subscribe to start Pro.');
       } else {
         await reconcile();
       }

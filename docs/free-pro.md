@@ -65,8 +65,11 @@ user. Guest use never initializes the purchase SDK. Purchase and restore
 return RevenueCat `CustomerInfo`; the client triggers Apps AV reconciliation
 only when that snapshot contains the configured active `pro` entitlement. A
 StoreKit transaction without that confirmation is reported honestly and does
-not claim that Pro is still syncing or ask the user to purchase again. Only
-the Apps AV entitlement can unlock Pro. The native iPhone/iPad paywall follows
+not claim that Pro is still syncing or ask the user to purchase again. Only an
+unsuccessful purchase response carries the anti-repurchase recovery copy; an
+inactive or expired Restore instead states that no active subscription was
+found and leaves Subscribe available. Only the Apps AV entitlement can unlock
+Pro. The native iPhone/iPad paywall follows
 the Tune AV visual hierarchy with
 DuelWords copy and benefits. Its footer is exactly `Redeem code · Terms ·
 Privacy`; Manage Apple subscriptions remains available to active Pro users.
@@ -79,5 +82,9 @@ informational only. The browser does not initialize StoreKit/RevenueCat, sell
 or restore a subscription, or redeem a code. Purchase, restore, and redemption
 remain native-only operations. The physical iPhone build-16 purchase and
 automatic same-account Pro hydration on physical iPad pass. Explicit Restore
-Purchases, cancellation/expiry, and the remaining signed lifecycle matrix are
-still release gates.
+Purchases with an active subscription and the remaining signed lifecycle
+matrix are still release gates. Cancellation followed by accelerated Sandbox
+expiry returned the physical iPhone to Free, and Restore after expiry safely
+kept it Free. Build 16 used misleading purchase-recovery copy for that expired
+Restore result; current source separates the two outcomes and therefore needs
+a replacement signed candidate before review.

@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-31: the authoritative internal iOS candidate is
+Current as of 2026-07-31: the current internal iOS checkpoint is
 `1.0.0 (16)` from exact release commit
 `437a6a52b506090f752b0dfef590fed71f74d346`. Apple reports build id
 `c2528485-55b4-4a2e-8860-724212e09a6e` as `VALID`, encryption exempt,
@@ -19,6 +19,10 @@ internal `avalsys` group. This candidate preserves the complete V1 purchase
 surface but no longer treats a StoreKit transaction as active Pro until
 RevenueCat returns the configured active `pro` entitlement. Builds 7–15 are
 immutable historical checkpoints and are not the current acceptance target.
+Its physical Sandbox purchase, second-device hydration, cancellation, and
+expiry safety pass. An expired Restore exposed misleading anti-repurchase copy
+in build 16; current source distinguishes “no active subscription” from a
+post-purchase entitlement failure, so build 16 must be replaced before review.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
@@ -41,8 +45,9 @@ their real native Haptics setting. The exact client-only correction shipped
 from public commit `18f543e`: web preview and production received one identical
 artifact. Preview Worker `b76242fb-0367-448d-a931-b8f64bde1776` and production
 Worker `55e36bdf-f6cc-4831-80dd-a10fd05d50bb` serve the same stamped bytes.
-Internal build 13 passed canonical Production archive, Distribution export,
-upload, processing, and internal-group readback.
+Internal build 16 passed canonical Production archive, Distribution export,
+upload, processing, and internal-group readback, but remains an immutable
+pre-review checkpoint rather than the final candidate.
 No API, Convex, D1, dictionary, or invite change was required.
 Historical build progression and release evidence remain in
 [the connected-duel UX handoff](docs/connected-duel-ux-handoff-2026-07-30.md)
@@ -1015,8 +1020,9 @@ game id; it only creates a start request after recipient acceptance.
   by `1.0.0 (15)`, archived and uploaded from exact source commit `28e6d6d`.
   Build 15 is superseded by `1.0.0 (16)` from exact source commit `437a6a5`.
   Apple reports build 16 `VALID`, encryption-exempt, and `IN_BETA_TESTING`
-  only in the same internal group. No candidate has been attached to App
-  Review or submitted.
+  only in the same internal group. Build 16 is attached to the prepared
+  three-item review draft but has not been submitted; replace it with the
+  corrected successor before the owner submits.
 - Native iPhone/iPad V1 is subscription-first: it must ship the real localized
   StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
   management, Apps AV entitlement reconciliation, legal links, and in-app
@@ -1028,11 +1034,14 @@ game id; it only creates a start request after recipient acceptance.
   16 displayed the propagated USD 2.99 StoreKit price and completed purchase
   plus delayed-webhook reconciliation successfully.
 - Automatic same-account Pro hydration passed on a physical iPad without
-  repurchase. Explicit Restore Purchases, cancellation/expiry, redeem code,
-  account deletion, and the remaining signed lifecycle matrix stay open. The
-  required subscription review screenshot is saved in App Store Connect. The
-  exact-candidate package of four iPhone and four iPad product screenshots is
-  complete locally and awaits upload.
+  repurchase. Cancellation plus accelerated Sandbox expiry returned the
+  physical iPhone to Free, and Restore after expiry safely kept it Free. That
+  Restore exposed misleading anti-repurchase copy in build 16; current source
+  now reports that no active subscription was found. Explicit Restore with an
+  active subscription, redeem code, account deletion, a replacement signed
+  candidate, and the remaining lifecycle matrix stay open. The required
+  subscription review screenshot and the four-iPhone/four-iPad commercial
+  screenshot package are saved in App Store Connect.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android

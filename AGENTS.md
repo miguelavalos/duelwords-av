@@ -225,10 +225,13 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Internal TestFlight build `0.1.0 (13)` is the current processed iPhone/iPad
-  candidate. Physical owner acceptance of that exact build, post-V1
-  advertising, real Pro purchase, push, or any further production deploy still
-  requires its own explicit authorization.
+  Internal TestFlight build `1.0.0 (16)` is the current processed iPhone/iPad
+  checkpoint. Physical purchase, second-device hydration, cancellation, and
+  accelerated expiry passed; an expired Restore remained safely Free but
+  exposed misleading anti-repurchase copy. Current source distinguishes that
+  inactive Restore from purchase recovery and requires a replacement signed
+  candidate before review. Post-V1 advertising, push, or any further
+  production deploy still requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google
   returns a created session, activate that exact session and end the provider
