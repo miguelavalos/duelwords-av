@@ -41,7 +41,7 @@ export function ProScreen() {
         <Benefit title={copy('Daily in every language')} detail={copy('Play once per language each day.')} />
         <Benefit title={copy('1,000 history records')} detail={copy('Keep a 365-day private statistics window on this device.')} />
         <Benefit title={copy('100 challenges per day')} detail={copy('Create more human challenges without changing duel rules.')} />
-        <Benefit title={copy('Account-backed access')} detail={copy('Your Apps AV account keeps Pro access with you.')} />
+        <Benefit title={copy('Pro on your devices')} detail={copy('Your account keeps Pro available across your devices.')} />
       </PaperCard>
 
       <PaperCard emphasized>

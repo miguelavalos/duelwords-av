@@ -47,4 +47,15 @@ describe('DuelWords experience copy', () => {
 
     expect(english).not.toMatch(/\b(server|backend|runtime|realtime|convex|clerk|fixture|mock|deterministic|entitlement|https|build)\b/i);
   });
+
+  it('does not promise that local progress or rivals sync with an account', () => {
+    const misleadingAccountClaims = /keep progress|remember rivals|conservar el progreso|conservar el progrés|conserver votre progression|fortschritt.*gerät/i;
+
+    for (const locale of LOCALES) {
+      const localized = experienceCopy(locale);
+      const accountGuidance = [localized.aviAccountDetail, localized.onboardingPages[2]?.detail ?? ''].join(' ');
+
+      expect(accountGuidance, locale).not.toMatch(misleadingAccountClaims);
+    }
+  });
 });

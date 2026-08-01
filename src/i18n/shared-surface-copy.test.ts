@@ -59,6 +59,15 @@ describe('shared native and React surface copy', () => {
       expect(visible).not.toMatch(/\b(Convex|Clerk|fixture|mock|deploy key|schema|projection)\b/i);
     }
   });
+
+  it('uses plain, accurate account and game wording', () => {
+    const english = Object.values(translations.en).join(' ');
+
+    expect(english).not.toMatch(/target deck|guarded workflow|Account-backed access|shared Account AV deletion workflow|Refresh Apps AV access|Confirming Pro access with Apps AV|Practice, Solo/i);
+    expect(translations.en['Pro access follows this account. Game history and rivals stay on this device.']).toBeTruthy();
+    expect(translations.en['One official word per language each day']).toBeTruthy();
+    expect(translations.en['Practice and Play Avi rotate through fresh words']).toBeTruthy();
+  });
 });
 
 function templateTokens(value: string): string[] {

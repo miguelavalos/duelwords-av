@@ -67,7 +67,7 @@ const en: ExperienceCopy = {
   aviTitle: 'Your word-duel companion', aviDetail: 'I can explain the game and play as your local rival. I never give hints.',
   aviRulesTitle: 'Read the ink', aviRulesDetail: 'Exact means right letter and place. Present means the letter belongs elsewhere. Out means it is not in the word.',
   aviModesTitle: 'Pick the right mode', aviModesDetail: 'Practice is untimed, Play Avi follows duel rhythm, and Challenge a Friend is synchronized online.',
-  aviAccountTitle: 'Guest first, account when useful', aviAccountDetail: 'Play locally as a guest. Account AV can keep progress across devices, remember rivals, and add Pro access.',
+  aviAccountTitle: 'Guest first, account when useful', aviAccountDetail: 'Play locally as a guest. Sign in when you want to use DuelWords Pro across your devices.',
   openPractice: 'Open practice', openSettings: 'Open settings', onboardingSkip: 'Skip', onboardingContinue: 'Continue',
   onboardingCreate: 'Create account', onboardingSignIn: 'Sign in', onboardingGuest: 'Continue as guest',
   accountSignInFailed: 'Account AV could not complete sign-in. Please try again.',
@@ -75,7 +75,7 @@ const en: ExperienceCopy = {
   onboardingPages: [
     { eyebrow: 'DuelWords AV', title: 'Words, written head to head.', detail: 'A warm paper-and-ink word game built around fair live duels.' },
     { eyebrow: 'Meet Avi', title: 'Learn the rhythm with Avi.', detail: 'Avi explains every mark and can be your consistent local opponent.' },
-    { eyebrow: 'Your choice', title: 'Start now. Keep more later.', detail: 'Continue as a guest, or use Account AV to keep progress and Pro access across devices.' },
+    { eyebrow: 'Your choice', title: 'Start now. Keep more later.', detail: 'Continue as a guest, or sign in to use Pro across your devices. Game history and rivals stay on this device.' },
   ],
 };
 
@@ -96,7 +96,7 @@ const es: ExperienceCopy = {
   aviTitle: 'Tu compañero de duelos', aviDetail: 'Puedo explicar el juego y ser tu rival local. Nunca doy pistas.',
   aviRulesTitle: 'Lee la tinta', aviRulesDetail: 'Exacta es letra y posición correctas. Presente significa que va en otro lugar. Fuera indica que no aparece.',
   aviModesTitle: 'Elige el modo adecuado', aviModesDetail: 'Práctica no tiene tiempo, Jugar con Avi sigue el ritmo de duelo y Retar sincroniza a dos jugadores.',
-  aviAccountTitle: 'Primero invitado, cuenta cuando aporte', aviAccountDetail: 'Juega en local como invitado. Account AV añade continuidad, rivales y acceso Pro.',
+  aviAccountTitle: 'Primero invitado, cuenta cuando aporte', aviAccountDetail: 'Juega en local como invitado. Inicia sesión cuando quieras usar DuelWords Pro en tus dispositivos.',
   openPractice: 'Abrir práctica', openSettings: 'Abrir ajustes', onboardingSkip: 'Omitir', onboardingContinue: 'Continuar',
   onboardingCreate: 'Crear cuenta', onboardingSignIn: 'Iniciar sesión', onboardingGuest: 'Continuar como invitado',
     accountSignInFailed: 'Account AV no ha podido completar el inicio de sesión. Inténtalo de nuevo.',
@@ -104,7 +104,7 @@ const es: ExperienceCopy = {
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Palabras, frente a frente.', detail: 'Un juego cálido de papel y tinta centrado en duelos en directo justos.' },
       { eyebrow: 'Conoce a Avi', title: 'Aprende el ritmo con Avi.', detail: 'Avi explica cada marca y puede ser tu rival local constante.' },
-    { eyebrow: 'Tú eliges', title: 'Empieza ya. Conserva más después.', detail: 'Continúa como invitado o usa Account AV para conservar el progreso y el acceso Pro en tus dispositivos.' },
+    { eyebrow: 'Tú eliges', title: 'Empieza ya. Conserva más después.', detail: 'Continúa como invitado o inicia sesión para usar Pro en tus dispositivos. El historial y los rivales se guardan en este dispositivo.' },
   ],
 };
 
@@ -128,7 +128,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviTitle: 'El teu company de duels', aviDetail: 'Puc explicar el joc i ser el teu rival local. Mai no dono pistes.',
     aviRulesTitle: 'Llegeix la tinta', aviRulesDetail: 'Exacta vol dir lletra i posició correctes. Present indica que va en un altre lloc. Fora vol dir que no hi és.',
     aviModesTitle: 'Tria el mode adequat', aviModesDetail: 'Pràctica no té temps, Jugar amb l’Avi segueix el ritme de duel i Reptar sincronitza dos jugadors.',
-    aviAccountTitle: 'Primer convidat, compte quan aporti', aviAccountDetail: 'Juga en local com a convidat. Account AV afegeix continuïtat, rivals i accés Pro.',
+    aviAccountTitle: 'Primer convidat, compte quan aporti', aviAccountDetail: 'Juga en local com a convidat. Inicia sessió quan vulguis usar DuelWords Pro als teus dispositius.',
     openPractice: 'Obrir pràctica', openSettings: 'Obrir ajustos', onboardingSkip: 'Ometre', onboardingContinue: 'Continuar',
     onboardingCreate: 'Crear compte', onboardingSignIn: 'Iniciar sessió', onboardingGuest: 'Continuar com a convidat',
     accountSignInFailed: 'Account AV no ha pogut completar l’inici de sessió. Torna-ho a provar.',
@@ -136,7 +136,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Paraules, cara a cara.', detail: 'Un joc càlid de paper i tinta centrat en duels en directe justos.' },
       { eyebrow: 'Coneix l’Avi', title: 'Aprèn el ritme amb l’Avi.', detail: 'L’Avi explica cada marca i pot ser el teu rival local constant.' },
-      { eyebrow: 'Tu tries', title: 'Comença ara. Conserva més després.', detail: 'Continua com a convidat o usa Account AV per conservar el progrés i l’accés Pro als teus dispositius.' },
+      { eyebrow: 'Tu tries', title: 'Comença ara. Conserva més després.', detail: 'Continua com a convidat o inicia sessió per usar Pro als teus dispositius. L’historial i els rivals es desen en aquest dispositiu.' },
     ],
   },
   fr: {
@@ -156,7 +156,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviTitle: 'Votre compagnon de duel', aviDetail: 'Je peux expliquer le jeu et devenir votre rival local. Je ne donne jamais d’indice.',
     aviRulesTitle: 'Lisez l’encre', aviRulesDetail: 'Exact signifie bonne lettre et bonne place. Présent indique une autre place. Absent signifie que la lettre n’est pas dans le mot.',
     aviModesTitle: 'Choisissez le bon mode', aviModesDetail: 'Entraînement est sans chrono, Jouer contre Avi suit le rythme d’un duel et Défier synchronise deux joueurs.',
-    aviAccountTitle: 'Invité d’abord, compte si utile', aviAccountDetail: 'Jouez hors ligne en invité. Account AV ajoute continuité, rivaux et accès Pro.',
+    aviAccountTitle: 'Invité d’abord, compte si utile', aviAccountDetail: 'Jouez hors ligne en invité. Connectez-vous pour utiliser DuelWords Pro sur vos appareils.',
     openPractice: 'Ouvrir l’entraînement', openSettings: 'Ouvrir les réglages', onboardingSkip: 'Passer', onboardingContinue: 'Continuer',
     onboardingCreate: 'Créer un compte', onboardingSignIn: 'Se connecter', onboardingGuest: 'Continuer comme invité',
     accountSignInFailed: 'Account AV n’a pas pu terminer la connexion. Réessayez.',
@@ -164,7 +164,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Les mots, face à face.', detail: 'Un jeu chaleureux de papier et d’encre, pensé pour des duels en direct équitables.' },
       { eyebrow: 'Voici Avi', title: 'Apprenez le rythme avec Avi.', detail: 'Avi explique chaque marque et peut devenir votre rival local régulier.' },
-      { eyebrow: 'À vous de choisir', title: 'Commencez maintenant. Gardez plus ensuite.', detail: 'Jouez en invité ou utilisez Account AV pour conserver votre progression et votre accès Pro sur vos appareils.' },
+      { eyebrow: 'À vous de choisir', title: 'Commencez maintenant. Gardez plus ensuite.', detail: 'Jouez en invité ou connectez-vous pour utiliser Pro sur vos appareils. L’historique et les rivaux restent sur cet appareil.' },
     ],
   },
   de: {
@@ -184,7 +184,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     aviTitle: 'Dein Begleiter im Wortduell', aviDetail: 'Ich erkläre das Spiel und kann dein lokaler Gegner sein. Hinweise gebe ich nie.',
     aviRulesTitle: 'Lies die Tinte', aviRulesDetail: 'Exakt bedeutet richtiger Buchstabe und richtige Stelle. Vorhanden heißt: andere Stelle. Raus heißt: nicht im Wort.',
     aviModesTitle: 'Wähle den passenden Modus', aviModesDetail: 'Training läuft ohne Zeitlimit, Gegen Avi folgt dem Duellrhythmus und Herausforderung synchronisiert zwei Spieler.',
-    aviAccountTitle: 'Erst Gast, Konto wenn nützlich', aviAccountDetail: 'Spiele lokal als Gast. Account AV ergänzt dauerhaften Verlauf, Rivalen und Pro-Zugang.',
+    aviAccountTitle: 'Erst Gast, Konto wenn nützlich', aviAccountDetail: 'Spiele lokal als Gast. Melde dich an, wenn du DuelWords Pro auf deinen Geräten nutzen möchtest.',
     openPractice: 'Training öffnen', openSettings: 'Einstellungen öffnen', onboardingSkip: 'Überspringen', onboardingContinue: 'Weiter',
     onboardingCreate: 'Konto erstellen', onboardingSignIn: 'Anmelden', onboardingGuest: 'Als Gast fortfahren',
     accountSignInFailed: 'Account AV konnte die Anmeldung nicht abschließen. Versuche es erneut.',
@@ -192,7 +192,7 @@ const translations: Record<InterfaceLocale, ExperienceCopy> = {
     onboardingPages: [
       { eyebrow: 'DuelWords AV', title: 'Wörter, Kopf an Kopf.', detail: 'Ein warmes Spiel aus Papier und Tinte für faire Live-Duelle.' },
       { eyebrow: 'Das ist Avi', title: 'Lerne den Rhythmus mit Avi.', detail: 'Avi erklärt jede Markierung und kann dein verlässlicher lokaler Gegner sein.' },
-      { eyebrow: 'Du entscheidest', title: 'Jetzt starten. Später mehr behalten.', detail: 'Spiele als Gast oder nutze Account AV, um Fortschritt und Pro-Zugang auf deinen Geräten zu behalten.' },
+      { eyebrow: 'Du entscheidest', title: 'Jetzt starten. Später mehr behalten.', detail: 'Spiele als Gast oder melde dich an, um Pro auf deinen Geräten zu nutzen. Spielverlauf und Rivalen bleiben auf diesem Gerät.' },
     ],
   },
 };

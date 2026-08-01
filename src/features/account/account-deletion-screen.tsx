@@ -184,7 +184,7 @@ export function AccountDeletionScreen() {
 
           {eligibility?.status === 'completed' ? (
             <PaperCard emphasized>
-              <SectionHeading title={copy('Account deleted')} detail={copy('The shared Account AV deletion workflow has completed. DuelWords AV will return to guest mode.')} />
+              <SectionHeading title={copy('Account deleted')} detail={copy('Your Account AV account has been deleted. DuelWords AV will return to guest mode.')} />
               <AppButton onPress={() => void finishCompletedDeletion()}>{copy('Continue as guest')}</AppButton>
             </PaperCard>
           ) : null}

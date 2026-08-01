@@ -66,7 +66,7 @@ export function AccountAuthOptionsPanel({
       <View pointerEvents="none" style={styles.avi}><AviArtwork size={126} source={aviAssets.loginPeek} /></View>
       <View style={styles.copyGroup}>
         <Text accessibilityRole="header" aria-level={2} style={styles.title}>{copy('Connect your account')}</Text>
-        <Text style={styles.subtitle}>{copy('Use your Account AV account to continue across devices.')}</Text>
+        <Text style={styles.subtitle}>{copy('Sign in to use DuelWords Pro across your devices. Game history and rivals stay on this device.')}</Text>
       </View>
 
       <View style={styles.providerStack}>

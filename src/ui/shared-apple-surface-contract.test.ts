@@ -83,6 +83,15 @@ describe('shared Apps AV native-surface contract', () => {
     expect(accountSource).toContain("router.replace('/(tabs)/settings' as Href)");
   });
 
+  it('states clearly that only Pro access follows the account', () => {
+    const accountSource = source('src/features/account/account-screen.tsx');
+
+    expect(accountSource).toContain("'Pro access follows this account. Game history and rivals stay on this device.'");
+    expect(nativeSurfaceSource).toContain('props.localized("Pro access follows this account. Game history and rivals stay on this device.")');
+    expect(accountSource).not.toMatch(/keep progress|remember rivals|guarded Account AV workflow/i);
+    expect(nativeSurfaceSource).not.toMatch(/target decks|Practice, Solo|guarded Account AV workflow/i);
+  });
+
   it('offers haptics only on native settings surfaces', () => {
     const settingsSource = source('src/features/settings/settings-screen.tsx');
 

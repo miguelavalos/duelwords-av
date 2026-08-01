@@ -28,7 +28,7 @@ export function AuthScreen() {
           {isSignUp ? copy.onboardingCreate : copy.onboardingSignIn}
         </Text>
         <Text style={[styles.subtitle, { color: colors.textMuted }]}>
-          {surfaceCopy('Use your Account AV account to continue across devices.')}
+          {surfaceCopy('Sign in to use DuelWords Pro across your devices. Game history and rivals stay on this device.')}
         </Text>
       </View>
 

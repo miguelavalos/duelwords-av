@@ -150,8 +150,8 @@ export function SettingsScreen() {
       <PaperCard>
         <SectionHeading title="DuelWords AV" detail={surfaceCopy('Challenge a friend. Or play Avi.')} />
         <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Version')}</Text><Text selectable style={styles.aboutValue}>{version} ({build})</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Word lists')}</Text><Text style={styles.aboutValue}>{surfaceCopy('Bundled EN, ES, CA, FR, and DE')}</Text></View>
-        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Daily word')}</Text><Text style={styles.aboutValue}>{surfaceCopy('One official word for everyone')}</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Word lists')}</Text><Text style={styles.aboutValue}>{surfaceCopy('English, Spanish, Catalan, French, and German')}</Text></View>
+        <View style={styles.aboutRow}><Text style={styles.aboutLabel}>{surfaceCopy('Daily word')}</Text><Text style={styles.aboutValue}>{surfaceCopy('One official word per language each day')}</Text></View>
       </PaperCard>
     </AppScreen>
   );

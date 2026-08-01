@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-08-01: the current processed internal iOS checkpoint is
+Current as of 2026-08-01: the latest processed internal iOS checkpoint is
 `1.0.0 (19)` from exact release commit
 `476c4e309985835dfd6429408a4f058c9313e13d`. Its clean Xcode 26.6 archive and
 Apple Distribution IPA passed production Account AV, privacy, entitlements,
@@ -18,7 +18,11 @@ profile, signature, deep-signature, and app/dSYM validation. Apple reports
 build id `49592460-07e7-47bb-9124-e62d6906dfca` as `VALID`, encryption exempt,
 unexpired through 2026-10-30, and `IN_BETA_TESTING` only through the automatic
 internal `avalsys` group. Builds 7–18 are immutable historical checkpoints and
-are not the current acceptance target.
+are not the current acceptance target. Build 19 is also no longer eligible for
+App Review: the final copy audit found misleading cross-device account wording,
+technical player-facing labels, and stale five-letter-only commercial/legal
+copy. Current source corrects those issues in all five locales and therefore
+requires a newly archived, uploaded, and physically accepted successor build.
 
 Physical active-subscription Restore on build 17 exposed a separate backend
 ownership defect: RevenueCat transferred the App Store subscription to the
@@ -33,9 +37,10 @@ for App Review. The corrected backend is deployed preview-first as preview
 Worker `d4473fdf-dae4-4a28-8c97-640b43bb4e34` and production Worker
 `56b83266-b620-47a4-8d65-06c1ea155d4d`; health and ten consecutive
 unauthenticated fail-closed checks pass in production. Processed build 19 is
-the current matching signed candidate. Physical active-Restore acceptance on
-iPhone and same-account confirmation on iPad remain required before the owner
-replaces the draft binary or submits App Review.
+valid signed delivery evidence for that runtime correction, but it is
+superseded by the current copy corrections. The successor must repeat physical
+active-Restore acceptance on iPhone and same-account confirmation on iPad
+before the owner replaces the draft binary or submits App Review.
 
 Post-build-18 source also closes the stale-open-app expiry gap found during the
 accelerated Sandbox exercise. The native Account AV provider now preserves the
@@ -55,7 +60,8 @@ SHA-256 `ac28eff52375e7fd39a181fb196c88ba20cb5be12dc1b3725689a6fb77b7fd04`.
 Apple accepted the upload at 11:13 CEST with all three canonical success
 markers. Authenticated API readback confirms it is processed and internal-only.
 The physical active-Restore plus foreground/expiry acceptance matrix remains
-pending, so build 19 is not yet an App Review candidate.
+pending. The copy corrections described above additionally require a successor,
+so build 19 must never become the App Review binary.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
@@ -1054,8 +1060,8 @@ game id; it only creates a start request after recipient acceptance.
   Build 15 is superseded by `1.0.0 (16)` from exact source commit `437a6a5`.
   Apple reports build 16 `VALID`, encryption-exempt, and `IN_BETA_TESTING`
   only in the same internal group. Build 16 is attached to the prepared
-  three-item review draft but has not been submitted; replace it with the
-  corrected successor before the owner submits.
+  three-item review draft but has not been submitted; replace it with a new
+  successor built from the corrected copy source before the owner submits.
 - Native iPhone/iPad V1 is subscription-first: it must ship the real localized
   StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
   management, Apps AV entitlement reconciliation, legal links, and in-app
@@ -1073,7 +1079,7 @@ game id; it only creates a start request after recipient acceptance.
   now reports that no active subscription was found. Active Restore on build 17
   then exposed the rejected RevenueCat `TRANSFER` event. Current source adds
   authenticated provider verification and transfer reconciliation; that
-  backend correction is deployed and build 18 contains its matching client
+  backend correction is deployed and builds 18–19 contain its matching client
   path. Redeem code,
   account deletion, and the remaining lifecycle matrix stay open. The
   required subscription review screenshot and the four-iPhone/four-iPad commercial
@@ -1082,8 +1088,9 @@ game id; it only creates a start request after recipient acceptance.
   its last Pro snapshot until Account AV is refreshed. Current source retains
   the server-provided expiry, performs one coalesced refresh just after it, and
   refreshes on native foreground. No provider mutation or continuous polling is
-  involved. A post-build-18 TestFlight successor is therefore required before
-  the exact-candidate lifecycle matrix can close.
+  involved. Build 19 contains that lifecycle correction, but the later copy
+  audit means a new successor is required before the exact-candidate lifecycle
+  matrix can close.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android
@@ -1099,8 +1106,9 @@ game id; it only creates a start request after recipient acceptance.
   data before any price change.
 - Do not submit while purchase, restore, redeem-code, entitlement
   reconciliation, subscription management, or account deletion has an open
-  failure. The current source includes those paths; the remaining gate is
-  exact-candidate end-to-end acceptance, not removal of purchasing.
+  failure. The current source includes those paths; the remaining gates are a
+  successor build containing the copy corrections and its exact-candidate
+  end-to-end acceptance, not removal of purchasing.
 - Continue handling player/editorial reports through the versioned solution
   decks and exclusion regressions. All five languages now use the same 750
   solutions per length; accepted guesses remain broader by design.

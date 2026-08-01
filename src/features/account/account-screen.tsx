@@ -69,7 +69,7 @@ export function AccountScreen() {
       ) : null}
       <View style={styles.headerCopy}>
         <Text accessibilityRole="header" aria-level={1} style={styles.screenTitle}>{copy.account}</Text>
-        <Text style={styles.subtitle}>{surfaceCopy(signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want access across devices.')}</Text>
+        <Text style={styles.subtitle}>{surfaceCopy(signedIn ? 'Your account and DuelWords access in one place.' : 'Play locally as a guest. Sign in when you want to use Pro across your devices.')}</Text>
       </View>
 
       <PaperCard emphasized>
@@ -88,14 +88,14 @@ export function AccountScreen() {
           </View>
         ) : (
           <View style={styles.buttonRow}>
-            <AppButton tone="secondary" style={styles.flexButton} onPress={() => void account.refresh()}>{surfaceCopy('Refresh Apps AV access')}</AppButton>
+            <AppButton tone="secondary" style={styles.flexButton} onPress={() => void account.refresh()}>{surfaceCopy('Refresh account')}</AppButton>
             <AppButton tone="quiet" style={styles.flexButton} onPress={() => void account.signOut()}>{surfaceCopy('Sign out')}</AppButton>
           </View>
         )}
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title={surfaceCopy('Across your devices')} detail={surfaceCopy(signedIn ? 'You are signed in with Account AV.' : 'Practice, Daily, and Play Avi stay on this device while you are a guest.')} />
+        <SectionHeading title={surfaceCopy('Account and device')} detail={surfaceCopy(signedIn ? 'Pro access follows this account. Game history and rivals stay on this device.' : 'Game history and rivals stay on this device. Sign in only when you want account features.')} />
         <InfoRow label={surfaceCopy('Identity')} value={signedIn ? (account.status === 'signed_in_offline' ? surfaceCopy('Local play remains available on this device.') : surfaceCopy('Connected')) : surfaceCopy('Guest · local')} />
         <InfoRow label={surfaceCopy('Game history')} value={surfaceCopy('Stored on this device')} />
         <InfoRow label={surfaceCopy('Rivals')} value={surfaceCopy('Stored on this device')} />
@@ -114,7 +114,7 @@ export function AccountScreen() {
       </PaperCard>
 
       <PaperCard>
-        <SectionHeading title={surfaceCopy('Account safety')} detail={surfaceCopy('Account deletion follows the guarded Account AV workflow.')} />
+        <SectionHeading title={surfaceCopy('Account safety')} detail={surfaceCopy('Review what account deletion removes before confirming.')} />
         <View style={styles.buttonRow}>
           <AppButton tone="secondary" style={styles.flexButton} onPress={() => router.replace('/(tabs)/settings' as Href)}>{copy.settings}</AppButton>
           {signedIn ? <AppButton tone="danger" style={styles.flexButton} onPress={() => router.push('/delete-account' as Href)}>{surfaceCopy('Delete Apps AV account')}</AppButton> : null}
