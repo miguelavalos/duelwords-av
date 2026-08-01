@@ -12,7 +12,9 @@ import {
   useRef,
   useState,
 } from 'react';
+import { AppState } from 'react-native';
 
+import { accountExpiryRefreshDelay } from './account-access-refresh';
 import { fetchAccountAvIdentity, type AccountAvInternalUser, type DuelWordsAccess } from './account-api-client';
 import { getDuelWordsAccountAvConfig } from './account-av-config';
 import {
@@ -131,6 +133,8 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
   const userRef = useRef<AccountAvInternalUser | null>(null);
   const clerkGetTokenRef = useRef(getToken);
   const automaticResolutionSessionRef = useRef<string | null>(null);
+  const refreshGenerationRef = useRef(0);
+  const refreshInFlightRef = useRef<{ key: string; operation: Promise<void> } | null>(null);
   const providerFlowIsLoaded = isLoaded && isSignInLoaded && isSignUpLoaded;
 
   useEffect(() => {
@@ -144,21 +148,14 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
 
     return withTimeout(clerkGetTokenRef.current(), ACCOUNT_TOKEN_TIMEOUT_MS);
   }, [isSignedIn]);
-  const publishIdentity = useCallback(async (identityTokenProvider: () => Promise<string | null>) => {
-    const identity = await fetchAccountAvIdentity({ baseUrl, getToken: identityTokenProvider });
-    await identityCache.save(identity).catch(() => undefined);
-    userRef.current = identity.user;
-    setUser(identity.user);
-    setAccess(identity.access);
-    setStatus('signed_in');
-  }, [baseUrl, identityCache]);
-  const refresh = useCallback(async () => {
+  const performRefresh = useCallback(async (generation: number) => {
     if (!isLoaded) {
-      setStatus('loading');
+      if (generation === refreshGenerationRef.current) setStatus('loading');
       return;
     }
     if (!isSignedIn) {
       await identityCache.clear().catch(() => undefined);
+      if (generation !== refreshGenerationRef.current) return;
       automaticResolutionSessionRef.current = null;
       userRef.current = null;
       setUser(null);
@@ -169,6 +166,7 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
 
     if (!userRef.current) {
       const cached = await identityCache.load().catch(() => null);
+      if (generation !== refreshGenerationRef.current) return;
       if (cached) {
         userRef.current = cached.user;
         setUser(cached.user);
@@ -179,11 +177,38 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
       }
     }
     try {
-      await publishIdentity(tokenProvider);
+      const identity = await fetchAccountAvIdentity({ baseUrl, getToken: tokenProvider });
+      if (generation !== refreshGenerationRef.current) return;
+      await identityCache.save(identity).catch(() => undefined);
+      if (generation !== refreshGenerationRef.current) return;
+      userRef.current = identity.user;
+      setUser(identity.user);
+      setAccess(identity.access);
+      setStatus('signed_in');
     } catch {
-      setStatus(userRef.current ? 'signed_in_offline' : 'account_error');
+      if (generation === refreshGenerationRef.current) {
+        setStatus(userRef.current ? 'signed_in_offline' : 'account_error');
+      }
     }
-  }, [identityCache, isLoaded, isSignedIn, publishIdentity, tokenProvider]);
+  }, [baseUrl, identityCache, isLoaded, isSignedIn, tokenProvider]);
+  const refresh = useCallback(() => {
+    const key = !isLoaded ? 'loading' : isSignedIn ? `signed:${sessionId ?? 'pending'}` : 'guest';
+    if (refreshInFlightRef.current?.key === key) return refreshInFlightRef.current.operation;
+    const generation = refreshGenerationRef.current + 1;
+    refreshGenerationRef.current = generation;
+    const operation = performRefresh(generation).finally(() => {
+      if (refreshInFlightRef.current?.operation === operation) {
+        refreshInFlightRef.current = null;
+      }
+    });
+    refreshInFlightRef.current = { key, operation };
+    return operation;
+  }, [isLoaded, isSignedIn, performRefresh, sessionId]);
+  const refreshRef = useRef(refresh);
+
+  useEffect(() => {
+    refreshRef.current = refresh;
+  }, [refresh]);
 
   useEffect(() => {
     if (isSignedIn && sessionId && automaticResolutionSessionRef.current === sessionId) {
@@ -195,7 +220,31 @@ function AccountAvRuntime({ baseUrl, children, identityCache, iosSsoRedirectUrl 
     void refresh();
   }, [isSignedIn, refresh, sessionId]);
 
+  useEffect(() => {
+    let previousState = AppState.currentState;
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      const becameActive = nextState === 'active' && previousState !== 'active';
+      previousState = nextState;
+      if (becameActive && isSignedIn) {
+        void refreshRef.current();
+      }
+    });
+    return () => subscription.remove();
+  }, [isSignedIn]);
+
+  useEffect(() => {
+    if (!isSignedIn || access.accessMode !== 'signedInPro') return;
+    const delay = accountExpiryRefreshDelay(access.expiresAt);
+    if (delay === null) return;
+    const timeout = setTimeout(() => {
+      void refresh();
+    }, delay);
+    return () => clearTimeout(timeout);
+  }, [access.accessMode, access.expiresAt, isSignedIn, refresh]);
+
   const signOut = useCallback(async () => {
+    refreshGenerationRef.current += 1;
+    refreshInFlightRef.current = null;
     await clerk.signOut();
     await identityCache.clear().catch(() => undefined);
     automaticResolutionSessionRef.current = null;

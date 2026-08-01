@@ -101,8 +101,14 @@ refresh as a bounded fallback, processes `TRANSFER` through the configured
 RevenueCat app mapping, moves the single billing record, and recalculates the
 old owner's access. A cancelled subscription remains Pro until its current
 period expires; the expiration event or provider refresh then resolves it to
-Free. The backend correction has passed preview-first production rollout.
+Free. Native DuelWords also retains Account AV's authoritative `expiresAt`,
+performs one coalesced access refresh just after that timestamp, and refreshes
+when the app returns from background. This avoids a stale in-memory Pro badge
+without polling RevenueCat, shortening the paid period, or trusting device
+time to grant access; Account AV remains authoritative on every refresh. The
+backend correction has passed preview-first production rollout.
 Processed internal build `1.0.0 (18)` contains the matching client fallback and
 is `VALID` / `IN_BETA_TESTING` only in the automatic internal group. It must
-still pass the physical active-Restore matrix before it can replace the review
-draft binary.
+still pass the physical active-Restore matrix, and a successor containing the
+foreground/expiry refresh must pass physical acceptance before it can replace
+the review draft binary.

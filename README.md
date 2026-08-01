@@ -37,6 +37,16 @@ matching signed candidate. Physical active-Restore acceptance on iPhone and
 same-account confirmation on iPad remain required before the owner replaces
 the draft binary or submits App Review.
 
+Post-build-18 source also closes the stale-open-app expiry gap found during the
+accelerated Sandbox exercise. The native Account AV provider now preserves the
+authoritative DuelWords `expiresAt`, coalesces overlapping identity refreshes,
+refreshes once just after an active Pro period expires, and refreshes whenever
+the app returns to the foreground. It reads only the existing authenticated
+Account AV endpoints; it does not poll RevenueCat or grant Pro locally. Build
+18 remains valid historical delivery evidence, but this source correction
+requires a successor TestFlight build and physical foreground/expiry acceptance
+before App Review.
+
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
 feedback, server-enforced recipient mute, prominent lobby synchronization,
@@ -1052,11 +1062,18 @@ game id; it only creates a start request after recipient acceptance.
   Restore exposed misleading anti-repurchase copy in build 16; current source
   now reports that no active subscription was found. Active Restore on build 17
   then exposed the rejected RevenueCat `TRANSFER` event. Current source adds
-  authenticated provider verification and transfer reconciliation, but still
-  requires backend rollout plus a replacement TestFlight build. Redeem code,
+  authenticated provider verification and transfer reconciliation; that
+  backend correction is deployed and build 18 contains its matching client
+  path. Redeem code,
   account deletion, and the remaining lifecycle matrix stay open. The
   required subscription review screenshot and the four-iPhone/four-iPad commercial
   screenshot package are saved in App Store Connect.
+- The accelerated-expiry check also proved that an already-open build can keep
+  its last Pro snapshot until Account AV is refreshed. Current source retains
+  the server-provided expiry, performs one coalesced refresh just after it, and
+  refreshes on native foreground. No provider mutation or continuous polling is
+  involved. A post-build-18 TestFlight successor is therefore required before
+  the exact-candidate lifecycle matrix can close.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
   signed-device `/i/c/:token` Universal Link acceptance remains open; Android

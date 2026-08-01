@@ -19,6 +19,10 @@ describe('fetchAccountAvIdentity', () => {
       .mockResolvedValueOnce({
         json: async () => ({
           generatedAt: '2026-07-26T12:00:00.000Z',
+          access: [{
+            appId: 'duelwordsav',
+            expiresAt: '2026-08-26T12:00:00.000Z',
+          }],
           user: {
             displayName: 'DuelWords player',
             email: null,
@@ -41,10 +45,39 @@ describe('fetchAccountAvIdentity', () => {
       baseUrl: 'https://api-account-av-preview.avalsys.com',
       getToken: async () => 'test-token',
     })).resolves.toEqual({
-      access: { accessMode: 'signedInFree', planTier: 'free' },
+      access: {
+        accessMode: 'signedInFree',
+        expiresAt: '2026-08-26T12:00:00.000Z',
+        planTier: 'free',
+      },
       user: { displayName: 'DuelWords player', email: null, id: 'user-internal' },
     });
     expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects an invalid DuelWords entitlement expiry instead of scheduling from malformed metadata', async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce({
+        json: async () => ({
+          access: [{ appId: 'duelwordsav', expiresAt: 'not-a-date' }],
+          user: { displayName: null, email: null, id: 'user-internal' },
+        }),
+        ok: true,
+        status: 200,
+      })
+      .mockResolvedValueOnce({
+        json: async () => ({
+          apps: [{ appId: 'duelwordsav', accessMode: 'signedInPro', planTier: 'pro' }],
+        }),
+        ok: true,
+        status: 200,
+      });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(fetchAccountAvIdentity({
+      baseUrl: 'https://api-account-av-preview.avalsys.com',
+      getToken: async () => 'test-token',
+    })).rejects.toThrow('invalid_duelwords_access_expiry');
   });
 });
 

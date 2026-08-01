@@ -225,14 +225,15 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Internal TestFlight build `1.0.0 (17)` from exact public commit `b922311` is
+  Internal TestFlight build `1.0.0 (18)` from exact public commit `eaeb3bd` is
   the current processed iPhone/iPad checkpoint: `VALID`, encryption exempt,
   and `IN_BETA_TESTING` only in the automatic internal `avalsys` group.
-  Physical purchase, second-device hydration, cancellation, and
-  accelerated expiry passed; an expired Restore remained safely Free but
-  exposed misleading anti-repurchase copy. Current source distinguishes that
-  inactive Restore from purchase recovery; signed build 17 carries the fix and
-  still requires physical acceptance before review. Post-V1
+  It contains the authenticated transfer-recovery path and corrected inactive
+  Restore copy. Post-build-18 source also retains Account AV entitlement expiry,
+  coalesces overlapping refreshes, refreshes once just after active Pro expiry,
+  and refreshes on native foreground. Do not add RevenueCat polling or treat
+  device time as entitlement authority. The next exact candidate must include
+  this source and pass physical foreground/expiry acceptance. Post-V1
   advertising, push, or any further
   production deploy still requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy

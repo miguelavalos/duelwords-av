@@ -8,6 +8,7 @@ export type AccountAvInternalUser = {
 
 export type DuelWordsAccess = {
   accessMode: 'guest' | 'signedInFree' | 'signedInPro';
+  expiresAt?: string | null;
   planTier: 'free' | 'pro';
 };
 
@@ -73,8 +74,9 @@ export async function fetchAccountAvIdentity(input: {
     throw new Error(`account_api_unavailable:${meResponse.status}:${accessResponse.status}`);
   }
 
-  const user = parseUser(await meResponse.json());
-  const access = parseAccess(await accessResponse.json());
+  const mePayload: unknown = await meResponse.json();
+  const user = parseUser(mePayload);
+  const access = parseAccess(await accessResponse.json(), mePayload);
   return { access, user };
 }
 
@@ -199,7 +201,7 @@ function parseUser(value: unknown): AccountAvInternalUser {
   };
 }
 
-function parseAccess(value: unknown): DuelWordsAccess {
+function parseAccess(value: unknown, accountSummary: unknown): DuelWordsAccess {
   const record = requireRecord(value);
   if (!Array.isArray(record.apps)) throw new Error('invalid_account_access');
   const app = record.apps.find((entry) => {
@@ -213,7 +215,23 @@ function parseAccess(value: unknown): DuelWordsAccess {
   ) {
     throw new Error('invalid_duelwords_access');
   }
-  return { accessMode: item.accessMode, planTier: item.planTier };
+  return {
+    accessMode: item.accessMode,
+    expiresAt: parseDuelWordsAccessExpiry(accountSummary),
+    planTier: item.planTier,
+  };
+}
+
+function parseDuelWordsAccessExpiry(value: unknown): string | null {
+  const access = optionalRecord(value)?.access;
+  if (!Array.isArray(access)) return null;
+  const app = access.find((entry) => optionalRecord(entry)?.appId === DUELWORDS_ACCOUNT_AV_APP_ID);
+  const expiresAt = optionalRecord(app)?.expiresAt;
+  if (expiresAt === null || expiresAt === undefined) return null;
+  if (typeof expiresAt !== 'string' || !Number.isFinite(Date.parse(expiresAt))) {
+    throw new Error('invalid_duelwords_access_expiry');
+  }
+  return expiresAt;
 }
 
 export function parseDeletionEligibility(value: unknown): AccountDeletionEligibility {

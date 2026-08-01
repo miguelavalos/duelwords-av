@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import { accountExpiryRefreshDelay } from './account-access-refresh';
 import { DuelWordsAccountAvProvider, useDuelWordsAccount } from './account-av-provider';
 
 const clerkMocks = vi.hoisted(() => {
@@ -53,6 +54,12 @@ const secureStoreMocks = vi.hoisted(() => ({
 const simulatorUITest = vi.hoisted(() => ({
   accountMode: null as 'free' | 'pro' | null,
 }));
+const appStateMocks = vi.hoisted(() => ({
+  addEventListener: vi.fn(),
+  currentState: 'active',
+  listener: null as ((state: string) => void) | null,
+  remove: vi.fn(),
+}));
 
 vi.mock('@clerk/expo', () => ({
   ClerkProvider: ({ children }: { children: unknown }) => children,
@@ -84,6 +91,15 @@ vi.mock('expo-secure-store', () => ({
   deleteItemAsync: secureStoreMocks.deleteItemAsync,
   getItemAsync: secureStoreMocks.getItemAsync,
   setItemAsync: secureStoreMocks.setItemAsync,
+}));
+
+vi.mock('react-native', () => ({
+  AppState: {
+    addEventListener: appStateMocks.addEventListener,
+    get currentState() {
+      return appStateMocks.currentState;
+    },
+  },
 }));
 
 vi.mock('./account-av-config', () => ({
@@ -143,6 +159,14 @@ describe('DuelWordsAccountAvProvider', () => {
     clerkMocks.clerk.client.sessions = [existingSession];
     clerkMocks.clerk.session = existingSession;
     fetchAccountAvIdentity.mockReset();
+    appStateMocks.currentState = 'active';
+    appStateMocks.listener = null;
+    appStateMocks.remove.mockClear();
+    appStateMocks.addEventListener.mockReset().mockImplementation((event: string, listener: (state: string) => void) => {
+      expect(event).toBe('change');
+      appStateMocks.listener = listener;
+      return { remove: appStateMocks.remove };
+    });
     simulatorUITest.accountMode = null;
     accountValue = undefined;
   });
@@ -186,6 +210,7 @@ describe('DuelWordsAccountAvProvider', () => {
   afterEach(() => {
     renderer?.unmount();
     renderer = undefined;
+    vi.useRealTimers();
   });
 
   it('resolves the signed-in identity once when Clerk changes getToken identity across renders', async () => {
@@ -212,6 +237,149 @@ describe('DuelWordsAccountAvProvider', () => {
 
     expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
     expect(clerkMocks.authState.tokenCalls).toBe(1);
+  });
+
+  it('refreshes Account AV once when a signed-in app returns to the foreground', async () => {
+    fetchAccountAvIdentity
+      .mockResolvedValueOnce({
+        access: { accessMode: 'signedInPro', expiresAt: '2099-08-01T16:00:00.000Z', planTier: 'pro' },
+        user: { displayName: 'Preview user', email: null, id: 'user-preview' },
+      })
+      .mockResolvedValueOnce({
+        access: { accessMode: 'signedInFree', expiresAt: null, planTier: 'free' },
+        user: { displayName: 'Preview user', email: null, id: 'user-preview' },
+      });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      appStateMocks.currentState = 'background';
+      appStateMocks.listener?.('background');
+      appStateMocks.currentState = 'active';
+      appStateMocks.listener?.('active');
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(2);
+    expect(accountValue?.access.planTier).toBe('free');
+  });
+
+  it('coalesces a foreground refresh with an identity request already in flight', async () => {
+    let resolveIdentity: ((identity: {
+      access: { accessMode: 'signedInPro'; expiresAt: string; planTier: 'pro' };
+      user: { displayName: string; email: null; id: string };
+    }) => void) | undefined;
+    fetchAccountAvIdentity.mockImplementationOnce(async (input: { getToken: () => Promise<string | null> }) => {
+      await input.getToken();
+      return new Promise((resolve) => {
+        resolveIdentity = resolve;
+      });
+    });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    await act(async () => {
+      appStateMocks.currentState = 'background';
+      appStateMocks.listener?.('background');
+      appStateMocks.currentState = 'active';
+      appStateMocks.listener?.('active');
+      await Promise.resolve();
+    });
+
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveIdentity?.({
+        access: { accessMode: 'signedInPro', expiresAt: '2099-08-01T16:00:00.000Z', planTier: 'pro' },
+        user: { displayName: 'Preview user', email: null, id: 'user-preview' },
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(accountValue?.access.planTier).toBe('pro');
+  });
+
+  it('discards a delayed identity response after Clerk moves to a different session', async () => {
+    let resolveOldIdentity: ((identity: {
+      access: { accessMode: 'signedInPro'; expiresAt: string; planTier: 'pro' };
+      user: { displayName: string; email: null; id: string };
+    }) => void) | undefined;
+    fetchAccountAvIdentity
+      .mockImplementationOnce(async (input: { getToken: () => Promise<string | null> }) => {
+        await input.getToken();
+        return new Promise((resolve) => {
+          resolveOldIdentity = resolve;
+        });
+      })
+      .mockResolvedValueOnce({
+        access: { accessMode: 'signedInFree', expiresAt: null, planTier: 'free' },
+        user: { displayName: 'New session', email: null, id: 'user-new-session' },
+      });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+    });
+    clerkMocks.authState.sessionId = 'session-next';
+    await act(async () => {
+      renderer?.update(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(2);
+    expect(accountValue?.user?.id).toBe('user-new-session');
+
+    await act(async () => {
+      resolveOldIdentity?.({
+        access: { accessMode: 'signedInPro', expiresAt: '2099-08-01T16:00:00.000Z', planTier: 'pro' },
+        user: { displayName: 'Old session', email: null, id: 'user-old-session' },
+      });
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(accountValue?.user?.id).toBe('user-new-session');
+    expect(accountValue?.access.planTier).toBe('free');
+  });
+
+  it('refreshes Account AV just after the current Pro entitlement expires', async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-08-01T15:00:00.000Z'));
+    fetchAccountAvIdentity
+      .mockResolvedValueOnce({
+        access: { accessMode: 'signedInPro', expiresAt: '2026-08-01T15:00:05.000Z', planTier: 'pro' },
+        user: { displayName: 'Preview user', email: null, id: 'user-preview' },
+      })
+      .mockResolvedValueOnce({
+        access: { accessMode: 'signedInFree', expiresAt: '2026-08-01T15:00:05.000Z', planTier: 'free' },
+        user: { displayName: 'Preview user', email: null, id: 'user-preview' },
+      });
+
+    await act(async () => {
+      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(6_000);
+    });
+
+    expect(fetchAccountAvIdentity).toHaveBeenCalledTimes(2);
+    expect(accountValue?.access.planTier).toBe('free');
+  });
+
+  it('bounds distant expiry timers so a later refresh can schedule the remaining interval', () => {
+    expect(accountExpiryRefreshDelay('2099-01-01T00:00:00.000Z', 0)).toBe(2_147_000_000);
+    expect(accountExpiryRefreshDelay(null, 0)).toBeNull();
+    expect(accountExpiryRefreshDelay('invalid', 0)).toBeNull();
   });
 
   it('completes Apple activation before resolving the internal Account AV user from observed auth state', async () => {
