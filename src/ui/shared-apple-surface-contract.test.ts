@@ -194,6 +194,8 @@ describe('shared Apps AV native-surface contract', () => {
     expect(paywallSource.match(/AVPaywallBenefitItem\(/g)).toHaveLength(4);
     expect(paywallSource).toContain('accessibilityIdentifier: "paywall.redeemCode"');
     expect(paywallSource).toContain('action("redeemCode", code)');
+    expect(paywallSource).toContain('props.subscriptionState == "reconciliation_delayed"');
+    expect(paywallSource).toContain('props.localized("Pro confirmation pending")');
     expect(paywallSource).toContain('accessibilityIdentifier("paywall.redeemCode.sheet")');
     expect(paywallSource).not.toContain('accessibilityIdentifier: "paywall.support"');
 

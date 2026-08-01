@@ -153,6 +153,21 @@ export async function redeemDuelWordsPromotionCode(input: {
   };
 }
 
+export async function refreshDuelWordsRevenueCatSubscription(input: {
+  baseUrl: string;
+  getToken: () => Promise<string | null>;
+}): Promise<boolean> {
+  const payload = requireRecord(await authorizedAccountRequest(
+    input,
+    `/v1/apps/${DUELWORDS_ACCOUNT_AV_APP_ID}/subscriptions/revenuecat-refresh`,
+    'POST',
+  ));
+  if (payload.appId !== DUELWORDS_ACCOUNT_AV_APP_ID || typeof payload.reconciled !== 'boolean') {
+    throw new Error('invalid_revenuecat_subscription_refresh');
+  }
+  return payload.reconciled;
+}
+
 async function authorizedAccountRequest(
   input: { baseUrl: string; getToken: () => Promise<string | null> },
   path: string,

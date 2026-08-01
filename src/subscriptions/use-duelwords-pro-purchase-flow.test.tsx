@@ -7,6 +7,7 @@ const purchaseMocks = vi.hoisted(() => ({
   available: true,
   loadMonthlyOffer: vi.fn(),
   purchase: vi.fn(),
+  refreshRevenueCat: vi.fn(),
   reconcile: vi.fn(),
   restore: vi.fn(),
 }));
@@ -22,6 +23,7 @@ vi.mock('@/account/account-api-client', () => ({
     }
   },
   redeemDuelWordsPromotionCode: vi.fn(),
+  refreshDuelWordsRevenueCatSubscription: purchaseMocks.refreshRevenueCat,
 }));
 
 vi.mock('./expo-revenuecat-config', () => ({
@@ -77,6 +79,7 @@ describe('useDuelWordsProPurchase lifecycle', () => {
     });
     purchaseMocks.purchase.mockReset().mockResolvedValue(activeCustomerInfo);
     purchaseMocks.restore.mockReset().mockResolvedValue(activeCustomerInfo);
+    purchaseMocks.refreshRevenueCat.mockReset().mockResolvedValue(true);
     purchaseMocks.reconcile.mockReset().mockResolvedValue(true);
   });
 
@@ -109,6 +112,9 @@ describe('useDuelWordsProPurchase lifecycle', () => {
     });
 
     expect(purchaseMocks.restore).toHaveBeenCalledTimes(1);
+    expect(purchaseMocks.refreshRevenueCat).toHaveBeenCalledWith(expect.objectContaining({
+      baseUrl: 'https://account.example.test',
+    }));
     expect(purchaseMocks.reconcile).toHaveBeenCalledTimes(1);
     expect(harness.current.state).toBe('pending_reconciliation');
 
@@ -176,6 +182,36 @@ describe('useDuelWordsProPurchase lifecycle', () => {
       'Purchases could not be restored right now. No account data was changed.',
     );
 
+    harness.unmount();
+  });
+
+  it('keeps an active Restore visibly pending without inviting another subscription', async () => {
+    purchaseMocks.reconcile.mockResolvedValueOnce(false);
+    const harness = await renderPurchaseHook();
+
+    await act(async () => {
+      await harness.current.restore();
+    });
+
+    expect(harness.current.state).toBe('reconciliation_delayed');
+    expect(harness.current.error).toBe(
+      'Restore found an active subscription, but Pro confirmation is taking longer than expected. Do not subscribe again.',
+    );
+    harness.unmount();
+  });
+
+  it('keeps a completed purchase pending with source-specific anti-repurchase copy', async () => {
+    purchaseMocks.reconcile.mockResolvedValueOnce(false);
+    const harness = await renderPurchaseHook();
+
+    await act(async () => {
+      await harness.current.purchase();
+    });
+
+    expect(harness.current.state).toBe('reconciliation_delayed');
+    expect(harness.current.error).toBe(
+      'Purchase received, but Pro confirmation is taking longer than expected. Do not purchase again.',
+    );
     harness.unmount();
   });
 

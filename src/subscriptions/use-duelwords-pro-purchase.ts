@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   DuelWordsPromotionCodeError,
   redeemDuelWordsPromotionCode,
+  refreshDuelWordsRevenueCatSubscription,
 } from '@/account/account-api-client';
 import { getDuelWordsAccountAvConfig } from '@/account/account-av-config';
 import type { SharedSurfaceCopyKey } from '@/i18n/shared-surface-copy';
@@ -84,11 +85,22 @@ export function useDuelWordsProPurchase(input: {
     return () => { cancelled = true; };
   }, [isPro, purchases, userId]);
 
-  const reconcile = useCallback(async () => {
+  const reconcile = useCallback(async (source: 'promotion' | 'purchase' | 'restore') => {
     const expectedUserId = userId;
     const generation = ++reconciliationGenerationRef.current;
     setState('pending_reconciliation');
     setError(null);
+    if (source !== 'promotion' && accountConfig.accountApiBaseUrl) {
+      try {
+        await refreshDuelWordsRevenueCatSubscription({
+          baseUrl: accountConfig.accountApiBaseUrl,
+          getToken,
+        });
+      } catch {
+        // The normal bounded Account AV refresh below remains a safe fallback
+        // if provider verification is temporarily unavailable.
+      }
+    }
     const reconciled = await reconcileDuelWordsProAccess({
       isPro: () => isProRef.current,
       refreshAccount,
@@ -104,9 +116,13 @@ export function useDuelWordsProPurchase(input: {
       && !isProRef.current
     ) {
       setState('reconciliation_delayed');
-      setError('Purchase received, but Pro access is still syncing. Try Restore Purchases in a moment.');
+      setError(source === 'restore'
+        ? 'Restore found an active subscription, but Pro confirmation is taking longer than expected. Do not subscribe again.'
+        : source === 'promotion'
+          ? 'Code accepted, but Pro confirmation is taking longer than expected. Check again shortly.'
+          : 'Purchase received, but Pro confirmation is taking longer than expected. Do not purchase again.');
     }
-  }, [refreshAccount, userId]);
+  }, [accountConfig.accountApiBaseUrl, getToken, refreshAccount, userId]);
 
   const purchase = useCallback(async () => {
     if (!userId || !offer || state !== 'ready' || operationInFlightRef.current) return;
@@ -119,7 +135,7 @@ export function useDuelWordsProPurchase(input: {
         setState('ready');
         setError('Apple did not confirm active Pro access. Do not purchase again. Check your App Store account, then try Restore Purchases.');
       } else {
-        await reconcile();
+        await reconcile('purchase');
       }
     } catch (purchaseError: unknown) {
       setState('ready');
@@ -141,7 +157,7 @@ export function useDuelWordsProPurchase(input: {
         setState(offer ? 'ready' : 'unavailable');
         setError('No active DuelWords Pro subscription was found for this App Store account. Subscribe to start Pro.');
       } else {
-        await reconcile();
+        await reconcile('restore');
       }
     } catch {
       setState(offer ? 'ready' : 'unavailable');
@@ -161,7 +177,7 @@ export function useDuelWordsProPurchase(input: {
         code,
         getToken,
       });
-      await reconcile();
+      await reconcile('promotion');
     } catch (redemptionError: unknown) {
       setState(offer ? 'ready' : 'unavailable');
       setError(promotionCodeErrorMessage(redemptionError));

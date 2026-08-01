@@ -4,6 +4,7 @@ import {
   fetchAccountAvIdentity,
   parseDeletionEligibility,
   redeemDuelWordsPromotionCode,
+  refreshDuelWordsRevenueCatSubscription,
 } from './account-api-client';
 
 vi.mock('expo-constants', () => ({ default: { expoConfig: null } }));
@@ -152,5 +153,31 @@ describe('redeemDuelWordsPromotionCode', () => {
       code: 'promo_code_already_redeemed',
       status: 409,
     });
+  });
+});
+
+describe('refreshDuelWordsRevenueCatSubscription', () => {
+  it('asks the authenticated backend to verify the current RevenueCat subscriber', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      json: async () => ({ appId: 'duelwordsav', reconciled: true }),
+      ok: true,
+      status: 200,
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(refreshDuelWordsRevenueCatSubscription({
+      baseUrl: 'https://api-account-av-preview.avalsys.com',
+      getToken: async () => 'test-token',
+    })).resolves.toBe(true);
+    expect(fetchMock).toHaveBeenCalledWith(
+      'https://api-account-av-preview.avalsys.com/v1/apps/duelwordsav/subscriptions/revenuecat-refresh',
+      expect.objectContaining({
+        method: 'POST',
+        headers: expect.objectContaining({
+          Authorization: 'Bearer test-token',
+          'x-appsav-app-id': 'duelwordsav',
+        }),
+      }),
+    );
   });
 });

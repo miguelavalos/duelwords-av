@@ -690,6 +690,8 @@ private struct DuelWordsPaywallSurface: View {
 
             if props.subscriptionState == "pending_reconciliation" {
                 AVPaywallStatusRow(systemImage: "clock.arrow.circlepath", message: props.localized("Purchase received. Confirming Pro access with Apps AV…"))
+            } else if props.subscriptionState == "reconciliation_delayed", !props.subscriptionError.isEmpty {
+                AVPaywallStatusRow(systemImage: "clock.badge.exclamationmark", message: props.localized(props.subscriptionError))
             } else if !props.subscriptionError.isEmpty {
                 AVPaywallStatusRow(systemImage: "exclamationmark.triangle", message: props.localized(props.subscriptionError))
             }
@@ -882,6 +884,9 @@ private struct DuelWordsPaywallSurface: View {
         if props.planTier == "pro" { return props.localized("Done") }
         if !props.signedIn { return props.localized("Sign in to continue") }
         if props.subscriptionBusy { return props.localized("Please wait…") }
+        if props.subscriptionState == "reconciliation_delayed" {
+            return props.localized("Pro confirmation pending")
+        }
         if props.subscriptionState == "ready", !props.subscriptionPrice.isEmpty {
             return "\(props.localized("Subscribe")) · \(props.subscriptionPrice)"
         }

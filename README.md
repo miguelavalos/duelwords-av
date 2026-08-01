@@ -29,8 +29,20 @@ Distribution IPA passed every local release gate, and Apple accepted the
 TestFlight upload at 08:35 CEST on 2026-08-01. Official readback reports Apple
 build `1ad3ee6b-58e4-4a19-9764-6c8eac7269ed` as `VALID`, encryption exempt,
 unexpired through 2026-10-29, and `IN_BETA_TESTING` only in the automatic
-internal `avalsys` group. Build 17 is the current processed acceptance target;
-build 16 is retained only as historical purchase/lifecycle evidence.
+internal `avalsys` group. Build 17 is the current processed diagnostic
+checkpoint; build 16 is retained only as historical purchase/lifecycle evidence.
+
+Physical active-subscription Restore on build 17 exposed a separate backend
+ownership defect: RevenueCat transferred the App Store subscription to the
+current Account AV user, but Apps AV stayed Free because RevenueCat `TRANSFER`
+events omit `product_id` and the existing webhook workflow rejected them.
+Current source adds an authenticated DuelWords-only provider refresh, accepts
+product-less `TRANSFER` through the configured RevenueCat app map, moves the
+single billing transaction to the restored Account AV user, and recalculates
+the previous owner's entitlement. Cancellation remains active until the paid
+period expires; expiry then resolves to Free. Build 17 must not be submitted
+for App Review. The backend correction and a replacement signed candidate
+require deployment and physical acceptance first.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
@@ -1045,9 +1057,11 @@ game id; it only creates a start request after recipient acceptance.
   repurchase. Cancellation plus accelerated Sandbox expiry returned the
   physical iPhone to Free, and Restore after expiry safely kept it Free. That
   Restore exposed misleading anti-repurchase copy in build 16; current source
-  now reports that no active subscription was found. Explicit Restore with an
-  active subscription, redeem code, account deletion, build-17 physical
-  acceptance, and the remaining lifecycle matrix stay open. The
+  now reports that no active subscription was found. Active Restore on build 17
+  then exposed the rejected RevenueCat `TRANSFER` event. Current source adds
+  authenticated provider verification and transfer reconciliation, but still
+  requires backend rollout plus a replacement TestFlight build. Redeem code,
+  account deletion, and the remaining lifecycle matrix stay open. The
   required subscription review screenshot and the four-iPhone/four-iPad commercial
   screenshot package are saved in App Store Connect.
 - The standalone invitation edge is already deployed and its bounded origin

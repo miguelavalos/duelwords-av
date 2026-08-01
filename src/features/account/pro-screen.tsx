@@ -103,6 +103,8 @@ export function ProScreen() {
               onPress={() => void subscription.purchase()}>
               {subscription.state === 'loading'
                 ? copy('Please wait…')
+                : subscription.state === 'reconciliation_delayed'
+                  ? copy('Pro confirmation pending')
                 : subscription.price
                   ? `${copy('Subscribe')} · ${subscription.price} ${copy('per month')}`
                   : copy('Subscription unavailable')}
