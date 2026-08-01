@@ -101,5 +101,7 @@ refresh as a bounded fallback, processes `TRANSFER` through the configured
 RevenueCat app mapping, moves the single billing record, and recalculates the
 old owner's access. A cancelled subscription remains Pro until its current
 period expires; the expiration event or provider refresh then resolves it to
-Free. This correction still needs backend rollout and a replacement signed
-candidate before App Review.
+Free. The backend correction has passed preview-first production rollout; a
+replacement signed candidate remains required before App Review. Build
+`1.0.0 (18)` is reserved for that internal candidate and must complete the governed archive/upload and physical Restore
+matrix before it can replace build 17.

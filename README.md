@@ -41,8 +41,10 @@ product-less `TRANSFER` through the configured RevenueCat app map, moves the
 single billing transaction to the restored Account AV user, and recalculates
 the previous owner's entitlement. Cancellation remains active until the paid
 period expires; expiry then resolves to Free. Build 17 must not be submitted
-for App Review. The backend correction and a replacement signed candidate
-require deployment and physical acceptance first.
+for App Review. The corrected backend has passed preview-first production
+rollout; a replacement signed candidate and physical acceptance remain. Build
+`1.0.0 (18)` is now reserved for that corrected internal candidate; reserving the number does not
+itself prove archive, upload, processing, or device acceptance.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
