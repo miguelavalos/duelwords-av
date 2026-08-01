@@ -25,10 +25,16 @@ Apple accepted the upload at 13:07 CEST with all three canonical success
 markers. Authenticated readback at 13:09 CEST reports build id
 `fed1a3aa-85a4-49af-9c48-5f8f0429cfa6` as `VALID`, encryption exempt,
 unexpired through 2026-10-30, and `IN_BETA_TESTING` only through the automatic
-internal `avalsys` group. Build 20 has not been attached or submitted to App
-Review.
+internal `avalsys` group. At that processing checkpoint, build 20 had not yet
+been attached or submitted to App Review. The owner subsequently submitted the
+exact `1.0.0 (20)` app version,
+`DuelWords Pro Monthly` subscription, and `DuelWords Pro` subscription group
+together on 2026-08-01 at 13:32 CEST. App Store Connect submission
+`7976e26f-6501-4151-869a-349fbf405b4a` reports all three items as `Pending
+Review`. Manual release remains selected; this is submission evidence, not
+Apple approval.
 
-Current as of 2026-08-01: the latest processed internal iOS checkpoint is
+Historical build-19 checkpoint: the earlier processed internal iOS build was
 `1.0.0 (19)` from exact release commit
 `476c4e309985835dfd6429408a4f058c9313e13d`. Its clean Xcode 26.6 archive and
 Apple Distribution IPA passed production Account AV, privacy, entitlements,
@@ -39,8 +45,7 @@ internal `avalsys` group. Builds 7–18 are immutable historical checkpoints and
 are not the current acceptance target. Build 19 is also no longer eligible for
 App Review: the final copy audit found misleading cross-device account wording,
 technical player-facing labels, and stale five-letter-only commercial/legal
-copy. Current source corrects those issues in all five locales and therefore
-requires a newly archived, uploaded, and physically accepted successor build.
+copy. Build 20 contains those corrections and is the submitted successor.
 
 Physical active-subscription Restore on build 17 exposed a separate backend
 ownership defect: RevenueCat transferred the App Store subscription to the
@@ -56,9 +61,9 @@ Worker `d4473fdf-dae4-4a28-8c97-640b43bb4e34` and production Worker
 `56b83266-b620-47a4-8d65-06c1ea155d4d`; health and ten consecutive
 unauthenticated fail-closed checks pass in production. Processed build 19 is
 valid signed delivery evidence for that runtime correction, but it is
-superseded by the current copy corrections. The successor must repeat physical
-active-Restore acceptance on iPhone and same-account confirmation on iPad
-before the owner replaces the draft binary or submits App Review.
+superseded by build 20 and is not the submitted binary. Any still-open physical
+acceptance rows remain tracked as post-submission risks rather than evidence
+that the owner submission did not occur.
 
 Post-build-18 source also closes the stale-open-app expiry gap found during the
 accelerated Sandbox exercise. The native Account AV provider now preserves the
@@ -66,9 +71,9 @@ authoritative DuelWords `expiresAt`, coalesces overlapping identity refreshes,
 refreshes once just after an active Pro period expires, and refreshes whenever
 the app returns to the foreground. It reads only the existing authenticated
 Account AV endpoints; it does not poll RevenueCat or grant Pro locally. Build
-18 remains valid historical delivery evidence, but this source correction
-required a successor TestFlight build and still requires physical
-foreground/expiry acceptance before App Review. The owner-authorized successor
+18 remains valid historical delivery evidence. This source correction required
+a successor TestFlight build; physical foreground/expiry acceptance remained a
+release risk. The owner-authorized successor
 `1.0.0 (19)` was archived and uploaded from exact release commit
 `476c4e309985835dfd6429408a4f058c9313e13d`. Its Xcode 26.6 archive and local
 App Store IPA passed production runtime, Account AV, privacy, entitlements,
@@ -1077,9 +1082,10 @@ game id; it only creates a start request after recipient acceptance.
   by `1.0.0 (15)`, archived and uploaded from exact source commit `28e6d6d`.
   Build 15 is superseded by `1.0.0 (16)` from exact source commit `437a6a5`.
   Apple reports build 16 `VALID`, encryption-exempt, and `IN_BETA_TESTING`
-  only in the same internal group. Build 16 is attached to the prepared
-  three-item review draft but has not been submitted; replace it with a new
-  successor built from the corrected copy source before the owner submits.
+  only in the same internal group. Those candidates were superseded by build
+  `1.0.0 (20)`, which the owner submitted with the monthly subscription and its
+  subscription group on 2026-08-01. Submission
+  `7976e26f-6501-4151-869a-349fbf405b4a` is pending review for all three items.
 - Native iPhone/iPad V1 is subscription-first: it must ship the real localized
   StoreKit offer, purchase, Restore Purchases, redeem-code, Apple subscription
   management, Apps AV entitlement reconciliation, legal links, and in-app
