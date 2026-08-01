@@ -86,12 +86,12 @@ informational only. The browser does not initialize StoreKit/RevenueCat, sell
 or restore a subscription, or redeem a code. Purchase, restore, and redemption
 remain native-only operations. The physical iPhone build-16 purchase and
 automatic same-account Pro hydration on physical iPad pass. Explicit Restore
-Purchases with an active subscription failed on build 17 and remains a release
-gate for the corrected replacement. Cancellation followed by accelerated Sandbox
+Purchases with an active subscription failed on build 17; processed build 18
+now requires the corrected physical retest. Cancellation followed by accelerated Sandbox
 expiry returned the physical iPhone to Free, and Restore after expiry safely
 kept it Free. Build 16 used misleading purchase-recovery copy for that expired
-Restore result; current source separates the two outcomes and therefore needs
-processed build 17 to pass physical acceptance before review.
+Restore result; build 18 contains the separated outcomes and still needs
+physical acceptance before review.
 
 Active Restore testing on build 17 found that RevenueCat can transfer the App
 Store transaction to the current Account AV identity while its `TRANSFER`
@@ -101,7 +101,8 @@ refresh as a bounded fallback, processes `TRANSFER` through the configured
 RevenueCat app mapping, moves the single billing record, and recalculates the
 old owner's access. A cancelled subscription remains Pro until its current
 period expires; the expiration event or provider refresh then resolves it to
-Free. The backend correction has passed preview-first production rollout; a
-replacement signed candidate remains required before App Review. Build
-`1.0.0 (18)` is reserved for that internal candidate and must complete the governed archive/upload and physical Restore
-matrix before it can replace build 17.
+Free. The backend correction has passed preview-first production rollout.
+Processed internal build `1.0.0 (18)` contains the matching client fallback and
+is `VALID` / `IN_BETA_TESTING` only in the automatic internal group. It must
+still pass the physical active-Restore matrix before it can replace the review
+draft binary.

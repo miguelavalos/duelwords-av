@@ -11,26 +11,14 @@ smokes, observability, and rollback.
 ## Current Status
 
 Current as of 2026-08-01: the current processed internal iOS checkpoint is
-`1.0.0 (16)` from exact release commit
-`437a6a52b506090f752b0dfef590fed71f74d346`. Apple reports build id
-`c2528485-55b4-4a2e-8860-724212e09a6e` as `VALID`, encryption exempt,
-unexpired through 2026-10-29, and `IN_BETA_TESTING` only through the automatic
-internal `avalsys` group. This candidate preserves the complete V1 purchase
-surface but no longer treats a StoreKit transaction as active Pro until
-RevenueCat returns the configured active `pro` entitlement. Builds 7–15 are
-immutable historical checkpoints and are not the current acceptance target.
-Its physical Sandbox purchase, second-device hydration, cancellation, and
-expiry safety pass. An expired Restore exposed misleading anti-repurchase copy
-in build 16; current source distinguishes “no active subscription” from a
-post-purchase entitlement failure. The corrected replacement is reserved as
-`1.0.0 (17)` from exact release commit
-`b9223116090ba01a88bea530bcebfd65954bc939`. Its canonical archive and
-Distribution IPA passed every local release gate, and Apple accepted the
-TestFlight upload at 08:35 CEST on 2026-08-01. Official readback reports Apple
-build `1ad3ee6b-58e4-4a19-9764-6c8eac7269ed` as `VALID`, encryption exempt,
-unexpired through 2026-10-29, and `IN_BETA_TESTING` only in the automatic
-internal `avalsys` group. Build 17 is the current processed diagnostic
-checkpoint; build 16 is retained only as historical purchase/lifecycle evidence.
+`1.0.0 (18)` from exact release commit
+`eaeb3bde0df883f32200887964c28a7d77523a3e`. Its clean Xcode 26.6 archive and
+Apple Distribution IPA passed production Account AV, privacy, entitlements,
+profile, signature, deep-signature, and app/dSYM validation. Apple reports
+build id `2a8ca5f9-b5df-4e89-9fb0-19a03a7b61a5` as `VALID`, encryption exempt,
+unexpired through 2026-10-30, and `IN_BETA_TESTING` only through the automatic
+internal `avalsys` group. Builds 7–17 are immutable historical checkpoints and
+are not the current acceptance target.
 
 Physical active-subscription Restore on build 17 exposed a separate backend
 ownership defect: RevenueCat transferred the App Store subscription to the
@@ -41,10 +29,13 @@ product-less `TRANSFER` through the configured RevenueCat app map, moves the
 single billing transaction to the restored Account AV user, and recalculates
 the previous owner's entitlement. Cancellation remains active until the paid
 period expires; expiry then resolves to Free. Build 17 must not be submitted
-for App Review. The corrected backend has passed preview-first production
-rollout; a replacement signed candidate and physical acceptance remain. Build
-`1.0.0 (18)` is now reserved for that corrected internal candidate; reserving the number does not
-itself prove archive, upload, processing, or device acceptance.
+for App Review. The corrected backend is deployed preview-first as preview
+Worker `d4473fdf-dae4-4a28-8c97-640b43bb4e34` and production Worker
+`56b83266-b620-47a4-8d65-06c1ea155d4d`; health and ten consecutive
+unauthenticated fail-closed checks pass in production. Processed build 18 is the
+matching signed candidate. Physical active-Restore acceptance on iPhone and
+same-account confirmation on iPad remain required before the owner replaces
+the draft binary or submits App Review.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
