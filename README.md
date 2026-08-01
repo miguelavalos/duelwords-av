@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-08-01: the current processed internal iOS checkpoint is
+Current as of 2026-08-01: the current processed internal iOS checkpoint remains
 `1.0.0 (18)` from exact release commit
 `eaeb3bde0df883f32200887964c28a7d77523a3e`. Its clean Xcode 26.6 archive and
 Apple Distribution IPA passed production Account AV, privacy, entitlements,
@@ -44,10 +44,18 @@ refreshes once just after an active Pro period expires, and refreshes whenever
 the app returns to the foreground. It reads only the existing authenticated
 Account AV endpoints; it does not poll RevenueCat or grant Pro locally. Build
 18 remains valid historical delivery evidence, but this source correction
-requires a successor TestFlight build and physical foreground/expiry acceptance
-before App Review. Build `1.0.0 (19)` is reserved for that exact successor;
-reservation alone does not prove archive, upload, processing, or device
-acceptance.
+required a successor TestFlight build and still requires physical
+foreground/expiry acceptance before App Review. The owner-authorized successor
+`1.0.0 (19)` was archived and uploaded from exact release commit
+`476c4e309985835dfd6429408a4f058c9313e13d`. Its Xcode 26.6 archive and local
+App Store IPA passed production runtime, Account AV, privacy, entitlements,
+profile, Distribution signature, deep-signature, and app/dSYM checks. The app
+UUID is `F27B39BC-D172-351C-906A-DDCE6AAE83F8`; the 42,004,793-byte IPA has
+SHA-256 `ac28eff52375e7fd39a181fb196c88ba20cb5be12dc1b3725689a6fb77b7fd04`.
+Apple accepted the upload at 11:13 CEST with all three canonical success
+markers. App Store Connect processing/internal-group readback and the physical
+foreground/expiry acceptance matrix are still pending, so build 19 is not yet
+an App Review candidate.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word

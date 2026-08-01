@@ -109,8 +109,10 @@ time to grant access; Account AV remains authoritative on every refresh. The
 backend correction has passed preview-first production rollout.
 Processed internal build `1.0.0 (18)` contains the matching client fallback and
 is `VALID` / `IN_BETA_TESTING` only in the automatic internal group. It must
-still pass the physical active-Restore matrix, and a successor containing the
-foreground/expiry refresh must pass physical acceptance before it can replace
-the review draft binary. Build `1.0.0 (19)` is reserved for that successor and
-must complete the governed archive, upload, processing readback, and physical
-matrix.
+still pass the physical active-Restore matrix. Successor build `1.0.0 (19)`,
+containing the foreground/expiry refresh, was archived and uploaded from exact
+release commit `476c4e309985835dfd6429408a4f058c9313e13d`. Archive and local IPA
+gates passed; Apple accepted the upload at 11:13 CEST. App Store Connect
+processing/internal-group readback and the physical active-Restore plus
+foreground/expiry matrix remain required before it can replace the review
+draft binary.
