@@ -107,12 +107,10 @@ when the app returns from background. This avoids a stale in-memory Pro badge
 without polling RevenueCat, shortening the paid period, or trusting device
 time to grant access; Account AV remains authoritative on every refresh. The
 backend correction has passed preview-first production rollout.
-Processed internal build `1.0.0 (18)` contains the matching client fallback and
-is `VALID` / `IN_BETA_TESTING` only in the automatic internal group. It must
-still pass the physical active-Restore matrix. Successor build `1.0.0 (19)`,
-containing the foreground/expiry refresh, was archived and uploaded from exact
-release commit `476c4e309985835dfd6429408a4f058c9313e13d`. Archive and local IPA
-gates passed; Apple accepted the upload at 11:13 CEST. App Store Connect
-processing/internal-group readback and the physical active-Restore plus
-foreground/expiry matrix remain required before it can replace the review
-draft binary.
+Processed internal build `1.0.0 (19)` contains both the matching client fallback
+and the foreground/expiry refresh. It was archived and uploaded from exact
+release commit `476c4e309985835dfd6429408a4f058c9313e13d`; archive and local IPA
+gates passed, and authenticated Apple readback reports `VALID`, encryption
+exempt, and `IN_BETA_TESTING` only in the automatic internal `avalsys` group.
+The physical active-Restore plus foreground/expiry matrix remains required
+before it can replace the review draft binary.

@@ -10,14 +10,14 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-08-01: the current processed internal iOS checkpoint remains
-`1.0.0 (18)` from exact release commit
-`eaeb3bde0df883f32200887964c28a7d77523a3e`. Its clean Xcode 26.6 archive and
+Current as of 2026-08-01: the current processed internal iOS checkpoint is
+`1.0.0 (19)` from exact release commit
+`476c4e309985835dfd6429408a4f058c9313e13d`. Its clean Xcode 26.6 archive and
 Apple Distribution IPA passed production Account AV, privacy, entitlements,
 profile, signature, deep-signature, and app/dSYM validation. Apple reports
-build id `2a8ca5f9-b5df-4e89-9fb0-19a03a7b61a5` as `VALID`, encryption exempt,
+build id `49592460-07e7-47bb-9124-e62d6906dfca` as `VALID`, encryption exempt,
 unexpired through 2026-10-30, and `IN_BETA_TESTING` only through the automatic
-internal `avalsys` group. Builds 7–17 are immutable historical checkpoints and
+internal `avalsys` group. Builds 7–18 are immutable historical checkpoints and
 are not the current acceptance target.
 
 Physical active-subscription Restore on build 17 exposed a separate backend
@@ -32,10 +32,10 @@ period expires; expiry then resolves to Free. Build 17 must not be submitted
 for App Review. The corrected backend is deployed preview-first as preview
 Worker `d4473fdf-dae4-4a28-8c97-640b43bb4e34` and production Worker
 `56b83266-b620-47a4-8d65-06c1ea155d4d`; health and ten consecutive
-unauthenticated fail-closed checks pass in production. Processed build 18 is the
-matching signed candidate. Physical active-Restore acceptance on iPhone and
-same-account confirmation on iPad remain required before the owner replaces
-the draft binary or submits App Review.
+unauthenticated fail-closed checks pass in production. Processed build 19 is
+the current matching signed candidate. Physical active-Restore acceptance on
+iPhone and same-account confirmation on iPad remain required before the owner
+replaces the draft binary or submits App Review.
 
 Post-build-18 source also closes the stale-open-app expiry gap found during the
 accelerated Sandbox exercise. The native Account AV provider now preserves the
@@ -53,9 +53,9 @@ profile, Distribution signature, deep-signature, and app/dSYM checks. The app
 UUID is `F27B39BC-D172-351C-906A-DDCE6AAE83F8`; the 42,004,793-byte IPA has
 SHA-256 `ac28eff52375e7fd39a181fb196c88ba20cb5be12dc1b3725689a6fb77b7fd04`.
 Apple accepted the upload at 11:13 CEST with all three canonical success
-markers. App Store Connect processing/internal-group readback and the physical
-foreground/expiry acceptance matrix are still pending, so build 19 is not yet
-an App Review candidate.
+markers. Authenticated API readback confirms it is processed and internal-only.
+The physical active-Restore plus foreground/expiry acceptance matrix remains
+pending, so build 19 is not yet an App Review candidate.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
