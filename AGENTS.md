@@ -225,8 +225,9 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Internal TestFlight build `1.0.0 (16)` is the current processed iPhone/iPad
-  checkpoint. Physical purchase, second-device hydration, cancellation, and
+  Internal TestFlight build `1.0.0 (16)` remains the current processed
+  iPhone/iPad checkpoint while corrected successor `1.0.0 (17)` is prepared.
+  Physical purchase, second-device hydration, cancellation, and
   accelerated expiry passed; an expired Restore remained safely Free but
   exposed misleading anti-repurchase copy. Current source distinguishes that
   inactive Restore from purchase recovery and requires a replacement signed

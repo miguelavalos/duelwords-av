@@ -10,7 +10,7 @@ smokes, observability, and rollback.
 
 ## Current Status
 
-Current as of 2026-07-31: the current internal iOS checkpoint is
+Current as of 2026-08-01: the current processed internal iOS checkpoint is
 `1.0.0 (16)` from exact release commit
 `437a6a52b506090f752b0dfef590fed71f74d346`. Apple reports build id
 `c2528485-55b4-4a2e-8860-724212e09a6e` as `VALID`, encryption exempt,
@@ -22,7 +22,9 @@ immutable historical checkpoints and are not the current acceptance target.
 Its physical Sandbox purchase, second-device hydration, cancellation, and
 expiry safety pass. An expired Restore exposed misleading anti-repurchase copy
 in build 16; current source distinguishes “no active subscription” from a
-post-purchase entitlement failure, so build 16 must be replaced before review.
+post-purchase entitlement failure. The corrected replacement is reserved as
+`1.0.0 (17)`; build 16 remains the last processed binary until Apple accepts
+that successor.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
