@@ -103,10 +103,16 @@ the shared SwiftUI host also updates an observable model instead of replacing
 its entire root hierarchy. Web retains the same wordmark on every route. The
 web Settings screen no longer offers a misleading Haptics switch because
 browser vibration is not part of the product contract; iPhone and iPad keep
-their real native Haptics setting. The exact client-only correction shipped
-from public commit `18f543e`: web preview and production received one identical
-artifact. Preview Worker `b76242fb-0367-448d-a931-b8f64bde1776` and production
-Worker `55e36bdf-f6cc-4831-80dd-a10fd05d50bb` serve the same stamped bytes.
+their real native Haptics setting. The persistent-navigation correction
+originated in public commit `18f543e`. The current playable web release was
+built from clean commit `f5843ef4f7d86474b80ab25148de0cb370c717d1` and
+promoted preview-to-production without rebuilding. Preview Worker
+`ea3fe331-3d41-483c-803a-23c070986226` and production Worker
+`582b64e6-a26b-4ef2-8e7d-bb3c3fcbbbe9` serve the same artifact, SHA-256
+`8ea6e56790d50c29e73cee8112fe9264a4a51271d27836210564ca8761ffbfdf`.
+Browser and HTTP acceptance passed the final Settings and Account copy,
+configurable seven-letter Challenge, responsive overflow, runtime/cache
+policy, exact bundle bytes, and zero production console errors.
 Internal build 16 passed canonical Production archive, Distribution export,
 upload, processing, and internal-group readback, but remains an immutable
 pre-review checkpoint rather than the final candidate.
