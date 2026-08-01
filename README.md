@@ -45,7 +45,9 @@ the app returns to the foreground. It reads only the existing authenticated
 Account AV endpoints; it does not poll RevenueCat or grant Pro locally. Build
 18 remains valid historical delivery evidence, but this source correction
 requires a successor TestFlight build and physical foreground/expiry acceptance
-before App Review.
+before App Review. Build `1.0.0 (19)` is reserved for that exact successor;
+reservation alone does not prove archive, upload, processing, or device
+acceptance.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word

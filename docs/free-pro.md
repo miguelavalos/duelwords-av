@@ -111,4 +111,6 @@ Processed internal build `1.0.0 (18)` contains the matching client fallback and
 is `VALID` / `IN_BETA_TESTING` only in the automatic internal group. It must
 still pass the physical active-Restore matrix, and a successor containing the
 foreground/expiry refresh must pass physical acceptance before it can replace
-the review draft binary.
+the review draft binary. Build `1.0.0 (19)` is reserved for that successor and
+must complete the governed archive, upload, processing readback, and physical
+matrix.
