@@ -10,6 +10,21 @@ smokes, observability, and rollback.
 
 ## Current Status
 
+Internal successor `1.0.0 (20)` was archived and uploaded on 2026-08-01 from
+exact release commit `82c274c3bfc8e7c4b824c0e9e11df839b861f4b1`, which contains
+the final five-locale copy correction from `88c3279`. Node 22.23.2 gates passed
+95 test files / 545 tests, TypeScript, Expo lint, iOS release configuration,
+React Doctor 100/100, both Clerk callback audits, and the production RevenueCat
+readiness gates. Clean prebuild, CocoaPods 1.17.0, Xcode 26.6 archive, and local
+App Store export passed production Account AV, privacy, entitlements, profile,
+Apple Distribution signature, deep signature, and exact app/dSYM parity.
+Application UUID is `76E8B4AE-2EA5-321A-83A1-EDFB7D32BDBA`; the
+42,005,840-byte IPA has SHA-256
+`57217ab426b080fa9454ae36b5f7948a6f26c59b1a6801dd8b0cb3ac7c5befb3`.
+Apple accepted the upload at 13:07 CEST with all three canonical success
+markers. Processing and internal-group readback are pending; build 20 has not
+been attached or submitted to App Review.
+
 Current as of 2026-08-01: the latest processed internal iOS checkpoint is
 `1.0.0 (19)` from exact release commit
 `476c4e309985835dfd6429408a4f058c9313e13d`. Its clean Xcode 26.6 archive and
