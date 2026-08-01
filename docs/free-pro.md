@@ -87,4 +87,4 @@ matrix are still release gates. Cancellation followed by accelerated Sandbox
 expiry returned the physical iPhone to Free, and Restore after expiry safely
 kept it Free. Build 16 used misleading purchase-recovery copy for that expired
 Restore result; current source separates the two outcomes and therefore needs
-a replacement signed candidate before review.
+build 17 to finish processing and pass physical acceptance before review.

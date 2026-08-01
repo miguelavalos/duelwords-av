@@ -226,12 +226,14 @@ Current implementation slice:
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
   Internal TestFlight build `1.0.0 (16)` remains the current processed
-  iPhone/iPad checkpoint while corrected successor `1.0.0 (17)` is prepared.
+  iPhone/iPad checkpoint while Apple processes corrected successor
+  `1.0.0 (17)` from exact public commit `b922311` after its accepted upload.
   Physical purchase, second-device hydration, cancellation, and
   accelerated expiry passed; an expired Restore remained safely Free but
   exposed misleading anti-repurchase copy. Current source distinguishes that
-  inactive Restore from purchase recovery and requires a replacement signed
-  candidate before review. Post-V1 advertising, push, or any further
+  inactive Restore from purchase recovery; signed build 17 carries the fix and
+  still requires processing plus physical acceptance before review. Post-V1
+  advertising, push, or any further
   production deploy still requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
   sign-in, and legacy sign-up resources are all loaded. After Apple or Google

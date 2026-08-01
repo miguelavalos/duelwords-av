@@ -23,8 +23,11 @@ Its physical Sandbox purchase, second-device hydration, cancellation, and
 expiry safety pass. An expired Restore exposed misleading anti-repurchase copy
 in build 16; current source distinguishes “no active subscription” from a
 post-purchase entitlement failure. The corrected replacement is reserved as
-`1.0.0 (17)`; build 16 remains the last processed binary until Apple accepts
-that successor.
+`1.0.0 (17)` from exact release commit
+`b9223116090ba01a88bea530bcebfd65954bc939`. Its canonical archive and
+Distribution IPA passed every local release gate, and Apple accepted the
+TestFlight upload at 08:35 CEST on 2026-08-01. Build 16 remains the last
+processed binary until Apple finishes processing that successor.
 
 The current client includes configurable 5/6/7-letter human Challenge and
 Play Avi, eight localized reactions, animated receipt, compact invalid-word
@@ -1040,9 +1043,9 @@ game id; it only creates a start request after recipient acceptance.
   physical iPhone to Free, and Restore after expiry safely kept it Free. That
   Restore exposed misleading anti-repurchase copy in build 16; current source
   now reports that no active subscription was found. Explicit Restore with an
-  active subscription, redeem code, account deletion, a replacement signed
-  candidate, and the remaining lifecycle matrix stay open. The required
-  subscription review screenshot and the four-iPhone/four-iPad commercial
+  active subscription, redeem code, account deletion, build-17 processing and
+  physical acceptance, and the remaining lifecycle matrix stay open. The
+  required subscription review screenshot and the four-iPhone/four-iPad commercial
   screenshot package are saved in App Store Connect.
 - The standalone invitation edge is already deployed and its bounded origin
   verification is closed. Do not redeploy or repeat the rollout smoke. Fresh
