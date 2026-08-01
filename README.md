@@ -22,8 +22,11 @@ Application UUID is `76E8B4AE-2EA5-321A-83A1-EDFB7D32BDBA`; the
 42,005,840-byte IPA has SHA-256
 `57217ab426b080fa9454ae36b5f7948a6f26c59b1a6801dd8b0cb3ac7c5befb3`.
 Apple accepted the upload at 13:07 CEST with all three canonical success
-markers. Processing and internal-group readback are pending; build 20 has not
-been attached or submitted to App Review.
+markers. Authenticated readback at 13:09 CEST reports build id
+`fed1a3aa-85a4-49af-9c48-5f8f0429cfa6` as `VALID`, encryption exempt,
+unexpired through 2026-10-30, and `IN_BETA_TESTING` only through the automatic
+internal `avalsys` group. Build 20 has not been attached or submitted to App
+Review.
 
 Current as of 2026-08-01: the latest processed internal iOS checkpoint is
 `1.0.0 (19)` from exact release commit
