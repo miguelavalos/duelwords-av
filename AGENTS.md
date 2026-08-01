@@ -225,14 +225,14 @@ Current implementation slice:
   CA/FR/DE dictionaries and matching validators, and passed one bounded
   production lifecycle smoke per new language through rematch and next lobby.
   Production native config may therefore enable all five Challenge languages.
-  Internal TestFlight build `1.0.0 (16)` remains the current processed
-  iPhone/iPad checkpoint while Apple processes corrected successor
-  `1.0.0 (17)` from exact public commit `b922311` after its accepted upload.
+  Internal TestFlight build `1.0.0 (17)` from exact public commit `b922311` is
+  the current processed iPhone/iPad checkpoint: `VALID`, encryption exempt,
+  and `IN_BETA_TESTING` only in the automatic internal `avalsys` group.
   Physical purchase, second-device hydration, cancellation, and
   accelerated expiry passed; an expired Restore remained safely Free but
   exposed misleading anti-repurchase copy. Current source distinguishes that
   inactive Restore from purchase recovery; signed build 17 carries the fix and
-  still requires processing plus physical acceptance before review. Post-V1
+  still requires physical acceptance before review. Post-V1
   advertising, push, or any further
   production deploy still requires its own explicit authorization.
 - Expo provider buttons must remain unavailable until Clerk's auth, legacy
