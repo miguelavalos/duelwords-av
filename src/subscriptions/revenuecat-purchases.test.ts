@@ -54,12 +54,32 @@ describe('DuelWordsRevenueCatPurchases', () => {
     expect(sdk.setAllowSharingStoreAccount).toHaveBeenCalledWith(false);
   });
 
-  it('refuses anonymous or guest initialization', async () => {
+  it('loads the priced offer anonymously for guests and logs in once an account exists', async () => {
     const { purchases, sdk } = fixture();
-    await expect(purchases.loadMonthlyOffer('')).rejects.toEqual(
+    sdk.getAppUserID.mockResolvedValue('$RCAnonymousID:abc');
+    await expect(purchases.loadMonthlyOffer(null)).resolves.toMatchObject({ price: '€2.99' });
+    expect(sdk.configure).toHaveBeenCalledWith({
+      apiKey: 'appl_public',
+      automaticDeviceIdentifierCollectionEnabled: false,
+    });
+    expect(sdk.logIn).not.toHaveBeenCalled();
+
+    sdk.isConfigured.mockResolvedValue(true);
+    await purchases.loadMonthlyOffer('apps-av-user');
+    expect(sdk.logIn).toHaveBeenCalledWith('apps-av-user');
+    expect(sdk.configure).toHaveBeenCalledTimes(1);
+  });
+
+  it('refuses to purchase or restore without the internal Apps AV user', async () => {
+    const { monthlyPackage, purchases, sdk } = fixture();
+    await expect(purchases.purchase('', monthlyPackage as never)).rejects.toEqual(
       new RevenueCatConfigurationError('account_user_required'),
     );
-    expect(sdk.configure).not.toHaveBeenCalled();
+    await expect(purchases.restore(' ')).rejects.toEqual(
+      new RevenueCatConfigurationError('account_user_required'),
+    );
+    expect(sdk.purchasePackage).not.toHaveBeenCalled();
+    expect(sdk.restorePurchases).not.toHaveBeenCalled();
   });
 
   it('requires the canonical product in the configured monthly package', async () => {

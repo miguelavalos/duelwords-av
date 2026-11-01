@@ -12,19 +12,6 @@ final class DuelWordsSharedAppleViewManager: RCTViewManager {
     }
 }
 
-@objc(DuelWordsSimulatorUITestRuntime)
-final class DuelWordsSimulatorUITestRuntimeModule: NSObject {
-    @objc static func requiresMainQueueSetup() -> Bool { false }
-
-    @objc func constantsToExport() -> [AnyHashable: Any] {
-        let accountMode = DuelWordsSimulatorUITestRuntime.accountMode()
-        return [
-            "accountMode": accountMode ?? "",
-            "enabled": accountMode != nil
-        ]
-    }
-}
-
 @objcMembers
 final class DuelWordsSharedAppleHostView: UIView {
     var surface: NSString = "" { didSet { render() } }
@@ -124,7 +111,7 @@ final class DuelWordsSharedAppleHostView: UIView {
             subscriptionError: subscriptionError as String,
             subscriptionPrice: subscriptionPrice as String,
             subscriptionState: subscriptionState as String
-        ).applyingSimulatorUITestOverrides()
+        )
         if let renderModel {
             renderModel.props = props
             return
@@ -133,7 +120,6 @@ final class DuelWordsSharedAppleHostView: UIView {
         let model = DuelWordsSharedAppleRenderModel(props: props)
         let rootView = AnyView(
             DuelWordsSharedAppleRenderHost(model: model) { [weak self] action, value in
-                guard !DuelWordsSimulatorUITestRuntime.shouldSuppress(action: action) else { return }
                 var payload: [String: Any] = ["action": action]
                 if let value { payload["value"] = value }
                 self?.onAction?(payload)
@@ -233,123 +219,4 @@ struct DuelWordsSharedSurfaceProps {
     let subscriptionError: String
     let subscriptionPrice: String
     let subscriptionState: String
-}
-
-private extension DuelWordsSharedSurfaceProps {
-    func applyingSimulatorUITestOverrides(
-        environment: [String: String] = ProcessInfo.processInfo.environment
-    ) -> DuelWordsSharedSurfaceProps {
-#if targetEnvironment(simulator)
-        guard let accountMode = DuelWordsSimulatorUITestRuntime.accountMode(environment: environment) else {
-            return self
-        }
-
-        let deletion = Self.deletionFixture(
-            environment["DUELWORDSAV_UI_TEST_ACCOUNT_DELETION"]?.lowercased()
-        )
-        return DuelWordsSharedSurfaceProps(
-            surface: surface,
-            selectedTab: selectedTab,
-            interfaceLocale: interfaceLocale,
-            appearance: appearance,
-            aviDifficulty: aviDifficulty,
-            accountAvailable: true,
-            signedIn: true,
-            displayName: "UI Test User",
-            deletionBlockersJSON: deletion.blockers,
-            deletionBusy: false,
-            deletionCanFinalize: deletion.canFinalize,
-            deletionError: deletion.error,
-            deletionStatus: deletion.status,
-            deletionWarningsJSON: deletion.warnings,
-            email: "ui-test@example.test",
-            planTier: accountMode == "pro" ? "pro" : "free",
-            playerDisplayName: playerDisplayName,
-            activeProvider: activeProvider,
-            authError: authError,
-            authInitiallyPresented: authInitiallyPresented,
-            hapticsEnabled: hapticsEnabled,
-            gameLanguage: gameLanguage,
-            subscriptionBusy: subscriptionBusy,
-            subscriptionError: subscriptionError,
-            subscriptionPrice: subscriptionPrice,
-            subscriptionState: subscriptionState
-        )
-#else
-        return self
-#endif
-    }
-
-    static func deletionFixture(_ scenario: String?) -> (
-        blockers: String,
-        canFinalize: Bool,
-        error: String,
-        status: String,
-        warnings: String
-    ) {
-        switch scenario {
-        case "blocked":
-            return (
-                blockers: #"[{"type":"eligibilityUnavailable","label":"Account AV needs your review","detail":"Open Account AV and resolve the issue before trying again.","managementUrl":null}]"#,
-                canFinalize: false,
-                error: "",
-                status: "blocked",
-                warnings: "[]"
-            )
-        case "completed":
-            return ("[]", false, "", "completed", "[]")
-        case "error":
-            return ("[]", false, "We could not check whether the account can be deleted. No account changes were made.", "", "[]")
-        case "inprogress":
-            return (
-                "[]",
-                true,
-                "",
-                "inProgress",
-                #"[{"type":"deletionInProgress","label":"Deletion request received","detail":"You can now finish the final account deletion step.","managementUrl":null}]"#
-            )
-        case "eligible":
-            return (
-                "[]",
-                false,
-                "",
-                "eligible",
-                #"[{"type":"linkedApp","label":"Connected Apps AV","detail":"Review local game data separately on each device.","managementUrl":null}]"#
-            )
-        default:
-            return ("[]", false, "", "", "[]")
-        }
-    }
-}
-
-private enum DuelWordsSimulatorUITestRuntime {
-    private static let suppressedActions: Set<String> = [
-        "confirmDelete",
-        "continueGuest",
-        "finalizeDelete",
-        "refreshAccount",
-        "retry",
-        "signInApple",
-        "signInGoogle",
-        "signOut"
-    ]
-
-    static func accountMode(
-        environment: [String: String] = ProcessInfo.processInfo.environment
-    ) -> String? {
-#if targetEnvironment(simulator)
-        guard environment["DUELWORDSAV_UI_TESTS"] == "1" else { return nil }
-        let accountMode = environment["DUELWORDSAV_UI_TESTS_ACCOUNT_MODE"]?.lowercased()
-        return accountMode == "free" || accountMode == "pro" ? accountMode : nil
-#else
-        return nil
-#endif
-    }
-
-    static func shouldSuppress(
-        action: String,
-        environment: [String: String] = ProcessInfo.processInfo.environment
-    ) -> Bool {
-        accountMode(environment: environment) != nil && suppressedActions.contains(action)
-    }
 }

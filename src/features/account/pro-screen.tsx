@@ -14,6 +14,8 @@ import { InteriorScreenHeader } from '@/ui/screen-navigation';
 import { isSharedAppleSurfaceAvailable, SharedAppleSurface, type SharedAppleAction } from '@/ui/shared-apple-surface';
 import { spacing, typeScale, useAppTheme } from '@/ui/theme';
 
+const SIGN_IN_THEN_PAYWALL = '/auth?mode=signIn&returnTo=%2Fpro' as Href;
+
 export function ProScreen() {
   const router = useRouter();
   const account = useDuelWordsAccount();
@@ -29,11 +31,16 @@ export function ProScreen() {
     userId: account.user?.id ?? null,
   });
 
+  async function startPurchase() {
+    const result = await subscription.purchase();
+    if (result === 'sign_in_required') router.replace(SIGN_IN_THEN_PAYWALL);
+  }
+
   function handleSharedAction({ action, value }: SharedAppleAction) {
     if (action === 'close') router.back();
-    else if (action === 'signIn') router.replace('/auth?mode=signIn' as Href);
+    else if (action === 'signIn') router.replace(SIGN_IN_THEN_PAYWALL);
     else if (action === 'refreshAccount') void account.refresh();
-    else if (action === 'purchasePro') void subscription.purchase();
+    else if (action === 'purchasePro') void startPurchase();
     else if (action === 'restorePurchases') void subscription.restore();
     else if (action === 'prepareRedeemCode') subscription.prepareRedeemCode();
     else if (action === 'redeemCode' && value) void subscription.redeemCode(value);
@@ -88,19 +95,23 @@ export function ProScreen() {
 
       <PaperCard emphasized>
         <SectionHeading
-          title={copy(isPro ? 'Your access' : signedIn ? 'Monthly subscription' : 'Account AV required')}
-          detail={copy(isPro ? 'DuelWords Pro is active on this account.' : signedIn ? 'Cancel anytime in your Apple subscription settings.' : 'Sign in to continue')}
+          title={copy(isPro ? 'Your access' : 'Monthly subscription')}
+          detail={copy(isPro
+            ? 'DuelWords Pro is active on this account.'
+            : signedIn
+              ? 'Cancel anytime in your Apple subscription settings.'
+              : 'Sign in with Apple or Google when you subscribe. Cancel anytime in your Apple subscription settings.')}
         />
         {isPro ? (
           <>
             <AppButton onPress={() => router.back()}>{copy('Done')}</AppButton>
             <AppButton tone="quiet" onPress={() => void Linking.openURL('https://apps.apple.com/account/subscriptions')}>{copy('Manage Apple subscription')}</AppButton>
           </>
-        ) : signedIn ? (
+        ) : (
           <>
             <AppButton
-              disabled={subscription.state !== 'ready'}
-              onPress={() => void subscription.purchase()}>
+              disabled={subscription.state !== 'ready' || (!signedIn && !account.available)}
+              onPress={() => void startPurchase()}>
               {subscription.state === 'loading'
                 ? copy('Please wait…')
                 : subscription.state === 'reconciliation_delayed'
@@ -110,9 +121,9 @@ export function ProScreen() {
                   : copy('Subscription unavailable')}
             </AppButton>
             <AppButton
-              disabled={subscription.state === 'loading' || subscription.state === 'pending_reconciliation'}
+              disabled={subscription.state === 'loading' || subscription.state === 'pending_reconciliation' || (!signedIn && !account.available)}
               tone="quiet"
-              onPress={() => void subscription.restore()}>
+              onPress={() => (signedIn ? void subscription.restore() : router.replace(SIGN_IN_THEN_PAYWALL))}>
               {copy('Restore purchases')}
             </AppButton>
             {subscription.state === 'pending_reconciliation' ? (
@@ -120,8 +131,6 @@ export function ProScreen() {
             ) : null}
             {subscription.error ? <Text style={styles.error}>{copy(subscription.error)}</Text> : null}
           </>
-        ) : (
-          <AppButton disabled={!account.available} onPress={() => router.replace('/auth?mode=signIn' as Href)}>{copy('Sign in to continue')}</AppButton>
         )}
       </PaperCard>
 

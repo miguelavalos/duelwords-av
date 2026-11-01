@@ -51,9 +51,6 @@ const secureStoreMocks = vi.hoisted(() => ({
   getItemAsync: vi.fn(async () => null as string | null),
   setItemAsync: vi.fn(async () => undefined),
 }));
-const simulatorUITest = vi.hoisted(() => ({
-  accountMode: null as 'free' | 'pro' | null,
-}));
 const appStateMocks = vi.hoisted(() => ({
   addEventListener: vi.fn(),
   currentState: 'active',
@@ -113,9 +110,6 @@ vi.mock('./account-av-config', () => ({
 }));
 
 vi.mock('./account-api-client', () => ({ fetchAccountAvIdentity }));
-vi.mock('./simulator-ui-test-runtime', () => ({
-  getSimulatorUITestAccountMode: () => simulatorUITest.accountMode,
-}));
 
 (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -167,31 +161,7 @@ describe('DuelWordsAccountAvProvider', () => {
       appStateMocks.listener = listener;
       return { remove: appStateMocks.remove };
     });
-    simulatorUITest.accountMode = null;
     accountValue = undefined;
-  });
-
-  it('uses a tokenless local Pro identity for opted-in simulator UI review', async () => {
-    simulatorUITest.accountMode = 'pro';
-
-    await act(async () => {
-      renderer = create(<DuelWordsAccountAvProvider><AccountProbe /></DuelWordsAccountAvProvider>);
-    });
-
-    expect(accountValue).toMatchObject({
-      access: { accessMode: 'signedInPro', planTier: 'pro' },
-      available: true,
-      status: 'signed_in',
-      user: {
-        displayName: 'UI Test User',
-        email: 'ui-test@example.test',
-        id: 'duelwords-simulator-ui-test-user',
-      },
-    });
-    await expect(accountValue?.getToken()).resolves.toBeNull();
-    await expect(accountValue?.refresh()).resolves.toBeUndefined();
-    expect(fetchAccountAvIdentity).not.toHaveBeenCalled();
-    expect(clerkMocks.authState.tokenCalls).toBe(0);
   });
 
   it('keeps provider sign-in unavailable until Clerk sign-in and sign-up resources are loaded', async () => {

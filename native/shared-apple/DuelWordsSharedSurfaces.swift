@@ -652,7 +652,9 @@ private struct DuelWordsPaywallSurface: View {
                 title: "DuelWords Pro",
                 detail: props.planTier == "pro"
                     ? props.localized("DuelWords Pro is active on this account.")
-                    : props.localized("More Daily games, more history, and more challenges with the same fair rules."),
+                    : props.signedIn
+                        ? props.localized("More Daily games, more history, and more challenges with the same fair rules.")
+                        : props.localized("Sign in with Apple or Google when you subscribe. Cancel anytime in your Apple subscription settings."),
                 primaryButtonTitle: primaryButtonTitle,
                 primaryButtonIsDisabled: primaryButtonIsDisabled,
                 primaryAccessibilityIdentifier: "paywall.purchase",
@@ -671,13 +673,13 @@ private struct DuelWordsPaywallSurface: View {
                     }
                 },
                 restoreButton: {
-                    if props.signedIn && props.planTier != "pro" {
+                    if props.planTier != "pro" {
                         AVPaywallRestoreButton(
                             title: props.localized("Restore purchases"),
-                            isDisabled: props.subscriptionBusy,
-                            action: { action("restorePurchases", nil) }
+                            isDisabled: props.subscriptionBusy || (!props.signedIn && !props.accountAvailable),
+                            action: { action(props.signedIn ? "restorePurchases" : "signIn", nil) }
                         )
-                    } else if props.planTier == "pro" {
+                    } else {
                         AVPaywallRestoreButton(
                             title: props.localized("Manage Apple subscription"),
                             action: { action("manageSubscriptions", nil) }
@@ -725,7 +727,7 @@ private struct DuelWordsPaywallSurface: View {
 
     @ViewBuilder
     private var subscriptionTermsRow: some View {
-        if props.signedIn, props.planTier != "pro", !props.subscriptionPrice.isEmpty {
+        if props.planTier != "pro", !props.subscriptionPrice.isEmpty {
             AVPaywallStatusRow(
                 systemImage: "calendar.badge.clock",
                 message: props.localized("DuelWords Pro is a monthly auto-renewable subscription. You will be charged %@ for each 1-month period until you cancel in App Store settings.")
@@ -882,7 +884,6 @@ private struct DuelWordsPaywallSurface: View {
 
     private var primaryButtonTitle: String {
         if props.planTier == "pro" { return props.localized("Done") }
-        if !props.signedIn { return props.localized("Sign in to continue") }
         if props.subscriptionBusy { return props.localized("Please wait…") }
         if props.subscriptionState == "reconciliation_delayed" {
             return props.localized("Pro confirmation pending")
@@ -894,14 +895,14 @@ private struct DuelWordsPaywallSurface: View {
     }
 
     private var primaryButtonIsDisabled: Bool {
-        if !props.signedIn { return !props.accountAvailable }
-        return props.planTier != "pro" && (props.subscriptionState != "ready" || props.subscriptionBusy)
+        if props.planTier == "pro" { return false }
+        if props.subscriptionState != "ready" || props.subscriptionBusy { return true }
+        return !props.signedIn && !props.accountAvailable
     }
 
     private func primaryAction() {
         if props.planTier == "pro" { action("close", nil) }
-        else if props.signedIn { action("purchasePro", nil) }
-        else { action("signIn", nil) }
+        else { action("purchasePro", nil) }
     }
 }
 
@@ -924,7 +925,7 @@ private struct DuelWordsDeleteAccountSurface: View {
         ) {
             AVSettingsScreenHeader(
                 title: props.localized("Delete Apps AV account"),
-                subtitle: props.localized("This deletes the shared identity used by connected Apps AV products—not only DuelWords AV."),
+                subtitle: props.localized("This removes your Apps AV account, which DuelWords AV shares with other Apps AV products. Games saved on this device are not affected."),
                 titleAccessibilityIdentifier: "accountDeletion.title"
             )
 

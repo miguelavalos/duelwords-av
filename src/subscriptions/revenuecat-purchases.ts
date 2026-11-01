@@ -11,7 +11,7 @@ import type { DuelWordsRevenueCatConfig } from './revenuecat-config';
 type PurchasesSdk = {
   configure: (configuration: {
     apiKey: string;
-    appUserID: string;
+    appUserID?: string;
     automaticDeviceIdentifierCollectionEnabled: boolean;
   }) => void;
   getAppUserID: () => Promise<string>;
@@ -28,6 +28,14 @@ export type DuelWordsMonthlyOffer = {
   price: string;
 };
 
+/**
+ * Store access for DuelWords Pro.
+ *
+ * The monthly offer and its localized price load anonymously so a guest can
+ * see what Pro costs before creating an account. Purchase and Restore still
+ * require the internal Apps AV user: the SDK is logged in to that user before
+ * any transaction, and only the Apps AV entitlement unlocks Pro.
+ */
 export class DuelWordsRevenueCatPurchases {
   private preparation: Promise<PurchasesSdk> | null = null;
 
@@ -40,7 +48,8 @@ export class DuelWordsRevenueCatPurchases {
     return this.config.apiKey !== null;
   }
 
-  async loadMonthlyOffer(appUserId: string): Promise<DuelWordsMonthlyOffer> {
+  /** `appUserId` may be null for a guest; the offer then loads anonymously. */
+  async loadMonthlyOffer(appUserId: string | null): Promise<DuelWordsMonthlyOffer> {
     const sdk = await this.prepare(appUserId);
     const offerings = await sdk.getOfferings();
     const offering = offerings.all[this.config.offeringId]
@@ -55,43 +64,47 @@ export class DuelWordsRevenueCatPurchases {
   }
 
   async purchase(appUserId: string, monthlyPackage: PurchasesPackage): Promise<CustomerInfo> {
-    const sdk = await this.prepare(appUserId);
+    const sdk = await this.prepare(requireAccountUser(appUserId));
     const result = await sdk.purchasePackage(monthlyPackage);
     return result.customerInfo;
   }
 
   async restore(appUserId: string): Promise<CustomerInfo> {
-    const sdk = await this.prepare(appUserId);
+    const sdk = await this.prepare(requireAccountUser(appUserId));
     return sdk.restorePurchases();
   }
 
-  private async prepare(appUserId: string): Promise<PurchasesSdk> {
+  private async prepare(appUserId: string | null): Promise<PurchasesSdk> {
     if (!this.config.apiKey) throw new RevenueCatConfigurationError('public_sdk_key_missing');
-    if (!appUserId.trim()) throw new RevenueCatConfigurationError('account_user_required');
+    const accountUserId = appUserId?.trim() ? appUserId.trim() : null;
 
-    this.preparation ??= this.configureOrIdentify(appUserId).finally(() => {
+    this.preparation ??= this.configureOrIdentify(accountUserId).finally(() => {
       this.preparation = null;
     });
     const sdk = await this.preparation;
-    const currentUserId = await sdk.getAppUserID();
-    if (currentUserId !== appUserId) await sdk.logIn(appUserId);
+    if (accountUserId && await sdk.getAppUserID() !== accountUserId) await sdk.logIn(accountUserId);
     return sdk;
   }
 
-  private async configureOrIdentify(appUserId: string): Promise<PurchasesSdk> {
+  private async configureOrIdentify(accountUserId: string | null): Promise<PurchasesSdk> {
     const sdk = await this.loadSdk();
     if (!await sdk.isConfigured()) {
       sdk.configure({
         apiKey: this.config.apiKey!,
-        appUserID: appUserId,
+        ...(accountUserId ? { appUserID: accountUserId } : {}),
         automaticDeviceIdentifierCollectionEnabled: false,
       });
       await sdk.setAllowSharingStoreAccount(false);
       return sdk;
     }
-    if (await sdk.getAppUserID() !== appUserId) await sdk.logIn(appUserId);
+    if (accountUserId && await sdk.getAppUserID() !== accountUserId) await sdk.logIn(accountUserId);
     return sdk;
   }
+}
+
+function requireAccountUser(appUserId: string): string {
+  if (!appUserId.trim()) throw new RevenueCatConfigurationError('account_user_required');
+  return appUserId.trim();
 }
 
 export class RevenueCatConfigurationError extends Error {

@@ -28,9 +28,11 @@ export function OnboardingScreen() {
 }
 
 export function AccountOnboardingExperience({
+  authenticatedPath = '/(tabs)/account' as Href,
   initialAuthExpanded,
   onFinish,
 }: {
+  authenticatedPath?: Href;
   initialAuthExpanded: boolean;
   onFinish: (path: Href) => void;
 }) {
@@ -62,7 +64,7 @@ export function AccountOnboardingExperience({
     const signIn = provider === 'apple' ? account.signInWithApple() : account.signInWithGoogle();
 
     void signIn
-      .then(() => onFinish('/(tabs)/account' as Href))
+      .then(() => onFinish(authenticatedPath))
       .catch((error: unknown) => {
         if (!isAccountAuthCancellation(error)) {
           setAuthError(copy.accountSignInFailed);
@@ -100,7 +102,7 @@ export function AccountOnboardingExperience({
       {showAuth ? (
         <View style={[styles.authPanelWrap, { paddingBottom: Math.max(4, insets.bottom - 10) }]}>
           <AccountAuthOptionsPanel
-            onAuthenticated={() => onFinish('/(tabs)/account' as Href)}
+            onAuthenticated={() => onFinish(authenticatedPath)}
             onDismiss={() => setShowAuth(false)}
             onSkip={() => onFinish('/(tabs)/play' as Href)}
           />

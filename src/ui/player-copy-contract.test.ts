@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 /* eslint-disable @typescript-eslint/no-require-imports */
-const fs = require('node:fs') as { readFileSync(path: string, encoding: 'utf8'): string };
+const fs = require('node:fs') as {
+  readdirSync(path: string): string[];
+  readFileSync(path: string, encoding: 'utf8'): string;
+};
 const path = require('node:path') as { join(...paths: string[]): string };
 
 describe('player-facing local-game copy contract', () => {
@@ -29,18 +32,6 @@ describe('player-facing local-game copy contract', () => {
     path.join(process.cwd(), 'src/features/word-duel/public-challenge-screen.tsx'),
     'utf8',
   );
-  const developmentRouteSources = [
-    'active-demo.tsx',
-    'connected-runtime.tsx',
-    'lobby-demo.tsx',
-    'play-avi-demo.tsx',
-    'result-demo.tsx',
-    'solo-daily-demo.tsx',
-  ].map((fileName) => fs.readFileSync(
-    path.join(process.cwd(), 'src/app/word-duel', fileName),
-    'utf8',
-  ));
-
   it('passes the selected interface locale to the Practice keyboard', () => {
     expect(practiceSource).toContain('interfaceLocale={interfaceLocale}');
   });
@@ -84,9 +75,10 @@ describe('player-facing local-game copy contract', () => {
     expect(playScreenSource).toContain('numberOfLines={compact ? 1 : undefined}');
   });
 
-  it('keeps engineering preview routes out of non-development builds', () => {
-    for (const source of developmentRouteSources) {
-      expect(source).toContain('if (!__DEV__) return <Redirect href="/" />;');
-    }
+  it('ships no engineering preview routes', () => {
+    const routeDir = path.join(process.cwd(), 'src/app/word-duel');
+    const routes = fs.readdirSync(routeDir).sort();
+    expect(routes).toEqual(['challenge.tsx', 'daily.tsx', 'play-avi.tsx', 'practice.tsx', 'setup.tsx']);
+    expect(fs.readFileSync(path.join(process.cwd(), 'src/app/_layout.tsx'), 'utf8')).not.toContain('-demo');
   });
 });

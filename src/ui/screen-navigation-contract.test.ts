@@ -104,15 +104,10 @@ describe('interior screen navigation contract', () => {
     expect(rootLayout).toContain("gestureDirection: 'horizontal'");
 
     for (const route of [
-      'word-duel/active-demo',
-      'word-duel/connected-runtime',
-      'word-duel/lobby-demo',
       'word-duel/play-avi',
-      'word-duel/play-avi-demo',
       'word-duel/practice',
       'word-duel/daily',
-      'word-duel/result-demo',
-      'word-duel/solo-daily-demo',
+      'word-duel/setup',
     ]) {
       const declaration = rootLayout.slice(rootLayout.indexOf(`name="${route}"`), rootLayout.indexOf(`name="${route}"`) + 180);
       expect(declaration, route).toContain('duelWordsFlowScreenOptions');

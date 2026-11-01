@@ -25,6 +25,32 @@ export type DuelWordsProPurchaseState =
   | 'ready'
   | 'unavailable';
 
+export type DuelWordsProPurchaseResult = 'sign_in_required' | 'started' | 'ignored';
+
+/**
+ * A guest who taps Subscribe is sent to sign in first. The intent survives the
+ * route change so the purchase sheet opens by itself once the account exists,
+ * without asking the player to find the paywall again. It expires quickly so a
+ * stale intent can never surprise someone who signs in later for another
+ * reason.
+ */
+const PURCHASE_INTENT_TTL_MS = 10 * 60_000;
+let pendingPurchaseIntentAt: number | null = null;
+
+export function rememberDuelWordsPurchaseIntent(now = Date.now()) {
+  pendingPurchaseIntentAt = now;
+}
+
+export function consumeDuelWordsPurchaseIntent(now = Date.now()): boolean {
+  const recordedAt = pendingPurchaseIntentAt;
+  pendingPurchaseIntentAt = null;
+  return recordedAt !== null && now - recordedAt <= PURCHASE_INTENT_TTL_MS;
+}
+
+export function clearDuelWordsPurchaseIntent() {
+  pendingPurchaseIntentAt = null;
+}
+
 export function useDuelWordsProPurchase(input: {
   getToken: () => Promise<string | null>;
   isPro: boolean;
@@ -41,7 +67,7 @@ export function useDuelWordsProPurchase(input: {
   const userIdRef = useRef(userId);
   const [offer, setOffer] = useState<DuelWordsMonthlyOffer | null>(null);
   const [state, setState] = useState<DuelWordsProPurchaseState>(
-    isPro ? 'active' : userId && purchases.available ? 'loading' : 'unavailable',
+    isPro ? 'active' : purchases.available ? 'loading' : 'unavailable',
   );
   const [error, setError] = useState<SharedSurfaceCopyKey | null>(null);
 
@@ -61,7 +87,7 @@ export function useDuelWordsProPurchase(input: {
 
   useEffect(() => {
     if (isPro) return;
-    if (!userId || !purchases.available) {
+    if (!purchases.available) {
       setOffer(null);
       setState('unavailable');
       return;
@@ -124,8 +150,12 @@ export function useDuelWordsProPurchase(input: {
     }
   }, [accountConfig.accountApiBaseUrl, getToken, refreshAccount, userId]);
 
-  const purchase = useCallback(async () => {
-    if (!userId || !offer || state !== 'ready' || operationInFlightRef.current) return;
+  const purchase = useCallback(async (): Promise<DuelWordsProPurchaseResult> => {
+    if (!offer || state !== 'ready' || operationInFlightRef.current) return 'ignored';
+    if (!userId) {
+      rememberDuelWordsPurchaseIntent();
+      return 'sign_in_required';
+    }
     operationInFlightRef.current = true;
     setState('loading');
     setError(null);
@@ -144,7 +174,16 @@ export function useDuelWordsProPurchase(input: {
       }
     }
     operationInFlightRef.current = false;
+    return 'started';
   }, [config.entitlementId, userId, offer, purchases, reconcile, state]);
+
+  // Continue a purchase a guest started before signing in, once the account
+  // and the priced offer are both present.
+  useEffect(() => {
+    if (isPro || !userId || !offer || state !== 'ready') return;
+    if (!consumeDuelWordsPurchaseIntent()) return;
+    void purchase();
+  }, [isPro, offer, purchase, state, userId]);
 
   const restore = useCallback(async () => {
     if (!userId || state === 'loading' || operationInFlightRef.current) return;

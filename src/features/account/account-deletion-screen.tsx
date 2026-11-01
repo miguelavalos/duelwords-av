@@ -143,7 +143,7 @@ export function AccountDeletionScreen() {
         title={copy('Delete Apps AV account')}
       />
       <View style={styles.headerCopy}>
-        <Text style={styles.subtitle}>{copy('This deletes the shared identity used by connected Apps AV products—not only DuelWords AV.')}</Text>
+        <Text style={styles.subtitle}>{copy('This removes your Apps AV account, which DuelWords AV shares with other Apps AV products. Games saved on this device are not affected.')}</Text>
       </View>
 
       {!signedIn ? (

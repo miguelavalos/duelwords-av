@@ -60,9 +60,12 @@ at the V2 launch; review it only after representative conversion, retention,
 churn, and realized ad-revenue data exists. A possible EUR 24.99 annual option
 is a separate future product, not part of V1.
 
-RevenueCat is configured only after Apps AV resolves an internal signed-in
-user. Guest use never initializes the purchase SDK. Purchase and restore
-return RevenueCat `CustomerInfo`; the client triggers Apps AV reconciliation
+RevenueCat is configured anonymously at launch of the paywall so a guest sees
+the localized monthly price before creating an account; the SDK logs in to the
+internal Apps AV user as soon as one exists. Purchase and Restore still require
+that user: a guest who taps Subscribe or Restore is sent to sign in, and the
+purchase continues automatically once the account is ready (the intent expires
+after ten minutes). Purchase and restore return RevenueCat `CustomerInfo`; the client triggers Apps AV reconciliation
 only when that snapshot contains the configured active `pro` entitlement. A
 StoreKit transaction without that confirmation is reported honestly and does
 not claim that Pro is still syncing or ask the user to purchase again. Only an
@@ -77,7 +80,7 @@ explicitly warns against subscribing again. The native iPhone/iPad paywall follo
 the Tune AV visual hierarchy with
 DuelWords copy and benefits. Its footer is exactly `Redeem code · Terms ·
 Privacy`; Manage Apple subscriptions remains available to active Pro users.
-Guest redemption routes to sign-in. Signed-in redemption uses the authenticated
+Guest redemption routes to sign-in, as do guest Subscribe and Restore. Signed-in redemption uses the authenticated
 app-scoped Apps AV promo endpoint, and the resulting grant still has to
 reconcile through the Apps AV entitlement before Pro becomes active.
 

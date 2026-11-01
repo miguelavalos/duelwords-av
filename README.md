@@ -10,6 +10,16 @@ smokes, observability, and rollback.
 
 ## Current Status
 
+App Review state, read from App Store Connect on 2026-11-01: version `1.0.0`
+is **Rejected** (submission `7976e26f-6501-4151-869a-349fbf405b4a`, state
+"unresolved issues"), TestFlight builds 18, 19, and 20 have expired, and the
+`DuelWords Pro Monthly` subscription is back to `Ready to Submit`. The next
+candidate must be a newly numbered build from the current source. The source
+now shows the localized monthly price to guests before sign-in, continues a
+guest's purchase automatically after sign-in, ships no engineering preview
+routes and no simulator account fixture, and uses calmer account-deletion copy.
+The paragraphs below are the historical record of the rejected submission.
+
 Internal successor `1.0.0 (20)` was archived and uploaded on 2026-08-01 from
 exact release commit `82c274c3bfc8e7c4b824c0e9e11df839b861f4b1`, which contains
 the final five-locale copy correction from `88c3279`. Node 22.23.2 gates passed
@@ -163,9 +173,8 @@ server-arbitrated for fairness. The release candidate and live production
 API/D1/Convex backend now support EN/ES/CA/FR/DE end to end after one bounded
 production lifecycle smoke passed for each newly enabled language. The client
 does not fetch its target during gameplay; it receives only the authorized
-reveal in the finalized result. Lobby, active-duel, result,
-Solo/Daily demo, Play Avi demo, and connected-runtime engineering previews remain
-available by direct internal route when they are not linked from Play.
+reveal in the finalized result. Engineering preview routes no longer ship;
+only Challenge, Daily, Play Avi, Practice, and Setup are registered.
 
 Interface language (EN/ES/CA/FR/DE) and appearance (system/light/dark) are
 versioned local preferences. On first launch, interface and game language both
@@ -549,8 +558,7 @@ recovery, active round command flows, own-round snapshot recovery, and
 participant-scoped final-result recovery after backend finalization. A
 client-safe Apps AV API runtime config boundary exists, but it is disabled by default. A
 lobby controller can now run against `local_mock`, `disabled_runtime`, or an
-injected `apps_av_api` client, and `/word-duel/lobby-demo` uses that controller
-in `local_mock` mode. The active-duel screen is also wired through a local
+injected `apps_av_api` client; the `local_mock` source now serves tests only. The active-duel screen is also wired through a local
 controller, so demo game/player/realtime ids are owned outside the UI. The
 active controller can run against injected Apps AV API and realtime projection
 clients for active commands and own-round snapshot recovery. A runtime-safe
@@ -679,28 +687,6 @@ and production configurations must be deployed only through the private
 Avalsys runbook and exact remote authorization.
 The combined App Store privacy inventory is documented in
 [`docs/app-store-privacy.md`](docs/app-store-privacy.md).
-
-## Simulator-only signed-in surface review
-
-DuelWords follows Tune AV's explicit launch-environment pattern for reviewing
-signed-in common surfaces without creating an account or contacting Account AV.
-Set `DUELWORDSAV_UI_TESTS=1` when launching an iOS Simulator process, choose
-`DUELWORDSAV_UI_TESTS_ACCOUNT_MODE=free` or `pro`, and optionally select one of
-`eligible`, `blocked`, `inprogress`, `completed`, or `error` with
-`DUELWORDSAV_UI_TEST_ACCOUNT_DELETION`.
-
-This is visual and interaction evidence only. The runtime is compiled behind
-`targetEnvironment(simulator)`, exports a tokenless local Account AV identity,
-and suppresses provider sign-in, account refresh/sign-out, and every deletion
-mutation. A physical device or a build without the explicit opt-in cannot
-activate it. Never use the fixture as proof of Clerk persistence, real
-entitlement restoration, StoreKit purchase/restore, or account deletion.
-
-The reusable cross-app rule is the safety shape—not these DuelWords-prefixed
-variables: explicit opt-in, compile-time Simulator isolation, a tokenless local
-provider, blocked remote actions, and a final URL-only log check. Deterministic
-manual runs are allowed on Home; recurring execution or monitoring belongs
-exclusively on Office Openspace.
 
 ## iOS release-candidate configuration
 
@@ -871,14 +857,13 @@ SDK-shaped boundary. `src/game/word-duel-runtime/use-runtime-clients.ts` reads
 Expo runtime config for UI code, supplies that real factory by default, and
 disposes the runtime bundle when config changes or the hook unmounts.
 
-`/word-duel/lobby-demo` and `/word-duel/active-demo` still force `local_mock`
-and do not call the runtime hook. `/word-duel/connected-runtime` is a hidden
-internal route that is not listed in `WORD_DUEL_ROUTE_PATHS` and is not linked
-from `Play`. It creates no Apps AV API calls on mount. When explicitly opened
-with enabled runtime config, user actions can create/join/refresh/Ready/start
-through Apps AV API, recover a backend-issued realtime session if needed, and
-then subscribe/heartbeat/react through Convex. It does not poll, and it fails
-closed if API config, Convex config, or backend realtime session is missing.
+The former `lobby-demo`, `active-demo`, and hidden `connected-runtime` routes
+were removed on 2026-11-01; the public Challenge route is the only connected
+entry. It creates no Apps AV API calls on mount. With enabled runtime config,
+user actions create/join/refresh/Ready/start through Apps AV API, recover a
+backend-issued realtime session if needed, and then subscribe/heartbeat/react
+through Convex. It does not poll, and it fails closed if API config, Convex
+config, or backend realtime session is missing.
 The local connected runtime smoke wraps a fake React client with the real SDK
 bridge to verify subscription, heartbeat, and reaction refs without calling
 Convex.
@@ -961,13 +946,13 @@ player ids, target ids, dictionary metadata, guesses, or feedback through the
 lobby view-model. It can also build a connected next-lobby state from an
 accepted rematch proposal's safe `nextGame` summary by taking the new viewer
 `playerId` from the next game side while reusing the current actor in memory.
-`/word-duel/lobby-demo` is wired through the controller using the `local_mock`
-source only, so the app still makes no real Apps AV API calls by default.
+The `local_mock` source is used by tests only; the app makes no real Apps AV
+API calls unless runtime config is explicitly enabled.
 
 `src/game/word-duel-active/handoff.ts` defines the local-safe handoff from
-the lobby preview to the active duel preview. `/word-duel/lobby-demo` can only
-open `/word-duel/active-demo` after the lobby reaches `active_round`, and the
-handoff route params contain only public duel settings: language, `human_duel`,
+the lobby to the active duel. The active duel opens only after the lobby
+reaches `active_round`, and the handoff route params contain only public duel
+settings: language, `human_duel`,
 word length, max attempts, and local demo source. They never carry game ids,
 player ids, targets, dictionary metadata, guesses, feedback, realtime tokens,
 sessions, account state, or provider state.
@@ -1038,46 +1023,11 @@ still requires its coordinated Convex/API preview deploy and two-device smoke.
   no-spoiler share text. After start, the compact common Back header and
   disclosure control leave the complete board and keyboard visible without
   repeating the product logo.
-- `/word-duel/lobby-demo`: local invite, join review, lobby, one-way Ready,
-  countdown, and active-duel handoff preview through the lobby controller's
-  `local_mock` source. It uses a safe demo invite link and room code only.
-- `/word-duel/active-demo`: local active-duel UI preview with safe opponent
-  summary, own board/keyboard, reactions, local
-  mock submit handling through the typed active-duel adapter, and local
-  mock realtime projection handling for timer, presence, opponent state, and
-  reactions. It can open directly or through the local lobby-active handoff.
-- `/word-duel/result-demo`: local finalized result preview with in-app target
-  reveal, own/opponent completed-board review, safe share preview, and local
-  rematch proposal states for draft, sent, accepted,
-  declined, expired, and cancelled flows.
-- `/word-duel/play-avi-demo`: deterministic local bot-duel preview that reuses
-  synchronized-round UI and safe opponent summaries without API/D1 authority.
-- `/word-duel/solo-daily-demo`: local Solo and Daily-style board preview. It
-  uses non-production fixtures and does not create an official Daily result.
-
-`/word-duel/active-demo` is not connected gameplay. Its adapter builds the
-approved local command paths for submit, timeout, and open-next-if-due, but it
-does not call Apps AV API/D1, Convex, ads, Pro, Account AV, Sentry, push, or
-any remote provider. The realtime projection mock mirrors the client-safe
-Convex room-view/heartbeat/reaction surface without importing or connecting the
-Convex SDK/runtime. The screen explicitly uses the active controller's
-`local_mock` source, so public runtime config cannot accidentally connect the
-demo or leak local session details into UI code.
-
-`/word-duel/lobby-demo` is local-only. It does not create real invite links,
-join remote rooms, configure Universal Links/App Links, call Apps AV API/D1,
-connect Convex, open native share sheets, use clipboard, request push, or touch
-ads, Pro, Account AV, Sentry, signed runtime, deploys, or remote providers. Its
-active-duel handoff is a typed local route boundary only, not a backend-issued
-game session or realtime session.
-
-`/word-duel/result-demo` is also local-only when opened directly. It does not
-call result APIs, native share, public result links, Convex post-finalization
-runtime, ad SDKs, Pro, Account AV, Sentry, push, or any remote provider. The
-hidden connected runtime route may navigate to it with an API-derived local
-result payload after backend finalization, but the result route itself still
-does not make connected calls. The local rematch model does not create a new
-game id; it only creates a start request after recipient acceptance.
+Engineering preview routes (`lobby-demo`, `active-demo`, `result-demo`,
+`play-avi-demo`, `solo-daily-demo`, and the hidden `connected-runtime`) were
+removed from the route tree on 2026-11-01. Their screens and local mocks remain
+available to tests only; nothing outside `challenge`, `daily`, `play-avi`,
+`practice`, and `setup` is registered.
 
 ## Remaining V1 release gates
 

@@ -1,7 +1,7 @@
 import { act, create, type ReactTestRenderer } from 'react-test-renderer';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { useDuelWordsProPurchase } from './use-duelwords-pro-purchase';
+import { clearDuelWordsPurchaseIntent, useDuelWordsProPurchase } from './use-duelwords-pro-purchase';
 
 const purchaseMocks = vi.hoisted(() => ({
   available: true,
@@ -81,6 +81,44 @@ describe('useDuelWordsProPurchase lifecycle', () => {
     purchaseMocks.restore.mockReset().mockResolvedValue(activeCustomerInfo);
     purchaseMocks.refreshRevenueCat.mockReset().mockResolvedValue(true);
     purchaseMocks.reconcile.mockReset().mockResolvedValue(true);
+    clearDuelWordsPurchaseIntent();
+  });
+
+  it('shows a guest the localized price and continues the purchase after sign-in', async () => {
+    const harness = await renderPurchaseHook({ getToken: async () => null, userId: null });
+
+    expect(harness.current.state).toBe('ready');
+    expect(harness.current.price).toBe('€2.99');
+    expect(purchaseMocks.loadMonthlyOffer).toHaveBeenCalledWith(null);
+
+    let result: string | undefined;
+    await act(async () => {
+      result = await harness.current.purchase();
+    });
+    expect(result).toBe('sign_in_required');
+    expect(purchaseMocks.purchase).not.toHaveBeenCalled();
+
+    await harness.update({ getToken: async () => 'account-token', userId: 'apps-av-user' });
+    await flushEffects();
+
+    expect(purchaseMocks.loadMonthlyOffer).toHaveBeenLastCalledWith('apps-av-user');
+    expect(purchaseMocks.purchase).toHaveBeenCalledTimes(1);
+    expect(purchaseMocks.purchase).toHaveBeenCalledWith('apps-av-user', monthlyPackage);
+    expect(harness.current.state).toBe('pending_reconciliation');
+
+    harness.unmount();
+  });
+
+  it('does not start a purchase after sign-in when the guest never asked for one', async () => {
+    const harness = await renderPurchaseHook({ getToken: async () => null, userId: null });
+    expect(harness.current.state).toBe('ready');
+
+    await harness.update({ getToken: async () => 'account-token', userId: 'apps-av-user' });
+    await flushEffects();
+
+    expect(purchaseMocks.purchase).not.toHaveBeenCalled();
+    expect(harness.current.state).toBe('ready');
+    harness.unmount();
   });
 
   it('moves a confirmed purchase through reconciliation into visible Pro', async () => {
@@ -222,7 +260,7 @@ describe('useDuelWordsProPurchase lifecycle', () => {
     }));
     const harness = await renderPurchaseHook();
 
-    let firstPurchase: Promise<void> | undefined;
+    let firstPurchase: Promise<unknown> | undefined;
     await act(async () => {
       firstPurchase = harness.current.purchase();
       void harness.current.purchase();

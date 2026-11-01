@@ -127,22 +127,20 @@ describe('shared Apps AV native-surface contract', () => {
     expect(tabLayoutSource).toContain('<Tabs.Screen name="account" options={{ href: null');
   });
 
-  it('keeps signed-in visual fixtures local to explicitly opted-in iOS simulators', () => {
-    expect(nativeViewManagerSource).toContain('#if targetEnvironment(simulator)');
-    expect(nativeViewManagerSource).toContain('environment["DUELWORDSAV_UI_TESTS"] == "1"');
-    expect(nativeViewManagerSource).toContain('DUELWORDSAV_UI_TESTS_ACCOUNT_MODE');
-    expect(nativeViewManagerSource).toContain('DUELWORDSAV_UI_TEST_ACCOUNT_DELETION');
-    expect(nativeViewManagerSource).toContain('#else\n        return self\n#endif');
-    for (const suppressedAction of [
-      'confirmDelete',
-      'finalizeDelete',
-      'refreshAccount',
-      'retry',
-      'signInApple',
-      'signInGoogle',
+  it('ships no simulator account fixture or test-only native module in the production binary', () => {
+    for (const forbidden of [
+      'DuelWordsSimulatorUITestRuntime',
+      'DUELWORDSAV_UI_TESTS',
+      'applyingSimulatorUITestOverrides',
+      'UI Test User',
     ]) {
-      expect(nativeViewManagerSource).toContain(`"${suppressedAction}"`);
+      expect(nativeViewManagerSource).not.toContain(forbidden);
+      expect(nativeSurfaceSource).not.toContain(forbidden);
     }
+    expect(source('native/shared-apple/DuelWordsSharedAppleViewManager.m')).not.toContain('DuelWordsSimulatorUITestRuntime');
+    expect(fs.existsSync(path.resolve(projectRoot, 'src/account/simulator-ui-test-runtime.ts'))).toBe(false);
+    expect(fs.existsSync(path.resolve(projectRoot, 'src/account/simulator-ui-test-runtime.ios.ts'))).toBe(false);
+    expect(source('src/account/account-av-provider.tsx')).not.toContain('SimulatorUITest');
     expect(nativeViewManagerSource).not.toContain('fetch(');
 
     expectGeneratedSourceToMatch(
@@ -159,7 +157,7 @@ describe('shared Apps AV native-surface contract', () => {
     expect(nativeViewManagerSource).not.toContain('hostingController.rootView = rootView');
   });
 
-  it('localizes account-deletion service copy without exposing technical fixture language', () => {
+  it('localizes account-deletion service copy delivered by Account AV', () => {
     expect(nativeSurfaceSource).toContain('detail: props.localized(props.deletionError)');
     expect(nativeSurfaceSource).toContain('title: props.localized(item.label)');
     expect(nativeSurfaceSource).toContain('detail: item.detail.map { props.localized($0) }');
@@ -173,7 +171,6 @@ describe('shared Apps AV native-surface contract', () => {
       'Review local game data separately on each device.',
       'We could not check whether the account can be deleted. No account changes were made.',
     ]) {
-      expect(nativeViewManagerSource, playerFacingCopy).toContain(playerFacingCopy);
       expect(nativeL10nSource.split(`"${playerFacingCopy}":`).length - 1, playerFacingCopy).toBe(4);
     }
 

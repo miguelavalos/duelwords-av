@@ -36,7 +36,7 @@ describe('shared native and React surface copy', () => {
       'Game preferences',
       'Your account and DuelWords access in one place.',
       'Pro keeps more private history without changing the rules of a duel.',
-      'This deletes the shared identity used by connected Apps AV products—not only DuelWords AV.',
+      'This removes your Apps AV account, which DuelWords AV shares with other Apps AV products. Games saved on this device are not affected.',
     ] as const;
     for (const { code } of INTERFACE_LOCALES.filter(({ code }) => code !== 'en')) {
       for (const key of keys) expect(sharedSurfaceT(code, key), `${code}: ${key}`).not.toBe(key);

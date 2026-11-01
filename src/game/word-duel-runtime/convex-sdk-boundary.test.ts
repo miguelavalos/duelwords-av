@@ -7,6 +7,7 @@ declare const process: {
 declare function require(id: string): unknown;
 
 const fs = require('node:fs') as {
+  existsSync(path: string): boolean;
   readFileSync(path: string, encoding: 'utf8'): string;
   readdirSync(
     path: string,
@@ -50,7 +51,7 @@ describe('DuelWords public Convex SDK boundary', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('keeps demo screens on local mock controllers instead of runtime clients', () => {
+  it('keeps local-mock screens off the runtime clients', () => {
     const lobbyScreen = fs.readFileSync(
       path.join(process.cwd(), 'src/features/word-duel/lobby-screen.tsx'),
       'utf8',
@@ -59,28 +60,17 @@ describe('DuelWords public Convex SDK boundary', () => {
       path.join(process.cwd(), 'src/features/word-duel/active-duel-screen.tsx'),
       'utf8',
     );
-    const demoRoutes = [
-      path.join(process.cwd(), 'src/app/word-duel/lobby-demo.tsx'),
-      path.join(process.cwd(), 'src/app/word-duel/active-demo.tsx'),
-    ]
-      .map((file) => fs.readFileSync(file, 'utf8'))
-      .join('\n');
-
     expect(lobbyScreen).toContain("mode: 'local_mock'");
     expect(activeScreen).toContain("mode: 'local_mock'");
-    expect(`${lobbyScreen}\n${activeScreen}\n${demoRoutes}`).not.toContain(
+    expect(`${lobbyScreen}\n${activeScreen}`).not.toContain(
       'useDuelWordsRuntimeClients',
     );
-    expect(`${lobbyScreen}\n${activeScreen}\n${demoRoutes}`).not.toContain(
+    expect(`${lobbyScreen}\n${activeScreen}`).not.toContain(
       'createDuelWordsRuntimeClientsFromExpoConfig',
     );
   });
 
-  it('keeps the connected runtime route hidden from public play navigation', () => {
-    const connectedRoute = fs.readFileSync(
-      path.join(process.cwd(), 'src/app/word-duel/connected-runtime.tsx'),
-      'utf8',
-    );
+  it('ships no hidden connected runtime route; the public Challenge route is the only connected entry', () => {
     const playScreen = fs.readFileSync(
       path.join(process.cwd(), 'src/features/play/play-screen.tsx'),
       'utf8',
@@ -94,8 +84,9 @@ describe('DuelWords public Convex SDK boundary', () => {
       'utf8',
     );
 
-    expect(connectedRoute).toContain('ConnectedRuntimeScreen');
-    expect(rootLayout).toContain('word-duel/connected-runtime');
+    expect(fs.existsSync(path.join(process.cwd(), 'src/app/word-duel/connected-runtime.tsx'))).toBe(false);
+    expect(rootLayout).not.toContain('word-duel/connected-runtime');
+    expect(rootLayout).toContain('word-duel/challenge');
     expect(playScreen).not.toContain('connected-runtime');
     expect(routeParams).not.toContain('connected-runtime');
   });

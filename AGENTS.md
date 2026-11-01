@@ -130,7 +130,7 @@ Current implementation slice:
   Convex realtime projection only when client-safe API and realtime configs are
   both enabled and a Convex client factory is present. The Expo hook supplies
   the real SDK bridge by default and disposes the bundle on cleanup. It fails
-  closed by default and is not wired into the demo routes.
+  closed by default.
 - Client-side parser for backend-issued active-duel realtime session envelopes:
   `realtimeSessionId`, `roomToken`, and `side` only.
 - Typed, fetch-injected Apps AV API client boundary for invite preview, room
@@ -148,11 +148,10 @@ Current implementation slice:
   `apps_av_api` sources. It maps API lobby/start payloads into UI-safe lobby
   state, keeps the demo on local mock, and powers the public challenge route
   only when the explicit runtime gate is enabled.
-- Local lobby-to-active handoff boundary. `/word-duel/lobby-demo` can open
-  `/word-duel/active-demo` only through typed public V1 route params; the
-  handoff never carries game ids, player ids, targets, dictionary metadata,
-  guesses, feedback, realtime tokens, account state, provider state, or a real
-  runtime session.
+- Lobby-to-active handoff boundary. Typed public V1 route params carry only
+  language, mode, word length and attempts; the handoff never carries game
+  ids, player ids, targets, dictionary metadata, guesses, feedback, realtime
+  tokens, account state, provider state, or a real runtime session.
 - Active-duel controller boundary with `local_mock`, `disabled_runtime`, and
   injected `apps_av_api` sources. The screen must call high-level controller
   methods and must not own demo game ids, player ids, room tokens, realtime
@@ -163,13 +162,10 @@ Current implementation slice:
   session, enabled runtime config, and injected Convex realtime adapter or
   SDK-shaped Convex client; missing pieces must fail closed to
   `disabled_runtime`, without polling or alternate realtime transports.
-- Hidden internal connected route `/word-duel/connected-runtime`. It is
-  registered in the stack but not linked from Play and not included in
-  `WORD_DUEL_ROUTE_PATHS`. It uses the composed runtime hook, creates no API
-  calls on mount, sends create/join/refresh/Ready/start/submit/timeout/open-next/
-  own-snapshot through Apps AV API user actions, recovers backend-issued
-  realtime sessions before active subscription, and uses Convex only for safe
-  room-view subscription, heartbeat, and closed-set reactions.
+- No engineering preview or hidden runtime routes ship in the app. Since
+  2026-11-01 the only `word-duel` routes are `challenge`, `daily`, `play-avi`,
+  `practice`, and `setup`; `player-copy-contract.test.ts` enforces that list.
+  Development previews belong in tests and local mocks, not in the route tree.
 - Local connected-runtime smoke test for Apps AV API lobby create/Ready/start
   into active runtime with a fake React client routed through the real Convex
   SDK bridge. It remains local-only and must not call live Convex or Apps AV
@@ -179,9 +175,9 @@ Current implementation slice:
   tests green before any activation step.
 - Real Convex SDK bridge activation followed the private
   `docs/duelwords-av/convex-sdk-activation-plan.md`. Do not import generated
-  Convex API files, enable realtime config in committed runtime, wire demo
-  routes to runtime clients, run Convex deploy/codegen ad hoc, or expose
-  connected gameplay outside the hidden route and approved activation gates.
+  Convex API files, enable realtime config in committed runtime, run Convex
+  deploy/codegen ad hoc, or expose connected gameplay outside the public
+  Challenge route and approved activation gates.
 - Local finalized result preview with post-finalization target reveal,
   completed-board review, safe share preview, and local rematch proposal state
   machine.
@@ -196,9 +192,8 @@ Current implementation slice:
   result and current rematch discovery remain explicit Apps AV API/D1 reads;
   accepted `nextGame` can continue into the next connected lobby. This flow is
   still hidden and is not public result-screen navigation.
-- Local Solo/Daily demo and deterministic Play Avi bot-duel preview. The demo
-  remains a non-production fixture route; the public Daily route is the
-  official `DW-013` implementation, while Play Avi remains device-local.
+- The public Daily route is the official `DW-013` implementation, while Play
+  Avi remains device-local and deterministic.
 - Sentry diagnostics facade backed by `@sentry/react-native`, disabled in debug
   builds or without a DSN and scrubbed against game/account secrets.
 - Bundled offline EN/ES/CA/FR/DE allowlists and versioned curated target decks.
