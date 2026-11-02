@@ -57,8 +57,8 @@ recommendation: Pro may become ad-free only when V2 actually ships ads, while
 Free placements must stay outside active gameplay, lobby synchronization,
 reactions, results, and rematch decisions. Do not raise the subscription price
 at the V2 launch; review it only after representative conversion, retention,
-churn, and realized ad-revenue data exists. A possible EUR 24.99 annual option
-is a separate future product, not part of V1.
+churn, and realized ad-revenue data exists. There is no annual or lifetime
+option, now or later: Pro is one monthly subscription.
 
 RevenueCat is configured only after Apps AV resolves an internal signed-in
 user. Guest use never initializes the purchase SDK. Purchase and restore
