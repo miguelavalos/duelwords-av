@@ -13,6 +13,22 @@ bash private/avalsys-suite/scripts/agent-preflight.sh --app duelwords-av --inten
 Then read every document printed by that preflight and the relevant private
 DuelWords AV runbook.
 
+## Review
+
+The independent review that sets the `agent-review` status follows
+[`project-bootstrap/docs/REVIEW.md`](https://github.com/miguelavalos/project-bootstrap/blob/main/docs/REVIEW.md)
+(`~/github/project-bootstrap/docs/REVIEW.md` on agent machines). The reviewer
+is a fresh agent that did not write the change, and its review comment starts
+with `PASS` or `BLOCK`.
+
+## Verification before a pull request
+
+Run `pnpm verify` once before opening a pull request. The full suite, release
+builds and device runs belong to CI and the required checks; do not repeat
+them locally unless the change needs it. A fresh worktree is prepared by
+`scripts/setup-worktree.sh` through `t3.json`: it installs dependencies with
+the pnpm version pinned in `package.json` and copies no secrets.
+
 Current implementation slice:
 
 - Recurrent connected-round rule: Convex publishes the authoritative
