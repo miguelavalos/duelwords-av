@@ -47,7 +47,7 @@ wildcard is not permitted.
 
 ## Build and validate
 
-Use Node 22 and pnpm 11.9. From a clean, approved public commit:
+Use Node 22 and pnpm 12.16. From a clean, approved public commit:
 
 ```bash
 pnpm install --frozen-lockfile
